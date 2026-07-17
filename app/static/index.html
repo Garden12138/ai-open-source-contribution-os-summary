@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153f34">
+    <meta
+      name="description"
+      content="每天从 GitHub 开源议题中筛选更值得投入的贡献机会。"
+    >
+    <title>开源机会雷达</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="/" aria-label="返回机会榜单首页">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span>
+            <strong id="app-name">开源机会雷达</strong>
+            <small>每日精选 · AI 评分</small>
+          </span>
+        </a>
+
+        <div class="system-status" id="system-status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="token-status">正在检查连接状态</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero">
+        <div class="shell hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">DAILY OPEN SOURCE RADAR</p>
+            <h1>今天，值得你出手的<br>开源贡献机会</h1>
+            <p class="hero-description">
+              从影响力、接收概率、技术匹配和潜在回报多维评估，
+              把有限的贡献时间留给更好的选择。
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <div class="edition-date">
+              <span>本期榜单</span>
+              <strong id="selection-date">等待数据</strong>
+            </div>
+            <button class="scan-button" id="scan-button" type="button">
+              <span class="scan-icon" aria-hidden="true"></span>
+              <span class="scan-label">立即扫描新机会</span>
+            </button>
+            <p class="scan-note" id="scan-note">扫描将更新今天的候选池与推荐榜单</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="shell dashboard-shell">
+        <aside class="token-notice is-loading" id="token-notice" aria-live="polite">
+          <span class="notice-icon" aria-hidden="true">i</span>
+          <div>
+            <strong id="token-notice-title">正在读取 GitHub 配置</strong>
+            <p id="token-notice-copy">请稍候，正在确认扫描服务是否就绪。</p>
+          </div>
+          <span class="meta-summary" id="meta-summary"></span>
+        </aside>
+
+        <section class="stats-grid" aria-label="本期榜单统计">
+          <article class="stat-card">
+            <span class="stat-label">扫描候选</span>
+            <strong class="stat-value" id="candidate-count">—</strong>
+            <span class="stat-caption">来自 GitHub 检索结果</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">通过硬筛选</span>
+            <strong class="stat-value" id="eligible-count">—</strong>
+            <span class="stat-caption">许可、活跃度与可接手性合格</span>
+          </article>
+          <article class="stat-card stat-card-accent">
+            <span class="stat-label">今日精选</span>
+            <strong class="stat-value" id="selected-count">—</strong>
+            <span class="stat-caption">经配额平衡后的最终机会</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">最近更新</span>
+            <strong class="stat-value stat-time" id="generated-time">—</strong>
+            <span class="stat-caption" id="generated-date">等待首轮扫描</span>
+          </article>
+        </section>
+
+        <section class="leaderboard" aria-labelledby="leaderboard-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">CURATED TOP PICKS</p>
+              <h2 id="leaderboard-title">今日机会榜</h2>
+              <p>按照推荐策略筛选，找到最适合你现在投入的议题。</p>
+            </div>
+            <span class="result-count" id="result-count" aria-live="polite">载入中</span>
+          </div>
+
+          <div class="filter-bar" id="filter-bar" role="group" aria-label="按推荐类型筛选">
+            <button class="filter-chip is-active" type="button" data-filter="all" aria-pressed="true">
+              全部 <span data-count-for="all">0</span>
+            </button>
+            <button class="filter-chip" type="button" data-filter="bounty" aria-pressed="false">
+              赏金优先 <span data-count-for="bounty">0</span>
+            </button>
+            <button class="filter-chip" type="button" data-filter="strategic" aria-pressed="false">
+              战略匹配 <span data-count-for="strategic">0</span>
+            </button>
+            <button class="filter-chip" type="button" data-filter="tech_match" aria-pressed="false">
+              技术栈匹配 <span data-count-for="tech_match">0</span>
+            </button>
+            <button class="filter-chip" type="button" data-filter="high_impact" aria-pressed="false">
+              高影响力 <span data-count-for="high_impact">0</span>
+            </button>
+            <button class="filter-chip" type="button" data-filter="best_available" aria-pressed="false">
+              综合优选 <span data-count-for="best_available">0</span>
+            </button>
+          </div>
+
+          <div class="state-panel" id="state-panel" role="status" aria-live="polite">
+            <div class="loading-state" id="loading-state">
+              <div class="skeleton-card" aria-hidden="true"></div>
+              <div class="skeleton-card" aria-hidden="true"></div>
+              <div class="skeleton-card" aria-hidden="true"></div>
+              <span class="sr-only">正在载入今日机会榜</span>
+            </div>
+          </div>
+
+          <div class="opportunity-list" id="opportunity-list" aria-live="polite"></div>
+
+          <div class="filter-empty" id="filter-empty" hidden>
+            <span aria-hidden="true">⌁</span>
+            <strong>这一类型今天还没有入选机会</strong>
+            <p>可以切换到“全部”，或发起一次新扫描。</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-inner">
+        <p>机会由规则筛选与多维评分生成，请在认领前阅读仓库贡献指南。</p>
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">在 GitHub 开始贡献 ↗</a>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>
