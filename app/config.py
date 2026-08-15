@@ -41,12 +41,46 @@ def _int_env(name: str, default: int) -> int:
         raise ValueError(f"{name} must be an integer") from exc
 
 
+def _float_env(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number") from exc
+
+
+def _signing_key_env() -> bytes | None:
+    raw = os.getenv("SANDBOX_JOB_SPEC_SIGNING_KEY")
+    if raw is None or not raw.strip():
+        return None
+    try:
+        key = bytes.fromhex(raw.strip())
+    except ValueError as exc:
+        raise ValueError(
+            "SANDBOX_JOB_SPEC_SIGNING_KEY must be hexadecimal"
+        ) from exc
+    if len(key) < 32:
+        raise ValueError(
+            "SANDBOX_JOB_SPEC_SIGNING_KEY must contain at least 32 bytes"
+        )
+    return key
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     app_name: str = "AI Open Source Contribution OS"
     database_url: str = "sqlite:///./data/contribos.db"
+    artifact_root: str = "./data/artifacts"
+    local_access_token: str | None = None
     github_token: str | None = None
     github_api_url: str = "https://api.github.com"
+    github_allowed_hosts: tuple[str, ...] = ("api.github.com",)
+    github_archive_hosts: tuple[str, ...] = ("codeload.github.com",)
+    github_max_retries: int = 3
+    github_retry_base_seconds: float = 0.5
+    github_retry_max_seconds: float = 60
     github_queries: tuple[str, ...] = DEFAULT_GITHUB_QUERIES
     preferred_languages: tuple[str, ...] = ("Python", "TypeScript")
     strategic_keywords: tuple[str, ...] = DEFAULT_STRATEGIC_KEYWORDS
@@ -58,6 +92,35 @@ class Settings:
     github_concurrency: int = 5
     request_timeout_seconds: int = 20
     timezone: str = "Asia/Shanghai"
+    analysis_provider: str = "none"
+    sandbox_job_spec_key_id: str = "local-v1"
+    sandbox_job_spec_signing_key: bytes | None = None
+    sandbox_stage_runtime: str = "none"
+
+    def __post_init__(self) -> None:
+        if not 0 <= self.github_max_retries <= 3:
+            raise ValueError("GITHUB_MAX_RETRIES must be between 0 and 3")
+        if self.github_retry_base_seconds < 0:
+            raise ValueError("GITHUB_RETRY_BASE_SECONDS must be non-negative")
+        if self.github_retry_max_seconds < 0:
+            raise ValueError("GITHUB_RETRY_MAX_SECONDS must be non-negative")
+        if self.analysis_provider not in {"none", "fake"}:
+            raise ValueError(
+                "ANALYSIS_PROVIDER must be 'none' or 'fake'; "
+                "codex remains unwired in the API and worker process"
+            )
+        if self.sandbox_stage_runtime not in {"none", "fake"}:
+            raise ValueError(
+                "SANDBOX_STAGE_RUNTIME must be 'none' or 'fake'; "
+                "Docker runtimes stay in the Sandbox Worker process"
+            )
+        if (
+            self.sandbox_job_spec_signing_key is not None
+            and len(self.sandbox_job_spec_signing_key) < 32
+        ):
+            raise ValueError(
+                "SANDBOX_JOB_SPEC_SIGNING_KEY must contain at least 32 bytes"
+            )
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -69,12 +132,33 @@ class Settings:
         strategic = _split_env(
             os.getenv("STRATEGIC_KEYWORDS"), defaults.strategic_keywords
         )
+        allowed_hosts = _split_env(
+            os.getenv("GITHUB_ALLOWED_HOSTS"),
+            defaults.github_allowed_hosts,
+        )
+        archive_hosts = _split_env(
+            os.getenv("GITHUB_ARCHIVE_HOSTS"),
+            defaults.github_archive_hosts,
+        )
         return cls(
             app_name=os.getenv("APP_NAME", defaults.app_name),
             database_url=os.getenv("DATABASE_URL", defaults.database_url),
+            artifact_root=os.getenv("ARTIFACT_ROOT", defaults.artifact_root),
+            local_access_token=os.getenv("LOCAL_ACCESS_TOKEN") or None,
             github_token=token,
             github_api_url=os.getenv("GITHUB_API_URL", defaults.github_api_url).rstrip(
                 "/"
+            ),
+            github_allowed_hosts=tuple(host.lower() for host in allowed_hosts),
+            github_archive_hosts=tuple(host.lower() for host in archive_hosts),
+            github_max_retries=_int_env("GITHUB_MAX_RETRIES", 3),
+            github_retry_base_seconds=_float_env(
+                "GITHUB_RETRY_BASE_SECONDS",
+                defaults.github_retry_base_seconds,
+            ),
+            github_retry_max_seconds=_float_env(
+                "GITHUB_RETRY_MAX_SECONDS",
+                defaults.github_retry_max_seconds,
             ),
             github_queries=_split_env(
                 os.getenv("GITHUB_QUERIES"), DEFAULT_GITHUB_QUERIES
@@ -89,4 +173,23 @@ class Settings:
             github_concurrency=_int_env("GITHUB_CONCURRENCY", 5),
             request_timeout_seconds=_int_env("REQUEST_TIMEOUT_SECONDS", 20),
             timezone=os.getenv("APP_TIMEZONE", defaults.timezone),
+            analysis_provider=(
+                os.getenv("ANALYSIS_PROVIDER", defaults.analysis_provider).strip()
+                or defaults.analysis_provider
+            ),
+            sandbox_job_spec_key_id=(
+                os.getenv(
+                    "SANDBOX_JOB_SPEC_KEY_ID",
+                    defaults.sandbox_job_spec_key_id,
+                ).strip()
+                or defaults.sandbox_job_spec_key_id
+            ),
+            sandbox_job_spec_signing_key=_signing_key_env(),
+            sandbox_stage_runtime=(
+                os.getenv(
+                    "SANDBOX_STAGE_RUNTIME",
+                    defaults.sandbox_stage_runtime,
+                ).strip()
+                or defaults.sandbox_stage_runtime
+            ),
         )

@@ -10,7 +10,7 @@
     >
     <title>开源机会雷达</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/app.js" defer></script>
+    <script src="/static/app.js" type="module"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容</a>
@@ -23,7 +23,7 @@
           </span>
           <span>
             <strong id="app-name">开源机会雷达</strong>
-            <small>每日精选 · AI 评分</small>
+            <small>规则评分 · AI 深析</small>
           </span>
         </a>
 
@@ -98,7 +98,7 @@
             <div>
               <p class="section-kicker">CURATED TOP PICKS</p>
               <h2 id="leaderboard-title">今日机会榜</h2>
-              <p>按照推荐策略筛选，找到最适合你现在投入的议题。</p>
+              <p id="analysis-mode">正在确认深度分析状态…</p>
             </div>
             <span class="result-count" id="result-count" aria-live="polite">载入中</span>
           </div>
@@ -134,6 +134,19 @@
           </div>
 
           <div class="opportunity-list" id="opportunity-list" aria-live="polite"></div>
+
+          <section class="contribution-dashboard" id="contribution-dashboard" aria-labelledby="contribution-title">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">CONTRIBUTION FUNNEL</p>
+                <h2 id="contribution-title">贡献漏斗与热力图</h2>
+                <p>指标只统计可追溯事件，不含无法证明的历史数据。</p>
+              </div>
+            </div>
+            <div class="funnel-grid" id="funnel-grid" aria-label="贡献漏斗"></div>
+            <div class="heatmap-grid" id="heatmap-grid" aria-label="贡献热力图"></div>
+            <div class="task-history" id="task-history" aria-label="任务历史"></div>
+          </section>
 
           <div class="filter-empty" id="filter-empty" hidden>
             <span aria-hidden="true">⌁</span>

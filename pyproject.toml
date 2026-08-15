@@ -23,8 +23,8 @@ dev = [
 [project.scripts]
 contribos = "app.cli:main"
 
-[tool.setuptools]
-packages = ["app"]
+[tool.setuptools.packages.find]
+include = ["app*"]
 
 [tool.setuptools.package-data]
 app = ["static/*"]
@@ -32,3 +32,6 @@ app = ["static/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+  "sandbox_malicious: real cross-platform malicious-repository acceptance suite",
+]

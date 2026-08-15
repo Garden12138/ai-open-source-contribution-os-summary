@@ -25,6 +25,9 @@ WEIGHTS = {
     "learning_value": 0.05,
 }
 
+SCORE_ALGORITHM_VERSION = "rules-v1"
+SCORE_SCHEMA_VERSION = "1"
+
 
 def _clamp(value: float, low: float = 0, high: float = 100) -> float:
     return max(low, min(high, value))

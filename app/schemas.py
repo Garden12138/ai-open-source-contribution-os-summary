@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class RepositorySummary(BaseModel):
@@ -53,16 +54,912 @@ class DailyPickItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     rank: int
+    scan_run_id: str | None
+    snapshot_id: str | None
+    score_version_id: str | None
+    provenance_status: str
     selection_reason: str
     score_snapshot: float
     opportunity: OpportunityCard
 
 
+class AnalysisAvailabilityResponse(BaseModel):
+    mode: Literal["rule_only_fallback", "provider_ready"]
+    automatic_model_invocation_enabled: bool
+    rule_leaderboard_preserved: bool
+    fallback_reasons: list[
+        Literal["provider_not_configured", "budget_not_configured"]
+    ]
+
+
+class AnalysisCreateRequest(BaseModel):
+    snapshot_id: str = Field(min_length=1, max_length=128)
+
+
+class ContributionTaskCreateRequest(BaseModel):
+    analysis_version_id: str = Field(min_length=1, max_length=128)
+
+
+class ContributionTaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    analysis_version_id: str
+    snapshot_id: str
+    opportunity_id: int
+    schema_version: str
+    analysis_record_hash: str
+    analysis_output_hash: str
+    snapshot_inputs_hash: str
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class PlanCommandRequest(BaseModel):
+    command_id: str = Field(min_length=1, max_length=80)
+    purpose: str = Field(min_length=1, max_length=1_000)
+    argv: list[str] = Field(min_length=1, max_length=50)
+    working_directory: str = Field(default=".", min_length=1, max_length=500)
+
+
+class PlanVersionCreateRequest(BaseModel):
+    parent_version_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+    goal: str = Field(min_length=1, max_length=4_000)
+    acceptance_criteria: list[str] = Field(min_length=1, max_length=100)
+    files_to_inspect: list[str] = Field(min_length=1, max_length=500)
+    files_likely_to_change: list[str] = Field(
+        min_length=1,
+        max_length=500,
+    )
+    implementation_steps: list[str] = Field(min_length=1, max_length=100)
+    tests_to_add_or_run: list[str] = Field(min_length=1, max_length=100)
+    commands_to_run: list[PlanCommandRequest] = Field(
+        min_length=1,
+        max_length=100,
+    )
+    risks: list[str] = Field(default_factory=list, max_length=100)
+    questions_for_maintainer: list[str] = Field(
+        default_factory=list,
+        max_length=100,
+    )
+
+
+class PlanVersionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    task_id: str
+    task_state_version_id: str
+    parent_version_id: str | None
+    parent_record_hash: str | None
+    schema_version: str
+    version_number: int
+    task_record_hash: str
+    task_state_record_hash: str
+    goal: str
+    acceptance_criteria: list[str]
+    files_to_inspect: list[str]
+    files_likely_to_change: list[str]
+    implementation_steps: list[str]
+    tests_to_add_or_run: list[str]
+    commands_to_run: list[dict[str, Any]]
+    risks: list[str]
+    questions_for_maintainer: list[str]
+    content_hash: str
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class PlanApprovalRequest(BaseModel):
+    base_commit_sha: str = Field(
+        min_length=40,
+        max_length=64,
+        pattern=r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+    )
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+
+
+class PlanApprovalResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    plan_lock_id: str
+    plan_version_id: str
+    task_id: str
+    approved_state_version_id: str
+    schema_version: str
+    actor_type: str
+    actor_id: str
+    lock_hash: str
+    plan_content_hash: str
+    plan_record_hash: str
+    prior_state_record_hash: str
+    approved_state_record_hash: str
+    approval_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ContributionTaskStateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    task_id: str
+    schema_version: str
+    sequence: int
+    from_state: str | None
+    to_state: str
+    reason_code: str
+    task_record_hash: str
+    previous_state_hash: str | None
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class PlanLockResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    plan_version_id: str
+    task_id: str
+    task_state_version_id: str
+    analysis_version_id: str
+    snapshot_id: str
+    schema_version: str
+    base_commit_sha: str
+    task_record_hash: str
+    task_state_record_hash: str
+    analysis_record_hash: str
+    analysis_output_hash: str
+    snapshot_inputs_hash: str
+    provider_name: str
+    adapter_version: str
+    model_name: str
+    model_version: str
+    inspect_prompt_version: str
+    inspect_policy_version: str
+    inspect_output_schema_version: str
+    analyze_prompt_version: str
+    analyze_policy_version: str
+    analyze_output_schema_version: str
+    provider_contract_hash: str
+    plan_content_hash: str
+    plan_record_hash: str
+    lock_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class PlanConversationEntryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    task_id: str
+    plan_version_id: str | None
+    schema_version: str
+    sequence: int
+    entry_type: Literal["message", "decision"]
+    actor_type: str
+    actor_id: str
+    content: dict[str, Any]
+    content_hash: str
+    previous_entry_hash: str | None
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ContributionTaskDetailResponse(BaseModel):
+    task: ContributionTaskResponse
+    current_state: ContributionTaskStateResponse
+    plan_versions: list[PlanVersionResponse]
+    plan_locks: list[PlanLockResponse]
+    approvals: list[PlanApprovalResponse]
+    conversation: list[PlanConversationEntryResponse]
+    latest_plan_version_id: str | None
+    active_approval_id: str | None
+    approval_status: Literal["unapproved", "approved", "revoked"]
+    execution_attempt_ids: list[str]
+    latest_execution_attempt_id: str | None
+    review_run_ids: list[str] = []
+    latest_review_run_id: str | None = None
+    publish_intent_ids: list[str] = []
+    latest_publish_intent_id: str | None = None
+    draft_pull_request_ids: list[str] = []
+    latest_draft_pull_request_id: str | None = None
+
+
+class PlanConversationMessageRequest(BaseModel):
+    plan_version_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+    text: str = Field(min_length=1, max_length=8_000)
+
+
+class PlanFieldDifferenceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    path: str
+    left_present: bool
+    right_present: bool
+    left: Any
+    right: Any
+
+
+class PlanVersionComparisonResponse(BaseModel):
+    left_version_id: str
+    right_version_id: str
+    task_id: str
+    semantic_differences: list[PlanFieldDifferenceResponse]
+    unified_diff: str
+
+
+class ExecutionReadinessRequest(BaseModel):
+    base_commit_sha: str = Field(
+        min_length=40,
+        max_length=64,
+        pattern=r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+    )
+
+
+class ExecutionReadinessResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    approval_id: str
+    approval_hash: str
+    plan_version_id: str
+    plan_record_hash: str
+    plan_content_hash: str
+    task_id: str
+    task_state_version_id: str
+    task_state_record_hash: str
+    base_commit_sha: str
+    observed_fingerprint_hash: str
+    ready: Literal[True] = True
+    execution_started: Literal[False] = False
+
+
+class ChangeOperationRequest(BaseModel):
+    path: str = Field(min_length=1, max_length=500)
+    kind: Literal["write", "delete"]
+    expected_prior_hash: str | None = Field(
+        default=None,
+        min_length=64,
+        max_length=64,
+        pattern=r"^[0-9a-f]{64}$",
+    )
+    content: str | None = None
+    executable: bool | None = None
+
+
+class ChangeSetCreateRequest(BaseModel):
+    source: Literal["user", "fake"] = "fake"
+    operations: list[ChangeOperationRequest] | None = None
+
+
+class ChangeSetResponse(BaseModel):
+    change_set_id: str
+    change_set_hash: str
+    plan_version_id: str
+    paths: list[str]
+
+
+class RepositoryArchiveCreateRequest(BaseModel):
+    approval_id: str = Field(min_length=1, max_length=128)
+    base_commit_sha: str = Field(
+        min_length=40,
+        max_length=64,
+        pattern=r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+    )
+
+
+class ExecutionCreateRequest(BaseModel):
+    approval_id: str = Field(min_length=1, max_length=128)
+    base_commit_sha: str = Field(
+        min_length=40,
+        max_length=64,
+        pattern=r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+    )
+    repository_archive_hash: str = Field(
+        min_length=64,
+        max_length=64,
+        pattern=r"^[0-9a-f]{64}$",
+    )
+    runner_image_digest: str = Field(
+        min_length=71,
+        max_length=71,
+        pattern=r"^sha256:[0-9a-f]{64}$",
+    )
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+
+
+class ExecutionStageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    execution_attempt_id: str
+    schema_version: str
+    sequence: int
+    stage: Literal["explore", "implement", "verify"]
+    status: Literal[
+        "pending",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "timed_out",
+    ]
+    reason_code: str
+    job_spec_hash: str | None
+    input_hashes: list[str]
+    result_hash: str | None
+    attempt_record_hash: str
+    previous_stage_state_hash: str | None
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionAttemptResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    task_id: str
+    plan_version_id: str
+    plan_approval_id: str
+    approved_state_version_id: str
+    executing_state_version_id: str
+    schema_version: str
+    attempt_number: int
+    actor_type: str
+    actor_id: str
+    action: Literal["start_execution"]
+    repository_full_name: str
+    base_commit_sha: str
+    repository_archive_hash: str
+    runner_image_digest: str
+    sandbox_policy_version: str
+    sandbox_policy_hash: str
+    task_record_hash: str
+    analysis_version_id: str
+    analysis_record_hash: str
+    analysis_output_hash: str
+    snapshot_id: str
+    snapshot_inputs_hash: str
+    provider_contract_hash: str
+    plan_content_hash: str
+    plan_record_hash: str
+    approval_hash: str
+    approved_state_record_hash: str
+    executing_state_record_hash: str
+    observed_fingerprint_hash: str
+    record_hash: str
+    created_at: datetime
+    current_stage: ExecutionStageResponse
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionJobStatusResponse(BaseModel):
+    state: Literal[
+        "queued",
+        "leased",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "timed_out",
+    ]
+    attempt_count: int
+    max_attempts: int
+    timeout_seconds: int
+    lease_expires_at: datetime | None
+    heartbeat_at: datetime | None
+    cancel_requested_at: datetime | None
+    progress_current: int
+    progress_total: int | None
+    progress_message: str | None
+    error_code: str | None
+    error_message: str | None
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+
+    @field_validator(
+        "lease_expires_at",
+        "heartbeat_at",
+        "cancel_requested_at",
+        "created_at",
+        "updated_at",
+        "started_at",
+        "completed_at",
+    )
+    @classmethod
+    def normalize_timestamps(
+        cls,
+        value: datetime | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionStageRunResponse(BaseModel):
+    id: str
+    job_id: str
+    pending_stage_version_id: str
+    schema_version: str
+    stage: Literal["explore", "implement", "verify"]
+    stage_run_number: int
+    max_stage_runs: int
+    timeout_seconds: int
+    job_spec_hash: str
+    input_hashes: list[str]
+    attempt_record_hash: str
+    pending_stage_record_hash: str
+    record_hash: str
+    created_at: datetime
+    job: ExecutionJobStatusResponse
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionArtifactEntryResponse(BaseModel):
+    position: int
+    role: Literal[
+        "stage-result",
+        "file-inventory",
+        "unified-diff",
+        "normalized-test-results",
+    ]
+    artifact_id: str
+    algorithm: Literal["sha256"]
+    size_bytes: int
+    media_type: str
+    created_at: datetime
+    content_url: str
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionArtifactManifestResponse(BaseModel):
+    id: str
+    job_id: str
+    execution_stage_run_id: str
+    execution_attempt_id: str
+    schema_version: str
+    stage: Literal["explore", "implement", "verify"]
+    job_spec_hash: str
+    result_hash: str
+    entry_count: int
+    manifest_hash: str
+    created_at: datetime
+    entries: list[ExecutionArtifactEntryResponse]
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ExecutionArtifactListResponse(BaseModel):
+    execution_attempt_id: str
+    manifests: list[ExecutionArtifactManifestResponse]
+
+
+class ExecutionDetailResponse(ExecutionAttemptResponse):
+    stages: list[ExecutionStageResponse]
+    stage_runs: list[ExecutionStageRunResponse]
+    artifact_manifests: list[ExecutionArtifactManifestResponse]
+    reviews: list["ReviewRunResponse"] = []
+
+
+class ReviewFindingResponse(BaseModel):
+    severity: str
+    location: str
+    evidence: str
+    recommendation: str
+    verdict: Literal["pass", "block"]
+
+
+class ReviewCreateRequest(BaseModel):
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+    reviewer: Literal["fake", "fake_blocking"] = "fake"
+
+
+class ReviewRunResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    execution_attempt_id: str
+    task_id: str
+    schema_version: str
+    review_number: int
+    actor_type: str
+    actor_id: str
+    reviewer_kind: str
+    plan_version_id: str
+    plan_content_hash: str
+    plan_record_hash: str
+    base_commit_sha: str
+    repository_archive_hash: str
+    sandbox_policy_hash: str
+    attempt_record_hash: str
+    diff_hash: str
+    verify_result_hash: str
+    test_results_hash: str
+    binding_hash: str
+    verdict: Literal["pass", "block"]
+    status: Literal["succeeded", "failed"]
+    reason_code: str
+    findings: list[ReviewFindingResponse]
+    findings_hash: str
+    reviewer_invocation_id: str
+    record_hash: str
+    stale: bool = False
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class RepairCreateRequest(BaseModel):
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+
+
+class PublishIntentCreateRequest(BaseModel):
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=8000)
+
+
+class PublishIntentConfirmRequest(BaseModel):
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+    confirmation_nonce: str = Field(
+        min_length=64,
+        max_length=64,
+        pattern=r"^[0-9a-f]{64}$",
+    )
+
+
+class PublishIntentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    review_run_id: str
+    execution_attempt_id: str
+    task_id: str
+    schema_version: str
+    actor_type: str
+    actor_id: str
+    upstream_repository: str
+    base_commit_sha: str
+    head_branch: str
+    head_commit_sha: str
+    diff_hash: str
+    test_results_hash: str
+    review_record_hash: str
+    title: str
+    body: str
+    allowed_actions: list[str]
+    confirmation_nonce: str
+    expires_at: datetime
+    status: Literal["pending", "confirmed", "expired", "invalidated"]
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("expires_at", "created_at")
+    @classmethod
+    def normalize_timestamps(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class DraftPullRequestResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    publish_intent_id: str
+    task_id: str
+    provider: str
+    number: int
+    html_url: str
+    head_branch: str
+    base_commit_sha: str
+    head_commit_sha: str
+    diff_hash: str
+    review_record_hash: str
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class PublishConfirmationResponse(BaseModel):
+    intent: PublishIntentResponse
+    draft_pull_request: DraftPullRequestResponse
+
+
+class PullRequestEventCreateRequest(BaseModel):
+    remote_event_id: str = Field(min_length=1, max_length=128)
+    event_type: Literal[
+        "opened",
+        "review",
+        "check",
+        "changes_requested",
+        "merged",
+        "closed",
+    ]
+    payload: dict[str, Any] = Field(default_factory=dict)
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+
+
+class PullRequestEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    draft_pull_request_id: str
+    task_id: str
+    remote_event_id: str
+    event_type: str
+    payload: dict[str, Any]
+    payload_hash: str
+    previous_event_hash: str | None
+    record_hash: str
+    occurred_at: datetime
+    created_at: datetime
+
+    @field_validator("occurred_at", "created_at")
+    @classmethod
+    def normalize_timestamps(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class TaskLifecycleRequest(BaseModel):
+    action: Literal["abandon", "fail", "reject", "reward", "revise"]
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
+    reason_code: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-z0-9][a-z0-9_.-]{0,99}$",
+    )
+
+
+class ContributionTaskSummaryResponse(BaseModel):
+    id: str
+    opportunity_id: int
+    analysis_version_id: str
+    current_state: str
+    reason_code: str
+    state_record_hash: str
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def normalize_timestamps(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ContributionDashboardResponse(BaseModel):
+    funnel: dict[str, int]
+    current_states: dict[str, int]
+    heatmap: list[dict[str, Any]]
+    metrics: dict[str, Any]
+
+
+class AnalysisVersionSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    job_id: str
+    opportunity_id: int
+    snapshot_id: str
+    score_version_id: str
+    provider_name: str
+    model_name: str
+    model_version: str
+    analyze_output_schema_version: str
+    record_hash: str
+    created_at: datetime
+
+
+class AnalysisHistoryResponse(BaseModel):
+    opportunity_id: int
+    versions: list[AnalysisVersionSummaryResponse]
+
+
+class AnalysisVersionDetailResponse(AnalysisVersionSummaryResponse):
+    content: dict[str, Any]
+
+
+class AnalysisFieldDifferenceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    path: str
+    left_present: bool
+    right_present: bool
+    left: Any
+    right: Any
+
+
+class AnalysisVersionComparisonResponse(BaseModel):
+    left_version_id: str
+    right_version_id: str
+    opportunity_id: int
+    same_snapshot: bool
+    same_rule_score: bool
+    same_frozen_input: bool
+    left: dict[str, Any]
+    right: dict[str, Any]
+    differences: list[AnalysisFieldDifferenceResponse]
+
+
 class DailyLeaderboardResponse(BaseModel):
     selection_date: date
+    scan_run_id: str | None
+    provenance_status: str
     generated_at: datetime | None
     total_candidates: int
     total_eligible: int
+    analysis: AnalysisAvailabilityResponse
     picks: list[DailyPickItem]
 
 
@@ -71,11 +968,81 @@ class ScanRequest(BaseModel):
     top_n: int | None = Field(default=None, ge=1, le=50)
 
 
+class JobResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    kind: str
+    state: str
+    idempotency_key: str
+    attempt_count: int
+    max_attempts: int
+    timeout_seconds: int
+    run_after: datetime
+    lease_expires_at: datetime | None
+    heartbeat_at: datetime | None
+    cancel_requested_at: datetime | None
+    progress_current: int
+    progress_total: int | None
+    progress_message: str | None
+    result_data: dict[str, object]
+    scan_run_id: str | None
+    error_code: str | None
+    error_message: str | None
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+
+    @field_validator(
+        "run_after",
+        "lease_expires_at",
+        "heartbeat_at",
+        "cancel_requested_at",
+        "created_at",
+        "updated_at",
+        "started_at",
+        "completed_at",
+    )
+    @classmethod
+    def normalize_timestamps(
+        cls,
+        value: datetime | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class JobProgressEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    sequence: int
+    event_id: str
+    event_type: str
+    occurred_at: datetime
+    data: dict[str, Any]
+
+
+class JobProgressFeedResponse(BaseModel):
+    job_id: str
+    state: str
+    revision: str
+    unchanged: bool
+    events: list[JobProgressEventResponse]
+
+
 class ScanResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     status: str
+    provenance_status: str
+    selection_date: date | None
     queries: list[str]
     candidate_count: int
     eligible_count: int
@@ -91,6 +1058,8 @@ class ScanResponse(BaseModel):
 class MetaResponse(BaseModel):
     app_name: str
     token_configured: bool
+    local_access_token_required: bool
+    csrf_token: str
     preferred_languages: list[str]
     queries: list[str]
     daily_pick_count: int

@@ -9,7 +9,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.models import Base
+from app.migrations import MigrationReport, MigrationRunner
 
 
 class Database:
@@ -39,8 +39,11 @@ class Database:
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    def create_schema(self) -> None:
-        Base.metadata.create_all(self.engine)
+    def create_schema(self) -> MigrationReport:
+        return MigrationRunner(self.engine).upgrade()
+
+    def current_revision(self) -> str | None:
+        return MigrationRunner(self.engine).current_revision()
 
     @contextmanager
     def session(self) -> Iterator[Session]:

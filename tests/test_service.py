@@ -5,11 +5,19 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 
 from app.config import Settings
 from app.database import Database
-from app.models import DailyPick, Opportunity, Repository, ScanRun
+from app.models import (
+    DailyPick,
+    Opportunity,
+    OpportunitySnapshot,
+    Repository,
+    ScanRun,
+    ScoreVersion,
+)
 from app.service import DiscoveryService
 
 
@@ -161,10 +169,25 @@ def test_scan_deduplicates_caches_and_persists_daily_picks(database: Database) -
         assert duplicate is not None
         assert duplicate.source_queries == ["query-one", "query-two"]
         assert session.scalar(select(func.count()).select_from(Opportunity)) == 3
+        assert (
+            session.scalar(select(func.count()).select_from(OpportunitySnapshot)) == 3
+        )
+        assert session.scalar(select(func.count()).select_from(ScoreVersion)) == 3
         assert session.scalar(select(func.count()).select_from(Repository)) == 2
         picks = list(session.scalars(select(DailyPick).order_by(DailyPick.rank)))
         assert [pick.rank for pick in picks] == [1, 2]
         assert {pick.selection_reason for pick in picks} == {"bounty", "strategic"}
+        assert all(pick.provenance_status == "verified" for pick in picks)
+        assert all(pick.scan_run_id == first_run.id for pick in picks)
+        assert all(pick.snapshot_id and pick.score_version_id for pick in picks)
+        assert all(
+            pick.snapshot is not None
+            and pick.snapshot.opportunity_id == pick.opportunity_id
+            and pick.snapshot.scan_run_id == pick.scan_run_id
+            and pick.score_version is not None
+            and pick.score_version.snapshot_id == pick.snapshot_id
+            for pick in picks
+        )
 
     github.search_results["query-one"][1]["title"] = "Updated MCP command support"
     with database.session() as session:
@@ -186,7 +209,13 @@ def test_scan_deduplicates_caches_and_persists_daily_picks(database: Database) -
     with database.session() as session:
         assert session.scalar(select(func.count()).select_from(ScanRun)) == 2
         assert session.scalar(select(func.count()).select_from(Opportunity)) == 3
+        assert (
+            session.scalar(select(func.count()).select_from(OpportunitySnapshot)) == 6
+        )
+        assert session.scalar(select(func.count()).select_from(ScoreVersion)) == 6
         assert session.scalar(select(func.count()).select_from(DailyPick)) == 2
+        picks = list(session.scalars(select(DailyPick).order_by(DailyPick.rank)))
+        assert all(pick.scan_run_id == second_run.id for pick in picks)
         updated = session.scalar(
             select(Opportunity).where(Opportunity.github_issue_id == 102)
         )
@@ -233,3 +262,87 @@ def test_scan_retries_repository_metadata_failures(database: Database) -> None:
         )
     assert second_run.eligible_count == 1
     assert github.repository_calls == ["acme/alpha", "acme/alpha"]
+
+
+def test_snapshot_and_score_versions_are_database_immutable(
+    database: Database,
+) -> None:
+    github = FakeGitHub()
+    settings = Settings(
+        database_url=str(database.engine.url),
+        github_queries=("query-one",),
+    )
+
+    with database.session() as session:
+        asyncio.run(DiscoveryService(session, github, settings).scan(now=NOW))
+
+    with database.session() as session:
+        snapshot = session.scalar(select(OpportunitySnapshot).limit(1))
+        assert snapshot is not None
+        snapshot.issue_data = {"title": "tampered"}
+        with pytest.raises(IntegrityError, match="immutable"):
+            session.commit()
+        session.rollback()
+
+        snapshot = session.scalar(select(OpportunitySnapshot).limit(1))
+        assert snapshot is not None
+        with pytest.raises(IntegrityError, match="immutable"):
+            session.delete(snapshot)
+            session.commit()
+        session.rollback()
+
+        score = session.scalar(select(ScoreVersion).limit(1))
+        assert score is not None
+        score.score_total = 0
+        with pytest.raises(IntegrityError, match="immutable"):
+            session.commit()
+        session.rollback()
+
+        with pytest.raises(IntegrityError, match="immutable"):
+            session.execute(delete(ScoreVersion))
+        session.rollback()
+
+
+def test_daily_pick_rejects_mismatched_verified_provenance(
+    database: Database,
+) -> None:
+    github = FakeGitHub()
+    settings = Settings(
+        database_url=str(database.engine.url),
+        github_queries=("query-one",),
+    )
+
+    with database.session() as session:
+        asyncio.run(DiscoveryService(session, github, settings).scan(now=NOW))
+
+    with database.session() as session:
+        snapshots = list(
+            session.scalars(
+                select(OpportunitySnapshot).order_by(
+                    OpportunitySnapshot.opportunity_id
+                )
+            )
+        )
+        assert len(snapshots) == 2
+        score = session.scalar(
+            select(ScoreVersion).where(
+                ScoreVersion.snapshot_id == snapshots[0].id
+            )
+        )
+        assert score is not None
+        session.add(
+            DailyPick(
+                selection_date=(NOW + timedelta(days=1)).date(),
+                rank=1,
+                opportunity_id=snapshots[1].opportunity_id,
+                scan_run_id=snapshots[0].scan_run_id,
+                snapshot_id=snapshots[0].id,
+                score_version_id=score.id,
+                provenance_status="verified",
+                selection_reason="invalid-test",
+                score_snapshot=score.score_total,
+            )
+        )
+
+        with pytest.raises(IntegrityError, match="invalid daily pick provenance"):
+            session.commit()

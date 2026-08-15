@@ -11,9 +11,32 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.domain import IssueFacts, RepositoryFacts, SelectionCandidate
-from app.models import DailyPick, Opportunity, Repository, ScanRun, utc_now
-from app.scoring import filter_issue, score_issue, select_daily_opportunities
+from app.domain import (
+    FilterDecision,
+    IssueFacts,
+    RepositoryFacts,
+    ScoreResult,
+    SelectionCandidate,
+)
+from app.models import (
+    DailyPick,
+    Opportunity,
+    OpportunitySnapshot,
+    Repository,
+    ScanRun,
+    ScoreVersion,
+    utc_now,
+)
+from app.provenance import content_hash
+from app.scoring import (
+    SCORE_ALGORITHM_VERSION,
+    SCORE_SCHEMA_VERSION,
+    WEIGHTS,
+    filter_issue,
+    score_issue,
+    select_daily_opportunities,
+)
+from app.security import redact_text
 
 
 class GitHubReader(Protocol):
@@ -76,8 +99,14 @@ class DiscoveryService:
         if not 1 <= top_n <= 50:
             raise ValueError("top_n must be between 1 and 50")
 
+        selection_date = self._local_date(now)
         run = ScanRun(
-            id=str(uuid4()), status="running", queries=queries, started_at=now
+            id=str(uuid4()),
+            status="running",
+            provenance_status="verified",
+            selection_date=selection_date,
+            queries=queries,
+            started_at=now,
         )
         self.session.add(run)
         self.session.commit()
@@ -92,6 +121,9 @@ class DiscoveryService:
             repositories = await self._load_repositories(repository_names, now)
 
             current_opportunities: list[Opportunity] = []
+            provenance_by_opportunity: dict[
+                int, tuple[OpportunitySnapshot, ScoreVersion]
+            ] = {}
             for item in items_by_id.values():
                 if "pull_request" in item:
                     continue
@@ -111,6 +143,19 @@ class DiscoveryService:
                     score,
                     now,
                 )
+                self.session.flush()
+                snapshot, score_version = self._create_provenance(
+                    run,
+                    opportunity,
+                    issue_facts,
+                    decision,
+                    score,
+                    now,
+                )
+                provenance_by_opportunity[opportunity.id] = (
+                    snapshot,
+                    score_version,
+                )
                 current_opportunities.append(opportunity)
 
             self.session.flush()
@@ -127,16 +172,22 @@ class DiscoveryService:
                 for item in eligible
             ]
             selections = select_daily_opportunities(candidates, top_n=top_n)
-            selection_date = self._local_date(now)
             self.session.execute(
                 delete(DailyPick).where(DailyPick.selection_date == selection_date)
             )
             for rank, selection in enumerate(selections, start=1):
+                snapshot, score_version = provenance_by_opportunity[
+                    selection.opportunity_id
+                ]
                 self.session.add(
                     DailyPick(
                         selection_date=selection_date,
                         rank=rank,
                         opportunity_id=selection.opportunity_id,
+                        scan_run_id=run.id,
+                        snapshot_id=snapshot.id,
+                        score_version_id=score_version.id,
+                        provenance_status="verified",
                         selection_reason=selection.selection_reason,
                         score_snapshot=selection.total_score,
                     )
@@ -152,16 +203,14 @@ class DiscoveryService:
             run.completed_at = utc_now()
             self.session.commit()
             return run
+        except asyncio.CancelledError:
+            self._fail_scan_run(
+                run.id,
+                RuntimeError("Discovery scan cancelled before completion"),
+            )
+            raise
         except Exception as exc:
-            self.session.rollback()
-            failed_run = self.session.get(ScanRun, run.id)
-            if failed_run:
-                failed_run.status = "failed"
-                failed_run.error_message = str(exc)[:2000]
-                failed_run.completed_at = utc_now()
-                failed_run.rate_limit_remaining = self.github.rate_limit_remaining
-                failed_run.rate_limit_reset_at = self.github.rate_limit_reset_at
-                self.session.commit()
+            self._fail_scan_run(run.id, exc)
             raise
 
     async def _collect_candidates(
@@ -220,7 +269,7 @@ class DiscoveryService:
                 existing[full_name] = repository
 
             if isinstance(result, Exception):
-                repository.sync_error = str(result)[:1000]
+                repository.sync_error = self._safe_error(result, limit=1000)
                 continue
             self._apply_repository_bundle(repository, result, now)
 
@@ -357,6 +406,147 @@ class DiscoveryService:
         opportunity.is_strategic = score.is_strategic
         opportunity.is_tech_match = score.is_tech_match
         return opportunity
+
+    def _create_provenance(
+        self,
+        run: ScanRun,
+        opportunity: Opportunity,
+        facts: IssueFacts,
+        decision: FilterDecision,
+        score: ScoreResult,
+        now: datetime,
+    ) -> tuple[OpportunitySnapshot, ScoreVersion]:
+        issue_data: dict[str, object] = {
+            "github_issue_id": facts.github_issue_id,
+            "number": facts.number,
+            "title": facts.title,
+            "body": facts.body,
+            "html_url": facts.html_url,
+            "state": facts.state,
+            "labels": list(facts.labels),
+            "comments_count": facts.comments_count,
+            "assignees_count": facts.assignees_count,
+            "author_association": facts.author_association,
+            "created_at": self._utc_iso(facts.created_at),
+            "updated_at": self._utc_iso(facts.updated_at),
+        }
+        repository = facts.repository
+        repository_record = opportunity.repository
+        repository_data: dict[str, object] = {
+            "github_id": repository_record.github_id,
+            "full_name": repository.full_name,
+            "description": repository.description,
+            "html_url": repository_record.html_url,
+            "language": repository.language,
+            "license_spdx": repository.license_spdx,
+            "stars": repository.stars,
+            "forks": repository.forks,
+            "open_issues": repository_record.open_issues,
+            "archived": repository.archived,
+            "disabled": repository.disabled,
+            "default_branch": repository_record.default_branch,
+            "topics": list(repository.topics),
+            "pushed_at": (
+                self._utc_iso(repository.pushed_at)
+                if repository.pushed_at is not None
+                else None
+            ),
+            "has_contributing_guide": repository.has_contributing_guide,
+            "health_percentage": repository.health_percentage,
+            "sync_error": repository.sync_error,
+            "last_synced_at": self._utc_iso(repository_record.last_synced_at),
+        }
+        rule_config: dict[str, object] = {
+            "filter_algorithm_version": "rules-v1",
+            "score_algorithm_version": SCORE_ALGORITHM_VERSION,
+            "score_schema_version": SCORE_SCHEMA_VERSION,
+            "weights": dict(WEIGHTS),
+            "preferred_languages": list(self.settings.preferred_languages),
+            "strategic_keywords": list(self.settings.strategic_keywords),
+            "minimum_issue_body_length": self.settings.minimum_issue_body_length,
+            "repository_inactive_days": self.settings.repository_inactive_days,
+        }
+        snapshot_payload = {
+            "schema_version": "1",
+            "scan_run_id": run.id,
+            "opportunity_id": opportunity.id,
+            "captured_at": self._utc_iso(now),
+            "issue_data": issue_data,
+            "repository_data": repository_data,
+            "source_queries": list(facts.source_queries),
+            "rule_config": rule_config,
+            "filter_eligible": decision.eligible,
+            "filter_reasons": list(decision.reasons),
+        }
+        inputs_hash = content_hash(snapshot_payload)
+        snapshot = OpportunitySnapshot(
+            id=str(uuid4()),
+            scan_run=run,
+            opportunity=opportunity,
+            schema_version="1",
+            inputs_hash=inputs_hash,
+            issue_data=issue_data,
+            repository_data=repository_data,
+            source_queries=list(facts.source_queries),
+            rule_config=rule_config,
+            filter_eligible=decision.eligible,
+            filter_reasons=list(decision.reasons),
+            captured_at=now,
+            created_at=now,
+        )
+        score_payload = {
+            "score_total": score.total,
+            "score_components": score.components,
+            "risk_penalty": score.risk_penalty,
+            "risk_reasons": list(score.risk_reasons),
+            "has_bounty": score.has_bounty,
+            "bounty_amount_usd": score.bounty_amount_usd,
+            "is_strategic": score.is_strategic,
+            "is_tech_match": score.is_tech_match,
+        }
+        score_version = ScoreVersion(
+            id=str(uuid4()),
+            snapshot=snapshot,
+            algorithm_version=SCORE_ALGORITHM_VERSION,
+            schema_version=SCORE_SCHEMA_VERSION,
+            inputs_hash=inputs_hash,
+            output_hash=content_hash(
+                {
+                    "inputs_hash": inputs_hash,
+                    "algorithm_version": SCORE_ALGORITHM_VERSION,
+                    "schema_version": SCORE_SCHEMA_VERSION,
+                    "result": score_payload,
+                }
+            ),
+            **score_payload,
+            created_at=now,
+        )
+        self.session.add_all((snapshot, score_version))
+        self.session.flush()
+        return snapshot, score_version
+
+    @staticmethod
+    def _utc_iso(value: datetime) -> str:
+        aware = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return aware.astimezone(timezone.utc).isoformat()
+
+    def _safe_error(self, error: BaseException, *, limit: int) -> str:
+        return redact_text(
+            error,
+            secrets=(self.settings.github_token,),
+        )[:limit]
+
+    def _fail_scan_run(self, run_id: str, error: BaseException) -> None:
+        self.session.rollback()
+        failed_run = self.session.get(ScanRun, run_id)
+        if failed_run is None:
+            return
+        failed_run.status = "failed"
+        failed_run.error_message = self._safe_error(error, limit=2000)
+        failed_run.completed_at = utc_now()
+        failed_run.rate_limit_remaining = self.github.rate_limit_remaining
+        failed_run.rate_limit_reset_at = self.github.rate_limit_reset_at
+        self.session.commit()
 
     def _local_date(self, now: datetime):
         try:

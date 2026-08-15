@@ -1,0 +1,21 @@
+FROM node:22-bookworm-slim@sha256:f32b81066cde10a75dbac96646099533316d94bac4150c55da1636e1f0ffdc46
+
+ARG CODEX_VERSION=0.146.0-alpha.3.1
+
+COPY openai-codex-0.146.0-alpha.3.1.tgz /tmp/codex.tgz
+COPY codex-linux-arm64.tgz /tmp/codex-linux-arm64.tgz
+
+RUN echo "f44e4cd5f93b02f794748385e39057d80d526ccd0e47def2d393e366d045deb4112fabcfa4a1c76be26258b1395d13ef6b5d101d895802b68f3f2667b0c0600e  /tmp/codex.tgz" | sha512sum --check --strict \
+    && echo "f3a3455b5dddd5f6531bdf513c637dfc6bbecc6a3cdb716ce4f6479c6c64aa16174b88dc6474451a7e328fd1eafcd501509d690df41d4bb891e3b0d58265eedc  /tmp/codex-linux-arm64.tgz" | sha512sum --check --strict \
+    && mkdir -p /usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64 \
+    && tar -xzf /tmp/codex.tgz --strip-components=1 -C /usr/local/lib/node_modules/@openai/codex \
+    && tar -xzf /tmp/codex-linux-arm64.tgz --strip-components=1 -C /usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64 \
+    && ln -s /usr/local/lib/node_modules/@openai/codex/bin/codex.js /usr/local/bin/codex \
+    && rm /tmp/codex.tgz /tmp/codex-linux-arm64.tgz \
+    && codex --version
+
+LABEL org.opencontainers.image.title="ContribOS Codex Provider"
+LABEL org.opencontainers.image.version="${CODEX_VERSION}"
+LABEL org.opencontainers.image.description="Pinned Codex CLI for isolated read-only analysis"
+
+ENTRYPOINT ["codex"]
