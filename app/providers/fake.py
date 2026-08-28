@@ -278,6 +278,19 @@ class FakeProvider:
                 },
                 "risks": [],
                 "confidence": 1.0,
+                "recommendation": "consider",
+                "recommendation_summary": (
+                    "建议先确认任务范围，再决定是否投入。"
+                ),
+                "fit_reasons": [
+                    "任务与当前冻结的 Issue 和仓库证据一致。"
+                ],
+                "next_steps": [
+                    "阅读贡献指南并向维护者确认任务仍可接手。"
+                ],
+                "maintainer_questions": [
+                    "当前是否仍欢迎新的贡献者处理这个 Issue？"
+                ],
                 "cited_evidence_ids": list(citations),
                 "citation_map": {
                     "problem_summary": list(citations),
@@ -291,6 +304,11 @@ class FakeProvider:
                     "bounty_basis": list(citations),
                     "risks": [],
                     "confidence": list(citations),
+                    "recommendation": list(citations),
+                    "recommendation_summary": list(citations),
+                    "fit_reasons": [list(citations)],
+                    "next_steps": [list(citations)],
+                    "maintainer_questions": [list(citations)],
                 },
             }
             if self.script.analyze_output is None

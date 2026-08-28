@@ -11,7 +11,8 @@ from app.security import ensure_no_sensitive_data
 
 
 ANALYSIS_SCHEMA_V1 = "analysis-schema-v1"
-ANALYSIS_SCHEMA_VERSION = "analysis-schema-v2"
+ANALYSIS_SCHEMA_V2 = "analysis-schema-v2"
+ANALYSIS_SCHEMA_VERSION = "analysis-schema-v3"
 
 _STATEMENT = {"type": "string", "minLength": 1, "maxLength": 4_000}
 _SHORT_STATEMENT = {"type": "string", "minLength": 1, "maxLength": 1_000}
@@ -217,15 +218,82 @@ _CITATION_MAP_SCHEMA = {
     ],
     "additionalProperties": False,
 }
-ANALYSIS_OUTPUT_SCHEMA: dict[str, Any] = deepcopy(ANALYSIS_OUTPUT_SCHEMA_V1)
-ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"] = _CITATION_MAP_SCHEMA
-ANALYSIS_OUTPUT_SCHEMA["required"] = [
+ANALYSIS_OUTPUT_SCHEMA_V2: dict[str, Any] = deepcopy(ANALYSIS_OUTPUT_SCHEMA_V1)
+ANALYSIS_OUTPUT_SCHEMA_V2["properties"]["citation_map"] = _CITATION_MAP_SCHEMA
+ANALYSIS_OUTPUT_SCHEMA_V2["required"] = [
     *ANALYSIS_OUTPUT_SCHEMA_V1["required"],
     "citation_map",
 ]
+ANALYSIS_OUTPUT_SCHEMA: dict[str, Any] = deepcopy(ANALYSIS_OUTPUT_SCHEMA_V2)
+ANALYSIS_OUTPUT_SCHEMA["properties"].update(
+    {
+        "recommendation": {
+            "type": "string",
+            "enum": ["pursue", "consider", "skip", "insufficient_evidence"],
+        },
+        "recommendation_summary": _SHORT_STATEMENT,
+        "fit_reasons": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": _SHORT_STATEMENT,
+        },
+        "next_steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": _SHORT_STATEMENT,
+        },
+        "maintainer_questions": {
+            "type": "array",
+            "maxItems": 10,
+            "items": _SHORT_STATEMENT,
+        },
+    }
+)
+ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["properties"].update(
+    {
+        "recommendation": _CITATION_IDS,
+        "recommendation_summary": _CITATION_IDS,
+        "fit_reasons": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": _CITATION_IDS,
+        },
+        "next_steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": _CITATION_IDS,
+        },
+        "maintainer_questions": {
+            "type": "array",
+            "maxItems": 10,
+            "items": _CITATION_IDS,
+        },
+    }
+)
+ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["required"] = [
+    *_CITATION_MAP_SCHEMA["required"],
+    "recommendation",
+    "recommendation_summary",
+    "fit_reasons",
+    "next_steps",
+    "maintainer_questions",
+]
+ANALYSIS_OUTPUT_SCHEMA["required"] = [
+    *ANALYSIS_OUTPUT_SCHEMA_V2["required"],
+    "recommendation",
+    "recommendation_summary",
+    "fit_reasons",
+    "next_steps",
+    "maintainer_questions",
+]
 
 _REQUIRED_FIELDS_V1 = frozenset(ANALYSIS_OUTPUT_SCHEMA_V1["required"])
-_REQUIRED_FIELDS_V2 = frozenset(ANALYSIS_OUTPUT_SCHEMA["required"])
+_REQUIRED_FIELDS_V2 = frozenset(ANALYSIS_OUTPUT_SCHEMA_V2["required"])
+_REQUIRED_FIELDS_V3 = frozenset(ANALYSIS_OUTPUT_SCHEMA["required"])
 _RISK_CODE = re.compile(r"^[a-z0-9_.-]{1,80}$")
 
 
@@ -241,10 +309,89 @@ def validate_structured_analysis(
             allowed_evidence_ids=allowed_evidence_ids,
         )
         return
+    if schema_version == ANALYSIS_SCHEMA_V2:
+        _validate_v2(value, allowed_evidence_ids=allowed_evidence_ids)
+        return
     if schema_version != ANALYSIS_SCHEMA_VERSION:
         raise ProviderContractError(
             "Unsupported structured analysis schema version"
         )
+    if set(value) != _REQUIRED_FIELDS_V3:
+        raise ProviderContractError(
+            "Structured analysis fields do not match analysis-schema-v3"
+        )
+    v2_value = {
+        key: item
+        for key, item in value.items()
+        if key in _REQUIRED_FIELDS_V2
+    }
+    v2_value["citation_map"] = {
+        key: item
+        for key, item in value["citation_map"].items()
+        if key in _CITATION_MAP_SCHEMA["required"]
+    }
+    _validate_v2(
+        v2_value,
+        allowed_evidence_ids=allowed_evidence_ids,
+    )
+    if value["recommendation"] not in {
+        "pursue",
+        "consider",
+        "skip",
+        "insufficient_evidence",
+    }:
+        raise ProviderContractError("Structured recommendation is invalid")
+    _text(
+        value["recommendation_summary"],
+        "recommendation summary",
+        maximum=1_000,
+    )
+    _text_list(value["fit_reasons"], "fit reasons", minimum=1, maximum=5)
+    _text_list(value["next_steps"], "next steps", minimum=1, maximum=5)
+    _text_list(
+        value["maintainer_questions"],
+        "maintainer questions",
+        maximum=10,
+    )
+    citations = tuple(value["cited_evidence_ids"])
+    citation_map = _object(value["citation_map"], "citation map")
+    _exact(
+        citation_map,
+        set(ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["required"]),
+        "citation map",
+    )
+    recommendation_citations = _evidence_ids(
+        citation_map["recommendation"],
+        "recommendation citations",
+        minimum=1,
+    )
+    summary_citations = _evidence_ids(
+        citation_map["recommendation_summary"],
+        "recommendation summary citations",
+        minimum=1,
+    )
+    if (
+        set(recommendation_citations) | set(summary_citations)
+    ) - set(citations):
+        raise ProviderContractError(
+            "recommendation contains undeclared citations"
+        )
+    for field in ("fit_reasons", "next_steps", "maintainer_questions"):
+        field_citations = _list(citation_map[field], f"{field} citations", maximum=10)
+        if len(field_citations) != len(value[field]):
+            raise ProviderContractError(f"{field} citation count must match values")
+        for item in field_citations:
+            nested = _evidence_ids(item, f"{field} citation", minimum=1)
+            if set(nested) - set(citations):
+                raise ProviderContractError(f"{field} contains undeclared citations")
+    ensure_no_sensitive_data(value, context="structured analysis")
+
+
+def _validate_v2(
+    value: Mapping[str, Any],
+    *,
+    allowed_evidence_ids: Sequence[str] | None,
+) -> None:
     if set(value) != _REQUIRED_FIELDS_V2:
         raise ProviderContractError(
             "Structured analysis fields do not match analysis-schema-v2"
@@ -514,8 +661,9 @@ def _text_list(
     name: str,
     *,
     minimum: int = 0,
+    maximum: int = 20,
 ) -> tuple[str, ...]:
-    items = _list(value, name, maximum=20)
+    items = _list(value, name, maximum=maximum)
     if len(items) < minimum:
         raise ProviderContractError(
             f"{name} must contain at least {minimum} item"

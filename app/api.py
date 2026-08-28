@@ -115,6 +115,12 @@ from app.planning import (
     ContributionTaskService,
 )
 from app.provenance import content_hash
+from app.product_experience import (
+    GOAL_WEIGHTS,
+    ProductExperienceConflictError,
+    ProductExperienceNotFoundError,
+    ProductExperienceService,
+)
 from app.plans import (
     PlanCommand,
     PlanContent,
@@ -191,11 +197,21 @@ from app.schemas import (
     PlanVersionComparisonResponse,
     PlanVersionResponse,
     RepositoryArchiveCreateRequest,
+    DispositionCreateRequest,
+    DispositionResponse,
+    NotificationReadResponse,
+    NotificationResponse,
+    PreferenceCurrentResponse,
+    PreferenceResponse,
+    PreferenceUpsertRequest,
+    RecommendationFeedResponse,
+    RecommendationResponse,
     ScanRequest,
+    ScanChangesResponse,
     ScanResponse,
 )
 from app.sandbox_worker.specs import SandboxPolicy
-from app.security import redact_text
+from app.security import SensitiveDataError, ensure_no_sensitive_data, redact_text
 from app.task_states import (
     ContributionTaskStateService,
     TaskStateError,
@@ -587,6 +603,182 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     @app.get(
+        "/api/v1/preferences/current",
+        response_model=PreferenceCurrentResponse,
+        tags=["product-experience"],
+    )
+    def current_preference(
+        session: Session = Depends(get_session),
+    ) -> PreferenceCurrentResponse:
+        preference = ProductExperienceService(session).current_preference()
+        return PreferenceCurrentResponse(
+            configured=preference is not None,
+            preference=(
+                PreferenceResponse.model_validate(preference)
+                if preference is not None
+                else None
+            ),
+        )
+
+    @app.post(
+        "/api/v1/preferences/current",
+        response_model=PreferenceResponse,
+        tags=["product-experience"],
+    )
+    def update_preference(
+        payload: PreferenceUpsertRequest,
+        request: Request,
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> PreferenceResponse:
+        try:
+            current: Settings = request.app.state.settings
+            ensure_no_sensitive_data(
+                payload.model_dump(),
+                secrets=(current.github_token, current.local_access_token),
+                context="user preferences",
+            )
+            preference = ProductExperienceService(session).create_preference(
+                primary_goal=payload.primary_goal,
+                preferred_languages=payload.preferred_languages,
+                weekly_hours=payload.weekly_hours,
+                minimum_bounty_usd=payload.minimum_bounty_usd,
+                auto_scan_enabled=payload.auto_scan_enabled,
+                auto_scan_local_time=payload.auto_scan_local_time,
+            )
+        except SensitiveDataError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Credential-like content is not allowed in preferences",
+            ) from exc
+        except ProductExperienceConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return PreferenceResponse.model_validate(preference)
+
+    @app.get(
+        "/api/v1/recommendations",
+        response_model=RecommendationFeedResponse,
+        tags=["product-experience"],
+    )
+    def personalized_recommendations(
+        request: Request,
+        goal: str | None = Query(default=None, max_length=32),
+        include_dismissed: bool = Query(default=False),
+        limit: int = Query(default=50, ge=1, le=100),
+        offset: int = Query(default=0, ge=0),
+        session: Session = Depends(get_session),
+    ) -> RecommendationFeedResponse:
+        if goal is not None and goal not in GOAL_WEIGHTS:
+            raise HTTPException(status_code=422, detail="Unsupported recommendation goal")
+        try:
+            result = ProductExperienceService(session).recommendations(
+                default_languages=request.app.state.settings.preferred_languages,
+                goal=goal,
+                include_dismissed=include_dismissed,
+                limit=limit,
+                offset=offset,
+            )
+        except ProductExperienceConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return RecommendationFeedResponse.model_validate(result)
+
+    @app.get(
+        "/api/v1/shortlist",
+        response_model=list[RecommendationResponse],
+        tags=["product-experience"],
+    )
+    def shortlisted_opportunities(
+        request: Request,
+        session: Session = Depends(get_session),
+    ) -> list[RecommendationResponse]:
+        rows = ProductExperienceService(session).shortlist(
+            default_languages=request.app.state.settings.preferred_languages
+        )
+        return [RecommendationResponse.model_validate(item) for item in rows]
+
+    @app.get(
+        "/api/v1/opportunities/compare",
+        response_model=list[RecommendationResponse],
+        tags=["product-experience"],
+    )
+    def compare_opportunities(
+        request: Request,
+        opportunity_id: list[int] = Query(min_length=2, max_length=3),
+        session: Session = Depends(get_session),
+    ) -> list[RecommendationResponse]:
+        try:
+            rows = ProductExperienceService(session).compare(
+                opportunity_id,
+                default_languages=request.app.state.settings.preferred_languages,
+            )
+        except ProductExperienceNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ProductExperienceConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return [RecommendationResponse.model_validate(item) for item in rows]
+
+    @app.get(
+        "/api/v1/scan-changes/latest",
+        response_model=ScanChangesResponse,
+        tags=["product-experience"],
+    )
+    def latest_scan_changes(
+        session: Session = Depends(get_session),
+    ) -> ScanChangesResponse:
+        return ScanChangesResponse.model_validate(
+            ProductExperienceService(session).latest_scan_changes()
+        )
+
+    @app.get(
+        "/api/v1/notifications",
+        response_model=list[NotificationResponse],
+        tags=["product-experience"],
+    )
+    def in_app_notifications(
+        unread_only: bool = Query(default=False),
+        limit: int = Query(default=50, ge=1, le=100),
+        session: Session = Depends(get_session),
+    ) -> list[NotificationResponse]:
+        rows = ProductExperienceService(session).notifications(
+            unread_only=unread_only,
+            limit=limit,
+        )
+        return [NotificationResponse.model_validate(item) for item in rows]
+
+    @app.post(
+        "/api/v1/notifications/{notification_id}/read",
+        response_model=NotificationReadResponse,
+        tags=["product-experience"],
+    )
+    def mark_notification_read(
+        notification_id: str,
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> NotificationReadResponse:
+        try:
+            read = ProductExperienceService(session).mark_notification_read(
+                notification_id
+            )
+        except ProductExperienceNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return NotificationReadResponse(
+            notification_id=read.notification_id,
+            read_count=1,
+        )
+
+    @app.post(
+        "/api/v1/notifications/read-all",
+        response_model=NotificationReadResponse,
+        tags=["product-experience"],
+    )
+    def mark_all_notifications_read(
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> NotificationReadResponse:
+        count = ProductExperienceService(session).mark_all_notifications_read()
+        return NotificationReadResponse(read_count=count)
+
+    @app.get(
         "/api/v1/opportunities/daily",
         response_model=DailyLeaderboardResponse,
         tags=["opportunities"],
@@ -673,6 +865,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if opportunity is None:
             raise HTTPException(status_code=404, detail="Opportunity not found")
         return OpportunityDetail.model_validate(opportunity)
+
+    @app.post(
+        "/api/v1/opportunities/{opportunity_id}/dispositions",
+        response_model=DispositionResponse,
+        tags=["product-experience"],
+    )
+    def set_opportunity_disposition(
+        opportunity_id: int,
+        payload: DispositionCreateRequest,
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> DispositionResponse:
+        try:
+            disposition = ProductExperienceService(session).set_disposition(
+                opportunity_id,
+                state=payload.state,
+                reason_code=payload.reason_code,
+                reminder_at=payload.reminder_at,
+            )
+        except ProductExperienceNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ProductExperienceConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return DispositionResponse.model_validate(disposition)
 
     @app.post(
         "/api/v1/opportunities/{opportunity_id}/analyses",

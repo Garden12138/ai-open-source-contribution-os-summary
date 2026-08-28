@@ -30,8 +30,8 @@ Update rules:
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
-| Last roadmap audit | 2026-08-15 |
-| Feature note | User directed: skip phase acceptance for now and finish the offline Review → PublishIntent → Fake Draft PR → dashboard slice. Platform gates stay unchecked. |
+| Last roadmap audit | 2026-08-28 |
+| Feature note | User-directed offline Review → PublishIntent → Fake Draft PR and product-experience slices are implemented; platform gates stay unchecked. |
 
 ## Fixed end-to-end chain
 
@@ -613,6 +613,36 @@ Production wiring (2026-08-15), in-phase while P5-G06 remains blocked:
   stage runtimes remain unwired in the API process.
 - Live Codex analysis, a real Implementer Provider, Docker stage runtimes,
   and native Linux acceptance remain open. Phase 6 is not started.
+
+Product-experience slice (2026-08-28), user-directed while P5-G06 remains
+blocked:
+
+- Additive migration `0025_product_experience` adds immutable versioned local
+  preferences, append-only shortlist/dismiss/reminder decisions, immutable
+  in-app notifications, and separate read receipts. Recovery is documented in
+  `docs/database-migrations.md`; no third-party write or new credential enters
+  this slice.
+- `/api/v1/recommendations` deterministically re-ranks the full eligible pool by
+  contribution goal, preferred languages, available time, and minimum bounty.
+  Existing rule `ScoreVersion` rows remain unchanged. Shortlist, 2–3 item
+  comparison, scan changes, reminder, and notification APIs are wired through
+  the same local mutation protections.
+- The native UI now has three user-facing views: Discover, Shortlist, and
+  Contributions. It supports first-run and editable preferences, decision-first
+  cards, dismiss reasons, reminders, comparison, friendly task progress, and
+  progressive disclosure of technical evidence.
+- Analysis schema v3 adds a cited recommendation, concise fit reasons, next
+  steps, and maintainer questions. AI analysis remains on demand and the v2
+  validator stays available for stored historical results.
+- A running unified Worker creates due reminders and enqueues one idempotent
+  local daily scan after the configured time. Completed scans notify only new
+  high matches and material title/body/label/state/comment/score changes to
+  shortlisted opportunities.
+- Offline full suite passed `281 passed, 10 skipped` with the new product API,
+  migration, recommendation, schema, security, Worker scheduling, and frontend
+  contract coverage; Python compile, ES-module syntax, HTML parse, and diff
+  checks also passed. This feature work does not provide native Linux evidence;
+  P5-G06 and Phase 5 remain open.
 
 ---
 

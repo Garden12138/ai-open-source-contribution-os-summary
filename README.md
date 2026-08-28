@@ -1,12 +1,12 @@
 # AI Open Source Contribution OS
 
-面向独立开发者的开源机会工作台：发现值得做的 GitHub Issue，先用确定性规则过滤，再用可解释的评分模型生成每日榜单。
+面向独立开发者的开源贡献工作台：发现值得做的 GitHub Issue，按个人目标筛选和比较候选，再跟进真实贡献进度。
 
 当前版本实现了产品闭环的第一个纵向切片：
 
 ```text
 GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
-              → 七维评分 → 3/3/2/2 每日榜单 → Web 面板
+              → 七维评分 → 个性化推荐 → 候选比较 → 贡献进度
 ```
 
 ## 已实现
@@ -18,7 +18,11 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 - 按奖励可靠性、接受概率、技术匹配、项目影响力、清晰度、竞争度和学习价值计算 0～100 分。
 - 保存每个维度的分数、风险扣分和原因，结果可审计。
 - 每日榜单优先组合 3 个赏金、3 个高影响力、2 个技术匹配和 2 个战略机会；不足时按总分补位。
-- FastAPI、SQLite、轻量 Web 面板和可供 cron 调用的 CLI。
+- 首次使用可设置贡献目标、偏好语言、每周投入与最低赏金；推荐会对完整合格候选池重新排序，但不会覆盖原始规则分。
+- 原生 Web 产品分为“发现机会 / 我的候选 / 贡献进度”三个主视图，支持 2～3 个候选并排比较。
+- 支持每日自动扫描、候选提醒，以及新增高匹配机会和候选内容/评分变化的站内通知；需持续运行 Worker。
+- AI 深析按需启动，优先给出“是否值得做、为什么、预计投入和下一步”，技术证据默认折叠。
+- FastAPI、SQLite、原生 Web 产品和可供 cron 调用的 CLI。
 
 当前不会修改第三方仓库，不会评论 Issue，也没有真实 GitHub 写权限。独立 Review、发布意图和 Draft PR 可在 Fake 运行时离线走通；真实 Draft PR 仍未启用。
 
@@ -37,10 +41,13 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 
 ## 快速开始
 
+完整的安装、配置、双进程启动步骤和分层测试案例见
+[部署、启动与自测指南](docs/deployment-and-self-test.md)。
+
 要求 Python 3.11+。推荐使用 `uv`：
 
 ```bash
-uv venv
+uv venv --python 3.11
 source .venv/bin/activate
 uv pip install -e '.[dev]'
 export GITHUB_TOKEN='your-read-only-token'
@@ -108,6 +115,13 @@ set +a
 | `POST` | `/api/v1/jobs/{id}/cancel` | 请求取消 Job |
 | `POST` | `/api/v1/jobs/{id}/retry` | 重试可重试的终态 Job |
 | `GET` | `/api/v1/opportunities/daily` | 当日精选榜单 |
+| `GET` | `/api/v1/recommendations` | 按本地偏好重排后的完整合格候选池 |
+| `GET/POST` | `/api/v1/preferences/current` | 读取或创建不可变的新一版推荐偏好 |
+| `POST` | `/api/v1/opportunities/{id}/dispositions` | 加入/移出候选、忽略或设置提醒 |
+| `GET` | `/api/v1/shortlist` | 当前候选清单 |
+| `GET` | `/api/v1/opportunities/compare` | 并排比较 2～3 个机会 |
+| `GET` | `/api/v1/scan-changes/latest` | 最近扫描带来的新匹配和候选变化 |
+| `GET` | `/api/v1/notifications` | 站内通知与已读状态 |
 | `GET` | `/api/v1/opportunities/{id}` | 完整评分与风险详情 |
 | `POST` | `/api/v1/opportunities/{id}/analyses` | 在 Provider 就绪时排队一次分析 Job |
 | `GET` | `/api/v1/opportunities/{id}/analyses` | 不可变分析版本历史 |
@@ -160,7 +174,7 @@ Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
      - 风险扣分
 ```
 
-当前评分是透明、确定性的启发式模型，适合承担大模型分析之前的低成本漏斗；它不是对 PR 一定合并或赏金一定兑现的承诺。
+这是不会被 AI 或个人偏好覆盖的基础规则分。产品推荐会按用户目标调整七个维度的权重，并应用语言、时间和最低赏金偏好；个性化结果是新的展示排序，不是对基础分的改写。所有评分都只是决策辅助，不承诺 PR 一定合并或赏金一定兑现。
 
 ## 配置
 
@@ -189,8 +203,7 @@ python -m compileall -q app
 
 ## 下一阶段
 
-1. 将 Fake 阶段 runtime 换成真实 Docker Explore/Implement/Verify（API 进程仍不得持有 Docker socket）。
-2. 真实 Implementer Provider：从锁定计划提议 ChangeSet，仍须哈希绑定与用户接受。
-3. 原生 Linux amd64 + Docker Engine 恶意套件验收（P5-G06）。
-4. 独立 Reviewer、Diff 与风险报告。
-5. 仅在用户确认后创建 Draft PR，并同步 PR 状态。
+1. 完成原生 Linux amd64 + Docker Engine 恶意套件验收（P5-G06）。
+2. 将 Fake 阶段 runtime 换成真实 Docker Explore/Implement/Verify（API 进程仍不得持有 Docker socket）。
+3. 接入真实 Implementer/Reviewer Provider，同时保留按需调用、预算和证据边界。
+4. 在精确用户确认后接通真实 Draft PR，并同步远端 PR 状态。

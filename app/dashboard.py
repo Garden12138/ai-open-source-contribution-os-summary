@@ -103,6 +103,11 @@ class ContributionDashboardService:
             updated = mark.created_at if mark is not None else current.created_at
             if state is not None and visible_state != state:
                 continue
+            opportunity = self.session.get(Opportunity, task.opportunity_id)
+            repository = (
+                opportunity.repository if opportunity is not None else None
+            )
+            friendly, progress, next_action = _friendly_task_state(visible_state)
             summaries.append(
                 {
                     "id": task.id,
@@ -111,6 +116,15 @@ class ContributionDashboardService:
                     "current_state": visible_state,
                     "reason_code": reason,
                     "state_record_hash": current.record_hash,
+                    "opportunity_title": (
+                        opportunity.title if opportunity is not None else None
+                    ),
+                    "repository_full_name": (
+                        repository.full_name if repository is not None else None
+                    ),
+                    "friendly_state": friendly,
+                    "progress_percent": progress,
+                    "next_action": next_action,
                     "created_at": task.created_at,
                     "updated_at": updated,
                 }
@@ -182,3 +196,20 @@ def _as_date(value: datetime) -> date:
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc).date()
+
+
+def _friendly_task_state(state: str) -> tuple[str, int, str | None]:
+    return {
+        "planning": ("准备贡献计划", 15, "完善并批准计划"),
+        "plan_approved": ("计划已确认", 30, "开始执行"),
+        "executing": ("正在实现与验证", 55, "查看执行进度"),
+        "reviewing": ("正在评审", 70, "处理评审结果"),
+        "ready": ("可以准备提交", 82, "创建发布意图"),
+        "draft_pr": ("Draft PR 已创建", 90, "关注维护者反馈"),
+        "changes_requested": ("需要修改", 72, "根据反馈修订"),
+        "merged": ("已合并", 100, "记录贡献成果"),
+        "rewarded": ("已获奖", 100, None),
+        "failed": ("执行失败", 50, "检查失败原因"),
+        "rejected": ("贡献未被接收", 100, None),
+        "abandoned": ("已放弃", 100, None),
+    }.get(state, (state, 0, None))

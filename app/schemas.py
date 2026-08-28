@@ -885,6 +885,11 @@ class ContributionTaskSummaryResponse(BaseModel):
     current_state: str
     reason_code: str
     state_record_hash: str
+    opportunity_title: str | None = None
+    repository_full_name: str | None = None
+    friendly_state: str | None = None
+    progress_percent: int = Field(default=0, ge=0, le=100)
+    next_action: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -1064,6 +1069,145 @@ class MetaResponse(BaseModel):
     queries: list[str]
     daily_pick_count: int
     timezone: str
+
+
+class PreferenceUpsertRequest(BaseModel):
+    primary_goal: Literal[
+        "balanced", "bounty", "impact", "quick_merge", "learning"
+    ] = "balanced"
+    preferred_languages: list[str] = Field(default_factory=list, max_length=20)
+    weekly_hours: int = Field(default=5, ge=1, le=40)
+    minimum_bounty_usd: float = Field(default=0, ge=0, le=1_000_000)
+    auto_scan_enabled: bool = False
+    auto_scan_local_time: str = Field(
+        default="09:00", pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$"
+    )
+
+    @field_validator("preferred_languages")
+    @classmethod
+    def validate_languages(cls, value: list[str]) -> list[str]:
+        normalized = [item.strip() for item in value if item.strip()]
+        if any(len(item) > 80 for item in normalized):
+            raise ValueError("preferred language is too long")
+        if len({item.casefold() for item in normalized}) != len(normalized):
+            raise ValueError("preferred languages must be unique")
+        return normalized
+
+
+class PreferenceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    version: int
+    primary_goal: str
+    preferred_languages: list[str]
+    weekly_hours: int
+    minimum_bounty_usd: float
+    auto_scan_enabled: bool
+    auto_scan_local_time: str
+    record_hash: str
+    created_at: datetime
+
+
+class PreferenceCurrentResponse(BaseModel):
+    configured: bool
+    preference: PreferenceResponse | None
+
+
+class DispositionCreateRequest(BaseModel):
+    state: Literal["shortlisted", "dismissed", "neutral"]
+    reason_code: Literal[
+        "too_large",
+        "low_reward",
+        "tech_mismatch",
+        "high_competition",
+        "unclear_scope",
+        "not_interested",
+        "other",
+    ] | None = None
+    reminder_at: datetime | None = None
+
+    @field_validator("reason_code")
+    @classmethod
+    def validate_reason(
+        cls, value: str | None, info: Any
+    ) -> str | None:
+        state = info.data.get("state")
+        if state == "dismissed" and value is None:
+            raise ValueError("dismissed opportunities require a reason_code")
+        if state != "dismissed" and value is not None:
+            raise ValueError("reason_code is only valid for dismissed opportunities")
+        return value
+
+
+class DispositionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    opportunity_id: int
+    preference_version_id: str | None
+    sequence: int
+    state: str
+    reason_code: str | None
+    reminder_at: datetime | None
+    record_hash: str
+    created_at: datetime
+
+
+class RecommendationResponse(BaseModel):
+    scan_run_id: str
+    snapshot_id: str
+    score_version_id: str
+    preference_version_id: str | None
+    goal: str
+    personalized_score: float
+    recommendation_label: str
+    recommendation: str
+    summary: str
+    reason_codes: list[str]
+    reasons: list[str]
+    acceptance_level: str
+    competition_level: str
+    impact_level: str
+    effort: dict[str, Any] | None
+    next_steps: list[str]
+    maintainer_questions: list[str]
+    analysis_version_id: str | None
+    disposition_state: str
+    disposition_reason: str | None
+    reminder_at: datetime | None
+    opportunity: dict[str, Any]
+
+
+class RecommendationFeedResponse(BaseModel):
+    scan_run_id: str | None
+    preference_version_id: str | None
+    goal: str
+    total: int
+    items: list[RecommendationResponse]
+
+
+class NotificationResponse(BaseModel):
+    id: str
+    kind: str
+    opportunity_id: int | None
+    scan_run_id: str | None
+    title: str
+    message: str
+    is_read: bool
+    created_at: datetime
+
+
+class NotificationReadResponse(BaseModel):
+    notification_id: str | None = None
+    read_count: int = 0
+
+
+class ScanChangesResponse(BaseModel):
+    scan_run_id: str | None
+    generated_at: datetime | None
+    new_matches: int
+    shortlist_updates: int
 
 
 class HealthResponse(BaseModel):

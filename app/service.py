@@ -202,6 +202,15 @@ class DiscoveryService:
             run.rate_limit_reset_at = self.github.rate_limit_reset_at
             run.completed_at = utc_now()
             self.session.commit()
+            from app.product_experience import ProductExperienceService
+
+            ProductExperienceService(
+                self.session,
+                secrets=(
+                    self.settings.github_token,
+                    self.settings.local_access_token,
+                ),
+            ).create_scan_notifications(run.id)
             return run
         except asyncio.CancelledError:
             self._fail_scan_run(

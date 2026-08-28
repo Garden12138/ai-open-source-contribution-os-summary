@@ -155,7 +155,7 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "/analyses" in javascript.text
     assert "cited_evidence_ids" in javascript.text
     assert "estimated_cost_microusd" in javascript.text
-    assert "规则 fallback · 禁止自动调用" in javascript.text
+    assert "基础评分 · 深入评估未开启" in javascript.text
     assert "版本差异" in javascript.text
     assert "创建贡献任务" in javascript.text
     assert "execution-readiness" in javascript.text
@@ -164,7 +164,7 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "/archives" in javascript.text
     assert "采集仓库归档" in javascript.text
     assert "/change-sets" in javascript.text
-    assert "提交 Fake ChangeSet" in javascript.text
+    assert "提交变更方案" in javascript.text
     assert "/reviews" in javascript.text
     assert "启动独立 Review" in javascript.text
     assert "启动有界修复" in javascript.text
@@ -172,8 +172,18 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "创建发布意图" in javascript.text
     assert "确认发布 Draft PR" in javascript.text
     assert "贡献漏斗" in dashboard.text
+    assert "发现机会" in dashboard.text
+    assert "我的候选" in dashboard.text
+    assert "贡献进度" in dashboard.text
+    assert "调整偏好" in dashboard.text
+    assert "先告诉我们，你想获得什么" in dashboard.text
+    assert 'recommendations: "/api/v1/recommendations"' in javascript.text
+    assert 'shortlist: "/api/v1/shortlist"' in javascript.text
+    assert 'notifications: "/api/v1/notifications"' in javascript.text
+    assert "togglePreferenceEditor" in javascript.text
+    assert "compareSelectedOpportunities" in javascript.text
     assert "请求取消" in javascript.text
-    assert "加载并复验" in javascript.text
+    assert "查看结果" in javascript.text
     assert "requestArtifact" in javascript.text
     assert ".innerHTML" not in javascript.text
     assert "insertAdjacentHTML" not in javascript.text
@@ -190,8 +200,12 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert ".execution-workbench" in stylesheet.text
     assert ".execution-stage-timeline" in stylesheet.text
     assert ".execution-artifact-grid" in stylesheet.text
+    assert ".primary-nav" in stylesheet.text
+    assert ".decision-summary" in stylesheet.text
+    assert ".comparison-grid" in stylesheet.text
+    assert ".notification-drawer" in stylesheet.text
     assert 'type="module"' in dashboard.text
-    assert "规则评分 · AI 深析" in dashboard.text
+    assert "精选机会 · 清晰决策" in dashboard.text
     assert leaderboard.status_code == 200
     assert leaderboard.json() == {
         "selection_date": "2026-07-17",
@@ -538,14 +552,14 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
         assert job.payload["snapshot_id"] == snapshot_id
         assert job.payload["versions"]["inspect"] == {
             "prompt": "inspect-prompt-v2",
-            "policy": "analysis-policy-v2",
+            "policy": "analysis-policy-v3",
             "output_schema": "inspection-schema-v1",
         }
         assert job.payload["versions"]["analyze"]["prompt"] == (
-            "analyze-prompt-v2"
+            "analyze-prompt-v3"
         )
         assert job.payload["versions"]["analyze"]["policy"] == (
-            "analysis-policy-v2"
+            "analysis-policy-v3"
         )
         assert job.payload["expected_provider"] == (
             provider.identity.hash_payload()

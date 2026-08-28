@@ -94,7 +94,7 @@ def inspect_request(
     *,
     schema_version: str = INSPECTION_SCHEMA_VERSION,
     prompt_version: str = "inspect-prompt-v2",
-    policy_version: str = "analysis-policy-v2",
+    policy_version: str = "analysis-policy-v3",
 ):
     return InspectRequest.create(
         request_id="inspect-1",
@@ -147,8 +147,8 @@ def analyze_request(result: InspectionResult) -> AnalyzeRequest:
         snapshot_id="snapshot-1",
         score_version_id="score-1",
         inspection=result,
-        prompt_version="analyze-prompt-v2",
-        policy_version="analysis-policy-v2",
+        prompt_version="analyze-prompt-v3",
+        policy_version="analysis-policy-v3",
         output_schema_version=ANALYSIS_SCHEMA_VERSION,
     )
 
@@ -198,6 +198,11 @@ def structured_analysis_payload() -> dict[str, object]:
             }
         ],
         "confidence": 0.95,
+        "recommendation": "pursue",
+        "recommendation_summary": "适合进入贡献准备，先确认维护者对适配器边界的预期。",
+        "fit_reasons": ["任务目标清楚，并且与 Python 工程能力匹配。"],
+        "next_steps": ["阅读现有 provider contract。", "向维护者确认边界。"],
+        "maintainer_questions": ["适配器是否需要覆盖流式中断？"],
         "cited_evidence_ids": ["issue"],
         "citation_map": {
             "problem_summary": ["issue"],
@@ -211,6 +216,11 @@ def structured_analysis_payload() -> dict[str, object]:
             "bounty_basis": ["issue"],
             "risks": [["issue"]],
             "confidence": ["issue"],
+            "recommendation": ["issue"],
+            "recommendation_summary": ["issue"],
+            "fit_reasons": [["issue"]],
+            "next_steps": [["issue"], ["issue"]],
+            "maintainer_questions": [["issue"]],
         },
     }
 
@@ -313,7 +323,7 @@ def test_codex_prompt_keeps_adversarial_text_inside_one_hashed_json_record() -> 
             ),
         ),
         prompt_version="inspect-prompt-v2",
-        policy_version="analysis-policy-v2",
+        policy_version="analysis-policy-v3",
         output_schema_version=INSPECTION_SCHEMA_VERSION,
     )
     runner = StubCodexRunner(
@@ -347,7 +357,7 @@ def test_codex_prompt_keeps_adversarial_text_inside_one_hashed_json_record() -> 
     assert trusted["stage"] == "inspect"
     assert trusted["input_hash"] == request.input_hash
     assert trusted["policy_version"] == request.policy_version
-    assert len(trusted["rules"]) == 7
+    assert len(trusted["rules"]) == 8
     assert int(lines[1][len(length_prefix) :]) == len(
         untrusted_json.encode("utf-8")
     )

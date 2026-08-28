@@ -62,8 +62,8 @@ _ALLOWED_CODEX_ENV = frozenset(
 INSPECTION_SCHEMA_VERSION = "inspection-schema-v1"
 CODEX_PROMPT_ENVELOPE_VERSION = "codex-prompt-envelope-v1"
 INSPECT_PROMPT_VERSION = "inspect-prompt-v2"
-ANALYZE_PROMPT_VERSION = "analyze-prompt-v2"
-ANALYSIS_POLICY_VERSION = "analysis-policy-v2"
+ANALYZE_PROMPT_VERSION = "analyze-prompt-v3"
+ANALYSIS_POLICY_VERSION = "analysis-policy-v3"
 _LEGACY_INSPECT_PROMPT_VERSION = "inspect-prompt-v1"
 _LEGACY_ANALYZE_PROMPT_VERSION = "analyze-prompt-v1"
 _LEGACY_ANALYSIS_POLICY_VERSION = "analysis-policy-v1"
@@ -78,6 +78,7 @@ _TRUSTED_POLICY_RULES = (
     "Never perform or propose an external write as an executed action.",
     "Never weaken sandbox, network, schema, citation, or budget constraints.",
     "Use only evidence IDs present in the frozen input.",
+    "Write user-facing analysis narrative in Simplified Chinese while preserving code identifiers.",
     "Return only one JSON object matching the supplied output schema.",
 )
 

@@ -17,6 +17,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     publishIntents: "/api/v1/publish-intents",
     draftPullRequests: "/api/v1/draft-pull-requests",
     dashboard: "/api/v1/contributions/dashboard",
+    preferences: "/api/v1/preferences/current",
+    recommendations: "/api/v1/recommendations",
+    shortlist: "/api/v1/shortlist",
+    compare: "/api/v1/opportunities/compare",
+    notifications: "/api/v1/notifications",
+    scanChanges: "/api/v1/scan-changes/latest",
   };
 
   const REASONS = {
@@ -54,7 +60,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
   const EXECUTION_STATUS_LABELS = {
     pending: "等待调度",
     queued: "已排队",
-    leased: "Worker 已领取",
+    leased: "准备中",
     running: "运行中",
     succeeded: "成功",
     failed: "失败",
@@ -78,6 +84,13 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     cancelRequested: false,
     analysisReady: false,
     analysisPanels: new Map(),
+    recommendations: [],
+    preference: null,
+    currentView: "discover",
+    shortlist: [],
+    compareSelection: new Set(),
+    notifications: [],
+    showDismissed: false,
   };
 
   const dom = {};
@@ -104,6 +117,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       generatedDate: document.querySelector("#generated-date"),
       analysisMode: document.querySelector("#analysis-mode"),
       resultCount: document.querySelector("#result-count"),
+      dismissedToggle: document.querySelector("#dismissed-toggle"),
       filterBar: document.querySelector("#filter-bar"),
       statePanel: document.querySelector("#state-panel"),
       opportunityList: document.querySelector("#opportunity-list"),
@@ -113,21 +127,57 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       funnelGrid: document.querySelector("#funnel-grid"),
       heatmapGrid: document.querySelector("#heatmap-grid"),
       taskHistory: document.querySelector("#task-history"),
+      onboardingCard: document.querySelector("#onboarding-card"),
+      preferenceForm: document.querySelector("#preference-form"),
+      preferenceStatus: document.querySelector("#preference-status"),
+      scanChanges: document.querySelector("#scan-changes"),
+      shortlistCount: document.querySelector("#shortlist-count"),
+      shortlistList: document.querySelector("#shortlist-list"),
+      compareButton: document.querySelector("#compare-button"),
+      comparisonGrid: document.querySelector("#comparison-grid"),
+      notificationButton: document.querySelector("#notification-button"),
+      preferenceButton: document.querySelector("#preference-button"),
+      notificationCount: document.querySelector("#notification-count"),
+      notificationDrawer: document.querySelector("#notification-drawer"),
+      notificationList: document.querySelector("#notification-list"),
+      notificationReadAll: document.querySelector("#notification-read-all"),
     });
 
     dom.scanButton.addEventListener("click", runScan);
     dom.filterBar.addEventListener("click", handleFilterClick);
+    dom.dismissedToggle.addEventListener("click", toggleDismissedRecommendations);
+    dom.preferenceForm.addEventListener("submit", savePreference);
+    dom.preferenceButton.addEventListener("click", togglePreferenceEditor);
+    dom.compareButton.addEventListener("click", compareSelectedOpportunities);
+    dom.notificationButton.addEventListener("click", toggleNotifications);
+    dom.notificationReadAll.addEventListener("click", markAllNotificationsRead);
+    window.addEventListener("hashchange", renderActiveView);
 
+    renderActiveView();
     loadInitialData();
   }
 
   async function loadInitialData() {
     setLeaderboardLoading();
 
-    const [metaResult, dailyResult, dashboardResult] = await Promise.allSettled([
+    const [
+      metaResult,
+      dailyResult,
+      dashboardResult,
+      preferenceResult,
+      recommendationResult,
+      shortlistResult,
+      changesResult,
+      notificationResult,
+    ] = await Promise.allSettled([
       requestJSON(API.meta),
       requestJSON(API.daily),
       requestJSON(API.dashboard),
+      requestJSON(API.preferences),
+      requestJSON(recommendationEndpoint()),
+      requestJSON(API.shortlist),
+      requestJSON(API.scanChanges),
+      requestJSON(API.notifications),
     ]);
 
     if (metaResult.status === "fulfilled") {
@@ -145,6 +195,469 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     if (dashboardResult.status === "fulfilled") {
       renderContributionDashboard(dashboardResult.value);
     }
+
+    if (preferenceResult.status === "fulfilled") {
+      renderPreference(preferenceResult.value);
+    } else {
+      dom.onboardingCard.hidden = false;
+    }
+
+    if (recommendationResult.status === "fulfilled") {
+      renderRecommendations(recommendationResult.value);
+    }
+
+    if (shortlistResult.status === "fulfilled") {
+      renderShortlist(shortlistResult.value);
+    }
+
+    if (changesResult.status === "fulfilled") {
+      renderScanChanges(changesResult.value);
+    }
+
+    if (notificationResult.status === "fulfilled") {
+      renderNotifications(notificationResult.value);
+    }
+  }
+
+  function renderActiveView() {
+    const requested = cleanText(window.location.hash).replace(/^#\//, "");
+    const view = ["discover", "shortlist", "contributions"].includes(requested)
+      ? requested
+      : "discover";
+    state.currentView = view;
+    document.querySelectorAll("[data-product-view]").forEach((section) => {
+      section.hidden = section.dataset.productView !== view;
+    });
+    document.querySelectorAll("[data-view-link]").forEach((link) => {
+      const active = link.dataset.viewLink === view;
+      link.classList.toggle("is-active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  function renderPreference(data) {
+    const configured = Boolean(data && data.configured);
+    const preference = objectValue(data && data.preference);
+    state.preference = configured ? preference : null;
+    dom.onboardingCard.hidden = configured;
+    dom.preferenceButton.hidden = !configured;
+    dom.preferenceButton.setAttribute("aria-expanded", "false");
+    dom.preferenceButton.textContent = "调整偏好";
+    if (!configured) return;
+    const form = dom.preferenceForm.elements;
+    form.primary_goal.value = cleanText(preference.primary_goal) || "balanced";
+    form.preferred_languages.value = toStringArray(preference.preferred_languages).join(", ");
+    form.weekly_hours.value = String(toFiniteNumber(preference.weekly_hours, 5));
+    form.minimum_bounty_usd.value = String(toFiniteNumber(preference.minimum_bounty_usd, 0));
+    form.auto_scan_enabled.checked = Boolean(preference.auto_scan_enabled);
+    form.auto_scan_local_time.value = cleanText(preference.auto_scan_local_time) || "09:00";
+  }
+
+  async function savePreference(event) {
+    event.preventDefault();
+    const form = dom.preferenceForm.elements;
+    const submit = dom.preferenceForm.querySelector("button[type='submit']");
+    submit.disabled = true;
+    dom.preferenceStatus.textContent = "正在保存并重新排序…";
+    try {
+      await ensureLocalAccessToken();
+      const preference = await requestJSON(API.preferences, {
+        method: "POST",
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          primary_goal: form.primary_goal.value,
+          preferred_languages: form.preferred_languages.value
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          weekly_hours: Number(form.weekly_hours.value),
+          minimum_bounty_usd: Number(form.minimum_bounty_usd.value),
+          auto_scan_enabled: form.auto_scan_enabled.checked,
+          auto_scan_local_time: form.auto_scan_local_time.value || "09:00",
+        }),
+      });
+      state.preference = preference;
+      dom.onboardingCard.hidden = true;
+      dom.preferenceButton.hidden = false;
+      dom.preferenceButton.setAttribute("aria-expanded", "false");
+      dom.preferenceButton.textContent = "调整偏好";
+      dom.preferenceStatus.textContent = "偏好已保存";
+      await reloadProductExperience();
+      showToast("推荐已按你的目标重新排序。 ");
+    } catch (error) {
+      dom.preferenceStatus.textContent = friendlyError(error);
+    } finally {
+      submit.disabled = false;
+    }
+  }
+
+  function togglePreferenceEditor() {
+    const opening = dom.onboardingCard.hidden;
+    dom.onboardingCard.hidden = !opening;
+    dom.preferenceButton.setAttribute("aria-expanded", String(opening));
+    dom.preferenceButton.textContent = opening ? "收起偏好" : "调整偏好";
+    if (opening) {
+      dom.onboardingCard.scrollIntoView({ behavior: "smooth", block: "center" });
+      dom.preferenceForm.elements.primary_goal.focus({ preventScroll: true });
+    }
+  }
+
+  async function reloadProductExperience() {
+    const [recommendations, shortlist, changes, notifications] = await Promise.all([
+      requestJSON(recommendationEndpoint()),
+      requestJSON(API.shortlist),
+      requestJSON(API.scanChanges),
+      requestJSON(API.notifications),
+    ]);
+    renderRecommendations(recommendations);
+    renderShortlist(shortlist);
+    renderScanChanges(changes);
+    renderNotifications(notifications);
+  }
+
+  function recommendationEndpoint() {
+    return state.showDismissed
+      ? `${API.recommendations}?include_dismissed=true`
+      : API.recommendations;
+  }
+
+  async function toggleDismissedRecommendations() {
+    state.showDismissed = !state.showDismissed;
+    dom.dismissedToggle.disabled = true;
+    dom.dismissedToggle.setAttribute("aria-pressed", String(state.showDismissed));
+    dom.dismissedToggle.textContent = state.showDismissed
+      ? "隐藏已忽略"
+      : "查看已忽略";
+    try {
+      renderRecommendations(await requestJSON(recommendationEndpoint()));
+    } catch (error) {
+      state.showDismissed = !state.showDismissed;
+      dom.dismissedToggle.setAttribute("aria-pressed", String(state.showDismissed));
+      dom.dismissedToggle.textContent = state.showDismissed
+        ? "隐藏已忽略"
+        : "查看已忽略";
+      showToast(friendlyError(error), true);
+    } finally {
+      dom.dismissedToggle.disabled = false;
+    }
+  }
+
+  function renderRecommendations(data) {
+    const items = Array.isArray(data && data.items) ? data.items : [];
+    state.recommendations = items;
+    state.analysisPanels.clear();
+    if (!items.length) {
+      state.picks = [];
+      dom.opportunityList.replaceChildren();
+      dom.statePanel.replaceChildren(
+        analysisMessage(
+          state.showDismissed ? "暂时没有可展示的机会" : "当前推荐已处理完",
+          state.showDismissed
+            ? "完成一次扫描后，新的匹配机会会出现在这里。"
+            : "可以查看已忽略的机会，或扫描新的候选。",
+        ),
+      );
+      dom.filterEmpty.hidden = true;
+      updateFilterCounts([]);
+      dom.resultCount.textContent = "0 个匹配机会";
+      return;
+    }
+    const picks = items.map((item, index) => recommendationAsPick(item, index));
+    state.picks = picks;
+    dom.opportunityList.replaceChildren();
+    dom.statePanel.replaceChildren();
+    const fragment = document.createDocumentFragment();
+    picks.forEach((pick, index) => fragment.appendChild(buildOpportunityCard(pick, index)));
+    dom.opportunityList.appendChild(fragment);
+    updateFilterCounts(picks);
+    applyFilter(state.activeFilter);
+    dom.resultCount.textContent = `共 ${formatNumber(toFiniteNumber(data.total, items.length))} 个匹配机会`;
+    const goalLabels = {
+      balanced: "综合选择",
+      bounty: "赚取赏金",
+      impact: "提升影响力",
+      quick_merge: "快速获得合并",
+      learning: "技术成长",
+    };
+    dom.analysisMode.textContent = `当前目标：${goalLabels[cleanText(data.goal)] || "综合选择"} · AI 深入评估按需运行`;
+  }
+
+  function recommendationAsPick(item, index) {
+    const product = objectValue(item);
+    const opportunity = objectValue(product.opportunity);
+    const components = objectValue(opportunity.score_components);
+    const firstReason = toStringArray(product.reason_codes)[0];
+    const selectionReason = {
+      reward_reliability: "bounty",
+      project_impact: "high_impact",
+      tech_match: "tech_match",
+      learning_value: "strategic",
+    }[firstReason] || "best_available";
+    return {
+      rank: index + 1,
+      scan_run_id: product.scan_run_id,
+      snapshot_id: product.snapshot_id,
+      score_version_id: product.score_version_id,
+      selection_reason: selectionReason,
+      score_snapshot: product.personalized_score,
+      product_recommendation: product,
+      opportunity: {
+        ...opportunity,
+        score_total: product.personalized_score,
+        score_components: components,
+        is_tech_match: toStringArray(product.reason_codes).includes("tech_match"),
+        is_strategic: toStringArray(product.reason_codes).includes("learning_value"),
+      },
+    };
+  }
+
+  function renderScanChanges(data) {
+    const newMatches = toFiniteNumber(data && data.new_matches, 0);
+    const updates = toFiniteNumber(data && data.shortlist_updates, 0);
+    if (!data || !data.scan_run_id || (!newMatches && !updates)) {
+      dom.scanChanges.hidden = true;
+      return;
+    }
+    dom.scanChanges.hidden = false;
+    dom.scanChanges.replaceChildren(
+      element("strong", "", "自上次扫描后的变化"),
+      element("span", "", `${formatNumber(newMatches)} 个新匹配 · ${formatNumber(updates)} 个候选有更新`),
+    );
+  }
+
+  function renderNotifications(rows) {
+    state.notifications = Array.isArray(rows) ? rows : [];
+    const unread = state.notifications.filter((item) => !item.is_read);
+    dom.notificationCount.textContent = formatNumber(unread.length);
+    dom.notificationButton.classList.toggle("has-unread", unread.length > 0);
+    dom.notificationList.replaceChildren();
+    if (!state.notifications.length) {
+      dom.notificationList.appendChild(element("p", "notification-empty", "暂时没有新提醒。"));
+      return;
+    }
+    state.notifications.forEach((notification) => {
+      const item = element("article", "notification-item");
+      item.classList.toggle("is-read", Boolean(notification.is_read));
+      item.append(
+        element("strong", "", cleanText(notification.title)),
+        element("p", "", cleanText(notification.message)),
+        element("small", "", formatRelativeDate(notification.created_at)),
+      );
+      if (!notification.is_read) {
+        const read = analysisAction("标记已读", async () => {
+          await mutateJSON(`${API.notifications}/${encodeURIComponent(notification.id)}/read`, {});
+          notification.is_read = true;
+          renderNotifications(state.notifications);
+        });
+        read.classList.add("is-compact");
+        item.appendChild(read);
+      }
+      dom.notificationList.appendChild(item);
+    });
+  }
+
+  function toggleNotifications() {
+    const opening = dom.notificationDrawer.hidden;
+    dom.notificationDrawer.hidden = !opening;
+    dom.notificationButton.setAttribute("aria-expanded", String(opening));
+  }
+
+  async function markAllNotificationsRead() {
+    try {
+      await mutateJSON(`${API.notifications}/read-all`, {});
+      state.notifications.forEach((item) => { item.is_read = true; });
+      renderNotifications(state.notifications);
+    } catch (error) {
+      showToast(friendlyError(error), true);
+    }
+  }
+
+  async function mutateJSON(url, body) {
+    await ensureLocalAccessToken();
+    return requestJSON(url, {
+      method: "POST",
+      headers: mutationHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(body),
+    });
+  }
+
+  function renderShortlist(rows) {
+    state.shortlist = Array.isArray(rows) ? rows : [];
+    state.compareSelection.clear();
+    dom.shortlistCount.textContent = formatNumber(state.shortlist.length);
+    dom.compareButton.disabled = true;
+    dom.shortlistList.replaceChildren();
+    dom.comparisonGrid.hidden = true;
+    if (!state.shortlist.length) {
+      const empty = analysisMessage(
+        "还没有候选机会",
+        "在发现页把值得进一步考虑的机会加入候选，再回来比较。",
+      );
+      const discover = analysisAction("去发现机会", () => {
+        window.location.hash = "#/discover";
+      });
+      empty.appendChild(discover);
+      dom.shortlistList.appendChild(empty);
+      return;
+    }
+    state.shortlist.forEach((item) => {
+      dom.shortlistList.appendChild(buildShortlistCard(item));
+    });
+  }
+
+  function buildShortlistCard(item) {
+    const opportunity = objectValue(item.opportunity);
+    const repository = objectValue(opportunity.repository);
+    const card = element("article", "shortlist-card");
+    const selectLabel = element("label", "compare-check");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked && state.compareSelection.size >= 3) {
+        checkbox.checked = false;
+        showToast("一次最多比较三个机会。", true);
+        return;
+      }
+      if (checkbox.checked) state.compareSelection.add(opportunity.id);
+      else state.compareSelection.delete(opportunity.id);
+      dom.compareButton.disabled = state.compareSelection.size < 2;
+      dom.compareButton.textContent = state.compareSelection.size >= 2
+        ? `比较 ${state.compareSelection.size} 个机会`
+        : "比较所选机会";
+    });
+    selectLabel.append(checkbox, document.createTextNode("选择比较"));
+
+    const main = element("div", "shortlist-main");
+    main.append(
+      element("span", "shortlist-repo", cleanText(repository.full_name)),
+      element("h3", "", cleanText(opportunity.title)),
+      element("p", "", cleanText(item.summary)),
+    );
+    const facts = element("div", "shortlist-facts");
+    facts.append(
+      decisionMetric("推荐", recommendationLabel(item.recommendation_label)),
+      decisionMetric("接收机会", levelLabel(item.acceptance_level)),
+      decisionMetric("竞争压力", inverseLevelLabel(item.competition_level)),
+      decisionMetric("预计投入", effortLabel(item.effort)),
+    );
+    main.appendChild(facts);
+
+    const controls = element("div", "shortlist-controls");
+    const reminder = document.createElement("input");
+    reminder.type = "datetime-local";
+    reminder.setAttribute("aria-label", "提醒时间");
+    const existingReminder = parseDate(item.reminder_at);
+    if (existingReminder) reminder.value = toLocalInputValue(existingReminder);
+    const saveReminder = analysisAction("保存提醒", async () => {
+      try {
+        await setOpportunityDisposition(opportunity.id, {
+          state: "shortlisted",
+          reason_code: null,
+          reminder_at: reminder.value ? new Date(reminder.value).toISOString() : null,
+        });
+        showToast(reminder.value ? "提醒时间已保存。" : "提醒已清除。 ");
+        await reloadProductExperience();
+      } catch (error) {
+        showToast(friendlyError(error), true);
+      }
+    });
+    saveReminder.classList.add("is-compact");
+    const remove = analysisAction("移出候选", async () => {
+      await setOpportunityDisposition(opportunity.id, {
+        state: "neutral",
+        reason_code: null,
+        reminder_at: null,
+      });
+      await reloadProductExperience();
+    });
+    remove.classList.add("is-compact", "is-danger");
+    const issue = link(opportunity.html_url, "查看 Issue ↗", "open-issue-link");
+    controls.append(reminder, saveReminder, remove, issue);
+    card.append(selectLabel, main, controls);
+    return card;
+  }
+
+  async function compareSelectedOpportunities() {
+    const query = new URLSearchParams();
+    [...state.compareSelection].forEach((id) => query.append("opportunity_id", String(id)));
+    dom.compareButton.disabled = true;
+    dom.comparisonGrid.hidden = false;
+    dom.comparisonGrid.replaceChildren(
+      analysisMessage("正在比较", "汇总投入、收益、竞争和风险…", true),
+    );
+    try {
+      const rows = await requestJSON(`${API.compare}?${query.toString()}`);
+      renderComparison(rows);
+    } catch (error) {
+      dom.comparisonGrid.replaceChildren(
+        analysisMessage("比较失败", friendlyError(error)),
+      );
+    } finally {
+      dom.compareButton.disabled = state.compareSelection.size < 2;
+    }
+  }
+
+  function renderComparison(rows) {
+    dom.comparisonGrid.replaceChildren();
+    (Array.isArray(rows) ? rows : []).forEach((item) => {
+      const opportunity = objectValue(item.opportunity);
+      const repository = objectValue(opportunity.repository);
+      const card = element("article", "comparison-card");
+      card.append(
+        element("span", "shortlist-repo", cleanText(repository.full_name)),
+        element("h3", "", cleanText(opportunity.title)),
+        element("strong", "comparison-verdict", recommendationLabel(item.recommendation_label)),
+        comparisonRow("匹配分", formatScore(item.personalized_score)),
+        comparisonRow("预计投入", effortLabel(item.effort)),
+        comparisonRow("接收机会", levelLabel(item.acceptance_level)),
+        comparisonRow("竞争压力", inverseLevelLabel(item.competition_level)),
+        comparisonRow("项目影响", levelLabel(item.impact_level)),
+        comparisonRow(
+          "赏金",
+          opportunity.has_bounty
+            ? opportunity.bounty_amount_usd == null
+              ? "金额待确认"
+              : formatCurrency(opportunity.bounty_amount_usd)
+            : "无明确赏金",
+        ),
+      );
+      const risks = toStringArray(opportunity.risk_reasons);
+      card.appendChild(
+        element(
+          "p",
+          "comparison-risk",
+          risks.length
+            ? risks.map((risk) => RISK_LABELS[risk] || humanize(risk)).join("；")
+            : "暂无明显规则风险",
+        ),
+      );
+      dom.comparisonGrid.appendChild(card);
+    });
+  }
+
+  function comparisonRow(label, value) {
+    const row = element("div", "comparison-row");
+    row.append(element("span", "", label), element("strong", "", value));
+    return row;
+  }
+
+  function recommendationLabel(value) {
+    return {
+      strong: "强推荐",
+      worth_reviewing: "值得评估",
+      cautious: "谨慎投入",
+      low_priority: "优先级较低",
+    }[cleanText(value)] || "待评估";
+  }
+
+  function effortLabel(value) {
+    const effort = objectValue(value);
+    const minimum = toOptionalNumber(effort.hours_min);
+    const maximum = toOptionalNumber(effort.hours_max);
+    return minimum !== null && maximum !== null
+      ? `${formatNumber(minimum)}～${formatNumber(maximum)} 小时`
+      : "待深入评估";
   }
 
   function renderMeta(meta) {
@@ -239,11 +752,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
     state.analysisReady = false;
     const missing = [];
-    if (reasons.includes("provider_not_configured")) missing.push("Provider");
-    if (reasons.includes("budget_not_configured")) missing.push("预算");
+    if (reasons.includes("provider_not_configured")) missing.push("分析服务");
+    if (reasons.includes("budget_not_configured")) missing.push("使用额度");
     const suffix = missing.length ? `（缺少：${missing.join("、")}）` : "";
     dom.analysisMode.textContent =
-      `规则榜单 fallback：未自动调用模型，排名保持可复现${suffix}。`;
+      `当前使用基础评分，深入评估仅在你主动发起时运行${suffix}。`;
   }
 
   function renderGeneratedAt(value) {
@@ -273,6 +786,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const repository = opportunity.repository && typeof opportunity.repository === "object"
       ? opportunity.repository
       : {};
+    const product = objectValue(pick && pick.product_recommendation);
     const reason = cleanText(pick.selection_reason) || "best_available";
     const reasonMeta = REASONS[reason] || { label: humanize(reason), short: humanize(reason) };
     const rank = Math.max(1, Math.trunc(toFiniteNumber(pick.rank, index + 1)));
@@ -283,6 +797,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     );
 
     const card = element("article", "opportunity-card");
+    const dismissed = cleanText(product.disposition_state) === "dismissed";
+    card.classList.toggle("is-dismissed", dismissed);
     card.dataset.reason = reason;
     card.setAttribute("aria-labelledby", `opportunity-title-${index}`);
 
@@ -294,7 +810,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
     const main = element("div", "opportunity-main");
     const topline = element("div", "card-topline");
-    const reasonBadge = element("span", "reason-badge", reasonMeta.label);
+    const reasonBadge = element(
+      "span",
+      "reason-badge",
+      dismissed ? "已忽略" : reasonMeta.label,
+    );
     reasonBadge.dataset.reason = reason;
     topline.appendChild(reasonBadge);
 
@@ -312,6 +832,10 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const description = cleanText(repository.description);
     if (description) {
       main.appendChild(element("p", "repository-description", description));
+    }
+
+    if (Object.keys(product).length) {
+      main.appendChild(buildDecisionSummary(product, opportunity));
     }
 
     const labels = toStringArray(opportunity.labels);
@@ -333,9 +857,17 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       main.appendChild(element("div", "risk-row", riskText));
     }
 
+    if (Object.keys(product).length) {
+      main.appendChild(buildProductActions(product, opportunity));
+    }
+
     main.appendChild(buildCardFooter(opportunity, repository));
 
-    const scoreColumn = buildScoreColumn(score, opportunity.score_components);
+    const scoreColumn = buildScoreColumn(
+      score,
+      opportunity.score_components,
+      Object.keys(product).length > 0,
+    );
 
     card.append(
       rankColumn,
@@ -373,6 +905,162 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return row;
   }
 
+  function buildDecisionSummary(product, opportunity) {
+    const section = element("section", "decision-summary");
+    const label = {
+      strong: "强推荐",
+      worth_reviewing: "值得评估",
+      cautious: "谨慎投入",
+      low_priority: "优先级较低",
+    }[cleanText(product.recommendation_label)] || "值得评估";
+    const heading = element("div", "decision-heading");
+    heading.append(
+      element("strong", "decision-verdict", label),
+      element("p", "", cleanText(product.summary) || cleanText(opportunity.title)),
+    );
+    section.appendChild(heading);
+
+    const reasons = element("ul", "decision-reasons");
+    toStringArray(product.reasons).slice(0, 3).forEach((reason) => {
+      reasons.appendChild(element("li", "", reason));
+    });
+    section.appendChild(reasons);
+
+    const effort = objectValue(product.effort);
+    const hoursMin = toOptionalNumber(effort.hours_min);
+    const hoursMax = toOptionalNumber(effort.hours_max);
+    const effortText = hoursMin !== null && hoursMax !== null
+      ? `${formatNumber(hoursMin)}～${formatNumber(hoursMax)} 小时`
+      : "待深入评估";
+    const metrics = element("div", "decision-metrics");
+    metrics.append(
+      decisionMetric("预计投入", effortText),
+      decisionMetric("接收机会", levelLabel(product.acceptance_level)),
+      decisionMetric("竞争压力", inverseLevelLabel(product.competition_level)),
+      decisionMetric("项目影响", levelLabel(product.impact_level)),
+    );
+    section.appendChild(metrics);
+
+    if (opportunity.has_bounty) {
+      const amount = toOptionalNumber(opportunity.bounty_amount_usd);
+      section.appendChild(
+        element(
+          "p",
+          "bounty-caveat",
+          amount === null
+            ? "可能存在赏金，金额和领取条款需要确认。"
+            : `${formatCurrency(amount)} 已识别，领取条件和支付可靠性仍需确认。`,
+        ),
+      );
+    }
+    return section;
+  }
+
+  function decisionMetric(label, value) {
+    const item = element("div", "decision-metric");
+    item.append(element("span", "", label), element("strong", "", value));
+    return item;
+  }
+
+  function buildProductActions(product, opportunity) {
+    const wrapper = element("div", "product-actions");
+    const shortlisted = cleanText(product.disposition_state) === "shortlisted";
+    const dismissed = cleanText(product.disposition_state) === "dismissed";
+    const saveLabel = dismissed
+      ? "恢复推荐"
+      : shortlisted
+        ? "已加入候选"
+        : "加入候选";
+    const save = analysisAction(saveLabel, async () => {
+      save.disabled = true;
+      try {
+        await setOpportunityDisposition(opportunity.id, {
+          state: shortlisted || dismissed ? "neutral" : "shortlisted",
+          reason_code: null,
+          reminder_at: null,
+        });
+        showToast(
+          dismissed
+            ? "已恢复到推荐列表。"
+            : shortlisted
+              ? "已移出候选。"
+              : "已加入我的候选。 ",
+        );
+        await reloadProductExperience();
+      } catch (error) {
+        showToast(friendlyError(error), true);
+      } finally {
+        save.disabled = false;
+      }
+    });
+    save.classList.add("product-primary-action");
+
+    const analyze = analysisAction("深入评估", () => {
+      const panel = state.analysisPanels.get(String(opportunity.id));
+      if (panel) toggleAnalysisPanel(panel);
+    });
+
+    const dismiss = analysisAction("暂不适合", () => {
+      dismiss.hidden = true;
+      reasonField.hidden = false;
+      reasonField.querySelector("select").focus();
+    });
+    dismiss.hidden = dismissed;
+    const reasonField = element("div", "dismiss-reason");
+    reasonField.hidden = true;
+    const select = document.createElement("select");
+    [
+      ["", "选择原因"],
+      ["too_large", "任务过大"],
+      ["low_reward", "收益偏低"],
+      ["tech_mismatch", "技术不匹配"],
+      ["high_competition", "竞争过高"],
+      ["unclear_scope", "范围不清"],
+      ["not_interested", "暂不感兴趣"],
+      ["other", "其他"],
+    ].forEach(([value, label]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+    const confirm = analysisAction("确认忽略", async () => {
+      if (!select.value) return;
+      confirm.disabled = true;
+      try {
+        await setOpportunityDisposition(opportunity.id, {
+          state: "dismissed",
+          reason_code: select.value,
+          reminder_at: null,
+        });
+        showToast("已从推荐中隐藏；可通过“查看已忽略”恢复。 ");
+        await reloadProductExperience();
+      } catch (error) {
+        showToast(friendlyError(error), true);
+        confirm.disabled = false;
+      }
+    });
+    confirm.classList.add("is-compact");
+    reasonField.append(select, confirm);
+    wrapper.append(save, analyze, dismiss, reasonField);
+    return wrapper;
+  }
+
+  async function setOpportunityDisposition(opportunityId, payload) {
+    return mutateJSON(
+      `${API.opportunities}/${encodeURIComponent(opportunityId)}/dispositions`,
+      payload,
+    );
+  }
+
+  function levelLabel(value) {
+    return { high: "高", medium: "中", low: "低" }[cleanText(value)] || "未知";
+  }
+
+  function inverseLevelLabel(value) {
+    return { high: "低", medium: "中", low: "高" }[cleanText(value)] || "未知";
+  }
+
   function buildCardFooter(opportunity, repository) {
     const footer = element("div", "card-footer");
     const facts = element("div", "repo-facts");
@@ -398,7 +1086,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return footer;
   }
 
-  function buildScoreColumn(score, components) {
+  function buildScoreColumn(score, components, personalized) {
     const column = element("div", "score-column");
     const ring = element("div", "score-ring");
     ring.style.setProperty("--score", score.toFixed(1));
@@ -406,7 +1094,14 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     ring.setAttribute("aria-label", `综合评分 ${formatScore(score)} 分`);
     ring.appendChild(element("span", "score-number", formatScore(score)));
 
-    column.append(ring, element("span", "score-caption", "综合评分 / 100"));
+    column.append(
+      ring,
+      element(
+        "span",
+        "score-caption",
+        personalized ? "个性化匹配" : "综合评分 / 100",
+      ),
+    );
 
     const entries = components && typeof components === "object"
       ? Object.entries(components).filter((entry) => Number.isFinite(Number(entry[1])))
@@ -447,8 +1142,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const header = element("div", "analysis-workbench-header");
     const heading = element("div");
     heading.append(
-      element("strong", "", "AI 深度分析"),
-      element("span", "", "冻结证据 · 结构化结论 · 可比较版本"),
+      element("strong", "", "深入评估"),
+      element("span", "", "判断投入、工作量、风险和下一步"),
     );
     const toggle = element("button", "analysis-toggle", "查看分析");
     toggle.type = "button";
@@ -531,8 +1226,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     panel.body.replaceChildren();
     if (!panel.versions.length) {
       const copy = state.analysisReady
-        ? "这个冻结 Snapshot 还没有分析版本。运行后会保留 Provider、Prompt、引用、用量与哈希。"
-        : "当前为规则榜单 fallback；Provider 或预算未配置，不能发起新的模型调用。";
+        ? "这个机会还没有深入评估。运行后会保留结论、引用依据和版本记录。"
+        : "当前仅提供基础评分；深入评估服务或使用额度尚未就绪。";
       const empty = analysisMessage("尚无深度分析", copy);
       if (state.analysisReady && panel.snapshotId) {
         empty.appendChild(analysisAction("运行深度分析", () => runAnalysis(panel)));
@@ -582,7 +1277,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       toolbar.appendChild(rerun);
     } else {
       toolbar.appendChild(
-        element("span", "analysis-fallback-badge", "规则 fallback · 禁止自动调用"),
+        element("span", "analysis-fallback-badge", "基础评分 · 深入评估未开启"),
       );
     }
 
@@ -622,21 +1317,41 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const provenance = objectValue(content.provenance);
     const hashes = objectValue(content.hashes);
 
+    const decision = element("section", "analysis-decision-brief");
+    const recommendation = {
+      pursue: "建议投入",
+      consider: "进一步确认后再决定",
+      skip: "暂不建议投入",
+      insufficient_evidence: "现有信息不足",
+    }[cleanText(analysis.recommendation)] || "进一步确认后再决定";
+    decision.append(
+      element("span", "analysis-decision-label", recommendation),
+      element(
+        "h4",
+        "",
+        cleanText(analysis.recommendation_summary)
+          || cleanText(analysis.problem_summary)
+          || "分析已完成",
+      ),
+      analysisListBlock("为什么适合你", analysis.fit_reasons, "请结合下方证据判断"),
+      analysisListBlock("建议的下一步", analysis.next_steps, "先阅读贡献指南并确认任务仍可接手"),
+      analysisListBlock(
+        "开始前向维护者确认",
+        analysis.maintainer_questions,
+        "当前没有额外问题",
+      ),
+    );
+    root.appendChild(decision);
+
+    const effort = objectValue(analysis.estimated_effort);
+    const bounty = objectValue(analysis.bounty_basis);
+    const competition = objectValue(analysis.competition);
     const summary = element("div", "analysis-summary-grid");
     summary.append(
-      analysisMetric("置信度", formatPercent(analysis.confidence)),
-      analysisMetric(
-        "Token",
-        `${formatNumber(toFiniteNumber(usage.input_tokens, 0))} 入 / ${formatNumber(toFiniteNumber(usage.output_tokens, 0))} 出`,
-      ),
-      analysisMetric(
-        "估算成本",
-        formatMicrousd(usage.estimated_cost_microusd),
-      ),
-      analysisMetric(
-        "耗时",
-        formatDuration(usage.duration_ms),
-      ),
+      analysisMetric("预计投入", effortLabel(effort)),
+      analysisMetric("竞争", levelLabel(competition.level)),
+      analysisMetric("赏金", bounty.has_bounty ? bounty.amount_usd == null ? "金额待确认" : formatCurrency(bounty.amount_usd) : "无明确赏金"),
+      analysisMetric("结论置信度", formatPercent(analysis.confidence)),
     );
     root.appendChild(summary);
 
@@ -672,11 +1387,20 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       citationRow.appendChild(element("span", "", "没有可展示的引用"));
     }
     citationSection.appendChild(citationRow);
-    root.appendChild(citationSection);
-
     const metadata = document.createElement("details");
-    metadata.className = "analysis-metadata";
-    metadata.appendChild(element("summary", "", "Provider、合同与溯源"));
+    metadata.className = "analysis-metadata technical-details";
+    metadata.appendChild(element("summary", "", "分析依据与技术详情"));
+    const usageGrid = element("div", "analysis-summary-grid technical-summary-grid");
+    usageGrid.append(
+      analysisMetric(
+        "Token",
+        `${formatNumber(toFiniteNumber(usage.input_tokens, 0))} 入 / ${formatNumber(toFiniteNumber(usage.output_tokens, 0))} 出`,
+      ),
+      analysisMetric("估算成本", formatMicrousd(usage.estimated_cost_microusd)),
+      analysisMetric("耗时", formatDuration(usage.duration_ms)),
+      analysisMetric("引用", formatNumber(citations.length)),
+    );
+    metadata.append(usageGrid, citationSection);
     const metadataGrid = element("dl", "");
     appendMetadata(metadataGrid, "Provider", `${cleanText(provider.name)} / ${cleanText(provider.model)}`);
     appendMetadata(metadataGrid, "模型版本", provider.model_version);
@@ -743,9 +1467,9 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const heading = element("div", "planning-launcher-heading");
     const copy = element("div");
     copy.append(
-      element("span", "planning-kicker", "CONTRIBUTION TASK"),
-      element("h4", "", "从分析进入可批准计划"),
-      element("p", "", "任务、修订、批准与执行就绪均绑定不可变哈希；这里不会执行代码或写入 GitHub。"),
+      element("span", "planning-kicker", "START CONTRIBUTING"),
+      element("h4", "", "开始准备这个贡献"),
+      element("p", "", "把分析结论整理成可确认的实施步骤；高级验证信息可在技术详情中查看。"),
     );
     const body = element("div", "planning-launcher-body");
     const analysisVersionId = cleanText(analysisDetail && analysisDetail.id);
@@ -760,7 +1484,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
         action.disabled = true;
         action.textContent = knownTaskId ? "正在载入…" : "正在创建…";
         body.replaceChildren(
-          analysisMessage("正在准备任务", "正在校验 AnalysisVersion 与 Snapshot 哈希。", true),
+          analysisMessage("正在准备任务", "正在确认分析结论和机会信息。", true),
         );
         try {
           await ensureLocalAccessToken();
@@ -797,7 +1521,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
   async function loadPlanningWorkbench(container, panel, analysisDetail, taskId) {
     container.replaceChildren(
-      analysisMessage("正在载入计划", "校验任务状态、版本链、对话、锁与批准审计。", true),
+      analysisMessage("正在载入计划", "正在同步任务状态、计划和确认记录。", true),
     );
     try {
       const task = await requestJSON(`${API.tasks}/${encodeURIComponent(taskId)}`);
@@ -838,7 +1562,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
     const statusBar = element("div", "planning-status-bar");
     statusBar.append(
-      planningStatus("任务", shortHash(task.id), "ready"),
+      planningStatus("任务", "已创建", "ready"),
       planningStatus(
         "计划",
         latestPlan ? `v${latestPlan.version_number}` : "待创建",
@@ -861,7 +1585,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       const stale = element("div", "planning-stale-alert");
       stale.append(
         element("strong", "", "批准已失效"),
-        element("span", "", "绑定输入或哈希已变化。旧批准仍保留审计，但必须创建新修订并重新批准。"),
+        element("span", "", "机会内容或计划依据已变化，请创建新修订并重新确认。"),
       );
       container.appendChild(stale);
     }
@@ -923,7 +1647,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     section.appendChild(
       planningCardHeading(
         latestPlan ? `计划修订 · 当前 v${latestPlan.version_number}` : "创建初始计划",
-        "所有命令必须是 argv 数组；路径只能位于仓库内。",
+        "先确认目标、步骤和验收标准；高级执行设置可按需展开。",
       ),
     );
     const form = element("form", "plan-editor");
@@ -995,15 +1719,19 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       ),
     );
     form.appendChild(twoColumn);
-    form.appendChild(
+    const advancedCommands = document.createElement("details");
+    advancedCommands.className = "technical-details";
+    advancedCommands.append(
+      element("summary", "", "高级执行设置"),
       planningTextField(
-        "命令 JSON（argv 数组，不接受 shell 字符串）",
+        "验证命令（高级）",
         "commands_to_run",
         JSON.stringify(defaults.commands_to_run || [], null, 2),
         9,
         "code",
       ),
     );
+    form.appendChild(advancedCommands);
     const submit = analysisAction(
       latestPlan ? "保存为新修订" : "创建初始计划",
       () => {},
@@ -1446,7 +2174,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const section = element("section", "planning-card execution-workbench");
     const heading = planningCardHeading(
       "隔离执行",
-      "阶段、Job 与 Artifact 均从不可变记录复验后显示。",
+      "关注执行进度和结果；保护策略与运行记录可按需展开。",
     );
     const refreshButton = analysisAction("刷新执行", () => load(true));
     refreshButton.classList.add("is-compact");
@@ -1467,7 +2195,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       refreshButton.disabled = true;
       if (!manual || !body.childElementCount) {
         body.replaceChildren(
-          analysisMessage("正在载入执行", "正在复验阶段、Job 与 Artifact 哈希链。", true),
+          analysisMessage("正在载入执行", "正在检查进度、变更和测试结果。", true),
         );
       }
       try {
@@ -1525,7 +2253,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       && cleanText(current.status) === "succeeded"
     ) {
       const changeForm = element("form", "planning-execution-form");
-      const submitChange = analysisAction("提交 Fake ChangeSet", () => {});
+      const submitChange = analysisAction("提交变更方案", () => {});
       submitChange.type = "submit";
       const changeStatus = element("span", "planning-form-status");
       changeForm.append(submitChange, changeStatus);
@@ -1679,7 +2407,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
                 headers: mutationHeaders(),
               },
             );
-            showToast("取消请求已持久化，等待 Worker 在安全边界确认。");
+            showToast("取消请求已保存，将在当前步骤结束后生效。");
             await refresh();
           } catch (error) {
             showToast(`取消失败：${friendlyError(error)}`, true);
@@ -1703,7 +2431,13 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       buildExecutionCommands(plan),
       buildExecutionRunResources(runs),
     );
-    root.appendChild(overview);
+    const advancedOverview = document.createElement("details");
+    advancedOverview.className = "technical-details execution-advanced";
+    advancedOverview.append(
+      element("summary", "", "高级执行信息"),
+      overview,
+    );
+    root.appendChild(advancedOverview);
 
     const artifacts = manifests.flatMap((manifest) => (
       Array.isArray(manifest.entries)
@@ -1723,8 +2457,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       artifactGrid.appendChild(
         buildExecutionArtifactCard(
           diff,
-          "Unified diff",
-          "加载经 SHA-256 复验的原始 diff。",
+          "代码变更",
+          "查看本次修改的具体内容。",
           renderExecutionDiff,
         ),
       );
@@ -1733,8 +2467,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       artifactGrid.appendChild(
         buildExecutionArtifactCard(
           tests,
-          "规范化测试结果",
-          "查看命令结果、退出码、耗时与输出哈希。",
+          "测试结果",
+          "查看各项检查是否通过及耗时。",
           renderExecutionTests,
         ),
       );
@@ -1743,8 +2477,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       artifactGrid.appendChild(
         buildExecutionArtifactCard(
           inventory,
-          "文件清单",
-          "查看变更路径、文件计数和前后清单哈希。",
+          "文件变化",
+          "查看新增、修改和删除的文件。",
           renderExecutionInventory,
         ),
       );
@@ -1753,8 +2487,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       artifactGrid.appendChild(
         buildExecutionArtifactCard(
           entry,
-          `${executionStageLabel(entry.stage)} 运行证据`,
-          "查看命令、资源、脱敏日志和结果绑定。",
+          `${executionStageLabel(entry.stage)} 运行记录`,
+          "查看详细命令、资源和已脱敏日志。",
           renderExecutionEvidence,
         ),
       );
@@ -1762,18 +2496,18 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     if (!artifactGrid.childElementCount) {
       artifactGrid.appendChild(
         analysisMessage(
-          "Artifact 尚未固化",
+          "结果尚未生成",
           cleanText(current.status) === "pending"
-            ? "阶段等待调度；成功前不会出现 Artifact。"
-            : "只有原子固化成功的阶段才会显示内容。",
+            ? "任务仍在等待开始，完成后会在这里显示结果。"
+            : "当前步骤尚未产生可查看的结果。",
         ),
       );
     }
     const artifactSection = element("section", "execution-artifacts");
     artifactSection.append(
       planningCardHeading(
-        "执行产物",
-        `${manifests.length} 个清单 · ${artifacts.length} 个内容寻址条目`,
+        "执行结果",
+        `${artifacts.length} 项可查看内容`,
       ),
       artifactGrid,
     );
@@ -1875,17 +2609,17 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       ),
     );
     const output = element("div", "execution-artifact-output");
-    const button = analysisAction("加载并复验", async () => {
+    const button = analysisAction("查看结果", async () => {
       const url = executionArtifactUrl(entry.content_url);
       if (!url) {
         output.replaceChildren(
-          analysisMessage("Artifact 地址无效", "拒绝读取非本地执行路径。"),
+          analysisMessage("结果地址无效", "无法读取这项执行结果。"),
         );
         return;
       }
       button.disabled = true;
       output.replaceChildren(
-        analysisMessage("正在读取 Artifact", "正在复验归属、清单与 SHA-256。", true),
+        analysisMessage("正在读取结果", "正在确认内容完整性。", true),
       );
       try {
         const artifact = await requestArtifact(url);
@@ -1893,7 +2627,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
         button.textContent = "重新加载";
       } catch (error) {
         output.replaceChildren(
-          analysisMessage("Artifact 读取失败", friendlyError(error)),
+          analysisMessage("结果读取失败", friendlyError(error)),
         );
       } finally {
         button.disabled = false;
@@ -2123,7 +2857,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       submit.disabled = true;
-      status.textContent = "正在确认并记录 Fake Draft PR…";
+      status.textContent = "正在确认并记录演示 Draft PR…";
       try {
         await ensureLocalAccessToken();
         const result = await requestJSON(
@@ -2140,7 +2874,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
           },
         );
         const draft = objectValue(result.draft_pull_request);
-        showToast(`Fake Draft PR #${draft.number || "?"} 已记录。`);
+        showToast(`演示 Draft PR #${draft.number || "?"} 已记录。`);
         refresh();
       } catch (error) {
         status.textContent = friendlyError(error);
@@ -2206,6 +2940,19 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       return;
     }
     const funnel = objectValue(data.funnel);
+    const metrics = objectValue(data.metrics);
+    if (toFiniteNumber(metrics.task_count, 0) === 0) {
+      dom.funnelGrid.replaceChildren(
+        analysisMessage(
+          "还没有进行中的贡献",
+          "从候选机会运行深入评估并创建贡献任务后，这里会显示下一步和成果进度。",
+        ),
+      );
+      dom.heatmapGrid.hidden = true;
+      renderTaskHistory();
+      return;
+    }
+    dom.heatmapGrid.hidden = false;
     const labels = [
       ["scanned", "已扫描"],
       ["analyzed", "已深析"],
@@ -2260,10 +3007,16 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       }
       rows.slice(-12).reverse().forEach((task) => {
         const item = element("article", "task-history-item");
+        const progress = document.createElement("progress");
+        progress.max = 100;
+        progress.value = toFiniteNumber(task.progress_percent, 0);
+        progress.setAttribute("aria-label", `贡献进度 ${progress.value}%`);
         item.append(
-          element("strong", "", shortHash(task.id)),
-          element("span", "", cleanText(task.current_state)),
-          element("span", "", cleanText(task.reason_code)),
+          element("span", "task-repository", cleanText(task.repository_full_name) || "开源贡献"),
+          element("strong", "", cleanText(task.opportunity_title) || "贡献任务"),
+          element("span", "task-friendly-state", cleanText(task.friendly_state) || humanize(task.current_state)),
+          progress,
+          element("span", "task-next-action", cleanText(task.next_action) || "当前阶段已完成"),
         );
         dom.taskHistory.appendChild(item);
       });
@@ -2462,7 +3215,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const terminal = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
     while (!terminal.has(cleanText(job.state).toLowerCase())) {
       if (Date.now() >= deadline) {
-        throw new Error("分析任务仍在运行；Job 已持久化，可稍后继续查询。");
+        throw new Error("分析仍在运行，任务已保留，可稍后继续查看。");
       }
       await sleep(1000);
       const eventQuery = revision ? `?after_revision=${encodeURIComponent(revision)}` : "";
@@ -2480,8 +3233,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
   function renderAnalysisJobProgress(panel, job, events) {
     const stateName = cleanText(job.state) || "queued";
     const messages = {
-      queued: "等待 Provider worker 领取任务",
-      leased: "Worker 已领取，正在准备冻结输入",
+      queued: "等待分析服务开始",
+      leased: "正在准备分析材料",
       running: cleanText(job.progress_message) || "正在运行结构化分析",
       succeeded: "分析版本已完成",
     };
@@ -2808,7 +3561,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     if (!state.activeJobId || state.cancelRequested) return;
     state.cancelRequested = true;
     dom.scanLabel.textContent = "正在请求取消…";
-    dom.scanNote.textContent = "Worker 会在安全边界处停止任务";
+    dom.scanNote.textContent = "后台任务会在当前步骤完成后停止";
     try {
       await requestJSON(
         `${API.jobs}/${encodeURIComponent(state.activeJobId)}/cancel`,
@@ -2817,7 +3570,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
           headers: mutationHeaders(),
         },
       );
-      showToast("取消请求已记录，等待 Worker 确认。");
+      showToast("取消请求已记录，等待后台任务确认。 ");
     } catch (error) {
       state.cancelRequested = false;
       showToast(`取消失败：${friendlyError(error)}`, true);
@@ -2840,7 +3593,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
     while (!terminal.has(String(job.state || "").toLowerCase())) {
       if (Date.now() >= deadline) {
-        throw new Error("任务仍未结束；已保留，可通过 Job API 继续查询");
+        throw new Error("任务仍未结束，进度已保留，可稍后继续查看");
       }
       await sleep(1000);
       job = await requestJSON(`${API.jobs}/${encodeURIComponent(job.id)}`);
@@ -2857,14 +3610,14 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     while (!terminal.has(String(job.state || "").toLowerCase())) {
       const jobState = String(job.state || "queued").toLowerCase();
       if (jobState === "queued") {
-        dom.scanNote.textContent = "等待 contribos worker 领取任务";
+        dom.scanNote.textContent = "等待后台扫描服务响应";
       } else if (jobState === "leased") {
         dom.scanNote.textContent = "正在准备 GitHub 扫描";
       } else {
         dom.scanNote.textContent = cleanText(job.progress_message) || "正在检索并评估候选机会";
       }
       if (Date.now() >= deadline) {
-        throw new Error("扫描任务仍未结束；任务已保留，可通过 Job API 继续查询");
+        throw new Error("扫描仍未结束，进度已保留，可稍后继续查看");
       }
       await sleep(1000);
       job = await requestJSON(`${API.jobs}/${encodeURIComponent(job.id)}`);
@@ -2874,8 +3627,20 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
   async function reloadDaily() {
     try {
-      const data = await requestJSON(API.daily);
-      renderDaily(data);
+      const [daily, recommendations, shortlist, changes, notifications, dashboard] = await Promise.all([
+        requestJSON(API.daily),
+        requestJSON(recommendationEndpoint()),
+        requestJSON(API.shortlist),
+        requestJSON(API.scanChanges),
+        requestJSON(API.notifications),
+        requestJSON(API.dashboard),
+      ]);
+      renderDaily(daily);
+      renderRecommendations(recommendations);
+      renderShortlist(shortlist);
+      renderScanChanges(changes);
+      renderNotifications(notifications);
+      renderContributionDashboard(dashboard);
     } catch (error) {
       showToast(`榜单刷新失败：${friendlyError(error)}`, true);
     }
@@ -3022,6 +3787,30 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       notation: "compact",
       maximumFractionDigits: 1,
     }).format(toFiniteNumber(value, 0));
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: Number(value) % 1 ? 2 : 0,
+    }).format(toFiniteNumber(value, 0));
+  }
+
+  function formatRelativeDate(value) {
+    const date = parseDate(value);
+    if (!date) return "时间未知";
+    const minutes = Math.round((date.getTime() - Date.now()) / 60_000);
+    const formatter = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
+    if (Math.abs(minutes) < 60) return formatter.format(minutes, "minute");
+    const hours = Math.round(minutes / 60);
+    if (Math.abs(hours) < 24) return formatter.format(hours, "hour");
+    return formatter.format(Math.round(hours / 24), "day");
+  }
+
+  function toLocalInputValue(date) {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return local.toISOString().slice(0, 16);
   }
 
   function formatScore(value) {

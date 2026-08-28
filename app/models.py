@@ -1846,6 +1846,116 @@ class PullRequestEvent(Base):
     )
 
 
+class UserPreferenceVersion(Base):
+    __tablename__ = "user_preference_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, unique=True)
+    schema_version: Mapped[str] = mapped_column(String(32))
+    primary_goal: Mapped[str] = mapped_column(String(32), index=True)
+    preferred_languages: Mapped[list[str]] = mapped_column(JSON)
+    weekly_hours: Mapped[int] = mapped_column(Integer)
+    minimum_bounty_usd: Mapped[float] = mapped_column(Float)
+    auto_scan_enabled: Mapped[bool] = mapped_column(Boolean)
+    auto_scan_local_time: Mapped[str] = mapped_column(String(5))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        CheckConstraint("schema_version = '1'", name="ck_user_preference_schema"),
+        CheckConstraint("version >= 1", name="ck_user_preference_version"),
+        CheckConstraint(
+            "primary_goal IN ('balanced', 'bounty', 'impact', "
+            "'quick_merge', 'learning')",
+            name="ck_user_preference_goal",
+        ),
+        CheckConstraint(
+            "weekly_hours >= 1 AND weekly_hours <= 40",
+            name="ck_user_preference_weekly_hours",
+        ),
+        CheckConstraint(
+            "minimum_bounty_usd >= 0",
+            name="ck_user_preference_minimum_bounty",
+        ),
+    )
+
+
+class OpportunityDispositionVersion(Base):
+    __tablename__ = "opportunity_disposition_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    opportunity_id: Mapped[int] = mapped_column(
+        ForeignKey("opportunities.id", ondelete="RESTRICT"), index=True
+    )
+    preference_version_id: Mapped[str | None] = mapped_column(
+        ForeignKey("user_preference_versions.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    sequence: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(24), index=True)
+    reason_code: Mapped[str | None] = mapped_column(String(80))
+    reminder_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), index=True
+    )
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "opportunity_id",
+            "sequence",
+            name="uq_opportunity_disposition_sequence",
+        ),
+        CheckConstraint("sequence >= 1", name="ck_opportunity_disposition_sequence"),
+        CheckConstraint(
+            "state IN ('shortlisted', 'dismissed', 'neutral')",
+            name="ck_opportunity_disposition_state",
+        ),
+    )
+
+
+class InAppNotification(Base):
+    __tablename__ = "in_app_notifications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(40), index=True)
+    opportunity_id: Mapped[int | None] = mapped_column(
+        ForeignKey("opportunities.id", ondelete="RESTRICT"), index=True
+    )
+    scan_run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("scan_runs.id", ondelete="RESTRICT"), index=True
+    )
+    dedupe_key: Mapped[str] = mapped_column(String(160), unique=True)
+    title: Mapped[str] = mapped_column(String(300))
+    message: Mapped[str] = mapped_column(String(1000))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('new_match', 'shortlist_updated', 'reminder_due')",
+            name="ck_in_app_notification_kind",
+        ),
+    )
+
+
+class NotificationRead(Base):
+    __tablename__ = "notification_reads"
+
+    notification_id: Mapped[str] = mapped_column(
+        ForeignKey("in_app_notifications.id", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    read_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_events"
 

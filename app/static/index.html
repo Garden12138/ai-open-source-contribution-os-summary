@@ -23,13 +23,29 @@
           </span>
           <span>
             <strong id="app-name">开源机会雷达</strong>
-            <small>规则评分 · AI 深析</small>
+            <small>精选机会 · 清晰决策</small>
           </span>
         </a>
 
-        <div class="system-status" id="system-status" aria-live="polite">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span id="token-status">正在检查连接状态</span>
+        <nav class="primary-nav" aria-label="产品主导航">
+          <a href="#/discover" data-view-link="discover" class="is-active">发现机会</a>
+          <a href="#/shortlist" data-view-link="shortlist">
+            我的候选 <span id="shortlist-count">0</span>
+          </a>
+          <a href="#/contributions" data-view-link="contributions">贡献进度</a>
+        </nav>
+
+        <div class="header-actions">
+          <button class="preference-button" id="preference-button" type="button" hidden aria-expanded="false">
+            调整偏好
+          </button>
+          <button class="notification-button" id="notification-button" type="button" aria-expanded="false">
+            提醒 <span id="notification-count">0</span>
+          </button>
+          <div class="system-status" id="system-status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="token-status">正在检查连接状态</span>
+          </div>
         </div>
       </div>
     </header>
@@ -70,6 +86,47 @@
           <span class="meta-summary" id="meta-summary"></span>
         </aside>
 
+        <section class="onboarding-card" id="onboarding-card" hidden aria-labelledby="onboarding-title">
+          <div>
+            <p class="section-kicker">YOUR CONTRIBUTION GOAL</p>
+            <h2 id="onboarding-title">先告诉我们，你想获得什么</h2>
+            <p>完成一次设置，推荐会按目标、技术栈和可投入时间重新排序。</p>
+          </div>
+          <form id="preference-form" class="preference-form">
+            <label>本期目标
+              <select name="primary_goal">
+                <option value="balanced">综合选择</option>
+                <option value="bounty">赚取赏金</option>
+                <option value="impact">提升影响力</option>
+                <option value="quick_merge">快速获得合并</option>
+                <option value="learning">技术成长</option>
+              </select>
+            </label>
+            <label>偏好语言
+              <input name="preferred_languages" value="Python, TypeScript" placeholder="Python, TypeScript">
+            </label>
+            <label>每周可投入
+              <input name="weekly_hours" type="number" min="1" max="40" value="5">
+            </label>
+            <label>最低赏金（USD）
+              <input name="minimum_bounty_usd" type="number" min="0" value="0">
+            </label>
+            <label class="preference-check">
+              <input name="auto_scan_enabled" type="checkbox">
+              每日自动扫描
+            </label>
+            <label>扫描时间
+              <input name="auto_scan_local_time" type="time" value="09:00">
+            </label>
+            <button class="scan-button preference-submit" type="submit">保存并查看推荐</button>
+            <span class="preference-status" id="preference-status" aria-live="polite"></span>
+          </form>
+        </section>
+
+        <section class="scan-changes" id="scan-changes" hidden aria-live="polite"></section>
+
+        <section class="product-view" id="discover-view" data-product-view="discover">
+
         <section class="stats-grid" aria-label="本期榜单统计">
           <article class="stat-card">
             <span class="stat-label">扫描候选</span>
@@ -100,7 +157,12 @@
               <h2 id="leaderboard-title">今日机会榜</h2>
               <p id="analysis-mode">正在确认深度分析状态…</p>
             </div>
-            <span class="result-count" id="result-count" aria-live="polite">载入中</span>
+            <div class="result-tools">
+              <span class="result-count" id="result-count" aria-live="polite">载入中</span>
+              <button class="dismissed-toggle" id="dismissed-toggle" type="button" aria-pressed="false">
+                查看已忽略
+              </button>
+            </div>
           </div>
 
           <div class="filter-bar" id="filter-bar" role="group" aria-label="按推荐类型筛选">
@@ -135,24 +197,40 @@
 
           <div class="opportunity-list" id="opportunity-list" aria-live="polite"></div>
 
+          <div class="filter-empty" id="filter-empty" hidden>
+            <span aria-hidden="true">⌁</span>
+            <strong>这一类型今天还没有入选机会</strong>
+            <p>可以切换到“全部”，或发起一次新扫描。</p>
+          </div>
+        </section>
+        </section>
+
+        <section class="product-view" id="shortlist-view" data-product-view="shortlist" hidden>
+          <div class="section-heading view-heading">
+            <div>
+              <p class="section-kicker">MY SHORTLIST</p>
+              <h2>我的候选</h2>
+              <p>先收集，再比较。最多选择三个机会并排判断投入与回报。</p>
+            </div>
+            <button class="secondary-button" id="compare-button" type="button" disabled>比较所选机会</button>
+          </div>
+          <div class="shortlist-list" id="shortlist-list"></div>
+          <div class="comparison-grid" id="comparison-grid" hidden></div>
+        </section>
+
+        <section class="product-view" id="contributions-view" data-product-view="contributions" hidden>
           <section class="contribution-dashboard" id="contribution-dashboard" aria-labelledby="contribution-title">
-            <div class="section-heading">
+            <div class="section-heading view-heading">
               <div>
-                <p class="section-kicker">CONTRIBUTION FUNNEL</p>
-                <h2 id="contribution-title">贡献漏斗与热力图</h2>
-                <p>指标只统计可追溯事件，不含无法证明的历史数据。</p>
+                <p class="section-kicker">CONTRIBUTION PROGRESS</p>
+                <h2 id="contribution-title">贡献进度</h2>
+                <p>关注下一步行动；执行证据和技术详情仅在需要时展开。</p>
               </div>
             </div>
             <div class="funnel-grid" id="funnel-grid" aria-label="贡献漏斗"></div>
             <div class="heatmap-grid" id="heatmap-grid" aria-label="贡献热力图"></div>
             <div class="task-history" id="task-history" aria-label="任务历史"></div>
           </section>
-
-          <div class="filter-empty" id="filter-empty" hidden>
-            <span aria-hidden="true">⌁</span>
-            <strong>这一类型今天还没有入选机会</strong>
-            <p>可以切换到“全部”，或发起一次新扫描。</p>
-          </div>
         </section>
       </div>
     </main>
@@ -165,5 +243,12 @@
     </footer>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <aside class="notification-drawer" id="notification-drawer" hidden aria-label="应用内提醒">
+      <header>
+        <strong>提醒</strong>
+        <button type="button" id="notification-read-all">全部已读</button>
+      </header>
+      <div id="notification-list"></div>
+    </aside>
   </body>
 </html>

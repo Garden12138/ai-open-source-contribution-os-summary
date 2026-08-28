@@ -532,6 +532,11 @@ def test_succeeded_provider_job_creates_one_immutable_analysis_version(
                 "bounty_basis",
                 "risks",
                 "confidence",
+                "recommendation",
+                "recommendation_summary",
+                "fit_reasons",
+                "next_steps",
+                "maintainer_questions",
                 "cited_evidence_ids",
                 "citation_map",
             }

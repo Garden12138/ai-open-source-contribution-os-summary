@@ -16,7 +16,7 @@ from app.models import Base
 
 FIXTURES = Path(__file__).parent / "fixtures"
 BASELINE_REVISION = "0001_phase1_baseline"
-LATEST_REVISION = "0024_task_side_states"
+LATEST_REVISION = "0025_product_experience"
 
 
 def _load_phase1_fixture(path: Path) -> None:
@@ -62,6 +62,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "0021_review_runs",
             "0022_publish_intents",
             "0023_pull_request_events",
+            "0024_task_side_states",
             LATEST_REVISION,
         )
         assert first.stamped == ()
@@ -90,7 +91,10 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "final_score_versions",
             "jobs",
             "job_artifacts",
+            "in_app_notifications",
+            "notification_reads",
             "opportunities",
+            "opportunity_disposition_versions",
             "opportunity_snapshots",
             "plan_versions",
             "plan_locks",
@@ -106,6 +110,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "scan_runs",
             "score_versions",
             "task_lifecycle_marks",
+            "user_preference_versions",
         }
     finally:
         database.close()
@@ -221,6 +226,7 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
             "0021_review_runs",
             "0022_publish_intents",
             "0023_pull_request_events",
+            "0024_task_side_states",
             LATEST_REVISION,
         )
         assert report.stamped == (BASELINE_REVISION,)
@@ -350,12 +356,48 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
             "0021_review_runs",
             "0022_publish_intents",
             "0023_pull_request_events",
+            "0024_task_side_states",
             LATEST_REVISION,
         )
         with database.session() as session:
             retained = JobService(session).get(job_id)
             assert retained.payload == {"retained": True}
             assert retained.state == "queued"
+    finally:
+        database.close()
+
+
+def test_product_experience_upgrade_from_previous_revision_preserves_rows(
+    tmp_path: Path,
+) -> None:
+    database = Database(f"sqlite+pysqlite:///{tmp_path / 'from-0024.db'}")
+    try:
+        previous = MigrationRunner(
+            database.engine,
+            migrations=MIGRATIONS[:-1],
+        ).upgrade()
+        assert previous.current_revision == "0024_task_side_states"
+        with database.session() as session:
+            job, _ = JobService(session).enqueue(
+                kind="fixture",
+                idempotency_key="retained-across-product-migration",
+                payload={"retained": True},
+            )
+            job_id = job.id
+
+        report = database.create_schema()
+
+        assert report.previous_revision == "0024_task_side_states"
+        assert report.applied == (LATEST_REVISION,)
+        with database.session() as session:
+            retained = JobService(session).get(job_id)
+            assert retained.payload == {"retained": True}
+        assert {
+            "user_preference_versions",
+            "opportunity_disposition_versions",
+            "in_app_notifications",
+            "notification_reads",
+        }.issubset(inspect(database.engine).get_table_names())
     finally:
         database.close()
 

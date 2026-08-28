@@ -5,13 +5,17 @@ from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager, suppress
 from datetime import datetime, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
+
+from sqlalchemy import select
 
 from app.archives import RepositoryArchiveJobWorker, RepositoryArchiveStore
 from app.changesets import ChangeSetStore
 from app.config import Settings
 from app.database import Database
 from app.jobs import JobService, JobState, JobTransitionError
-from app.models import Job
+from app.models import Job, ScanRun
+from app.product_experience import ProductExperienceService
 from app.execution_worker import ExecutionStageWorker
 from app.providers import (
     ProviderAnalysisJobWorker,
@@ -214,6 +218,8 @@ class ContribOSWorker:
         worker_id: str,
         heartbeat_interval_seconds: float = 15,
     ) -> None:
+        self.database = database
+        self.settings = settings
         self.discovery = DiscoveryJobWorker(
             database,
             settings,
@@ -266,6 +272,7 @@ class ContribOSWorker:
         )
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        self._sync_product_experience(now=now)
         completed = await self.discovery.run_once(now=now)
         if completed is not None:
             return completed
@@ -281,6 +288,44 @@ class ContribOSWorker:
             if completed is not None:
                 return completed
         return None
+
+    def _sync_product_experience(self, *, now: datetime | None) -> None:
+        current = now or datetime.now(timezone.utc)
+        aware = current if current.tzinfo else current.replace(tzinfo=timezone.utc)
+        with self.database.session() as session:
+            product = ProductExperienceService(
+                session,
+                secrets=(
+                    self.settings.github_token,
+                    self.settings.local_access_token,
+                ),
+            )
+            product.sync_due_reminders(now=aware)
+            preference = product.current_preference()
+            if preference is None or not preference.auto_scan_enabled:
+                return
+            local = aware.astimezone(ZoneInfo(self.settings.timezone))
+            hour, minute = (
+                int(item) for item in preference.auto_scan_local_time.split(":", 1)
+            )
+            if (local.hour, local.minute) < (hour, minute):
+                return
+            completed_today = session.scalar(
+                select(ScanRun.id)
+                .where(
+                    ScanRun.status == "completed",
+                    ScanRun.selection_date == local.date(),
+                )
+                .limit(1)
+            )
+            if completed_today is not None:
+                return
+            JobService(session).enqueue(
+                kind=DISCOVERY_JOB_KIND,
+                idempotency_key=f"scheduled-scan:{local.date().isoformat()}",
+                payload={"queries": None, "top_n": None},
+                now=aware,
+            )
 
     async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:
         interval = max(0.1, poll_interval_seconds)

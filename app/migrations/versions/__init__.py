@@ -65,6 +65,9 @@ from app.migrations.versions.v0023_pull_request_events import (
 from app.migrations.versions.v0024_task_side_states import (
     MIGRATION as TASK_SIDE_STATES,
 )
+from app.migrations.versions.v0025_product_experience import (
+    MIGRATION as PRODUCT_EXPERIENCE,
+)
 
 MIGRATIONS: tuple[Migration, ...] = (
     PHASE1_BASELINE,
@@ -91,6 +94,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     PUBLISH_INTENTS,
     PULL_REQUEST_EVENTS,
     TASK_SIDE_STATES,
+    PRODUCT_EXPERIENCE,
 )
 
 __all__ = ["MIGRATIONS"]

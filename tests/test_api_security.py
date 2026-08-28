@@ -92,6 +92,18 @@ def test_mutations_require_local_token_and_browser_csrf(
             "/api/v1/tasks/task-1/lifecycle",
             json={},
         )
+        no_token_preferences = client.post(
+            "/api/v1/preferences/current",
+            json={},
+        )
+        no_token_disposition = client.post(
+            "/api/v1/opportunities/1/dispositions",
+            json={"state": "shortlisted"},
+        )
+        no_token_notification = client.post(
+            "/api/v1/notifications/read-all",
+            json={},
+        )
         no_csrf = client.post(
             "/api/v1/scans",
             json={},
@@ -220,6 +232,30 @@ def test_mutations_require_local_token_and_browser_csrf(
                 "Origin": "http://testserver",
             },
         )
+        no_csrf_preferences = client.post(
+            "/api/v1/preferences/current",
+            json={},
+            headers={
+                "Authorization": f"Bearer {LOCAL_TOKEN}",
+                "Origin": "http://testserver",
+            },
+        )
+        no_csrf_disposition = client.post(
+            "/api/v1/opportunities/1/dispositions",
+            json={"state": "shortlisted"},
+            headers={
+                "Authorization": f"Bearer {LOCAL_TOKEN}",
+                "Origin": "http://testserver",
+            },
+        )
+        no_csrf_notification = client.post(
+            "/api/v1/notifications/read-all",
+            json={},
+            headers={
+                "Authorization": f"Bearer {LOCAL_TOKEN}",
+                "Origin": "http://testserver",
+            },
+        )
         cross_origin = client.post(
             "/api/v1/scans",
             json={},
@@ -237,6 +273,15 @@ def test_mutations_require_local_token_and_browser_csrf(
                 "Origin": "http://testserver",
                 "X-CSRF-Token": csrf,
                 "Idempotency-Key": "browser-auth",
+            },
+        )
+        secret_preference = client.post(
+            "/api/v1/preferences/current",
+            json={"preferred_languages": [LOCAL_TOKEN]},
+            headers={
+                "Authorization": f"Bearer {LOCAL_TOKEN}",
+                "Origin": "http://testserver",
+                "X-CSRF-Token": csrf,
             },
         )
         cli_allowed = client.post(
@@ -267,6 +312,9 @@ def test_mutations_require_local_token_and_browser_csrf(
     assert no_token_confirm.status_code == 401
     assert no_token_event.status_code == 401
     assert no_token_lifecycle.status_code == 401
+    assert no_token_preferences.status_code == 401
+    assert no_token_disposition.status_code == 401
+    assert no_token_notification.status_code == 401
     assert no_token.headers["www-authenticate"] == "Bearer"
     assert no_csrf.status_code == 403
     assert no_csrf_analysis.status_code == 403
@@ -284,8 +332,13 @@ def test_mutations_require_local_token_and_browser_csrf(
     assert no_csrf_confirm.status_code == 403
     assert no_csrf_event.status_code == 403
     assert no_csrf_lifecycle.status_code == 403
+    assert no_csrf_preferences.status_code == 403
+    assert no_csrf_disposition.status_code == 403
+    assert no_csrf_notification.status_code == 403
     assert cross_origin.status_code == 403
     assert browser_allowed.status_code == 202
+    assert secret_preference.status_code == 422
+    assert LOCAL_TOKEN not in secret_preference.text
     assert cli_allowed.status_code == 202
 
 

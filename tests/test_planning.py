@@ -4356,6 +4356,32 @@ def test_task_state_migration_backfills_existing_task_root(
             task_hash = task.record_hash
         with database.engine.begin() as connection:
             connection.execute(
+                text("DROP TABLE notification_reads")
+            )
+            connection.execute(
+                text("DROP TRIGGER in_app_notifications_no_delete")
+            )
+            connection.execute(
+                text("DROP TRIGGER in_app_notifications_no_update")
+            )
+            connection.execute(text("DROP TABLE in_app_notifications"))
+            connection.execute(
+                text("DROP TRIGGER opportunity_disposition_versions_no_delete")
+            )
+            connection.execute(
+                text("DROP TRIGGER opportunity_disposition_versions_no_update")
+            )
+            connection.execute(
+                text("DROP TABLE opportunity_disposition_versions")
+            )
+            connection.execute(
+                text("DROP TRIGGER user_preference_versions_no_delete")
+            )
+            connection.execute(
+                text("DROP TRIGGER user_preference_versions_no_update")
+            )
+            connection.execute(text("DROP TABLE user_preference_versions"))
+            connection.execute(
                 text("DROP TRIGGER pull_request_events_no_delete")
             )
             connection.execute(
@@ -4591,7 +4617,8 @@ def test_task_state_migration_backfills_existing_task_root(
                     "'0021_review_runs', "
                     "'0022_publish_intents', "
                     "'0023_pull_request_events', "
-                    "'0024_task_side_states'"
+                    "'0024_task_side_states', "
+                    "'0025_product_experience'"
                     ")"
                 )
             )
@@ -4613,6 +4640,7 @@ def test_task_state_migration_backfills_existing_task_root(
             "0022_publish_intents",
             "0023_pull_request_events",
             "0024_task_side_states",
+            "0025_product_experience",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

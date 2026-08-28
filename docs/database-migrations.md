@@ -569,6 +569,28 @@ Recovery:
 2. Restore the backup if trigger replacement or mark-table creation fails.
 3. Never rewrite historical `to_state` values or delete a mark.
 
+### `0025_product_experience`
+
+Purpose:
+
+- add immutable, versioned local preference profiles used to personalize the
+  full eligible opportunity pool without changing any rule `ScoreVersion`;
+- add append-only shortlist, dismissal, and reminder decisions per opportunity;
+- add immutable in-app notifications with separate read receipts for new
+  matches, shortlisted-opportunity changes, and due reminders;
+- keep all new state local and introduce no GitHub or other third-party write.
+
+Recovery:
+
+1. Stop API and Worker writers and preserve the SQLite file before upgrade.
+2. Restore that backup if any table, index, or immutability-trigger creation
+   fails; do not drop a partially created subset while writers are running.
+3. Older binaries may ignore the four additive tables after a complete upgrade,
+   but must not edit or fabricate preference/disposition history.
+4. After restore, run SQLite integrity checks and re-run the migration normally;
+   notification dedupe keys and preference/disposition hashes make retry state
+   explicit.
+
 ## Adding a migration
 
 1. Add an immutable module under `app/migrations/versions`.

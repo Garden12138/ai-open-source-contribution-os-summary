@@ -131,6 +131,15 @@ def test_structured_analysis_schema_rejects_malformed_or_unsafe_values(
 
 def cited_analysis_payload() -> dict[str, object]:
     value = analysis_payload()
+    value.update(
+        {
+            "recommendation": "consider",
+            "recommendation_summary": "Confirm scope before starting.",
+            "fit_reasons": ["The task matches the preferred stack."],
+            "next_steps": ["Ask the maintainer whether the task is available."],
+            "maintainer_questions": ["Is this Issue still available?"],
+        }
+    )
     value["citation_map"] = {
         "problem_summary": ["issue"],
         "current_behavior": ["issue"],
@@ -143,6 +152,11 @@ def cited_analysis_payload() -> dict[str, object]:
         "bounty_basis": ["issue", "rule_score"],
         "risks": [["repository"]],
         "confidence": ["issue", "repository", "rule_score"],
+        "recommendation": ["issue", "rule_score"],
+        "recommendation_summary": ["issue"],
+        "fit_reasons": [["repository", "rule_score"]],
+        "next_steps": [["issue"]],
+        "maintainer_questions": [["issue"]],
     }
     return value
 
