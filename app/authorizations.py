@@ -6,6 +6,7 @@ from enum import StrEnum
 class UserAction(StrEnum):
     APPROVE_PLAN = "approve_plan"
     START_EXECUTION = "start_execution"
+    ACCEPT_CHANGE_SET = "accept_change_set"
     START_REVIEW = "start_review"
     START_REPAIR = "start_repair"
     CREATE_PUBLISH_INTENT = "create_publish_intent"

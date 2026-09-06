@@ -68,6 +68,15 @@ from app.migrations.versions.v0024_task_side_states import (
 from app.migrations.versions.v0025_product_experience import (
     MIGRATION as PRODUCT_EXPERIENCE,
 )
+from app.migrations.versions.v0026_review_artifact_bindings import (
+    MIGRATION as REVIEW_ARTIFACT_BINDINGS,
+)
+from app.migrations.versions.v0027_nvidia_agent_workflows import (
+    MIGRATION as NVIDIA_AGENT_WORKFLOWS,
+)
+from app.migrations.versions.v0028_nvidia_review_runs import (
+    MIGRATION as NVIDIA_REVIEW_RUNS,
+)
 
 MIGRATIONS: tuple[Migration, ...] = (
     PHASE1_BASELINE,
@@ -95,6 +104,9 @@ MIGRATIONS: tuple[Migration, ...] = (
     PULL_REQUEST_EVENTS,
     TASK_SIDE_STATES,
     PRODUCT_EXPERIENCE,
+    REVIEW_ARTIFACT_BINDINGS,
+    NVIDIA_AGENT_WORKFLOWS,
+    NVIDIA_REVIEW_RUNS,
 )
 
 __all__ = ["MIGRATIONS"]

@@ -13,15 +13,10 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 from uuid import uuid4
 
 from app.provenance import content_hash
-from app.sandbox_worker.explore import (
-    ExploreResult,
-    RepositoryArchive,
-    _MATERIALIZE_SCRIPT,
-)
 from app.sandbox_worker.git_safety import docker_git_safety_argv
 from app.sandbox_worker.specs import (
     JobSpecSignatureError,
@@ -31,6 +26,9 @@ from app.sandbox_worker.specs import (
     SignedJobSpec,
 )
 from app.security import contains_sensitive_text, ensure_no_sensitive_data
+
+if TYPE_CHECKING:
+    from app.sandbox_worker.explore import ExploreResult, RepositoryArchive
 
 
 CHANGE_SET_VERSION = "implementation-change-set-v1"
@@ -1009,6 +1007,8 @@ class DockerImplementRuntime:
         policy: SandboxPolicy,
         container_name: str,
     ) -> tuple[str, ...]:
+        from app.sandbox_worker.explore import _MATERIALIZE_SCRIPT
+
         _runtime_inputs(workspace, container_name=container_name)
         if "," in str(archive.path):
             raise ValueError("Implementation archive mount path is invalid")

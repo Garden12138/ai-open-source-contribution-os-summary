@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from types import MappingProxyType
 from typing import Any
@@ -55,6 +55,9 @@ class AnalysisFieldDifference:
 class AnalysisVersionDetail:
     summary: AnalysisVersionSummary
     content: Mapping[str, Any]
+    source_context: Mapping[str, str] = field(
+        default_factory=lambda: MappingProxyType({})
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,7 +202,29 @@ class AnalysisHistoryService:
                 opportunity_id=snapshot.opportunity_id,
             ),
             content=MappingProxyType(content),
+            source_context=MappingProxyType(self._source_context(snapshot)),
         )
+
+    @staticmethod
+    def _source_context(snapshot: OpportunitySnapshot) -> dict[str, str]:
+        issue = snapshot.issue_data if isinstance(snapshot.issue_data, dict) else {}
+        repository = (
+            snapshot.repository_data
+            if isinstance(snapshot.repository_data, dict)
+            else {}
+        )
+
+        def text(value: object) -> str:
+            return value.strip() if isinstance(value, str) else ""
+
+        context = {
+            "repository_name": text(repository.get("full_name")),
+            "repository_url": text(repository.get("html_url")),
+            "issue_title": text(issue.get("title")),
+            "issue_url": text(issue.get("html_url")),
+        }
+        ensure_no_sensitive_data(context, context="analysis source context")
+        return context
 
     @staticmethod
     def _summary(

@@ -1,16 +1,27 @@
 name: contribos-local
 
-x-contribos-service: &contribos-service
+x-contribos-image: &contribos-image
   image: contribos-local:0.1.0
   build:
     context: ../..
     dockerfile: docs/deployment/Dockerfile
-  env_file:
-    - path: ../../.env
-      required: false
-  environment:
-    DATABASE_URL: sqlite:////data/contribos.db
-    ARTIFACT_ROOT: /data/artifacts
+
+x-app-environment: &app-environment
+  DATABASE_URL: sqlite:////data/contribos.db
+  ARTIFACT_ROOT: /data/artifacts
+  APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Shanghai}
+  ANALYSIS_PROVIDER: ${ANALYSIS_PROVIDER:-none}
+  ANALYSIS_MODEL: ${ANALYSIS_MODEL:-minimaxai/minimax-m3}
+  IMPLEMENTATION_PROVIDER: ${IMPLEMENTATION_PROVIDER:-none}
+  IMPLEMENTATION_MODEL: ${IMPLEMENTATION_MODEL:-deepseek-ai/deepseek-v4-pro-0813}
+  REVIEW_PROVIDER: ${REVIEW_PROVIDER:-none}
+  REVIEW_MODEL: ${REVIEW_MODEL:-minimaxai/minimax-m3}
+  SANDBOX_STAGE_RUNTIME: ${SANDBOX_STAGE_RUNTIME:-none}
+  SANDBOX_JOB_SPEC_KEY_ID: ${SANDBOX_JOB_SPEC_KEY_ID:-local-v1}
+
+x-contribos-app: &contribos-app
+  <<: *contribos-image
+  environment: *app-environment
   volumes:
     - contribos-data:/data
   init: true
@@ -26,8 +37,16 @@ x-contribos-service: &contribos-service
 
 services:
   api:
-    <<: *contribos-service
+    <<: *contribos-app
     command: ["serve", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      <<: *app-environment
+      LOCAL_ACCESS_TOKEN: ${LOCAL_ACCESS_TOKEN:-}
+      GITHUB_DISCOVERY_TOKEN_CONFIGURED: ${GITHUB_TOKEN:+true}
+      SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}
+    networks:
+      - app-internal
+      - api-host
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:
@@ -42,12 +61,87 @@ services:
       start_period: 20s
 
   worker:
-    <<: *contribos-service
+    <<: *contribos-app
     command: ["worker"]
+    environment:
+      <<: *app-environment
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_ALLOWED_HOSTS: ${GITHUB_ALLOWED_HOSTS:-api.github.com}
+      GITHUB_ARCHIVE_HOSTS: ${GITHUB_ARCHIVE_HOSTS:-codeload.github.com}
+    networks:
+      - app-internal
+      - external-egress
     depends_on:
       api:
         condition: service_healthy
 
+  provider-worker:
+    <<: *contribos-app
+    profiles: ["nvidia"]
+    command: ["provider-worker"]
+    environment:
+      <<: *app-environment
+      MODEL_GATEWAY_BASE_URL: http://contribos-model-gateway:8001/v1
+      MODEL_GATEWAY_NETWORK: contribos-model-gateway-local
+      MODEL_GATEWAY_SERVICE_NAME: contribos-model-gateway
+      MODEL_GATEWAY_SIGNING_KEY: ${MODEL_GATEWAY_SIGNING_KEY:-}
+    networks:
+      - model-internal
+    depends_on:
+      model-gateway:
+        condition: service_healthy
+
+  model-gateway:
+    <<: *contribos-image
+    profiles: ["nvidia"]
+    container_name: contribos-model-gateway
+    command: ["model-gateway", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      MODEL_GATEWAY_SIGNING_KEY: ${MODEL_GATEWAY_SIGNING_KEY:-}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      NVIDIA_HTTPS_PROXY: ${NVIDIA_HTTPS_PROXY:-}
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      model-internal:
+        aliases:
+          - contribos-model-gateway
+      external-egress: {}
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
 volumes:
   contribos-data:
     name: contribos-local-data
+
+networks:
+  app-internal:
+    name: contribos-app-local
+    internal: true
+  # OrbStack does not publish host ports for a container attached only to an
+  # internal network. This single-service bridge preserves the private
+  # API/Worker network while allowing the loopback-only port binding above.
+  api-host:
+    name: contribos-api-host-local
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"
+  model-internal:
+    name: contribos-model-gateway-local
+    internal: true
+  external-egress:
+    name: contribos-external-egress-local

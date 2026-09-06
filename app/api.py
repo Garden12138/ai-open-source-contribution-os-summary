@@ -55,6 +55,12 @@ from app.changesets import (
     ChangeSetService,
     ChangeSetStore,
 )
+from app.coding import (
+    CodingConflictError,
+    CodingContextService,
+    CodingConversationService,
+    CodingNotFoundError,
+)
 from app.dashboard import ContributionDashboardService
 from app.lifecycle import LifecycleConflictError, TaskLifecycleService
 from app.publish_intents import (
@@ -75,6 +81,7 @@ from app.reviews import (
     ReviewNotFoundError,
     ReviewRunService,
 )
+from app.review_provider import ProviderReviewService
 from app.github import GitHubClient
 from app.jobs import (
     JobConflictError,
@@ -129,22 +136,40 @@ from app.plans import (
     PlanVersionService,
 )
 from app.providers import (
+    NVIDIA_NIM_ADAPTER_VERSION,
+    NVIDIA_NIM_MODEL_VERSION,
+    NVIDIA_NIM_PROVIDER,
+    AnalysisBudget,
     AnalysisHistoryConflictError,
     AnalysisHistoryNotFoundError,
     AnalysisHistoryService,
+    AnalysisInputError,
+    AnalysisInputFreezer,
     JobProgressService,
     ManualAnalysisConflictError,
     ManualAnalysisNotFoundError,
     ManualAnalysisRequest,
     ManualAnalysisService,
     PROVIDER_ANALYSIS_JOB_KIND,
+    ProviderIdentity,
     resolve_analysis_availability,
     resolve_analysis_runtime,
     resolve_job_spec_signer,
 )
+from app.providers.analysis_documents import (
+    ANALYSIS_DOCUMENT_VERSION,
+    analysis_document_hash,
+    render_analysis_comparison_markdown,
+    render_analysis_markdown,
+)
 from app.schemas import (
     ChangeSetCreateRequest,
     ChangeSetResponse,
+    ChangeSetProposalResponse,
+    CodingMessageCreateRequest,
+    CodingProposalAcceptRequest,
+    CodingSessionResponse,
+    CodingTurnResponse,
     ContributionDashboardResponse,
     ContributionTaskSummaryResponse,
     DraftPullRequestResponse,
@@ -156,6 +181,7 @@ from app.schemas import (
     PullRequestEventResponse,
     RepairCreateRequest,
     ReviewCreateRequest,
+    ProviderReviewCreateRequest,
     ReviewRunResponse,
     TaskLifecycleRequest,
     AnalysisAvailabilityResponse,
@@ -205,6 +231,9 @@ from app.schemas import (
     PreferenceResponse,
     PreferenceUpsertRequest,
     RecommendationFeedResponse,
+    RecommendationAnalysisBatchRequest,
+    RecommendationAnalysisBatchResponse,
+    RecommendationAnalysisJobResponse,
     RecommendationResponse,
     ScanRequest,
     ScanChangesResponse,
@@ -380,6 +409,58 @@ def _review_response(review, *, stale: bool) -> ReviewRunResponse:
     return ReviewRunResponse.model_validate(payload)
 
 
+def _coding_session_response(
+    service: CodingConversationService,
+    coding_session,
+) -> CodingSessionResponse:
+    return CodingSessionResponse(
+        id=coding_session.id,
+        execution_attempt_id=coding_session.execution_attempt_id,
+        plan_version_id=coding_session.plan_version_id,
+        base_commit_sha=coding_session.base_commit_sha,
+        explore_result_hash=coding_session.explore_result_hash,
+        context_hash=coding_session.context_hash,
+        record_hash=coding_session.record_hash,
+        created_at=coding_session.created_at,
+        turns=[
+            CodingTurnResponse.model_validate(turn)
+            for turn in service.turns(coding_session.id)
+        ],
+        proposals=[
+            ChangeSetProposalResponse.model_validate(proposal)
+            for proposal in service.proposals(coding_session.id)
+        ],
+    )
+
+
+def _analysis_markdown_response(
+    document: str,
+    *,
+    filename: str,
+    download: bool,
+    if_none_match: str | None,
+) -> Response:
+    digest = analysis_document_hash(document)
+    etag = f'"sha256:{digest}"'
+    disposition = "attachment" if download else "inline"
+    headers = {
+        "ETag": etag,
+        "Cache-Control": "private, no-cache",
+        "Content-Disposition": f'{disposition}; filename="{filename}"',
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "X-Content-Type-Options": "nosniff",
+        "X-ContribOS-Analysis-Document-Version": ANALYSIS_DOCUMENT_VERSION,
+        "X-ContribOS-Analysis-Document-Hash": digest,
+    }
+    if if_none_match == etag:
+        return Response(status_code=304, headers=headers)
+    return Response(
+        content=document,
+        media_type="text/markdown; charset=utf-8",
+        headers=headers,
+    )
+
+
 def _publish_intent_response(intent, *, status: str) -> PublishIntentResponse:
     return PublishIntentResponse(
         id=intent.id,
@@ -425,6 +506,63 @@ def _schedule_execution_if_signed(
         idempotency_key="schedule:" + attempt_id,
     )
     return executions.current(attempt_id)
+
+
+def _active_analysis_jobs_by_snapshot(
+    session: Session,
+) -> dict[str, Job]:
+    rows = session.scalars(
+        select(Job)
+        .where(
+            Job.kind == PROVIDER_ANALYSIS_JOB_KIND,
+            Job.state.in_(("queued", "leased", "running")),
+        )
+        .order_by(desc(Job.created_at), desc(Job.id))
+    )
+    result: dict[str, Job] = {}
+    for job in rows:
+        if content_hash(job.payload) != job.payload_hash:
+            continue
+        snapshot_id = job.payload.get("snapshot_id")
+        if isinstance(snapshot_id, str) and snapshot_id:
+            result.setdefault(snapshot_id, job)
+    return result
+
+
+RECOMMENDATION_ANALYSIS_BATCH_SIZE = 5
+
+
+def _batch_analysis_budget(
+    budget: AnalysisBudget,
+    candidate_count: int,
+) -> AnalysisBudget:
+    if candidate_count < 1:
+        raise ValueError("Batch analysis requires at least one candidate")
+    invocations = min(
+        4,
+        budget.max_model_invocations // candidate_count,
+    )
+    if invocations < 2:
+        raise ValueError("Batch analysis budget cannot cover inspect and analyze")
+    return AnalysisBudget(
+        max_candidates=1,
+        max_model_invocations=invocations,
+        max_input_tokens=max(1, budget.max_input_tokens // candidate_count),
+        max_output_tokens=max(1, budget.max_output_tokens // candidate_count),
+        max_estimated_cost_microusd=max(
+            1,
+            budget.max_estimated_cost_microusd // candidate_count,
+        ),
+        # The NVIDIA runtime budget reserves five 840-second candidate windows.
+        # A one-item validation probe must use the same per-candidate deadline
+        # as a Top-5 submission; otherwise a stalled probe could hold its lease
+        # for the entire five-item batch allowance.
+        max_duration_ms=max(
+            1,
+            budget.max_duration_ms // RECOMMENDATION_ANALYSIS_BATCH_SIZE,
+        ),
+        max_retries=1 if invocations >= 4 and budget.max_retries > 0 else 0,
+    )
 
 
 def get_session(request: Request) -> Iterator[Session]:
@@ -581,7 +719,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     async def dashboard() -> FileResponse:
-        return FileResponse(STATIC_DIR / "index.html")
+        return FileResponse(
+            STATIC_DIR / "index.html",
+            headers={"Cache-Control": "no-cache"},
+        )
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health(session: Session = Depends(get_session)) -> HealthResponse:
@@ -593,13 +734,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current: Settings = request.app.state.settings
         return MetaResponse(
             app_name=current.app_name,
-            token_configured=bool(current.github_token),
+            token_configured=(
+                bool(current.github_token)
+                or current.github_discovery_token_configured
+            ),
             local_access_token_required=bool(current.local_access_token),
             csrf_token=request.app.state.csrf_token,
             preferred_languages=list(current.preferred_languages),
             queries=list(current.github_queries),
             daily_pick_count=current.daily_pick_count,
             timezone=current.timezone,
+            analysis_provider=current.analysis_provider,
+            analysis_model=current.analysis_model,
+            implementation_provider=current.implementation_provider,
+            implementation_model=current.implementation_model,
+            review_provider=current.review_provider,
+            review_model=current.review_model,
+            sandbox_stage_runtime=current.sandbox_stage_runtime,
+            draft_pr_publisher="fake",
         )
 
     @app.get(
@@ -663,6 +815,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def personalized_recommendations(
         request: Request,
         goal: str | None = Query(default=None, max_length=32),
+        analysis_filter: str = Query(
+            default="all",
+            pattern=r"^(all|analyzed|recommended)$",
+        ),
         include_dismissed: bool = Query(default=False),
         limit: int = Query(default=50, ge=1, le=100),
         offset: int = Query(default=0, ge=0),
@@ -674,6 +830,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             result = ProductExperienceService(session).recommendations(
                 default_languages=request.app.state.settings.preferred_languages,
                 goal=goal,
+                analysis_filter=analysis_filter,
                 include_dismissed=include_dismissed,
                 limit=limit,
                 offset=offset,
@@ -681,6 +838,136 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except ProductExperienceConflictError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return RecommendationFeedResponse.model_validate(result)
+
+    @app.post(
+        "/api/v1/recommendations/analyses",
+        response_model=RecommendationAnalysisBatchResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["analysis", "product-experience"],
+    )
+    def analyze_recommendations(
+        payload: RecommendationAnalysisBatchRequest,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> RecommendationAnalysisBatchResponse:
+        provider = request.app.state.analysis_provider
+        budget = request.app.state.analysis_budget
+        availability = resolve_analysis_availability(
+            provider=provider,
+            budget=budget,
+        )
+        if not availability.automatic_model_invocation_enabled:
+            reasons = ", ".join(
+                reason.value for reason in availability.fallback_reasons
+            )
+            raise HTTPException(
+                status_code=409,
+                detail=f"Analysis is unavailable: {reasons}",
+            )
+        result = ProductExperienceService(session).recommendations(
+            default_languages=request.app.state.settings.preferred_languages,
+            limit=100,
+        )
+        scan_run_id = result.get("scan_run_id")
+        if not isinstance(scan_run_id, str) or not scan_run_id:
+            raise HTTPException(
+                status_code=409,
+                detail="A completed recommendation scan is required",
+            )
+        try:
+            allowed_snapshots = {
+                item.snapshot_id
+                for item in AnalysisInputFreezer(session).freeze_top_candidates(
+                    scan_run_id=scan_run_id,
+                )
+            }
+        except AnalysisInputError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        maximum_candidates = min(
+            payload.limit,
+            budget.max_candidates,
+            budget.max_model_invocations // 2,
+        )
+        if maximum_candidates < 1:
+            raise HTTPException(
+                status_code=409,
+                detail="Analysis budget cannot cover inspect and analyze",
+            )
+        candidates = [
+            item
+            for item in result["items"]
+            if item["snapshot_id"] in allowed_snapshots
+            and item["analysis_version_id"] is None
+        ][:maximum_candidates]
+        if not candidates:
+            return RecommendationAnalysisBatchResponse(
+                scan_run_id=scan_run_id,
+                requested=0,
+                jobs=[],
+            )
+        batch_key = idempotency_key or str(uuid4())
+        per_job_budget = _batch_analysis_budget(budget, len(candidates))
+        active_jobs = _active_analysis_jobs_by_snapshot(session)
+        queued: list[RecommendationAnalysisJobResponse] = []
+        analyses = ManualAnalysisService(session)
+        for item in candidates:
+            opportunity = item["opportunity"]
+            opportunity_id = int(opportunity["id"])
+            snapshot_id = str(item["snapshot_id"])
+            active = active_jobs.get(snapshot_id)
+            if active is not None:
+                queued.append(
+                    RecommendationAnalysisJobResponse(
+                        opportunity_id=opportunity_id,
+                        snapshot_id=snapshot_id,
+                        created=False,
+                        job=JobResponse.model_validate(active),
+                    )
+                )
+                continue
+            child_key = "recommendation-analysis-" + content_hash(
+                {"batch_key": batch_key, "snapshot_id": snapshot_id}
+            )
+            correlation_id = "recommendation-analysis-" + content_hash(
+                {
+                    "scan_run_id": scan_run_id,
+                    "snapshot_id": snapshot_id,
+                    "batch_key": batch_key,
+                }
+            )[:32]
+            try:
+                job, created = analyses.request(
+                    ManualAnalysisRequest(
+                        snapshot_id=snapshot_id,
+                        correlation_id=correlation_id,
+                        idempotency_key=child_key,
+                        budget=per_job_budget,
+                        expected_provider=provider.identity,
+                    )
+                )
+            except ManualAnalysisNotFoundError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
+            except ManualAnalysisConflictError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            queued.append(
+                RecommendationAnalysisJobResponse(
+                    opportunity_id=opportunity_id,
+                    snapshot_id=snapshot_id,
+                    created=created,
+                    job=JobResponse.model_validate(job),
+                )
+            )
+        return RecommendationAnalysisBatchResponse(
+            scan_run_id=scan_run_id,
+            requested=len(queued),
+            jobs=queued,
+        )
 
     @app.get(
         "/api/v1/shortlist",
@@ -1595,6 +1882,204 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _execution_attempt_response(attempt, current_stage)
 
     @app.post(
+        "/api/v1/executions/{execution_attempt_id}/coding-context",
+        response_model=JobResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["execution"],
+    )
+    def create_coding_context(
+        execution_attempt_id: str,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> JobResponse:
+        settings: Settings = request.app.state.settings
+        if (
+            settings.implementation_provider != "nvidia_nim"
+            or settings.sandbox_stage_runtime != "docker"
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Vibe Coding requires IMPLEMENTATION_PROVIDER=nvidia_nim "
+                    "and SANDBOX_STAGE_RUNTIME=docker"
+                ),
+            )
+        try:
+            job, _created = CodingContextService(session).enqueue(
+                execution_attempt_id,
+                idempotency_key=idempotency_key or str(uuid4()),
+            )
+        except ExecutionAttemptNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (CodingConflictError, JobConflictError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return JobResponse.model_validate(job)
+
+    @app.get(
+        "/api/v1/executions/{execution_attempt_id}/coding-session",
+        response_model=CodingSessionResponse,
+        tags=["execution"],
+    )
+    def coding_session_detail(
+        execution_attempt_id: str,
+        request: Request,
+        session: Session = Depends(get_session),
+    ) -> CodingSessionResponse:
+        settings: Settings = request.app.state.settings
+        try:
+            service = CodingConversationService(
+                session, artifact_root=settings.artifact_root
+            )
+            coding_session = service.require_session(execution_attempt_id)
+            return _coding_session_response(service, coding_session)
+        except CodingNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except CodingConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post(
+        "/api/v1/executions/{execution_attempt_id}/coding/messages",
+        response_model=JobResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["execution"],
+    )
+    def create_coding_message(
+        execution_attempt_id: str,
+        payload: CodingMessageCreateRequest,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> JobResponse:
+        settings: Settings = request.app.state.settings
+        if settings.implementation_provider != "nvidia_nim":
+            raise HTTPException(
+                status_code=409,
+                detail="NVIDIA implementation provider is not configured",
+            )
+        try:
+            service = CodingConversationService(
+                session, artifact_root=settings.artifact_root
+            )
+            job, _created = service.send_message(
+                execution_attempt_id,
+                content=payload.content,
+                idempotency_key=idempotency_key or str(uuid4()),
+            )
+        except CodingNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (CodingConflictError, JobConflictError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return JobResponse.model_validate(job)
+
+    @app.post(
+        "/api/v1/executions/{execution_attempt_id}/coding/proposals",
+        response_model=JobResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["execution"],
+    )
+    def create_change_set_proposal(
+        execution_attempt_id: str,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> JobResponse:
+        settings: Settings = request.app.state.settings
+        if settings.implementation_provider != "nvidia_nim":
+            raise HTTPException(
+                status_code=409,
+                detail="NVIDIA implementation provider is not configured",
+            )
+        try:
+            job, _created = CodingConversationService(
+                session, artifact_root=settings.artifact_root
+            ).request_proposal(
+                execution_attempt_id,
+                idempotency_key=idempotency_key or str(uuid4()),
+            )
+        except CodingNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (CodingConflictError, JobConflictError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return JobResponse.model_validate(job)
+
+    @app.post(
+        "/api/v1/change-set-proposals/{proposal_id}/accept",
+        response_model=ChangeSetResponse,
+        status_code=status.HTTP_201_CREATED,
+        tags=["execution"],
+    )
+    def accept_change_set_proposal(
+        proposal_id: str,
+        payload: CodingProposalAcceptRequest,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> ChangeSetResponse:
+        signer = request.app.state.job_spec_signer
+        if signer is None:
+            raise HTTPException(
+                status_code=409,
+                detail="ChangeSet acceptance requires a configured JobSpec signer",
+            )
+        settings: Settings = request.app.state.settings
+        try:
+            change_set = CodingConversationService(
+                session, artifact_root=settings.artifact_root
+            ).accept_proposal(
+                proposal_id,
+                action=payload.action,
+                expected_change_set_hash=payload.expected_change_set_hash,
+                idempotency_key=idempotency_key or str(uuid4()),
+                signer=signer,
+            )
+        except CodingNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (
+            CodingConflictError,
+            ChangeSetConflictError,
+            ChangeSetError,
+            ExecutionAttemptConflictError,
+            ExecutionControlConflictError,
+            ExecutionStageTransitionError,
+        ) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ChangeSetResponse(
+            change_set_id=change_set.change_set_id,
+            change_set_hash=change_set.change_set_hash,
+            plan_version_id=change_set.plan_version_id,
+            paths=list(change_set.paths),
+        )
+
+    @app.post(
         "/api/v1/executions/{execution_attempt_id}/change-sets",
         response_model=ChangeSetResponse,
         status_code=status.HTTP_201_CREATED,
@@ -1824,6 +2309,45 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     @app.get(
+        "/api/v1/opportunities/{opportunity_id}/analyses/compare/document",
+        tags=["analysis"],
+        response_class=Response,
+    )
+    def compare_analysis_documents(
+        opportunity_id: int,
+        left_version_id: str = Query(min_length=1, max_length=128),
+        right_version_id: str = Query(min_length=1, max_length=128),
+        download: bool = Query(default=False),
+        if_none_match: str | None = Header(
+            default=None,
+            alias="If-None-Match",
+            max_length=160,
+        ),
+        session: Session = Depends(get_session),
+    ) -> Response:
+        try:
+            comparison = AnalysisHistoryService(session).compare(
+                left_version_id,
+                right_version_id,
+            )
+        except AnalysisHistoryNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except AnalysisHistoryConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        if comparison.opportunity_id != opportunity_id:
+            raise HTTPException(
+                status_code=409,
+                detail="AnalysisVersion does not match the Opportunity",
+            )
+        document = render_analysis_comparison_markdown(comparison)
+        return _analysis_markdown_response(
+            document,
+            filename=f"analysis-comparison-{opportunity_id}.md",
+            download=download,
+            if_none_match=if_none_match,
+        )
+
+    @app.get(
         "/api/v1/opportunities/{opportunity_id}/analyses/compare",
         response_model=AnalysisVersionComparisonResponse,
         tags=["analysis"],
@@ -1867,6 +2391,41 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 }
                 for item in comparison.differences
             ],
+        )
+
+    @app.get(
+        "/api/v1/opportunities/{opportunity_id}/analyses/{version_id}/document",
+        tags=["analysis"],
+        response_class=Response,
+    )
+    def analysis_version_document(
+        opportunity_id: int,
+        version_id: str,
+        download: bool = Query(default=False),
+        if_none_match: str | None = Header(
+            default=None,
+            alias="If-None-Match",
+            max_length=160,
+        ),
+        session: Session = Depends(get_session),
+    ) -> Response:
+        try:
+            detail = AnalysisHistoryService(session).get_detail(version_id)
+        except AnalysisHistoryNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except AnalysisHistoryConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        if detail.summary.opportunity_id != opportunity_id:
+            raise HTTPException(
+                status_code=409,
+                detail="AnalysisVersion does not match the Opportunity",
+            )
+        document = render_analysis_markdown(detail)
+        return _analysis_markdown_response(
+            document,
+            filename=f"analysis-{opportunity_id}-{version_id}.md",
+            download=download,
+            if_none_match=if_none_match,
         )
 
     @app.get(
@@ -2047,6 +2606,54 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except ManualAnalysisConflictError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except JobTransitionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return JobResponse.model_validate(job)
+
+    @app.post(
+        "/api/v1/executions/{execution_attempt_id}/review-jobs",
+        response_model=JobResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        tags=["review"],
+    )
+    def create_provider_review_job(
+        execution_attempt_id: str,
+        payload: ProviderReviewCreateRequest,
+        request: Request,
+        idempotency_key: str | None = Header(
+            default=None,
+            alias="Idempotency-Key",
+            max_length=128,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+        ),
+        session: Session = Depends(get_session),
+        _: None = Depends(require_mutation_access),
+    ) -> JobResponse:
+        settings: Settings = request.app.state.settings
+        if settings.review_provider != "nvidia_nim":
+            raise HTTPException(
+                status_code=409,
+                detail="NVIDIA Review provider is not configured",
+            )
+        identity = ProviderIdentity(
+            provider=NVIDIA_NIM_PROVIDER,
+            adapter_version=NVIDIA_NIM_ADAPTER_VERSION,
+            model=settings.review_model,
+            model_version=NVIDIA_NIM_MODEL_VERSION,
+        )
+        try:
+            job, _created = ProviderReviewService(
+                session,
+                artifacts=_execution_artifact_store(session, settings),
+            ).enqueue(
+                execution_attempt_id,
+                action=UserAction.START_REVIEW,
+                actor_id=payload.actor_id,
+                expected_provider=identity,
+                idempotency_key=idempotency_key or str(uuid4()),
+            )
+        except ReviewNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ReviewConflictError, JobConflictError, TaskStateError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return JobResponse.model_validate(job)
 

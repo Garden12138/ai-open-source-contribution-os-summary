@@ -246,10 +246,22 @@ class AnalysisInputFreezer:
                 pair[1].id,
             ),
         )
-        return tuple(
-            freeze_candidate_input(snapshot=snapshot, score=score, rule_rank=rank)
-            for rank, (snapshot, score) in enumerate(ranked[:limit], start=1)
-        )
+        frozen: list[FrozenCandidateInput] = []
+        for rank, (snapshot, score) in enumerate(ranked[:limit], start=1):
+            try:
+                frozen.append(
+                    freeze_candidate_input(
+                        snapshot=snapshot,
+                        score=score,
+                        rule_rank=rank,
+                    )
+                )
+            except AnalysisInputSafetyError:
+                # One unsafe Issue must stay excluded without preventing other
+                # independently frozen candidates from being analyzed. Do not
+                # backfill beyond the requested rule-ranked corpus.
+                continue
+        return tuple(frozen)
 
 
 def freeze_candidate_input(

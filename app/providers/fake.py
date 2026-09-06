@@ -233,7 +233,7 @@ class FakeProvider:
             stage=ProviderStage.ANALYZE,
         )
 
-        allowed_citations = request.inspection.cited_evidence_ids
+        allowed_citations = request.allowed_evidence_ids
         citations = (
             allowed_citations
             if self.script.analyze_citations is None
@@ -244,46 +244,65 @@ class FakeProvider:
             allowed=allowed_citations,
             stage=ProviderStage.ANALYZE,
         )
+        evidence: dict[str, dict[str, object]] = {}
+        for item in request.evidence:
+            try:
+                candidate = json.loads(item.content)
+            except json.JSONDecodeError:
+                candidate = {}
+            evidence[item.evidence_id] = (
+                candidate if isinstance(candidate, dict) else {}
+            )
+        repository = evidence.get("repository", {})
+        issue = evidence.get("issue", {})
+        repository_name = str(repository.get("full_name") or "当前仓库")
+        repository_description = str(
+            repository.get("description") or "仓库快照未提供项目描述"
+        )
+        issue_title = str(issue.get("title") or "当前 Issue")
+        issue_body = str(issue.get("body") or "Issue 快照未提供正文")
+        project_summary = f"{repository_name}：{repository_description}"
+        requirement_summary = f"{issue_title}：{issue_body}"
         output = (
             {
-                "problem_summary": "Deterministic fake analysis",
+                "project_summary": project_summary[:1_000],
+                "requirement_summary": requirement_summary[:4_000],
+                "problem_summary": "确定性的演示分析。",
                 "current_behavior": (
-                    "The frozen Issue describes behavior requiring a change."
+                    "冻结的 Issue 描述了需要调整的当前行为。"
                 ),
                 "expected_behavior": (
-                    "The requested behavior is implemented and verified."
+                    "完成并验证 Issue 所要求的行为。"
                 ),
                 "acceptance_criteria": [
-                    "The requested behavior passes deterministic tests."
+                    "所要求的行为通过确定性测试。"
                 ],
                 "missing_information": [],
                 "similar_issue_pr_evidence": [],
                 "competition": {
                     "level": "unknown",
-                    "summary": "No additional competition evidence was frozen.",
+                    "summary": "冻结输入中没有额外的竞争证据。",
                     "signals": [],
                 },
                 "estimated_effort": {
                     "size": "unknown",
                     "hours_min": None,
                     "hours_max": None,
-                    "rationale": (
-                        "The deterministic fake does not estimate real effort."
-                    ),
+                    "rationale": "演示分析不估算真实工作量。",
                 },
                 "bounty_basis": {
                     "has_bounty": False,
                     "amount_usd": None,
-                    "basis": "The fake Provider makes no bounty claim.",
+                    "basis": "演示分析不对赏金作出判断。",
                 },
                 "risks": [],
                 "confidence": 1.0,
                 "recommendation": "consider",
                 "recommendation_summary": (
-                    "建议先确认任务范围，再决定是否投入。"
+                    f"{repository_name} 需要落实“{issue_title}”，建议先确认任务范围再投入。"
                 ),
                 "fit_reasons": [
-                    "任务与当前冻结的 Issue 和仓库证据一致。"
+                    f"“{issue_title}”直接服务于 {repository_name} 的项目目标。"
                 ],
                 "next_steps": [
                     "阅读贡献指南并向维护者确认任务仍可接手。"
@@ -293,6 +312,8 @@ class FakeProvider:
                 ],
                 "cited_evidence_ids": list(citations),
                 "citation_map": {
+                    "project_summary": ["repository"],
+                    "requirement_summary": ["issue"],
                     "problem_summary": list(citations),
                     "current_behavior": list(citations),
                     "expected_behavior": list(citations),

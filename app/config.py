@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 
 DEFAULT_GITHUB_QUERIES = (
@@ -51,8 +52,33 @@ def _float_env(name: str, default: float) -> float:
         raise ValueError(f"{name} must be a number") from exc
 
 
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean")
+
+
+def _secret_text(name: str, file_name: str) -> str | None:
+    path_value = os.getenv(file_name)
+    if path_value:
+        path = Path(path_value)
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"{file_name} is invalid")
+        return path.read_text(encoding="utf-8")
+    return os.getenv(name)
+
+
 def _signing_key_env() -> bytes | None:
-    raw = os.getenv("SANDBOX_JOB_SPEC_SIGNING_KEY")
+    raw = _secret_text(
+        "SANDBOX_JOB_SPEC_SIGNING_KEY",
+        "SANDBOX_JOB_SPEC_SIGNING_KEY_FILE",
+    )
     if raw is None or not raw.strip():
         return None
     try:
@@ -68,6 +94,19 @@ def _signing_key_env() -> bytes | None:
     return key
 
 
+def _hex_key_env(name: str) -> bytes | None:
+    raw = _secret_text(name, f"{name}_FILE")
+    if raw is None or not raw.strip():
+        return None
+    try:
+        key = bytes.fromhex(raw.strip())
+    except ValueError as exc:
+        raise ValueError(f"{name} must be hexadecimal") from exc
+    if len(key) < 32:
+        raise ValueError(f"{name} must contain at least 32 bytes")
+    return key
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     app_name: str = "AI Open Source Contribution OS"
@@ -75,6 +114,7 @@ class Settings:
     artifact_root: str = "./data/artifacts"
     local_access_token: str | None = None
     github_token: str | None = None
+    github_discovery_token_configured: bool = False
     github_api_url: str = "https://api.github.com"
     github_allowed_hosts: tuple[str, ...] = ("api.github.com",)
     github_archive_hosts: tuple[str, ...] = ("codeload.github.com",)
@@ -93,6 +133,16 @@ class Settings:
     request_timeout_seconds: int = 20
     timezone: str = "Asia/Shanghai"
     analysis_provider: str = "none"
+    analysis_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
+    implementation_provider: str = "none"
+    implementation_model: str = "deepseek-ai/deepseek-v4-pro-0813"
+    review_provider: str = "none"
+    review_model: str = "minimaxai/minimax-m3"
+    model_gateway_base_url: str = "http://contribos-model-gateway:8001/v1"
+    model_gateway_network: str = "contribos-model-gateway-local"
+    model_gateway_service_name: str = "contribos-model-gateway"
+    model_gateway_signing_key: bytes | None = None
+    nvidia_https_proxy: str | None = None
     sandbox_job_spec_key_id: str = "local-v1"
     sandbox_job_spec_signing_key: bytes | None = None
     sandbox_stage_runtime: str = "none"
@@ -104,15 +154,28 @@ class Settings:
             raise ValueError("GITHUB_RETRY_BASE_SECONDS must be non-negative")
         if self.github_retry_max_seconds < 0:
             raise ValueError("GITHUB_RETRY_MAX_SECONDS must be non-negative")
-        if self.analysis_provider not in {"none", "fake"}:
+        if self.analysis_provider not in {"none", "fake", "nvidia_nim"}:
             raise ValueError(
-                "ANALYSIS_PROVIDER must be 'none' or 'fake'; "
-                "codex remains unwired in the API and worker process"
+                "ANALYSIS_PROVIDER must be 'none', 'fake', or 'nvidia_nim'"
             )
-        if self.sandbox_stage_runtime not in {"none", "fake"}:
+        for value, name in (
+            (self.analysis_model, "ANALYSIS_MODEL"),
+            (self.implementation_model, "IMPLEMENTATION_MODEL"),
+            (self.review_model, "REVIEW_MODEL"),
+        ):
+            if not value.strip() or len(value) > 120:
+                raise ValueError(f"{name} is invalid")
+        for value, name in (
+            (self.implementation_provider, "IMPLEMENTATION_PROVIDER"),
+            (self.review_provider, "REVIEW_PROVIDER"),
+        ):
+            if value not in {"none", "fake", "nvidia_nim"}:
+                raise ValueError(
+                    f"{name} must be 'none', 'fake', or 'nvidia_nim'"
+                )
+        if self.sandbox_stage_runtime not in {"none", "fake", "docker"}:
             raise ValueError(
-                "SANDBOX_STAGE_RUNTIME must be 'none' or 'fake'; "
-                "Docker runtimes stay in the Sandbox Worker process"
+                "SANDBOX_STAGE_RUNTIME must be 'none', 'fake', or 'docker'"
             )
         if (
             self.sandbox_job_spec_signing_key is not None
@@ -146,6 +209,9 @@ class Settings:
             artifact_root=os.getenv("ARTIFACT_ROOT", defaults.artifact_root),
             local_access_token=os.getenv("LOCAL_ACCESS_TOKEN") or None,
             github_token=token,
+            github_discovery_token_configured=_bool_env(
+                "GITHUB_DISCOVERY_TOKEN_CONFIGURED"
+            ),
             github_api_url=os.getenv("GITHUB_API_URL", defaults.github_api_url).rstrip(
                 "/"
             ),
@@ -176,6 +242,59 @@ class Settings:
             analysis_provider=(
                 os.getenv("ANALYSIS_PROVIDER", defaults.analysis_provider).strip()
                 or defaults.analysis_provider
+            ),
+            analysis_model=(
+                os.getenv("ANALYSIS_MODEL", defaults.analysis_model).strip()
+                or defaults.analysis_model
+            ),
+            implementation_provider=(
+                os.getenv(
+                    "IMPLEMENTATION_PROVIDER",
+                    defaults.implementation_provider,
+                ).strip()
+                or defaults.implementation_provider
+            ),
+            implementation_model=(
+                os.getenv(
+                    "IMPLEMENTATION_MODEL",
+                    defaults.implementation_model,
+                ).strip()
+                or defaults.implementation_model
+            ),
+            review_provider=(
+                os.getenv("REVIEW_PROVIDER", defaults.review_provider).strip()
+                or defaults.review_provider
+            ),
+            review_model=(
+                os.getenv("REVIEW_MODEL", defaults.review_model).strip()
+                or defaults.review_model
+            ),
+            model_gateway_base_url=(
+                os.getenv(
+                    "MODEL_GATEWAY_BASE_URL",
+                    defaults.model_gateway_base_url,
+                ).strip()
+                or defaults.model_gateway_base_url
+            ).rstrip("/"),
+            model_gateway_network=(
+                os.getenv(
+                    "MODEL_GATEWAY_NETWORK",
+                    defaults.model_gateway_network,
+                ).strip()
+                or defaults.model_gateway_network
+            ),
+            model_gateway_service_name=(
+                os.getenv(
+                    "MODEL_GATEWAY_SERVICE_NAME",
+                    defaults.model_gateway_service_name,
+                ).strip()
+                or defaults.model_gateway_service_name
+            ),
+            model_gateway_signing_key=_hex_key_env(
+                "MODEL_GATEWAY_SIGNING_KEY"
+            ),
+            nvidia_https_proxy=(
+                os.getenv("NVIDIA_HTTPS_PROXY", "").strip() or None
             ),
             sandbox_job_spec_key_id=(
                 os.getenv(

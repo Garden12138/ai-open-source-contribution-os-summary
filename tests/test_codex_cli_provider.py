@@ -12,6 +12,7 @@ import pytest
 from app.provenance import canonical_json
 from app.providers import (
     ANALYSIS_SCHEMA_VERSION,
+    ANALYZE_PROMPT_VERSION,
     INSPECTION_SCHEMA_VERSION,
     AnalyzeRequest,
     CodexCLIAdapter,
@@ -56,6 +57,7 @@ def jsonl_result(
     return_code: int = 0,
     duration_ms: int = 321,
     terminal_type: str = "turn.completed",
+    message_text: str | None = None,
 ) -> CodexExecResult:
     events: list[dict[str, object]] = [
         {"type": "thread.started", "thread_id": "fixture-thread"},
@@ -65,7 +67,7 @@ def jsonl_result(
             "item": {
                 "id": "item-1",
                 "type": "agent_message",
-                "text": json.dumps(payload, sort_keys=True),
+                "text": message_text or json.dumps(payload, sort_keys=True),
             },
         },
     ]
@@ -147,7 +149,8 @@ def analyze_request(result: InspectionResult) -> AnalyzeRequest:
         snapshot_id="snapshot-1",
         score_version_id="score-1",
         inspection=result,
-        prompt_version="analyze-prompt-v3",
+        evidence=inspect_request().evidence,
+        prompt_version=ANALYZE_PROMPT_VERSION,
         policy_version="analysis-policy-v3",
         output_schema_version=ANALYSIS_SCHEMA_VERSION,
     )
@@ -166,6 +169,8 @@ def adapter(runner, *, max_jsonl_bytes: int = 4_000_000):  # type: ignore[no-unt
 
 def structured_analysis_payload() -> dict[str, object]:
     return {
+        "project_summary": "该 Python 项目提供可验证的模型适配器边界。",
+        "requirement_summary": "Issue 要求增加 Codex CLI 适配器并校验结构化输出。",
         "problem_summary": "Add a provider-neutral Codex CLI adapter.",
         "current_behavior": "Provider execution has no Codex CLI adapter.",
         "expected_behavior": "Codex CLI returns validated structured output.",
@@ -203,8 +208,10 @@ def structured_analysis_payload() -> dict[str, object]:
         "fit_reasons": ["任务目标清楚，并且与 Python 工程能力匹配。"],
         "next_steps": ["阅读现有 provider contract。", "向维护者确认边界。"],
         "maintainer_questions": ["适配器是否需要覆盖流式中断？"],
-        "cited_evidence_ids": ["issue"],
+        "cited_evidence_ids": ["issue", "repository"],
         "citation_map": {
+            "project_summary": ["repository"],
+            "requirement_summary": ["issue"],
             "problem_summary": ["issue"],
             "current_behavior": ["issue"],
             "expected_behavior": ["issue"],
@@ -217,8 +224,8 @@ def structured_analysis_payload() -> dict[str, object]:
             "risks": [["issue"]],
             "confidence": ["issue"],
             "recommendation": ["issue"],
-            "recommendation_summary": ["issue"],
-            "fit_reasons": [["issue"]],
+            "recommendation_summary": ["issue", "repository"],
+            "fit_reasons": [["issue", "repository"]],
             "next_steps": [["issue"], ["issue"]],
             "maintainer_questions": [["issue"]],
         },
@@ -300,6 +307,177 @@ def test_codex_adapter_maps_jsonl_schema_output_to_provider_contract() -> None:
     assert set(runner.invocations[1].output_schema["required"]) == set(
         analyze_payload
     )
+    analyze_prompt = runner.invocations[1].prompt
+    frozen_line = next(
+        line
+        for line in analyze_prompt.splitlines()
+        if line.startswith("CONTRIBOS_UNTRUSTED_FROZEN_INPUT_JSON=")
+    )
+    frozen = json.loads(frozen_line.split("=", 1)[1])
+    assert frozen["allowed_evidence_ids"] == ["issue", "repository"]
+    assert [item["evidence_id"] for item in frozen["evidence"]] == [
+        "issue",
+        "repository",
+    ]
+    assert frozen["evidence"][0]["content"] == "Document the provider boundary."
+    assert frozen["evidence"][1]["content"] == (
+        "Python repository with offline tests."
+    )
+
+
+def test_codex_adapter_accepts_one_complete_json_code_fence() -> None:
+    payload = {
+        "observations": [
+            {
+                "code": "provider.boundary",
+                "summary": "Use an adapter behind a protocol.",
+                "evidence_ids": ["issue"],
+            }
+        ],
+        "cited_evidence_ids": ["issue"],
+    }
+    runner = StubCodexRunner(
+        jsonl_result(
+            payload,
+            message_text="```json\n"
+            + json.dumps(payload, sort_keys=True)
+            + "\n```",
+        )
+    )
+
+    result = asyncio.run(
+        adapter(runner).inspect(inspect_request(), CollectingEventSink())
+    )
+
+    assert canonical_json(result.structured_output) == canonical_json(payload)
+
+
+def test_codex_adapter_binds_frozen_evidence_ids_into_runner_schema() -> None:
+    payload = {
+        "observations": [],
+        "cited_evidence_ids": ["issue"],
+    }
+    runner = StubCodexRunner(jsonl_result(payload))
+
+    asyncio.run(adapter(runner).inspect(inspect_request(), CollectingEventSink()))
+
+    schema = runner.invocations[0].output_schema
+    assert schema["properties"]["cited_evidence_ids"]["items"]["enum"] == [
+        "issue",
+        "repository",
+    ]
+    observation = schema["properties"]["observations"]["items"]
+    assert observation["properties"]["evidence_ids"]["items"]["enum"] == [
+        "issue",
+        "repository",
+    ]
+
+
+def test_codex_adapter_records_a_safe_json_output_error_code() -> None:
+    runner = StubCodexRunner(
+        jsonl_result(
+            {
+                "observations": [],
+                "cited_evidence_ids": [],
+            },
+            message_text="not JSON",
+        )
+    )
+
+    async def run() -> ProviderRunError:
+        with pytest.raises(ProviderRunError) as captured:
+            await adapter(runner).inspect(inspect_request(), CollectingEventSink())
+        return captured.value
+
+    assert asyncio.run(run()).code == "codex_output_json_invalid"
+
+
+def test_codex_adapter_labels_cross_field_consistency_without_output_text() -> None:
+    payload = structured_analysis_payload()
+    payload["estimated_effort"] = {
+        "size": "unknown",
+        "hours_min": 8,
+        "hours_max": None,
+        "rationale": "The available evidence is incomplete.",
+    }
+    runner = StubCodexRunner(jsonl_result(payload))
+
+    async def run() -> ProviderRunError:
+        with pytest.raises(ProviderRunError) as captured:
+            request = inspect_request()
+            await adapter(runner).analyze(
+                analyze_request(inspection(request)),
+                CollectingEventSink(),
+            )
+        return captured.value
+
+    error = asyncio.run(run())
+    assert error.code == "codex_output_consistency_invalid"
+    assert "hours" not in error.safe_message
+
+
+def test_codex_adapter_canonicalizes_redundant_analysis_citation_union() -> None:
+    payload = structured_analysis_payload()
+    payload["cited_evidence_ids"] = ["repository"]
+    runner = StubCodexRunner(jsonl_result(payload))
+    request = inspect_request()
+
+    result = asyncio.run(
+        adapter(runner).analyze(
+            analyze_request(inspection(request)),
+            CollectingEventSink(),
+        )
+    )
+
+    assert result.cited_evidence_ids == ("issue", "repository")
+    assert result.structured_output["cited_evidence_ids"] == (
+        "issue",
+        "repository",
+    )
+
+
+def test_codex_adapter_binds_unknown_competition_to_frozen_issue() -> None:
+    payload = structured_analysis_payload()
+    citation_map = payload["citation_map"]
+    assert isinstance(citation_map, dict)
+    citation_map["competition"] = []
+    runner = StubCodexRunner(jsonl_result(payload))
+    request = inspect_request()
+
+    result = asyncio.run(
+        adapter(runner).analyze(
+            analyze_request(inspection(request)),
+            CollectingEventSink(),
+        )
+    )
+
+    normalized_map = result.structured_output["citation_map"]
+    assert normalized_map["competition"] == ("issue",)
+    assert result.cited_evidence_ids == ("issue", "repository")
+
+
+def test_codex_adapter_rejects_uncited_positive_competition_judgment() -> None:
+    payload = structured_analysis_payload()
+    payload["competition"] = {
+        "level": "medium",
+        "summary": "当前 Issue 已有其他贡献者表达实现意向。",
+        "signals": ["讨论中出现了其他实现者。"],
+    }
+    citation_map = payload["citation_map"]
+    assert isinstance(citation_map, dict)
+    citation_map["competition"] = []
+    runner = StubCodexRunner(jsonl_result(payload))
+
+    async def run() -> ProviderRunError:
+        with pytest.raises(ProviderRunError) as captured:
+            request = inspect_request()
+            await adapter(runner).analyze(
+                analyze_request(inspection(request)),
+                CollectingEventSink(),
+            )
+        return captured.value
+
+    assert asyncio.run(run()).code == "codex_output_citation_competition_invalid"
 
 
 def test_codex_prompt_keeps_adversarial_text_inside_one_hashed_json_record() -> None:
@@ -410,6 +588,118 @@ def test_codex_prompt_versions_preserve_v1_replay_and_reject_mixed_policy() -> N
                 CollectingEventSink(),
             )
         )
+
+
+def test_current_analysis_prompt_requires_simplified_chinese_narrative() -> None:
+    inspection_result = inspection(inspect_request())
+    request = AnalyzeRequest.create(
+        request_id="analyze-current-language",
+        correlation_id="analysis-current-language",
+        snapshot_id="snapshot-1",
+        score_version_id="score-1",
+        inspection=inspection_result,
+        evidence=inspect_request().evidence,
+        prompt_version=ANALYZE_PROMPT_VERSION,
+        policy_version="analysis-policy-v3",
+        output_schema_version=ANALYSIS_SCHEMA_VERSION,
+    )
+    runner = StubCodexRunner(jsonl_result(structured_analysis_payload()))
+
+    asyncio.run(
+        adapter(runner).analyze(
+            request,
+            CollectingEventSink(),
+        )
+    )
+
+    trusted_prefix = "CONTRIBOS_TRUSTED_SYSTEM_POLICY_JSON="
+    first_line = runner.invocations[0].prompt.splitlines()[0]
+    trusted = json.loads(first_line[len(trusted_prefix) :])
+    assert trusted["prompt_version"] == "analyze-prompt-v11"
+    assert any(
+        "every natural-language output value in Simplified Chinese" in rule
+        for rule in trusted["rules"]
+    )
+    assert any("Derive project_summary only" in rule for rule in trusted["rules"])
+    assert any("tie every conclusion" in rule for rule in trusted["rules"])
+    assert any("this exact Issue" in rule for rule in trusted["rules"])
+    assert any("competition is unknown" in rule for rule in trusted["rules"])
+    citation_properties = runner.invocations[0].output_schema["properties"][
+        "citation_map"
+    ]["properties"]
+    assert citation_properties["project_summary"]["items"]["enum"] == [
+        "repository"
+    ]
+    assert citation_properties["requirement_summary"]["items"]["enum"] == [
+        "issue"
+    ]
+    assert citation_properties["recommendation_summary"]["minItems"] == 2
+    assert citation_properties["recommendation_summary"]["maxItems"] == 2
+    assert citation_properties["fit_reasons"]["items"]["minItems"] == 2
+    assert citation_properties["fit_reasons"]["items"]["maxItems"] == 2
+
+
+def test_previous_analysis_prompt_keeps_its_original_policy_rules() -> None:
+    inspection_result = inspection(inspect_request())
+    request = AnalyzeRequest.create(
+        request_id="analyze-v7-replay",
+        correlation_id="analysis-v7-replay",
+        snapshot_id="snapshot-1",
+        score_version_id="score-1",
+        inspection=inspection_result,
+        evidence=inspect_request().evidence,
+        prompt_version="analyze-prompt-v7",
+        policy_version="analysis-policy-v3",
+        output_schema_version=ANALYSIS_SCHEMA_VERSION,
+    )
+    runner = StubCodexRunner(jsonl_result(structured_analysis_payload()))
+
+    asyncio.run(
+        adapter(runner).analyze(
+            request,
+            CollectingEventSink(),
+        )
+    )
+
+    trusted_prefix = "CONTRIBOS_TRUSTED_SYSTEM_POLICY_JSON="
+    first_line = runner.invocations[0].prompt.splitlines()[0]
+    trusted = json.loads(first_line[len(trusted_prefix) :])
+    assert trusted["prompt_version"] == "analyze-prompt-v7"
+    assert len(trusted["rules"]) == 8
+
+
+def test_previous_v9_analysis_prompt_replays_its_context_rules() -> None:
+    inspection_result = inspection(inspect_request())
+    request = AnalyzeRequest.create(
+        request_id="analyze-v9-replay",
+        correlation_id="analysis-v9-replay",
+        snapshot_id="snapshot-1",
+        score_version_id="score-1",
+        inspection=inspection_result,
+        evidence=inspect_request().evidence,
+        prompt_version="analyze-prompt-v9",
+        policy_version="analysis-policy-v3",
+        output_schema_version=ANALYSIS_SCHEMA_VERSION,
+    )
+    runner = StubCodexRunner(jsonl_result(structured_analysis_payload()))
+
+    asyncio.run(adapter(runner).analyze(request, CollectingEventSink()))
+
+    lines = runner.invocations[0].prompt.splitlines()
+    trusted = json.loads(lines[0].split("=", 1)[1])
+    frozen = json.loads(
+        next(
+            line.split("=", 1)[1]
+            for line in lines
+            if line.startswith("CONTRIBOS_UNTRUSTED_FROZEN_INPUT_JSON=")
+        )
+    )
+    assert any("Derive project_summary only" in rule for rule in trusted["rules"])
+    assert not any("this exact Issue" in rule for rule in trusted["rules"])
+    assert [item["evidence_id"] for item in frozen["evidence"]] == [
+        "issue",
+        "repository",
+    ]
 
 
 @pytest.mark.parametrize(

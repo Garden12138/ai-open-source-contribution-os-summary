@@ -321,6 +321,7 @@ class AnalysisVersionService:
             snapshot_id=spec.snapshot_id,
             score_version_id=spec.score_version_id,
             inspection=inspection,
+            evidence=spec.evidence,
             prompt_version=spec.analyze_prompt_version,
             policy_version=spec.analyze_policy_version,
             output_schema_version=spec.analyze_output_schema_version,
@@ -333,9 +334,11 @@ class AnalysisVersionService:
             analysis_data["cited_evidence_ids"],
             "analysis citations",
         )
-        if not set(analysis_citations).issubset(set(inspection_citations)):
+        if not set(analysis_citations).issubset(
+            set(analyze_request.allowed_evidence_ids)
+        ):
             raise AnalysisVersionIntegrityError(
-                "Analysis cites evidence outside the inspection result"
+                "Analysis cites evidence outside its frozen input"
             )
         analysis = AnalysisResult(
             request_id=analyze_request.request_id,
@@ -354,7 +357,7 @@ class AnalysisVersionService:
         )
         validate_structured_analysis(
             analysis.structured_output,
-            allowed_evidence_ids=inspection_citations,
+            allowed_evidence_ids=analyze_request.allowed_evidence_ids,
             schema_version=spec.analyze_output_schema_version,
         )
         return inspection, analysis, provider_run

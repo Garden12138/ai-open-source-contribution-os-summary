@@ -481,6 +481,7 @@ class ProviderAnalysisJobWorker:
                     snapshot_id=spec.snapshot_id,
                     score_version_id=spec.score_version_id,
                     inspection=inspection,
+                    evidence=spec.evidence,
                     prompt_version=spec.analyze_prompt_version,
                     policy_version=spec.analyze_policy_version,
                     output_schema_version=spec.analyze_output_schema_version,
@@ -572,12 +573,7 @@ class ProviderAnalysisJobWorker:
                 status=ProviderInvocationStatus.CANCELLED,
                 error_code="provider_job_cancelled",
             )
-            with self.database.session() as session:
-                return JobService(session).cancel(
-                    job_id,
-                    worker_id=self.worker_id,
-                    now=_aware(None),
-                )
+            return self._finish_cancelled_job(job_id)
         except TimeoutError:
             self._record_unsuccessful(
                 job_id=job_id,
@@ -605,11 +601,7 @@ class ProviderAnalysisJobWorker:
             with self.database.session() as session:
                 current = JobService(session).get(job_id)
                 if current.cancel_requested_at is not None:
-                    return JobService(session).cancel(
-                        job_id,
-                        worker_id=self.worker_id,
-                        now=_aware(None),
-                    )
+                    return self._finish_cancelled_job(job_id)
                 return JobService(session).fail(
                     job_id,
                     worker_id=self.worker_id,
@@ -710,6 +702,25 @@ class ProviderAnalysisJobWorker:
     def _cancel_requested(self, job_id: str) -> bool:
         with self.database.session() as session:
             return JobService(session).get(job_id).cancel_requested_at is not None
+
+    def _finish_cancelled_job(self, job_id: str) -> Job:
+        """Finalize cancellation safely when recovery races the active worker."""
+        with self.database.session() as session:
+            service = JobService(session)
+            current = service.get(job_id)
+            if current.state == "cancelled":
+                return current
+            try:
+                return service.cancel(
+                    job_id,
+                    worker_id=self.worker_id,
+                    now=_aware(None),
+                )
+            except JobTransitionError:
+                current = service.get(job_id)
+                if current.state == "cancelled":
+                    return current
+                raise
 
     def _restore_budget_ledger(
         self,

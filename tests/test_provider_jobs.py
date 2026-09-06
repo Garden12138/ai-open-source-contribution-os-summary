@@ -69,6 +69,12 @@ def _spec(
                 source_uri="github://fixture/repository/issues/1",
                 content=evidence_content,
             ),
+            FrozenEvidence.capture(
+                evidence_id="repository",
+                kind="github_repository",
+                source_uri="github://fixture/repository",
+                content="A deterministic Python provider fixture.",
+            ),
         ),
         inspect_prompt_version="inspect-prompt-v1",
         inspect_policy_version="analysis-policy-v1",
@@ -264,6 +270,49 @@ def test_failed_attempt_is_retained_and_retry_creates_new_accounting(
             (2, "inspect", "succeeded", None),
             (2, "analyze", "succeeded", None),
         ]
+    finally:
+        database.close()
+
+
+def test_provider_worker_cancellation_finalization_is_idempotent(
+    tmp_path: Path,
+) -> None:
+    database = _database(tmp_path, "provider-cancel-race.db")
+    provider = FakeProvider()
+    worker = ProviderAnalysisJobWorker(
+        database,
+        provider,
+        worker_id="cancel-race-worker",
+    )
+    try:
+        with database.session() as session:
+            job, _ = enqueue_provider_analysis(
+                service=JobService(session),
+                spec=_spec(provider),
+                idempotency_key="provider-cancel-race",
+                now=NOW,
+            )
+            service = JobService(session)
+            leased = service.lease_next(
+                worker_id="cancel-race-worker",
+                now=NOW,
+            )
+            assert leased is not None
+            service.start(
+                job.id,
+                worker_id="cancel-race-worker",
+                now=NOW,
+            )
+            service.request_cancel(job.id, now=NOW)
+            service.cancel(
+                job.id,
+                worker_id="cancel-race-worker",
+                now=NOW,
+            )
+
+        completed = worker._finish_cancelled_job(job.id)
+
+        assert completed.state == "cancelled"
     finally:
         database.close()
 

@@ -16,7 +16,7 @@ from app.models import Base
 
 FIXTURES = Path(__file__).parent / "fixtures"
 BASELINE_REVISION = "0001_phase1_baseline"
-LATEST_REVISION = "0025_product_experience"
+LATEST_REVISION = "0028_nvidia_review_runs"
 
 
 def _load_phase1_fixture(path: Path) -> None:
@@ -63,6 +63,9 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "0022_publish_intents",
             "0023_pull_request_events",
             "0024_task_side_states",
+            "0025_product_experience",
+            "0026_review_artifact_bindings",
+            "0027_nvidia_agent_workflows",
             LATEST_REVISION,
         )
         assert first.stamped == ()
@@ -76,10 +79,13 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
         assert table_names == {
             "_schema_migrations",
             "analysis_versions",
+            "agent_invocations",
             "artifacts",
             "audit_events",
             "contribution_tasks",
             "contribution_task_state_versions",
+            "coding_sessions",
+            "coding_turns",
             "daily_picks",
             "execution_attempts",
             "execution_artifact_entries",
@@ -104,6 +110,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "publish_intents",
             "provider_invocations",
             "pull_request_events",
+            "change_set_proposals",
             "draft_pull_requests",
             "review_runs",
             "repositories",
@@ -227,6 +234,9 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
             "0022_publish_intents",
             "0023_pull_request_events",
             "0024_task_side_states",
+            "0025_product_experience",
+            "0026_review_artifact_bindings",
+            "0027_nvidia_agent_workflows",
             LATEST_REVISION,
         )
         assert report.stamped == (BASELINE_REVISION,)
@@ -357,6 +367,9 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
             "0022_publish_intents",
             "0023_pull_request_events",
             "0024_task_side_states",
+            "0025_product_experience",
+            "0026_review_artifact_bindings",
+            "0027_nvidia_agent_workflows",
             LATEST_REVISION,
         )
         with database.session() as session:
@@ -367,14 +380,18 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
         database.close()
 
 
-def test_product_experience_upgrade_from_previous_revision_preserves_rows(
+def test_product_experience_and_review_binding_upgrade_preserves_rows(
     tmp_path: Path,
 ) -> None:
     database = Database(f"sqlite+pysqlite:///{tmp_path / 'from-0024.db'}")
     try:
         previous = MigrationRunner(
             database.engine,
-            migrations=MIGRATIONS[:-1],
+            migrations=tuple(
+                item
+                for item in MIGRATIONS
+                if item.revision <= "0024_task_side_states"
+            ),
         ).upgrade()
         assert previous.current_revision == "0024_task_side_states"
         with database.session() as session:
@@ -388,7 +405,12 @@ def test_product_experience_upgrade_from_previous_revision_preserves_rows(
         report = database.create_schema()
 
         assert report.previous_revision == "0024_task_side_states"
-        assert report.applied == (LATEST_REVISION,)
+        assert report.applied == (
+            "0025_product_experience",
+            "0026_review_artifact_bindings",
+            "0027_nvidia_agent_workflows",
+            LATEST_REVISION,
+        )
         with database.session() as session:
             retained = JobService(session).get(job_id)
             assert retained.payload == {"retained": True}
@@ -398,6 +420,16 @@ def test_product_experience_upgrade_from_previous_revision_preserves_rows(
             "in_app_notifications",
             "notification_reads",
         }.issubset(inspect(database.engine).get_table_names())
+        with database.engine.connect() as connection:
+            trigger_sql = connection.execute(
+                text(
+                    "SELECT sql FROM sqlite_master "
+                    "WHERE type = 'trigger' "
+                    "AND name = 'review_runs_provenance_insert'"
+                )
+            ).scalar_one()
+        assert "diff.artifact_id = NEW.diff_hash" in trigger_sql
+        assert "tests.artifact_id = NEW.test_results_hash" in trigger_sql
     finally:
         database.close()
 

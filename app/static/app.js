@@ -1,4 +1,4 @@
-import { requestArtifact, requestJSON, sleep } from "./api.js";
+import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {
   "use strict";
@@ -85,12 +85,25 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     analysisReady: false,
     analysisPanels: new Map(),
     recommendations: [],
+    recommendationFeed: {},
     preference: null,
     currentView: "discover",
     shortlist: [],
     compareSelection: new Set(),
     notifications: [],
     showDismissed: false,
+    analysisFilter: "all",
+    bulkAnalysisRunning: false,
+    analysisProbePassed: false,
+    analysisProvider: "none",
+    analysisModel: "",
+    implementationProvider: "none",
+    implementationModel: "",
+    reviewProvider: "none",
+    reviewModel: "",
+    sandboxStageRuntime: "none",
+    draftPrPublisher: "fake",
+    tasks: [],
   };
 
   const dom = {};
@@ -118,6 +131,10 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       analysisMode: document.querySelector("#analysis-mode"),
       resultCount: document.querySelector("#result-count"),
       dismissedToggle: document.querySelector("#dismissed-toggle"),
+      aiScreenButton: document.querySelector("#ai-screen-button"),
+      aiProbeButton: document.querySelector("#ai-probe-button"),
+      aiFilterButton: document.querySelector("#ai-filter-button"),
+      aiScreenStatus: document.querySelector("#ai-screen-status"),
       filterBar: document.querySelector("#filter-bar"),
       statePanel: document.querySelector("#state-panel"),
       opportunityList: document.querySelector("#opportunity-list"),
@@ -127,6 +144,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       funnelGrid: document.querySelector("#funnel-grid"),
       heatmapGrid: document.querySelector("#heatmap-grid"),
       taskHistory: document.querySelector("#task-history"),
+      contributionWorkbench: document.querySelector("#contribution-workbench"),
+      runtimeBoundary: document.querySelector("#runtime-boundary"),
       onboardingCard: document.querySelector("#onboarding-card"),
       preferenceForm: document.querySelector("#preference-form"),
       preferenceStatus: document.querySelector("#preference-status"),
@@ -146,6 +165,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     dom.scanButton.addEventListener("click", runScan);
     dom.filterBar.addEventListener("click", handleFilterClick);
     dom.dismissedToggle.addEventListener("click", toggleDismissedRecommendations);
+    dom.aiScreenButton.addEventListener(
+      "click",
+      () => runRecommendationAnalysis(5),
+    );
+    dom.aiProbeButton.addEventListener("click", () => runRecommendationAnalysis(1));
+    dom.aiFilterButton.addEventListener("click", toggleAnalysisFilter);
     dom.preferenceForm.addEventListener("submit", savePreference);
     dom.preferenceButton.addEventListener("click", togglePreferenceEditor);
     dom.compareButton.addEventListener("click", compareSelectedOpportunities);
@@ -317,9 +342,118 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
   }
 
   function recommendationEndpoint() {
-    return state.showDismissed
-      ? `${API.recommendations}?include_dismissed=true`
-      : API.recommendations;
+    const query = new URLSearchParams();
+    if (state.showDismissed) query.set("include_dismissed", "true");
+    if (state.analysisFilter !== "all") {
+      query.set("analysis_filter", state.analysisFilter);
+    }
+    const suffix = query.toString();
+    return suffix ? `${API.recommendations}?${suffix}` : API.recommendations;
+  }
+
+  async function toggleAnalysisFilter() {
+    const previous = state.analysisFilter;
+    state.analysisFilter = previous === "recommended" ? "all" : "recommended";
+    dom.aiFilterButton.disabled = true;
+    dom.aiFilterButton.setAttribute(
+      "aria-pressed",
+      String(state.analysisFilter === "recommended"),
+    );
+    try {
+      renderRecommendations(await requestJSON(recommendationEndpoint()));
+    } catch (error) {
+      state.analysisFilter = previous;
+      showToast(friendlyError(error), true);
+      dom.aiFilterButton.setAttribute(
+        "aria-pressed",
+        String(state.analysisFilter === "recommended"),
+      );
+    }
+  }
+
+  async function runRecommendationAnalysis(limit = 5) {
+    if (state.bulkAnalysisRunning || !state.analysisReady) return;
+    if (limit > 1 && !state.analysisProbePassed) return;
+    state.bulkAnalysisRunning = true;
+    dom.aiProbeButton.disabled = true;
+    dom.aiScreenButton.disabled = true;
+    dom.aiScreenButton.setAttribute("aria-busy", "true");
+    dom.aiScreenButton.textContent = limit === 1 ? "正在验证…" : "正在排队…";
+    dom.aiScreenStatus.textContent = limit === 1
+      ? "正在验证 1 个真实 NVIDIA 分析样例；成功后才能运行前 5 个。"
+      : "将为当前规则 Top 30 中最匹配的 5 个候选运行有预算上限的分析。";
+    try {
+      await ensureLocalAccessToken();
+      const batch = await requestJSON(`${API.recommendations}/analyses`, {
+        method: "POST",
+        headers: mutationHeaders({
+          "Content-Type": "application/json",
+          "Idempotency-Key": randomKey("web-recommendation-analysis"),
+        }),
+        body: JSON.stringify({ limit }),
+      });
+      const entries = Array.isArray(batch.jobs) ? batch.jobs : [];
+      if (!entries.length) {
+        dom.aiScreenStatus.textContent = "当前可分析候选已有最新结论，或没有符合 Top 30 安全语料边界的候选。";
+        showToast("当前候选无需新增 AI 分析。");
+        return;
+      }
+      const batchJobs = new Map(
+        entries.map((entry) => {
+          const job = objectValue(entry.job);
+          return [cleanText(job.id), job];
+        }),
+      );
+      const renderBatchProgress = () => {
+        const jobs = [...batchJobs.values()];
+        const terminal = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
+        const completed = jobs.filter((job) => terminal.has(cleanText(job.state))).length;
+        const running = jobs.filter((job) => ["leased", "running"].includes(cleanText(job.state))).length;
+        const queued = jobs.filter((job) => cleanText(job.state) === "queued").length;
+        dom.aiScreenButton.textContent = running
+          ? `正在分析 ${completed}/${entries.length}`
+          : `已排队 ${completed}/${entries.length}`;
+        dom.aiScreenStatus.textContent = limit === 1
+          ? `样例验证：已完成 ${completed}/1；正在执行 ${running} 个，排队等待 ${queued} 个。`
+          : `AI 分析：已完成 ${completed}/${entries.length}；正在执行 ${running} 个，排队等待 ${queued} 个。`;
+      };
+      renderBatchProgress();
+      const results = await Promise.all(entries.map(async (entry, index) => {
+        const job = await waitForTerminalJob(objectValue(entry.job), {
+          queuePosition: index,
+          onUpdate: (updatedJob) => {
+            batchJobs.set(cleanText(updatedJob.id), updatedJob);
+            renderBatchProgress();
+          },
+        });
+        return job;
+      }));
+      const succeeded = results.filter((job) => cleanText(job.state) === "succeeded").length;
+      const failed = results.length - succeeded;
+      if (limit === 1) {
+        state.analysisProbePassed = succeeded === 1;
+        dom.aiScreenStatus.textContent = succeeded === 1
+          ? "样例验证通过；现在可以运行 AI 筛选前 5 个。"
+          : "样例验证失败；不会启动前 5 个，请先检查 NVIDIA Gateway。";
+        showToast(
+          succeeded === 1 ? "样例验证通过。" : "样例验证失败，未启动批量分析。",
+          failed > 0,
+        );
+      } else {
+        dom.aiScreenStatus.textContent = failed
+          ? `完成 ${succeeded} 个，${failed} 个失败；失败项保留规则评分。`
+          : `已完成 ${succeeded} 个 AI 分析，并按结论更新决策排序。`;
+        showToast(failed ? "部分 AI 分析未完成，已保留规则回退。" : "AI 筛选完成。", failed > 0);
+      }
+      await reloadProductExperience();
+    } catch (error) {
+      dom.aiScreenStatus.textContent = friendlyError(error);
+      showToast(`AI 筛选失败：${friendlyError(error)}`, true);
+    } finally {
+      state.bulkAnalysisRunning = false;
+      dom.aiScreenButton.removeAttribute("aria-busy");
+      updateAnalysisScreenControls();
+    }
   }
 
   async function toggleDismissedRecommendations() {
@@ -346,7 +480,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
   function renderRecommendations(data) {
     const items = Array.isArray(data && data.items) ? data.items : [];
     state.recommendations = items;
-    state.analysisPanels.clear();
+    state.recommendationFeed = objectValue(data);
+    [...state.analysisPanels.keys()]
+      .filter((key) => key.startsWith("discover:"))
+      .forEach((key) => state.analysisPanels.delete(key));
+    updateAnalysisScreenControls(data);
     if (!items.length) {
       state.picks = [];
       dom.opportunityList.replaceChildren();
@@ -360,7 +498,9 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       );
       dom.filterEmpty.hidden = true;
       updateFilterCounts([]);
-      dom.resultCount.textContent = "0 个匹配机会";
+      dom.resultCount.textContent = state.analysisFilter === "recommended"
+        ? "0 个 AI 推荐机会"
+        : "0 个匹配机会";
       return;
     }
     const picks = items.map((item, index) => recommendationAsPick(item, index));
@@ -380,7 +520,57 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       quick_merge: "快速获得合并",
       learning: "技术成长",
     };
-    dom.analysisMode.textContent = `当前目标：${goalLabels[cleanText(data.goal)] || "综合选择"} · AI 深入评估按需运行`;
+    const analyzed = toFiniteNumber(data.analyzed_total, 0);
+    const recommended = toFiniteNumber(data.recommended_total, 0);
+    const providerCopy = state.analysisProvider === "fake"
+      ? "演示分析"
+      : state.analysisReady
+        ? "真实分析已就绪"
+        : "规则回退";
+    dom.analysisMode.textContent = `当前目标：${goalLabels[cleanText(data.goal)] || "综合选择"} · ${providerCopy} · ${formatNumber(analyzed)} 个已分析 / ${formatNumber(recommended)} 个 AI 推荐`;
+  }
+
+  function updateAnalysisScreenControls(data) {
+    const feed = Object.keys(objectValue(data)).length
+      ? objectValue(data)
+      : state.recommendationFeed;
+    const pending = toFiniteNumber(feed.pending_analysis_total, 0);
+    const recommended = toFiniteNumber(feed.recommended_total, 0);
+    dom.aiFilterButton.textContent = state.analysisFilter === "recommended"
+      ? "显示全部候选"
+      : `只看 AI 推荐 (${formatNumber(recommended)})`;
+    dom.aiFilterButton.setAttribute(
+      "aria-pressed",
+      String(state.analysisFilter === "recommended"),
+    );
+    dom.aiFilterButton.disabled = state.bulkAnalysisRunning
+      || (state.analysisFilter === "all" && recommended === 0);
+    if (state.bulkAnalysisRunning) return;
+    if (!state.analysisReady) {
+      dom.aiScreenButton.textContent = "AI 筛选未配置";
+      dom.aiScreenButton.disabled = true;
+      dom.aiProbeButton.textContent = "AI 筛选未配置";
+      dom.aiProbeButton.disabled = true;
+      dom.aiScreenStatus.textContent = "当前查询结果使用硬筛选与规则/偏好排序；没有调用 LLM。";
+      return;
+    }
+    dom.aiScreenButton.textContent = state.analysisProvider === "fake"
+      ? "AI 筛选前 5 个（演示）"
+      : "AI 筛选前 5 个";
+    state.analysisProbePassed = state.analysisProbePassed
+      || toFiniteNumber(feed.analyzed_total, 0) > 0;
+    dom.aiProbeButton.textContent = state.analysisProvider === "fake"
+      ? "先验证 1 个样例（演示）"
+      : "先验证 1 个样例";
+    dom.aiProbeButton.disabled = pending === 0;
+    dom.aiScreenButton.disabled = pending === 0 || !state.analysisProbePassed;
+    if (!dom.aiScreenStatus.textContent || pending === 0) {
+      dom.aiScreenStatus.textContent = pending === 0
+        ? "当前候选都已有与本轮 Snapshot 对应的分析。"
+        : state.analysisProbePassed
+          ? `${formatNumber(pending)} 个候选尚未分析；批量运行不会覆盖基础规则分。`
+          : "请先验证 1 个真实 AI 分析样例；验证通过后才可运行前 5 个。";
+    }
   }
 
   function recommendationAsPick(item, index) {
@@ -400,11 +590,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       snapshot_id: product.snapshot_id,
       score_version_id: product.score_version_id,
       selection_reason: selectionReason,
-      score_snapshot: product.personalized_score,
+      score_snapshot: product.decision_score ?? product.personalized_score,
       product_recommendation: product,
       opportunity: {
         ...opportunity,
-        score_total: product.personalized_score,
+        score_total: product.decision_score ?? product.personalized_score,
         score_components: components,
         is_tech_match: toStringArray(product.reason_codes).includes("tech_match"),
         is_strategic: toStringArray(product.reason_codes).includes("learning_value"),
@@ -501,12 +691,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       dom.shortlistList.appendChild(empty);
       return;
     }
-    state.shortlist.forEach((item) => {
-      dom.shortlistList.appendChild(buildShortlistCard(item));
+    state.shortlist.forEach((item, index) => {
+      dom.shortlistList.appendChild(buildShortlistCard(item, index));
     });
   }
 
-  function buildShortlistCard(item) {
+  function buildShortlistCard(item, index) {
     const opportunity = objectValue(item.opportunity);
     const repository = objectValue(opportunity.repository);
     const card = element("article", "shortlist-card");
@@ -536,7 +726,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     );
     const facts = element("div", "shortlist-facts");
     facts.append(
-      decisionMetric("推荐", recommendationLabel(item.recommendation_label)),
+      decisionMetric(
+        cleanText(item.analysis_status) === "analyzed" ? "AI 结论" : "推荐",
+        cleanText(item.analysis_status) === "analyzed"
+          ? analysisRecommendationLabel(item.analysis_recommendation)
+          : recommendationLabel(item.recommendation_label),
+      ),
       decisionMetric("接收机会", levelLabel(item.acceptance_level)),
       decisionMetric("竞争压力", inverseLevelLabel(item.competition_level)),
       decisionMetric("预计投入", effortLabel(item.effort)),
@@ -544,6 +739,29 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     main.appendChild(facts);
 
     const controls = element("div", "shortlist-controls");
+    const workbench = buildAnalysisWorkbench(
+      recommendationAsPick(item, index),
+      opportunity,
+      index,
+      "shortlist",
+    );
+    workbench.classList.add("shortlist-analysis-workbench");
+    const panel = state.analysisPanels.get(
+      analysisPanelKey("shortlist", opportunity.id),
+    );
+    const startContribution = analysisAction(
+      item.analysis_version_id ? "开始 Vibe Coding" : "先做 AI 评估",
+      async () => {
+        if (!panel) return;
+        if (panel.body.hidden) await toggleAnalysisPanel(panel);
+        workbench.scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+    );
+    startContribution.classList.add("shortlist-start-action");
+    if (!item.analysis_version_id && !state.analysisReady) {
+      startContribution.disabled = true;
+      startContribution.title = "当前未配置分析服务，无法创建贡献任务";
+    }
     const reminder = document.createElement("input");
     reminder.type = "datetime-local";
     reminder.setAttribute("aria-label", "提醒时间");
@@ -573,8 +791,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     });
     remove.classList.add("is-compact", "is-danger");
     const issue = link(opportunity.html_url, "查看 Issue ↗", "open-issue-link");
-    controls.append(reminder, saveReminder, remove, issue);
-    card.append(selectLabel, main, controls);
+    controls.append(startContribution, reminder, saveReminder, remove, issue);
+    card.append(selectLabel, main, controls, workbench);
     return card;
   }
 
@@ -607,8 +825,15 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       card.append(
         element("span", "shortlist-repo", cleanText(repository.full_name)),
         element("h3", "", cleanText(opportunity.title)),
-        element("strong", "comparison-verdict", recommendationLabel(item.recommendation_label)),
-        comparisonRow("匹配分", formatScore(item.personalized_score)),
+        element(
+          "strong",
+          "comparison-verdict",
+          cleanText(item.analysis_status) === "analyzed"
+            ? analysisRecommendationLabel(item.analysis_recommendation)
+            : recommendationLabel(item.recommendation_label),
+        ),
+        comparisonRow("决策排序", formatScore(item.decision_score)),
+        comparisonRow("基础匹配", formatScore(item.personalized_score)),
         comparisonRow("预计投入", effortLabel(item.effort)),
         comparisonRow("接收机会", levelLabel(item.acceptance_level)),
         comparisonRow("竞争压力", inverseLevelLabel(item.competition_level)),
@@ -651,6 +876,15 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     }[cleanText(value)] || "待评估";
   }
 
+  function analysisRecommendationLabel(value) {
+    return {
+      pursue: "建议投入",
+      consider: "进一步确认",
+      skip: "建议跳过",
+      insufficient_evidence: "证据不足",
+    }[cleanText(value)] || "已分析";
+  }
+
   function effortLabel(value) {
     const effort = objectValue(value);
     const minimum = toOptionalNumber(effort.hours_min);
@@ -665,6 +899,14 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const tokenConfigured = Boolean(meta.token_configured);
     state.csrfToken = cleanText(meta.csrf_token);
     state.accessTokenRequired = Boolean(meta.local_access_token_required);
+    state.analysisProvider = cleanText(meta.analysis_provider) || "none";
+    state.analysisModel = cleanText(meta.analysis_model);
+    state.implementationProvider = cleanText(meta.implementation_provider) || "none";
+    state.implementationModel = cleanText(meta.implementation_model);
+    state.reviewProvider = cleanText(meta.review_provider) || "none";
+    state.reviewModel = cleanText(meta.review_model);
+    state.sandboxStageRuntime = cleanText(meta.sandbox_stage_runtime) || "none";
+    state.draftPrPublisher = cleanText(meta.draft_pr_publisher) || "fake";
     const languages = toStringArray(meta.preferred_languages);
     const queryCount = Array.isArray(meta.queries) ? meta.queries.length : 0;
 
@@ -692,7 +934,37 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const summaries = [];
     if (languages.length) summaries.push(`偏好语言：${languages.join(" / ")}`);
     if (queryCount) summaries.push(`${formatNumber(queryCount)} 条检索规则`);
+    summaries.push(state.analysisProvider === "nvidia_nim"
+      ? "AI：真实分析已接入"
+      : state.analysisProvider === "fake" ? "AI：Fake 演示" : "AI：未接入");
     dom.metaSummary.textContent = summaries.join(" · ");
+    renderRuntimeBoundary();
+  }
+
+  function renderRuntimeBoundary() {
+    if (!dom.runtimeBoundary) return;
+    const analysis = state.analysisProvider === "nvidia_nim"
+      ? "AI 分析使用真实模型"
+      : state.analysisProvider === "fake"
+        ? "AI 分析为 Fake 演示，不调用真实 LLM"
+        : "真实 LLM 尚未接线";
+    const execution = (
+      state.implementationProvider === "nvidia_nim"
+      && state.sandboxStageRuntime === "docker"
+    )
+      ? `Vibe Coding 使用 NVIDIA ${state.implementationModel} 与独立 Docker Sandbox Worker`
+      : state.sandboxStageRuntime === "fake"
+        ? "Vibe Coding 为 Fake Explore / Implement / Verify 演示"
+        : "真实隔离代码执行尚未接线";
+    const review = state.reviewProvider === "nvidia_nim"
+      ? `独立审查使用 NVIDIA ${state.reviewModel}`
+      : state.reviewProvider === "fake"
+        ? "独立审查为 Fake 演示"
+        : "真实独立审查尚未接线";
+    const publish = state.draftPrPublisher === "fake"
+      ? "Draft PR 仅写本地 Fake 记录，不会写 GitHub"
+      : "Draft PR 发布能力未就绪";
+    dom.runtimeBoundary.textContent = `${analysis}；${execution}；${review}；${publish}。`;
   }
 
   function renderMetaError() {
@@ -745,8 +1017,9 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const reasons = toStringArray(analysis && analysis.fallback_reasons);
     if (mode === "provider_ready") {
       state.analysisReady = true;
-      dom.analysisMode.textContent =
-        "AI 深度分析运行条件已就绪；当前排序仍保留可复现的规则评分。";
+      dom.analysisMode.textContent = state.analysisProvider === "fake"
+        ? "Fake 分析演示已就绪；不会调用真实 LLM，基础规则评分保持不变。"
+        : "AI 深度分析运行条件已就绪；基础规则评分保持不变。";
       return;
     }
 
@@ -858,7 +1131,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     }
 
     if (Object.keys(product).length) {
-      main.appendChild(buildProductActions(product, opportunity));
+      main.appendChild(buildProductActions(product, opportunity, "discover"));
     }
 
     main.appendChild(buildCardFooter(opportunity, repository));
@@ -866,14 +1139,18 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const scoreColumn = buildScoreColumn(
       score,
       opportunity.score_components,
-      Object.keys(product).length > 0,
+      Object.keys(product).length > 0
+        ? cleanText(product.analysis_status) === "analyzed"
+          ? "AI 决策排序 / 100"
+          : "个性化匹配 / 100"
+        : "综合评分 / 100",
     );
 
     card.append(
       rankColumn,
       main,
       scoreColumn,
-      buildAnalysisWorkbench(pick, opportunity, index),
+      buildAnalysisWorkbench(pick, opportunity, index, "discover"),
     );
     return card;
   }
@@ -913,9 +1190,15 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       cautious: "谨慎投入",
       low_priority: "优先级较低",
     }[cleanText(product.recommendation_label)] || "值得评估";
+    const aiRecommendation = {
+      pursue: "AI 建议投入",
+      consider: "AI 建议进一步确认",
+      skip: "AI 建议跳过",
+      insufficient_evidence: "AI 认为证据不足",
+    }[cleanText(product.analysis_recommendation)];
     const heading = element("div", "decision-heading");
     heading.append(
-      element("strong", "decision-verdict", label),
+      element("strong", "decision-verdict", aiRecommendation || label),
       element("p", "", cleanText(product.summary) || cleanText(opportunity.title)),
     );
     section.appendChild(heading);
@@ -962,7 +1245,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return item;
   }
 
-  function buildProductActions(product, opportunity) {
+  function buildProductActions(product, opportunity, scope) {
     const wrapper = element("div", "product-actions");
     const shortlisted = cleanText(product.disposition_state) === "shortlisted";
     const dismissed = cleanText(product.disposition_state) === "dismissed";
@@ -996,7 +1279,9 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     save.classList.add("product-primary-action");
 
     const analyze = analysisAction("深入评估", () => {
-      const panel = state.analysisPanels.get(String(opportunity.id));
+      const panel = state.analysisPanels.get(
+        analysisPanelKey(scope, opportunity.id),
+      );
       if (panel) toggleAnalysisPanel(panel);
     });
 
@@ -1086,7 +1371,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return footer;
   }
 
-  function buildScoreColumn(score, components, personalized) {
+  function buildScoreColumn(score, components, caption) {
     const column = element("div", "score-column");
     const ring = element("div", "score-ring");
     ring.style.setProperty("--score", score.toFixed(1));
@@ -1099,7 +1384,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       element(
         "span",
         "score-caption",
-        personalized ? "个性化匹配" : "综合评分 / 100",
+        caption || "综合评分 / 100",
       ),
     );
 
@@ -1135,7 +1420,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return column;
   }
 
-  function buildAnalysisWorkbench(pick, opportunity, index) {
+  function analysisPanelKey(scope, opportunityId) {
+    return `${cleanText(scope) || "discover"}:${Math.trunc(toFiniteNumber(opportunityId, 0))}`;
+  }
+
+  function buildAnalysisWorkbench(pick, opportunity, index, scope) {
     const opportunityId = Math.trunc(toFiniteNumber(opportunity.id, 0));
     const snapshotId = cleanText(pick && pick.snapshot_id);
     const section = element("section", "analysis-workbench");
@@ -1145,14 +1434,23 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       element("strong", "", "深入评估"),
       element("span", "", "判断投入、工作量、风险和下一步"),
     );
-    const toggle = element("button", "analysis-toggle", "查看分析");
+    const toggle = element("button", "analysis-toggle", "查看分析报告");
     toggle.type = "button";
     toggle.setAttribute("aria-expanded", "false");
-    toggle.setAttribute("aria-controls", `analysis-panel-${index}`);
-    const status = element("span", "analysis-status", "尚未载入");
+    const panelId = `analysis-panel-${cleanText(scope) || "discover"}-${cleanText(index)}`;
+    toggle.setAttribute("aria-controls", panelId);
+    const product = objectValue(pick && pick.product_recommendation);
+    const status = element(
+      "span",
+      "analysis-status",
+      cleanText(product.analysis_status) === "analyzed" ? "已有当前分析" : "尚未载入",
+    );
+    if (cleanText(product.analysis_status) === "analyzed") {
+      status.dataset.tone = "ready";
+    }
     status.setAttribute("aria-live", "polite");
     const body = element("div", "analysis-panel");
-    body.id = `analysis-panel-${index}`;
+    body.id = panelId;
     body.hidden = true;
 
     const panel = {
@@ -1170,7 +1468,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       taskIds: new Map(),
     };
     if (opportunityId > 0) {
-      state.analysisPanels.set(String(opportunityId), panel);
+      state.analysisPanels.set(analysisPanelKey(scope, opportunityId), panel);
       toggle.addEventListener("click", () => toggleAnalysisPanel(panel));
     } else {
       toggle.disabled = true;
@@ -1186,7 +1484,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const opening = panel.body.hidden;
     panel.body.hidden = !opening;
     panel.toggle.setAttribute("aria-expanded", String(opening));
-    panel.toggle.textContent = opening ? "收起分析" : "查看分析";
+    panel.toggle.textContent = opening ? "收起分析报告" : "查看分析报告";
     if (opening && !panel.loaded) await loadAnalysisHistory(panel);
   }
 
@@ -1200,16 +1498,26 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const token = panel.loadToken + 1;
     panel.loadToken = token;
     setAnalysisStatus(panel, "正在读取版本…", "loading");
-    renderAnalysisLoading(panel, "正在载入结构化分析历史");
+    renderAnalysisLoading(panel, "正在载入分析报告历史");
     try {
       const history = await requestJSON(analysisEndpoint(panel));
       if (panel.loadToken !== token) return;
       panel.loaded = true;
-      panel.versions = Array.isArray(history.versions) ? history.versions : [];
+      const versions = Array.isArray(history.versions) ? history.versions : [];
+      panel.versions = versions.slice().sort((left, right) => {
+        const leftCurrent = cleanText(left.snapshot_id) === panel.snapshotId ? 0 : 1;
+        const rightCurrent = cleanText(right.snapshot_id) === panel.snapshotId ? 0 : 1;
+        return leftCurrent - rightCurrent;
+      });
+      const currentCount = panel.versions.filter(
+        (version) => cleanText(version.snapshot_id) === panel.snapshotId,
+      ).length;
       setAnalysisStatus(
         panel,
-        panel.versions.length ? `${panel.versions.length} 个版本` : "暂无版本",
-        panel.versions.length ? "ready" : "empty",
+        panel.versions.length
+          ? `${currentCount} 个当前 / ${panel.versions.length} 个历史`
+          : "暂无版本",
+        currentCount ? "ready" : "empty",
       );
       renderAnalysisHistory(panel);
     } catch (error) {
@@ -1226,7 +1534,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     panel.body.replaceChildren();
     if (!panel.versions.length) {
       const copy = state.analysisReady
-        ? "这个机会还没有深入评估。运行后会保留结论、引用依据和版本记录。"
+        ? "这个机会还没有深入评估。运行后会保留精简报告和版本记录。"
         : "当前仅提供基础评分；深入评估服务或使用额度尚未就绪。";
       const empty = analysisMessage("尚无深度分析", copy);
       if (state.analysisReady && panel.snapshotId) {
@@ -1285,133 +1593,124 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     panel.body.append(toolbar, detailRoot);
     panel.detailRoot = detailRoot;
     versionSelect.addEventListener("change", () => {
-      loadAnalysisDetail(panel, versionSelect.value);
+      loadAnalysisDocument(panel, versionSelect.value);
     });
-    loadAnalysisDetail(panel, versionSelect.value);
+    loadAnalysisDocument(panel, versionSelect.value);
   }
 
-  async function loadAnalysisDetail(panel, versionId) {
+  function analysisDocumentEndpoint(panel, versionId, download) {
+    const suffix = `${encodeURIComponent(versionId)}/document`;
+    return `${analysisEndpoint(panel, suffix)}${download ? "?download=true" : ""}`;
+  }
+
+  async function loadAnalysisDocument(panel, versionId) {
     if (!panel.detailRoot) return;
     panel.detailRoot.replaceChildren(
-      analysisMessage("正在载入版本", "正在校验结构化内容、引用与用量…", true),
+      analysisMessage("正在载入分析报告", "正在生成精简 Markdown 文档…", true),
     );
     try {
-      const detail = await requestJSON(
-        analysisEndpoint(panel, encodeURIComponent(versionId)),
+      const artifact = await requestArtifact(
+        analysisDocumentEndpoint(panel, versionId, false),
       );
-      renderAnalysisDetail(panel.detailRoot, detail, panel);
+      const version = panel.versions.find(
+        (item) => cleanText(item.id) === cleanText(versionId),
+      ) || {};
+      renderAnalysisDocument(panel.detailRoot, artifact.text, panel, version);
     } catch (error) {
       panel.detailRoot.replaceChildren(
-        analysisMessage("版本载入失败", friendlyError(error)),
+        analysisMessage("分析报告载入失败", friendlyError(error)),
       );
     }
   }
 
-  function renderAnalysisDetail(root, detail, panel) {
+  function renderAnalysisDocument(root, markdown, panel, version) {
     root.replaceChildren();
-    const content = objectValue(detail && detail.content);
-    const analysis = objectValue(content.analysis);
-    const usage = objectValue(content.usage);
-    const provider = objectValue(content.provider);
-    const contracts = objectValue(content.contracts);
-    const provenance = objectValue(content.provenance);
-    const hashes = objectValue(content.hashes);
+    const currentSnapshot = cleanText(version && version.snapshot_id) === panel.snapshotId;
+    const enhancedAnalysis = cleanText(version && version.analyze_output_schema_version)
+      === "analysis-schema-v4";
 
-    const decision = element("section", "analysis-decision-brief");
-    const recommendation = {
-      pursue: "建议投入",
-      consider: "进一步确认后再决定",
-      skip: "暂不建议投入",
-      insufficient_evidence: "现有信息不足",
-    }[cleanText(analysis.recommendation)] || "进一步确认后再决定";
-    decision.append(
-      element("span", "analysis-decision-label", recommendation),
-      element(
-        "h4",
-        "",
-        cleanText(analysis.recommendation_summary)
-          || cleanText(analysis.problem_summary)
-          || "分析已完成",
-      ),
-      analysisListBlock("为什么适合你", analysis.fit_reasons, "请结合下方证据判断"),
-      analysisListBlock("建议的下一步", analysis.next_steps, "先阅读贡献指南并确认任务仍可接手"),
-      analysisListBlock(
-        "开始前向维护者确认",
-        analysis.maintainer_questions,
-        "当前没有额外问题",
-      ),
-    );
-    root.appendChild(decision);
-
-    const effort = objectValue(analysis.estimated_effort);
-    const bounty = objectValue(analysis.bounty_basis);
-    const competition = objectValue(analysis.competition);
-    const summary = element("div", "analysis-summary-grid");
-    summary.append(
-      analysisMetric("预计投入", effortLabel(effort)),
-      analysisMetric("竞争", levelLabel(competition.level)),
-      analysisMetric("赏金", bounty.has_bounty ? bounty.amount_usd == null ? "金额待确认" : formatCurrency(bounty.amount_usd) : "无明确赏金"),
-      analysisMetric("结论置信度", formatPercent(analysis.confidence)),
-    );
-    root.appendChild(summary);
-
-    const narrative = element("div", "analysis-narrative");
-    narrative.append(
-      analysisTextBlock("问题摘要", analysis.problem_summary),
-      analysisTextBlock("当前行为", analysis.current_behavior),
-      analysisTextBlock("期望行为", analysis.expected_behavior),
-      analysisListBlock("验收标准", analysis.acceptance_criteria),
-      analysisListBlock("缺失信息", analysis.missing_information, "没有记录缺失信息"),
-    );
-    root.appendChild(narrative);
-
-    const judgments = element("div", "analysis-judgment-grid");
-    judgments.append(
-      analysisObjectBlock("竞争判断", analysis.competition),
-      analysisObjectBlock("工作量估计", analysis.estimated_effort),
-      analysisObjectBlock("赏金依据", analysis.bounty_basis),
-      analysisObjectBlock("相似 Issue / PR", analysis.similar_issue_pr_evidence),
-      analysisObjectBlock("风险", analysis.risks),
-    );
-    root.appendChild(judgments);
-
-    const citations = toStringArray(content.cited_evidence_ids);
-    const citationSection = element("section", "analysis-citations");
-    citationSection.appendChild(element("h4", "", `证据引用 · ${citations.length}`));
-    const citationRow = element("div", "citation-row");
-    if (citations.length) {
-      citations.forEach((citation) => {
-        citationRow.appendChild(element("code", "", citation));
-      });
-    } else {
-      citationRow.appendChild(element("span", "", "没有可展示的引用"));
+    if (!currentSnapshot) {
+      const stale = element("aside", "planning-stale-alert");
+      stale.append(
+        element("strong", "", "历史 Snapshot 分析（只读）"),
+        element("span", "", "这份结论不属于当前扫描 Snapshot，不能据此创建或继续贡献任务。"),
+      );
+      root.appendChild(stale);
     }
-    citationSection.appendChild(citationRow);
-    const metadata = document.createElement("details");
-    metadata.className = "analysis-metadata technical-details";
-    metadata.appendChild(element("summary", "", "分析依据与技术详情"));
-    const usageGrid = element("div", "analysis-summary-grid technical-summary-grid");
-    usageGrid.append(
-      analysisMetric(
-        "Token",
-        `${formatNumber(toFiniteNumber(usage.input_tokens, 0))} 入 / ${formatNumber(toFiniteNumber(usage.output_tokens, 0))} 出`,
-      ),
-      analysisMetric("估算成本", formatMicrousd(usage.estimated_cost_microusd)),
-      analysisMetric("耗时", formatDuration(usage.duration_ms)),
-      analysisMetric("引用", formatNumber(citations.length)),
-    );
-    metadata.append(usageGrid, citationSection);
-    const metadataGrid = element("dl", "");
-    appendMetadata(metadataGrid, "Provider", `${cleanText(provider.name)} / ${cleanText(provider.model)}`);
-    appendMetadata(metadataGrid, "模型版本", provider.model_version);
-    appendMetadata(metadataGrid, "Prompt", `${cleanText(contracts.inspect_prompt)} → ${cleanText(contracts.analyze_prompt)}`);
-    appendMetadata(metadataGrid, "Policy", contracts.analyze_policy);
-    appendMetadata(metadataGrid, "Snapshot", provenance.snapshot_id);
-    appendMetadata(metadataGrid, "规则分数版本", provenance.score_version_id);
-    appendMetadata(metadataGrid, "分析记录哈希", hashes.record || detail.record_hash);
-    metadata.appendChild(metadataGrid);
-    root.appendChild(metadata);
-    root.appendChild(buildPlanningLauncher(panel, detail));
+    if (!enhancedAnalysis) {
+      const legacy = element("aside", "planning-stale-alert");
+      legacy.append(
+        element("strong", "", "旧版分析缺少项目—需求关联"),
+        element("span", "", "这份历史结论未直接使用增强后的项目介绍和需求内容。"),
+      );
+      if (currentSnapshot && state.analysisReady && panel.snapshotId) {
+        const rerun = analysisAction("重新生成关联分析", () => runAnalysis(panel));
+        rerun.classList.add("is-compact");
+        legacy.appendChild(rerun);
+      }
+      root.appendChild(legacy);
+    }
+    const documentRoot = element("article", "analysis-markdown-document");
+    renderSafeMarkdown(documentRoot, markdown);
+    root.appendChild(documentRoot);
+
+    const documentActions = element("div", "analysis-document-actions");
+    const download = element("a", "analysis-action is-secondary is-compact", "下载 Markdown");
+    download.href = analysisDocumentEndpoint(panel, version.id, true);
+    download.download = `analysis-${panel.opportunityId}.md`;
+    documentActions.appendChild(download);
+    root.appendChild(documentActions);
+    if (currentSnapshot && enhancedAnalysis) {
+      root.appendChild(buildPlanningLauncher(panel, version));
+    }
+  }
+
+  function renderSafeMarkdown(root, markdown) {
+    const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
+    let list = null;
+    const finishList = () => {
+      if (list) root.appendChild(list);
+      list = null;
+    };
+    lines.forEach((line) => {
+      const heading = /^(#{1,3}) (.+)$/.exec(line);
+      const item = /^- (.*)$/.exec(line);
+      if (heading) {
+        finishList();
+        const headingElement = element(`h${heading[1].length}`);
+        appendMarkdownInline(headingElement, heading[2]);
+        root.appendChild(headingElement);
+      } else if (item) {
+        if (!list) list = document.createElement("ul");
+        const listItem = element("li");
+        appendMarkdownInline(listItem, item[1]);
+        list.appendChild(listItem);
+      } else if (!line.trim()) {
+        finishList();
+      } else {
+        finishList();
+        const paragraph = element("p");
+        appendMarkdownInline(paragraph, line);
+        root.appendChild(paragraph);
+      }
+    });
+    finishList();
+  }
+
+  function decodeMarkdownText(value) {
+    return cleanText(value).replace(/\\([\\`*_{}\[\]<>#+\-.!|&])/g, "$1");
+  }
+
+  function appendMarkdownInline(parent, value) {
+    const source = String(value || "");
+    const markdownLink = /^(.*?)\[([^\]]+)\]\((https:\/\/github\.com\/[^\s)]+)\)(.*)$/.exec(source);
+    if (!markdownLink) {
+      parent.appendChild(document.createTextNode(decodeMarkdownText(source)));
+      return;
+    }
+    parent.appendChild(document.createTextNode(decodeMarkdownText(markdownLink[1])));
+    parent.appendChild(link(markdownLink[3], decodeMarkdownText(markdownLink[2])));
+    parent.appendChild(document.createTextNode(decodeMarkdownText(markdownLink[4])));
   }
 
   async function renderAnalysisComparison(panel, leftVersionId, rightVersionId) {
@@ -1424,33 +1723,11 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       right_version_id: rightVersionId,
     });
     try {
-      const comparison = await requestJSON(
-        `${analysisEndpoint(panel, "compare")}?${query.toString()}`,
+      const comparison = await requestArtifact(
+        `${analysisEndpoint(panel, "compare/document")}?${query.toString()}`,
       );
-      const differences = Array.isArray(comparison.differences)
-        ? comparison.differences
-        : [];
-      const wrapper = element("section", "analysis-comparison");
-      wrapper.appendChild(
-        element(
-          "h4",
-          "",
-          differences.length ? `版本差异 · ${differences.length}` : "两个版本没有字段差异",
-        ),
-      );
-      if (differences.length) {
-        const list = element("div", "difference-list");
-        differences.slice(0, 100).forEach((difference) => {
-          const item = element("article", "difference-item");
-          item.append(
-            element("code", "", cleanText(difference.path) || "/"),
-            analysisTextBlock("左侧", compactValue(difference.left)),
-            analysisTextBlock("右侧", compactValue(difference.right)),
-          );
-          list.appendChild(item);
-        });
-        wrapper.appendChild(list);
-      }
+      const wrapper = element("section", "analysis-comparison analysis-markdown-document");
+      renderSafeMarkdown(wrapper, comparison.text);
       const back = analysisAction("返回最新版本", () => renderAnalysisHistory(panel));
       back.classList.add("is-compact");
       wrapper.appendChild(back);
@@ -1469,11 +1746,16 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     copy.append(
       element("span", "planning-kicker", "START CONTRIBUTING"),
       element("h4", "", "开始准备这个贡献"),
-      element("p", "", "把分析结论整理成可确认的实施步骤；高级验证信息可在技术详情中查看。"),
+      element("p", "", "把分析报告整理成可确认的实施步骤，并继续保留完整的不可变溯源。"),
     );
     const body = element("div", "planning-launcher-body");
     const analysisVersionId = cleanText(analysisDetail && analysisDetail.id);
-    const knownTaskId = panel.taskIds.get(analysisVersionId);
+    const existingTask = state.tasks.find(
+      (item) => cleanText(item.analysis_version_id) === analysisVersionId,
+    );
+    const knownTaskId = panel.taskIds.get(analysisVersionId)
+      || cleanText(existingTask && existingTask.id);
+    if (knownTaskId) panel.taskIds.set(analysisVersionId, knownTaskId);
     const action = analysisAction(
       knownTaskId ? "打开任务工作台" : "创建贡献任务",
       async () => {
@@ -2172,9 +2454,19 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
 
   function buildExecutionWorkbench(executionId, plan) {
     const section = element("section", "planning-card execution-workbench");
+    const liveVibeCoding = (
+      state.implementationProvider === "nvidia_nim"
+      && state.sandboxStageRuntime === "docker"
+    );
     const heading = planningCardHeading(
-      "隔离执行",
-      "关注执行进度和结果；保护策略与运行记录可按需展开。",
+      liveVibeCoding
+        ? "Vibe Coding · NVIDIA"
+        : state.sandboxStageRuntime === "fake" ? "Vibe Coding（Fake 演示）" : "隔离执行",
+      liveVibeCoding
+        ? `在冻结的仓库上下文中与 ${state.implementationModel} 多轮协作；只有你确认的精确 ChangeSet 哈希会进入 Implement。`
+        : state.sandboxStageRuntime === "fake"
+        ? "当前不会真实修改仓库；页面演示 Explore、Implement、Verify 和产物审查。"
+        : "关注执行进度和结果；保护策略与运行记录可按需展开。",
     );
     const refreshButton = analysisAction("刷新执行", () => load(true));
     refreshButton.classList.add("is-compact");
@@ -2252,6 +2544,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       cleanText(current.stage) === "explore"
       && cleanText(current.status) === "succeeded"
     ) {
+      if (
+        state.implementationProvider === "nvidia_nim"
+        && state.sandboxStageRuntime === "docker"
+      ) {
+        root.appendChild(buildVibeCodingPanel(detail, refresh));
+      } else {
       const changeForm = element("form", "planning-execution-form");
       const submitChange = analysisAction("提交变更方案", () => {});
       submitChange.type = "submit";
@@ -2282,6 +2580,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
         }
       });
       root.appendChild(changeForm);
+      }
     }
 
     const reviews = Array.isArray(detail.reviews) ? detail.reviews : [];
@@ -2302,18 +2601,30 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
         reviewStatus.textContent = "正在绑定 Verify 产物并启动独立 Review…";
         try {
           await ensureLocalAccessToken();
-          await requestJSON(
-            `${API.executions}/${encodeURIComponent(detail.id)}/reviews`,
+          const providerReview = state.reviewProvider === "nvidia_nim";
+          const queued = await requestJSON(
+            `${API.executions}/${encodeURIComponent(detail.id)}/${providerReview ? "review-jobs" : "reviews"}`,
             {
               method: "POST",
               headers: mutationHeaders({
                 "Content-Type": "application/json",
                 "Idempotency-Key": randomKey("web-review"),
               }),
-              body: JSON.stringify({ actor_id: "local-user", reviewer: "fake" }),
+              body: JSON.stringify(
+                providerReview
+                  ? { actor_id: "local-user" }
+                  : { actor_id: "local-user", reviewer: "fake" },
+              ),
             },
           );
-          showToast("独立 Review 已完成。");
+          if (providerReview) {
+            reviewStatus.textContent = `${state.reviewModel} 正在审查精确 diff 与测试产物…`;
+            const completed = await waitForTerminalJob(queued);
+            if (cleanText(completed.state) !== "succeeded") {
+              throw new Error(completed.error_message || `${state.reviewModel} Review 失败`);
+            }
+          }
+          showToast(providerReview ? `${state.reviewModel} Review 已完成。` : "独立 Review 已完成。");
           refresh();
         } catch (error) {
           reviewStatus.textContent = friendlyError(error);
@@ -2531,6 +2842,254 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     );
     provenance.appendChild(list);
     root.appendChild(provenance);
+  }
+
+  function buildVibeCodingPanel(detail, refreshExecution) {
+    const card = element("section", "execution-subcard vibe-coding-panel");
+    const title = element("div", "vibe-coding-heading");
+    title.append(
+      element("h6", "", `${state.implementationModel} Vibe Coding`),
+      element(
+        "p",
+        "review-meta",
+        "模型只看到批准路径的冻结内容，不持有 Docker、GitHub 或 NVIDIA 密钥。",
+      ),
+    );
+    const body = element("div", "vibe-coding-body");
+    body.setAttribute("aria-live", "polite");
+    body.replaceChildren(
+      analysisMessage("正在读取编码会话", "正在复验上下文与对话哈希。", true),
+    );
+    card.append(title, body);
+
+    const loadSession = async () => {
+      try {
+        const session = await requestJSON(
+          `${API.executions}/${encodeURIComponent(detail.id)}/coding-session`,
+        );
+        if (!card.isConnected) return;
+        renderVibeCodingSession(body, detail, session, loadSession, refreshExecution);
+      } catch (error) {
+        if (!card.isConnected) return;
+        if (error.status !== 404) {
+          const failure = analysisMessage(
+            "编码会话不可用",
+            friendlyError(error),
+          );
+          const retry = analysisAction("重新读取", () => loadSession());
+          failure.appendChild(retry);
+          body.replaceChildren(failure);
+          return;
+        }
+        const empty = analysisMessage(
+          "尚未冻结编码上下文",
+          "先让 Sandbox Worker 从精确归档中只读提取批准路径；仓库代码不会在 API 主机执行。",
+        );
+        const start = analysisAction("开始 Vibe Coding", async () => {
+          start.disabled = true;
+          start.textContent = "正在冻结上下文…";
+          try {
+            await ensureLocalAccessToken();
+            const queued = await requestJSON(
+              `${API.executions}/${encodeURIComponent(detail.id)}/coding-context`,
+              {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Idempotency-Key": randomKey("web-coding-context"),
+                }),
+              },
+            );
+            const completed = await waitForTerminalJob(queued);
+            if (cleanText(completed.state) !== "succeeded") {
+              throw new Error(completed.error_message || "编码上下文提取失败");
+            }
+            await loadSession();
+          } catch (error) {
+            empty.appendChild(
+              element("p", "planning-form-status", friendlyError(error)),
+            );
+            start.disabled = false;
+            start.textContent = "重试冻结上下文";
+          }
+        });
+        empty.appendChild(start);
+        body.replaceChildren(empty);
+      }
+    };
+    loadSession();
+    return card;
+  }
+
+  function renderVibeCodingSession(
+    root,
+    detail,
+    session,
+    reload,
+    refreshExecution,
+  ) {
+    root.replaceChildren();
+    const meta = element("div", "vibe-coding-meta");
+    meta.append(
+      element("span", "", `上下文 ${shortHash(session.context_hash)}`),
+      element("span", "", `Explore ${shortHash(session.explore_result_hash)}`),
+      element("span", "", `Base ${shortHash(session.base_commit_sha)}`),
+    );
+    root.appendChild(meta);
+
+    const turns = Array.isArray(session.turns) ? session.turns : [];
+    const conversation = element("ol", "vibe-coding-conversation");
+    turns.forEach((turn) => {
+      const item = element("li", "vibe-coding-turn");
+      item.dataset.role = cleanText(turn.role);
+      item.append(
+        element(
+          "strong",
+          "",
+          cleanText(turn.role) === "assistant" ? state.implementationModel : "你",
+        ),
+        element("p", "", cleanText(turn.content)),
+        element("small", "", shortHash(turn.record_hash)),
+      );
+      conversation.appendChild(item);
+    });
+    if (!turns.length) {
+      conversation.appendChild(
+        element(
+          "li",
+          "planning-empty-copy",
+          `上下文已冻结。描述你想实现的行为、边界或测试，${state.implementationModel} 会基于批准文件与你逐步确认。`,
+        ),
+      );
+    }
+    root.appendChild(conversation);
+
+    const form = element("form", "vibe-coding-form");
+    const message = document.createElement("textarea");
+    message.className = "plan-input";
+    message.required = true;
+    message.maxLength = 12000;
+    message.rows = 4;
+    message.placeholder = "例如：先补充失败测试，再最小化修改解析逻辑；不要改公共 API。";
+    message.setAttribute("aria-label", "Vibe Coding 消息");
+    const send = analysisAction(`发送给 ${state.implementationModel}`, () => {});
+    send.type = "submit";
+    const status = element("span", "planning-form-status");
+    form.append(message, send, status);
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      send.disabled = true;
+      status.textContent = `${state.implementationModel} 正在分析冻结上下文…`;
+      try {
+        await ensureLocalAccessToken();
+        const queued = await requestJSON(
+          `${API.executions}/${encodeURIComponent(detail.id)}/coding/messages`,
+          {
+            method: "POST",
+            headers: mutationHeaders({
+              "Content-Type": "application/json",
+              "Idempotency-Key": randomKey("web-coding-turn"),
+            }),
+            body: JSON.stringify({ content: message.value.trim() }),
+          },
+        );
+        const completed = await waitForTerminalJob(queued);
+        if (cleanText(completed.state) !== "succeeded") {
+          throw new Error(completed.error_message || `${state.implementationModel} 编码消息失败`);
+        }
+        await reload();
+      } catch (error) {
+        status.textContent = friendlyError(error);
+        send.disabled = false;
+      }
+    });
+    root.appendChild(form);
+
+    const latest = turns.length ? turns[turns.length - 1] : null;
+    if (latest && cleanText(latest.role) === "assistant") {
+      const proposalBar = element("div", "vibe-coding-proposal-bar");
+      const propose = analysisAction("生成可确认的 ChangeSet", async () => {
+        propose.disabled = true;
+        proposalStatus.textContent = `${state.implementationModel} 正在生成结构化文件操作…`;
+        try {
+          await ensureLocalAccessToken();
+          const queued = await requestJSON(
+            `${API.executions}/${encodeURIComponent(detail.id)}/coding/proposals`,
+            {
+              method: "POST",
+              headers: mutationHeaders({
+                "Idempotency-Key": randomKey("web-coding-proposal"),
+              }),
+            },
+          );
+          const completed = await waitForTerminalJob(queued);
+          if (cleanText(completed.state) !== "succeeded") {
+            throw new Error(completed.error_message || "ChangeSet 生成失败");
+          }
+          await reload();
+        } catch (error) {
+          proposalStatus.textContent = friendlyError(error);
+          propose.disabled = false;
+        }
+      });
+      const proposalStatus = element("span", "planning-form-status");
+      proposalBar.append(propose, proposalStatus);
+      root.appendChild(proposalBar);
+    }
+
+    const proposals = Array.isArray(session.proposals) ? session.proposals : [];
+    proposals.forEach((proposal) => {
+      const proposalCard = element("article", "vibe-coding-proposal");
+      proposalCard.append(
+        element("strong", "", cleanText(proposal.summary) || "ChangeSet 提案"),
+        element(
+          "p",
+          "review-meta",
+          `${toStringArray(proposal.paths).join(" · ")} · ${shortHash(proposal.change_set_hash)}`,
+        ),
+      );
+      const confirmation = element("label", "vibe-coding-confirmation");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      confirmation.append(
+        checkbox,
+        document.createTextNode(
+          ` 我确认将精确 ChangeSet ${shortHash(proposal.change_set_hash)} 交给隔离 Implement`,
+        ),
+      );
+      const accept = analysisAction("确认并执行", async () => {
+        if (!checkbox.checked) {
+          proposalStatus.textContent = "请先确认页面显示的精确 ChangeSet 哈希。";
+          return;
+        }
+        accept.disabled = true;
+        proposalStatus.textContent = "正在复验提案、对话和文件 prior hash…";
+        try {
+          await ensureLocalAccessToken();
+          await requestJSON(
+            `/api/v1/change-set-proposals/${encodeURIComponent(proposal.id)}/accept`,
+            {
+              method: "POST",
+              headers: mutationHeaders({
+                "Content-Type": "application/json",
+                "Idempotency-Key": randomKey("web-accept-proposal"),
+              }),
+              body: JSON.stringify({
+                action: "accept_change_set",
+                expected_change_set_hash: proposal.change_set_hash,
+              }),
+            },
+          );
+          showToast("精确 ChangeSet 已确认，隔离 Implement 等待调度。");
+          await refreshExecution();
+        } catch (error) {
+          proposalStatus.textContent = friendlyError(error);
+          accept.disabled = false;
+        }
+      });
+      const proposalStatus = element("span", "planning-form-status");
+      proposalCard.append(confirmation, accept, proposalStatus);
+      root.appendChild(proposalCard);
+    });
   }
 
   function buildExecutionPolicy(detail) {
@@ -2809,7 +3368,10 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const body = element("textarea", "plan-input");
     body.placeholder = "Draft PR 说明";
     body.value = "Bound to the exact reviewed plan, diff, tests, and policy hashes.";
-    const submit = analysisAction("创建发布意图", () => {});
+    const submit = analysisAction(
+      state.draftPrPublisher === "fake" ? "创建 Fake 发布意图" : "创建发布意图",
+      () => {},
+    );
     submit.type = "submit";
     const status = element("span", "planning-form-status");
     form.append(title, body, submit, status);
@@ -2850,7 +3412,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       element("p", "review-meta", `${cleanText(intent.upstream_repository)} · ${cleanText(intent.head_branch)}`),
       element("p", "review-meta", `动作：${toStringArray(intent.allowed_actions).join(", ") || "create_draft_pr"}`),
     );
-    const submit = analysisAction("确认发布 Draft PR", () => {});
+    const submit = analysisAction(
+      state.draftPrPublisher === "fake"
+        ? "确认发布 Draft PR（本地演示）"
+        : "确认发布 Draft PR",
+      () => {},
+    );
     submit.type = "submit";
     const status = element("span", "planning-form-status");
     form.append(submit, status);
@@ -3001,6 +3568,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       const tasks = await requestJSON(API.tasks);
       dom.taskHistory.replaceChildren();
       const rows = Array.isArray(tasks) ? tasks : [];
+      state.tasks = rows;
       if (!rows.length) {
         dom.taskHistory.appendChild(element("p", "", "还没有贡献任务。"));
         return;
@@ -3018,11 +3586,66 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
           progress,
           element("span", "task-next-action", cleanText(task.next_action) || "当前阶段已完成"),
         );
+        const actions = element("div", "task-history-actions");
+        const open = analysisAction("继续贡献", () => openContributionTask(task));
+        open.classList.add("is-compact");
+        actions.appendChild(open);
+        item.appendChild(actions);
         dom.taskHistory.appendChild(item);
       });
     } catch (error) {
       dom.taskHistory.replaceChildren(
         element("p", "", `任务历史暂不可用：${friendlyError(error)}`),
+      );
+    }
+  }
+
+  async function openContributionTask(summary) {
+    const taskId = cleanText(summary && summary.id);
+    const opportunityId = Math.trunc(
+      toFiniteNumber(summary && summary.opportunity_id, 0),
+    );
+    const analysisVersionId = cleanText(summary && summary.analysis_version_id);
+    if (!taskId || opportunityId < 1 || !analysisVersionId) {
+      showToast("任务缺少可验证的分析来源，无法打开工作台。", true);
+      return;
+    }
+    window.location.hash = "#/contributions";
+    dom.contributionWorkbench.hidden = false;
+    const heading = element("header", "contribution-workbench-heading");
+    const copy = element("div");
+    copy.append(
+      element("span", "planning-kicker", "VIBE CODING WORKBENCH"),
+      element("h3", "", cleanText(summary.opportunity_title) || "继续代码贡献"),
+      element("p", "", "计划、隔离执行、Review 与 Draft PR 意图都绑定到不可变输入。"),
+    );
+    const close = analysisAction("收起工作台", () => {
+      dom.contributionWorkbench.hidden = true;
+      dom.contributionWorkbench.replaceChildren();
+    });
+    close.classList.add("is-secondary", "is-compact");
+    heading.append(copy, close);
+    const body = element("div", "contribution-workbench-body");
+    body.appendChild(
+      analysisMessage("正在打开贡献任务", "正在校验 Analysis、Plan 和执行记录…", true),
+    );
+    dom.contributionWorkbench.replaceChildren(heading, body);
+    dom.contributionWorkbench.scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      const [taskDetail, analysisDetail] = await Promise.all([
+        requestJSON(`${API.tasks}/${encodeURIComponent(taskId)}`),
+        requestJSON(
+          `${API.opportunities}/${encodeURIComponent(opportunityId)}`
+          + `/analyses/${encodeURIComponent(analysisVersionId)}`,
+        ),
+      ]);
+      const panel = {
+        taskIds: new Map([[analysisVersionId, taskId]]),
+      };
+      renderPlanningWorkbench(body, panel, analysisDetail, taskDetail);
+    } catch (error) {
+      body.replaceChildren(
+        analysisMessage("贡献工作台载入失败", friendlyError(error)),
       );
     }
   }
@@ -3235,7 +3858,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     const messages = {
       queued: "等待分析服务开始",
       leased: "正在准备分析材料",
-      running: cleanText(job.progress_message) || "正在运行结构化分析",
+      running: cleanText(job.progress_message) || "正在生成分析报告",
       succeeded: "分析版本已完成",
     };
     setAnalysisStatus(panel, messages[stateName] || `任务状态：${stateName}`, "loading");
@@ -3323,31 +3946,6 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     return block;
   }
 
-  function analysisListBlock(label, value, emptyCopy) {
-    const block = element("section", "analysis-text-block");
-    block.appendChild(element("h4", "", label));
-    const values = Array.isArray(value) ? value : [];
-    if (!values.length) {
-      block.appendChild(element("p", "", emptyCopy || "未提供"));
-      return block;
-    }
-    const list = document.createElement("ul");
-    values.forEach((item) => {
-      list.appendChild(element("li", "", compactValue(item)));
-    });
-    block.appendChild(list);
-    return block;
-  }
-
-  function analysisObjectBlock(label, value) {
-    const block = element("section", "analysis-object-block");
-    block.append(
-      element("h4", "", label),
-      element("p", "", compactValue(value)),
-    );
-    return block;
-  }
-
   function appendMetadata(list, label, value) {
     list.append(
       element("dt", "", label),
@@ -3366,8 +3964,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
           hour12: false,
         }).format(created)
       : `版本 ${index + 1}`;
-    const model = cleanText(version && version.model_name) || "未知模型";
-    return `${index === 0 ? "最新 · " : ""}${date} · ${model}`;
+    return `${index === 0 ? "最新 · " : "历史 · "}${date}`;
   }
 
   function setAnalysisStatus(panel, message, tone) {
@@ -3398,22 +3995,6 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     } catch (_error) {
       return "无法显示";
     }
-  }
-
-  function formatPercent(value) {
-    const number = toOptionalNumber(value);
-    return number === null ? "—" : `${Math.round(clamp(number, 0, 1) * 100)}%`;
-  }
-
-  function formatMicrousd(value) {
-    const number = toOptionalNumber(value);
-    if (number === null) return "—";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 6,
-    }).format(number / 1_000_000);
   }
 
   function formatDuration(value) {
@@ -3585,11 +4166,28 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
     };
   }
 
-  async function waitForTerminalJob(initialJob) {
+  async function waitForTerminalJob(initialJob, options) {
     let job = initialJob;
-    const timeoutSeconds = Math.max(60, toFiniteNumber(job.timeout_seconds, 600) + 90);
-    const deadline = Date.now() + timeoutSeconds * 1000;
+    const jobTimeoutSeconds = Math.max(
+      60,
+      toFiniteNumber(job.timeout_seconds, 600),
+    );
+    // Provider Jobs are processed serially by the least-privileged Provider
+    // Worker. A later Top-5 item must therefore include the timeout budgets
+    // of the earlier queue positions; otherwise the browser reports a false
+    // "still running" error while the durable Job is merely waiting.
+    const queuePosition = Math.max(
+      0,
+      Math.floor(toFiniteNumber(objectValue(options).queuePosition, 0)),
+    );
+    const deadline = Date.now()
+      + (jobTimeoutSeconds * (queuePosition + 1) + 90) * 1000;
     const terminal = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
+    const onUpdate = typeof objectValue(options).onUpdate === "function"
+      ? objectValue(options).onUpdate
+      : null;
+
+    if (onUpdate) onUpdate(job);
 
     while (!terminal.has(String(job.state || "").toLowerCase())) {
       if (Date.now() >= deadline) {
@@ -3597,6 +4195,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js";
       }
       await sleep(1000);
       job = await requestJSON(`${API.jobs}/${encodeURIComponent(job.id)}`);
+      if (onUpdate) onUpdate(job);
     }
     return job;
   }

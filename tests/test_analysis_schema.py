@@ -133,6 +133,8 @@ def cited_analysis_payload() -> dict[str, object]:
     value = analysis_payload()
     value.update(
         {
+            "project_summary": "这是一个用于管理结构化贡献分析的 Python 项目。",
+            "requirement_summary": "Issue 要求持久化并校验结构化分析结果。",
             "recommendation": "consider",
             "recommendation_summary": "Confirm scope before starting.",
             "fit_reasons": ["The task matches the preferred stack."],
@@ -141,6 +143,8 @@ def cited_analysis_payload() -> dict[str, object]:
         }
     )
     value["citation_map"] = {
+        "project_summary": ["repository"],
+        "requirement_summary": ["issue"],
         "problem_summary": ["issue"],
         "current_behavior": ["issue"],
         "expected_behavior": ["issue"],
@@ -153,8 +157,8 @@ def cited_analysis_payload() -> dict[str, object]:
         "risks": [["repository"]],
         "confidence": ["issue", "repository", "rule_score"],
         "recommendation": ["issue", "rule_score"],
-        "recommendation_summary": ["issue"],
-        "fit_reasons": [["repository", "rule_score"]],
+        "recommendation_summary": ["issue", "repository"],
+        "fit_reasons": [["issue", "repository", "rule_score"]],
         "next_steps": [["issue"]],
         "maintainer_questions": [["issue"]],
     }
@@ -166,6 +170,43 @@ def test_every_material_analysis_value_has_an_exact_frozen_citation() -> None:
         cited_analysis_payload(),
         allowed_evidence_ids=("issue", "repository", "rule_score"),
     )
+
+
+def test_analysis_schema_v3_remains_replay_compatible() -> None:
+    value = cited_analysis_payload()
+    value.pop("project_summary")
+    value.pop("requirement_summary")
+    value["citation_map"].pop("project_summary")
+    value["citation_map"].pop("requirement_summary")
+
+    validate_structured_analysis(
+        value,
+        allowed_evidence_ids=("issue", "repository", "rule_score"),
+        schema_version="analysis-schema-v3",
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "citations", "message"),
+    (
+        ("project_summary", ["issue"], "repository evidence"),
+        ("requirement_summary", ["repository"], "Issue evidence"),
+        ("recommendation_summary", ["issue"], "Issue and repository"),
+    ),
+)
+def test_contextual_analysis_requires_project_and_issue_grounding(
+    field: str,
+    citations: list[str],
+    message: str,
+) -> None:
+    value = cited_analysis_payload()
+    value["citation_map"][field] = citations
+
+    with pytest.raises(ProviderContractError, match=message):
+        validate_structured_analysis(
+            value,
+            allowed_evidence_ids=("issue", "repository", "rule_score"),
+        )
 
 
 @pytest.mark.parametrize(
@@ -208,7 +249,7 @@ def test_every_material_analysis_value_has_an_exact_frozen_citation() -> None:
                 "confidence",
                 ["not-frozen"],
             ),
-            "exactly match",
+            "outside",
         ),
     ),
 )

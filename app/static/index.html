@@ -9,8 +9,8 @@
       content="每天从 GitHub 开源议题中筛选更值得投入的贡献机会。"
     >
     <title>开源机会雷达</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/app.js" type="module"></script>
+    <link rel="stylesheet" href="/static/styles.css?v=analysis-context-v2">
+    <script src="/static/app.js?v=analysis-context-v2" type="module"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容</a>
@@ -159,9 +159,21 @@
             </div>
             <div class="result-tools">
               <span class="result-count" id="result-count" aria-live="polite">载入中</span>
-              <button class="dismissed-toggle" id="dismissed-toggle" type="button" aria-pressed="false">
-                查看已忽略
-              </button>
+              <div class="ai-screen-controls" aria-label="AI 分析筛选">
+                <button class="ai-screen-button is-secondary" id="ai-probe-button" type="button" disabled>
+                  先验证 1 个样例
+                </button>
+                <button class="ai-screen-button" id="ai-screen-button" type="button" disabled>
+                  AI 筛选前 5 个
+                </button>
+                <button class="dismissed-toggle" id="ai-filter-button" type="button" aria-pressed="false" disabled>
+                  只看 AI 推荐
+                </button>
+                <button class="dismissed-toggle" id="dismissed-toggle" type="button" aria-pressed="false">
+                  查看已忽略
+                </button>
+              </div>
+              <span class="ai-screen-status" id="ai-screen-status" aria-live="polite"></span>
             </div>
           </div>
 
@@ -227,8 +239,12 @@
                 <p>关注下一步行动；执行证据和技术详情仅在需要时展开。</p>
               </div>
             </div>
+            <aside class="runtime-boundary" id="runtime-boundary" aria-live="polite">
+              正在确认 AI、代码执行与 Draft PR 能力…
+            </aside>
             <div class="funnel-grid" id="funnel-grid" aria-label="贡献漏斗"></div>
             <div class="heatmap-grid" id="heatmap-grid" aria-label="贡献热力图"></div>
+            <section class="contribution-workbench" id="contribution-workbench" hidden aria-label="贡献工作台"></section>
             <div class="task-history" id="task-history" aria-label="任务历史"></div>
           </section>
         </section>

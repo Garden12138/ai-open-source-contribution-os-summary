@@ -128,6 +128,38 @@ class ChangeSetService:
             )
         else:
             raise ValueError("ChangeSet source is invalid")
+        return self.accept_existing(
+            execution_attempt_id,
+            change_set=change_set,
+            idempotency_key=idempotency_key,
+        )
+
+    def accept_existing(
+        self,
+        execution_attempt_id: str,
+        *,
+        change_set: Any,
+        idempotency_key: str,
+    ) -> Any:
+        """Accept one already-materialized immutable ChangeSet.
+
+        Provider proposals use this path so the hash shown to the user is the
+        exact hash consumed by the Implement stage.
+        """
+        attempts = ExecutionAttemptService(self.session)
+        attempt = attempts.get_verified(execution_attempt_id)
+        current = attempts.current(attempt.id)
+        plan = PlanVersionService(self.session).get_verified(
+            attempt.plan_version_id
+        )
+        if (
+            change_set.plan_version_id != plan.id
+            or change_set.plan_content_hash != plan.content_hash
+            or change_set.plan_record_hash != plan.record_hash
+        ):
+            raise ChangeSetConflictError(
+                "ChangeSet does not match the approved PlanVersion"
+            )
         allowed = tuple(plan.files_likely_to_change)
         if not set(change_set.paths).issubset(set(allowed)):
             raise ChangeSetConflictError(

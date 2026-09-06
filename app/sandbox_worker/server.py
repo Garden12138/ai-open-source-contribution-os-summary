@@ -11,6 +11,23 @@ from app.sandbox_worker.contracts import (
 )
 
 
+_WORKER_ENVIRONMENT_ALLOWLIST = frozenset(
+    {
+        "LANG",
+        "LC_CTYPE",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONUNBUFFERED",
+    }
+)
+
+
+def _sanitize_environment() -> None:
+    """Remove variables injected by the host process launcher."""
+    for name in tuple(os.environ):
+        if name not in _WORKER_ENVIRONMENT_ALLOWLIST:
+            del os.environ[name]
+
+
 def handle(request: SandboxWorkerRequest) -> SandboxWorkerResponse:
     if request.operation != "probe":
         return SandboxWorkerResponse(
@@ -45,6 +62,7 @@ def handle(request: SandboxWorkerRequest) -> SandboxWorkerResponse:
 
 
 def main() -> None:
+    _sanitize_environment()
     raw = sys.stdin.buffer.read()
     try:
         request = SandboxWorkerRequest.from_bytes(raw)

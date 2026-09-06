@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.api import _batch_analysis_budget
 from app.models import Job
 from app.providers import (
     AnalysisBudget,
@@ -28,6 +29,13 @@ def _selection_date(value: datetime) -> str:
         else value.astimezone(timezone.utc)
     )
     return aware.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()
+
+
+def test_recommendation_analysis_budget_keeps_one_item_probe_bounded() -> None:
+    budget = AnalysisBudget(max_duration_ms=4_200_000)
+
+    assert _batch_analysis_budget(budget, 1).max_duration_ms == 840_000
+    assert _batch_analysis_budget(budget, 5).max_duration_ms == 840_000
 
 
 class StubGitHub:
@@ -148,13 +156,16 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert health.status_code == 200
     assert health.json() == {"status": "ok", "database": "ok"}
     assert dashboard.status_code == 200
+    assert dashboard.headers["cache-control"] == "no-cache"
     assert "今日机会榜" in dashboard.text
+    assert "/static/styles.css?v=analysis-context-v2" in dashboard.text
+    assert "/static/app.js?v=analysis-context-v2" in dashboard.text
     assert javascript.status_code == 200
     assert "runScan" in javascript.text
     assert "runAnalysis" in javascript.text
     assert "/analyses" in javascript.text
-    assert "cited_evidence_ids" in javascript.text
-    assert "estimated_cost_microusd" in javascript.text
+    assert "cited_evidence_ids" not in javascript.text
+    assert "estimated_cost_microusd" not in javascript.text
     assert "基础评分 · 深入评估未开启" in javascript.text
     assert "版本差异" in javascript.text
     assert "创建贡献任务" in javascript.text
@@ -178,6 +189,12 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "调整偏好" in dashboard.text
     assert "先告诉我们，你想获得什么" in dashboard.text
     assert 'recommendations: "/api/v1/recommendations"' in javascript.text
+    assert '`${API.recommendations}/analyses`' in javascript.text
+    assert "AI 筛选前 5 个" in dashboard.text
+    assert "开始 Vibe Coding" in javascript.text
+    assert "openContributionTask" in javascript.text
+    assert "contribution-workbench" in dashboard.text
+    assert "Draft PR 仅写本地 Fake 记录" in javascript.text
     assert 'shortlist: "/api/v1/shortlist"' in javascript.text
     assert 'notifications: "/api/v1/notifications"' in javascript.text
     assert "togglePreferenceEditor" in javascript.text
@@ -185,6 +202,16 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "请求取消" in javascript.text
     assert "查看结果" in javascript.text
     assert "requestArtifact" in javascript.text
+    assert "查看分析报告" in javascript.text
+    assert "下载 Markdown" in javascript.text
+    assert "renderSafeMarkdown" in javascript.text
+    assert "旧版分析缺少项目—需求关联" in javascript.text
+    assert "重新生成关联分析" in javascript.text
+    assert "appendMarkdownInline" in javascript.text
+    assert '"./api.js?v=analysis-context-v2"' in javascript.text
+    assert '"compare/document"' in javascript.text
+    assert "analysisObjectBlock" not in javascript.text
+    assert "分析依据与技术详情" not in javascript.text
     assert ".innerHTML" not in javascript.text
     assert "insertAdjacentHTML" not in javascript.text
     assert "保存为新修订" in javascript.text
@@ -193,6 +220,7 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "requestArtifact" in api_module_asset.text
     assert stylesheet.status_code == 200
     assert ".analysis-workbench" in stylesheet.text
+    assert ".analysis-markdown-document" in stylesheet.text
     assert ".analysis-summary-grid" in stylesheet.text
     assert ".difference-item" in stylesheet.text
     assert ".planning-layout" in stylesheet.text
@@ -462,6 +490,15 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
         )
         version_id = history.json()["versions"][0]["id"]
         version_detail = client.get(f"{endpoint}/{version_id}")
+        version_document = client.get(f"{endpoint}/{version_id}/document")
+        downloaded_document = client.get(
+            f"{endpoint}/{version_id}/document",
+            params={"download": True},
+        )
+        cached_document = client.get(
+            f"{endpoint}/{version_id}/document",
+            headers={"If-None-Match": version_document.headers["etag"]},
+        )
         comparison = client.get(
             f"{endpoint}/compare",
             params={
@@ -469,7 +506,18 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
                 "right_version_id": version_id,
             },
         )
+        comparison_document = client.get(
+            f"{endpoint}/compare/document",
+            params={
+                "left_version_id": version_id,
+                "right_version_id": version_id,
+            },
+        )
         missing_version = client.get(f"{endpoint}/missing-version")
+        missing_document = client.get(f"{endpoint}/missing-version/document")
+        wrong_opportunity_document = client.get(
+            f"/api/v1/opportunities/999999/analyses/{version_id}/document"
+        )
 
     assert unavailable.status_code == 409
     assert unavailable.json()["error"]["message"] == (
@@ -519,7 +567,7 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
         "input_tokens"
     ] == 100
     assert len(completed_events.json()["revision"]) == 64
-    assert "Deterministic fake analysis" not in completed_events.text
+    assert "确定性的演示分析" not in completed_events.text
     assert unchanged_events.status_code == 200
     assert unchanged_events.json()["unchanged"] is True
     assert unchanged_events.json()["events"] == []
@@ -533,16 +581,42 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
     assert version_detail.json()["id"] == version_id
     assert version_detail.json()["content"]["analysis"][
         "problem_summary"
-    ] == "Deterministic fake analysis"
+    ] == "确定性的演示分析。"
     assert version_detail.json()["content"]["provider"]["name"] == "fake"
     assert version_detail.json()["content"]["contracts"][
         "inspect_prompt"
     ] == "inspect-prompt-v2"
+    assert version_document.status_code == 200
+    assert version_document.headers["content-type"].startswith("text/markdown")
+    assert version_document.headers[
+        "x-contribos-analysis-document-version"
+    ] == "analysis-document-v2"
+    assert version_document.text.startswith("# 开源贡献机会分析\n")
+    assert "## 项目介绍" in version_document.text
+    assert "## 需求内容" in version_document.text
+    assert "## 综合分析" in version_document.text
+    assert "## 行动建议" in version_document.text
+    assert "provider" not in version_document.text.lower()
+    assert "prompt" not in version_document.text.lower()
+    assert "cited_evidence_ids" not in version_document.text
+    assert "{" not in version_document.text
+    assert downloaded_document.status_code == 200
+    assert downloaded_document.headers["content-disposition"].startswith(
+        "attachment;"
+    )
+    assert downloaded_document.text == version_document.text
+    assert cached_document.status_code == 304
     assert comparison.status_code == 200
     assert comparison.json()["left_version_id"] == version_id
     assert comparison.json()["right_version_id"] == version_id
     assert comparison.json()["differences"] == []
+    assert comparison_document.status_code == 200
+    assert comparison_document.text == (
+        "# 分析版本对比\n\n重要分析内容没有变化。\n"
+    )
     assert missing_version.status_code == 404
+    assert missing_document.status_code == 404
+    assert wrong_opportunity_document.status_code == 409
     assert len(provider.inspect_requests) == 1
     assert len(provider.analyze_requests) == 1
 
@@ -556,7 +630,7 @@ def test_create_analysis_api_is_exact_protected_and_idempotent(
             "output_schema": "inspection-schema-v1",
         }
         assert job.payload["versions"]["analyze"]["prompt"] == (
-            "analyze-prompt-v3"
+            "analyze-prompt-v11"
         )
         assert job.payload["versions"]["analyze"]["policy"] == (
             "analysis-policy-v3"

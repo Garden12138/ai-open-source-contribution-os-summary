@@ -458,9 +458,15 @@ class GitHubClient:
     def _retry_delay(
         self, response: httpx.Response, attempt: int
     ) -> float | None:
-        rate_limited = response.status_code == 429 or (
-            response.status_code == 403
-            and response.headers.get("x-ratelimit-remaining") == "0"
+        remaining = response.headers.get("x-ratelimit-remaining")
+        primary_rate_limited = (
+            response.status_code in {403, 429} and remaining == "0"
+        )
+        secondary_rate_limited = self._is_secondary_rate_limit(response)
+        rate_limited = (
+            response.status_code == 429
+            or primary_rate_limited
+            or secondary_rate_limited
         )
         transient = 500 <= response.status_code <= 599
         if not rate_limited and not transient:
@@ -473,13 +479,36 @@ class GitHubClient:
             except ValueError:
                 pass
         reset = response.headers.get("x-ratelimit-reset")
-        if rate_limited and reset and reset.isdigit():
+        if primary_rate_limited and reset and reset.isdigit():
             seconds = max(
                 0.0,
                 int(reset) - datetime.now(timezone.utc).timestamp(),
             )
             return self._bounded_delay(seconds)
+        if secondary_rate_limited or response.status_code == 429:
+            # GitHub requires at least a one-minute pause when a secondary
+            # limit response provides neither Retry-After nor an exhausted
+            # primary-limit reset. Keep the wait bounded by local policy.
+            return self._bounded_delay(
+                max(60.0, self._backoff_seconds(attempt))
+            )
         return self._backoff_seconds(attempt)
+
+    @staticmethod
+    def _is_secondary_rate_limit(response: httpx.Response) -> bool:
+        if response.status_code not in {403, 429}:
+            return False
+        try:
+            payload = response.json()
+        except ValueError:
+            return False
+        if not isinstance(payload, dict):
+            return False
+        message = payload.get("message")
+        return (
+            isinstance(message, str)
+            and "secondary rate limit" in message.lower()
+        )
 
     def _backoff_seconds(self, attempt: int) -> float:
         base = max(0.0, self.settings.github_retry_base_seconds)

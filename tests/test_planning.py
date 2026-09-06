@@ -4430,6 +4430,19 @@ def test_task_state_migration_backfills_existing_task_root(
                 text("DROP TRIGGER review_runs_provenance_insert")
             )
             connection.execute(text("DROP TABLE review_runs"))
+            for table_name in (
+                "change_set_proposals",
+                "coding_turns",
+                "coding_sessions",
+                "agent_invocations",
+            ):
+                connection.execute(
+                    text(f"DROP TRIGGER {table_name}_no_delete")
+                )
+                connection.execute(
+                    text(f"DROP TRIGGER {table_name}_no_update")
+                )
+                connection.execute(text(f"DROP TABLE {table_name}"))
             connection.execute(
                 text(
                     "DROP TRIGGER "
@@ -4618,7 +4631,10 @@ def test_task_state_migration_backfills_existing_task_root(
                     "'0022_publish_intents', "
                     "'0023_pull_request_events', "
                     "'0024_task_side_states', "
-                    "'0025_product_experience'"
+                    "'0025_product_experience', "
+                    "'0026_review_artifact_bindings', "
+                    "'0027_nvidia_agent_workflows', "
+                    "'0028_nvidia_review_runs'"
                     ")"
                 )
             )
@@ -4641,6 +4657,9 @@ def test_task_state_migration_backfills_existing_task_root(
             "0023_pull_request_events",
             "0024_task_side_states",
             "0025_product_experience",
+            "0026_review_artifact_bindings",
+            "0027_nvidia_agent_workflows",
+            "0028_nvidia_review_runs",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

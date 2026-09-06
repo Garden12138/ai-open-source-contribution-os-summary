@@ -1,28 +1,27 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
-
 from app.config import Settings
 from app.providers.budgets import AnalysisBudget
 from app.providers.contracts import AnalysisProvider
 from app.providers.fake import FakeProvider
+from app.providers.gateway import (
+    GatewayTaskCredentialBroker,
+    GatewayTaskTokenCodec,
+)
+from app.providers.nvidia_nim import (
+    NVIDIA_ANALYSIS_JOB_TIMEOUT_SECONDS,
+    create_nvidia_analysis_provider,
+)
 from app.sandbox_worker.specs import JobSpecSigner
 
 
-SUPPORTED_ANALYSIS_PROVIDERS = frozenset({"none", "fake"})
-SUPPORTED_STAGE_RUNTIMES = frozenset({"none", "fake"})
-
-
-@dataclass(frozen=True, slots=True)
-class StageRuntimes:
-    explore: Any
-    implement: Any
-    verify: Any
+SUPPORTED_ANALYSIS_PROVIDERS = frozenset({"none", "fake", "nvidia_nim"})
 
 
 def resolve_analysis_runtime(
     settings: Settings,
+    *,
+    execution_enabled: bool = False,
 ) -> tuple[AnalysisProvider | None, AnalysisBudget | None]:
     """Attach a request-safe provider identity and budget, or stay rule-only."""
 
@@ -30,30 +29,44 @@ def resolve_analysis_runtime(
         return None, None
     if settings.analysis_provider == "fake":
         return FakeProvider(), AnalysisBudget()
+    if settings.analysis_provider == "nvidia_nim":
+        broker = (
+            resolve_model_gateway_broker(settings)
+            if execution_enabled
+            else None
+        )
+        return (
+            create_nvidia_analysis_provider(
+                model=settings.analysis_model,
+                broker=broker,
+            ),
+            # A screening Job makes two bounded model calls (inspect and
+            # analyze). The recommendation endpoint divides this five-way, so
+            # preserve an 840-second per-candidate deadline rather than
+            # allowing its 360-second upstream request to outlive the Job.
+            AnalysisBudget(
+                max_duration_ms=NVIDIA_ANALYSIS_JOB_TIMEOUT_SECONDS * 5_000,
+            ),
+        )
     raise ValueError(
-        "ANALYSIS_PROVIDER must be 'none' or 'fake'; "
-        "codex remains unwired in the API and worker process"
+        "ANALYSIS_PROVIDER must be 'none', 'fake', or 'nvidia_nim'"
     )
 
 
-def resolve_stage_runtimes(settings: Settings) -> StageRuntimes | None:
-    if settings.sandbox_stage_runtime == "none":
-        return None
-    if settings.sandbox_stage_runtime == "fake":
-        from app.sandbox_worker.fake import (
-            FakeExploreRuntime,
-            FakeImplementRuntime,
-            FakeVerifyRuntime,
+def resolve_model_gateway_broker(
+    settings: Settings,
+) -> GatewayTaskCredentialBroker:
+    if settings.model_gateway_signing_key is None:
+        raise ValueError(
+            "MODEL_GATEWAY_SIGNING_KEY is required by provider-worker"
         )
-
-        return StageRuntimes(
-            explore=FakeExploreRuntime(),
-            implement=FakeImplementRuntime(),
-            verify=FakeVerifyRuntime(),
-        )
-    raise ValueError(
-        "SANDBOX_STAGE_RUNTIME must be 'none' or 'fake'; "
-        "Docker runtimes stay in the Sandbox Worker process"
+    return GatewayTaskCredentialBroker(
+        codec=GatewayTaskTokenCodec(settings.model_gateway_signing_key),
+        base_url=settings.model_gateway_base_url,
+        network=settings.model_gateway_network,
+        service_name=settings.model_gateway_service_name,
+        provider_name="nvidia_nim",
+        ttl_seconds=300,
     )
 
 

@@ -61,6 +61,7 @@ def analyze_request(
         snapshot_id="snapshot-corpus-1",
         score_version_id="score-corpus-1",
         inspection=inspection,
+        evidence=inspect_request("analyze-evidence").evidence,
         prompt_version="analyze-prompt-v1",
         policy_version="analysis-policy-v1",
         output_schema_version=ANALYSIS_SCHEMA_VERSION,

@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import math
 import re
-from copy import deepcopy
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from typing import Any
 
 from app.providers.contracts import ProviderContractError
 from app.security import ensure_no_sensitive_data
 
-
 ANALYSIS_SCHEMA_V1 = "analysis-schema-v1"
 ANALYSIS_SCHEMA_V2 = "analysis-schema-v2"
-ANALYSIS_SCHEMA_VERSION = "analysis-schema-v3"
+ANALYSIS_SCHEMA_V3 = "analysis-schema-v3"
+ANALYSIS_SCHEMA_VERSION = "analysis-schema-v4"
 
 _STATEMENT = {"type": "string", "minLength": 1, "maxLength": 4_000}
 _SHORT_STATEMENT = {"type": "string", "minLength": 1, "maxLength": 1_000}
@@ -290,10 +290,34 @@ ANALYSIS_OUTPUT_SCHEMA["required"] = [
     "next_steps",
     "maintainer_questions",
 ]
+ANALYSIS_OUTPUT_SCHEMA_V3: dict[str, Any] = deepcopy(ANALYSIS_OUTPUT_SCHEMA)
+ANALYSIS_OUTPUT_SCHEMA["properties"].update(
+    {
+        "project_summary": _SHORT_STATEMENT,
+        "requirement_summary": _STATEMENT,
+    }
+)
+ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["properties"].update(
+    {
+        "project_summary": _CITATION_IDS,
+        "requirement_summary": _CITATION_IDS,
+    }
+)
+ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["required"] = [
+    *ANALYSIS_OUTPUT_SCHEMA_V3["properties"]["citation_map"]["required"],
+    "project_summary",
+    "requirement_summary",
+]
+ANALYSIS_OUTPUT_SCHEMA["required"] = [
+    *ANALYSIS_OUTPUT_SCHEMA_V3["required"],
+    "project_summary",
+    "requirement_summary",
+]
 
 _REQUIRED_FIELDS_V1 = frozenset(ANALYSIS_OUTPUT_SCHEMA_V1["required"])
 _REQUIRED_FIELDS_V2 = frozenset(ANALYSIS_OUTPUT_SCHEMA_V2["required"])
-_REQUIRED_FIELDS_V3 = frozenset(ANALYSIS_OUTPUT_SCHEMA["required"])
+_REQUIRED_FIELDS_V3 = frozenset(ANALYSIS_OUTPUT_SCHEMA_V3["required"])
+_REQUIRED_FIELDS_V4 = frozenset(ANALYSIS_OUTPUT_SCHEMA["required"])
 _RISK_CODE = re.compile(r"^[a-z0-9_.-]{1,80}$")
 
 
@@ -312,24 +336,108 @@ def validate_structured_analysis(
     if schema_version == ANALYSIS_SCHEMA_V2:
         _validate_v2(value, allowed_evidence_ids=allowed_evidence_ids)
         return
+    if schema_version == ANALYSIS_SCHEMA_V3:
+        _validate_v3(value, allowed_evidence_ids=allowed_evidence_ids)
+        return
     if schema_version != ANALYSIS_SCHEMA_VERSION:
+        raise ProviderContractError("Unsupported structured analysis schema version")
+    if set(value) != _REQUIRED_FIELDS_V4:
         raise ProviderContractError(
-            "Unsupported structured analysis schema version"
+            "Structured analysis fields do not match analysis-schema-v4"
         )
+    citation_map = _object(value["citation_map"], "citation map")
+    v3_value = {key: item for key, item in value.items() if key in _REQUIRED_FIELDS_V3}
+    v3_citation_map = {
+        key: item
+        for key, item in citation_map.items()
+        if key in ANALYSIS_OUTPUT_SCHEMA_V3["properties"]["citation_map"]["required"]
+    }
+    v3_value["citation_map"] = v3_citation_map
+    v3_value["cited_evidence_ids"] = sorted(_citation_union(v3_citation_map))
+    _validate_v3(
+        v3_value,
+        allowed_evidence_ids=allowed_evidence_ids,
+    )
+    _text(value["project_summary"], "project summary", maximum=1_000)
+    _text(value["requirement_summary"], "requirement summary", maximum=4_000)
+    _exact(
+        citation_map,
+        set(ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["required"]),
+        "citation map",
+    )
+    project_citations = set(
+        _evidence_ids(
+            citation_map["project_summary"],
+            "project summary citations",
+            minimum=1,
+        )
+    )
+    requirement_citations = set(
+        _evidence_ids(
+            citation_map["requirement_summary"],
+            "requirement summary citations",
+            minimum=1,
+        )
+    )
+    if "repository" not in project_citations:
+        raise ProviderContractError("Project summary must cite repository evidence")
+    if "issue" not in requirement_citations:
+        raise ProviderContractError("Requirement summary must cite Issue evidence")
+    citations = set(
+        _evidence_ids(
+            value["cited_evidence_ids"],
+            "analysis citations",
+            minimum=1,
+        )
+    )
+    if allowed_evidence_ids is not None and citations - set(allowed_evidence_ids):
+        raise ProviderContractError(
+            "Structured analysis cites evidence outside the frozen input"
+        )
+    if _citation_union(citation_map) != citations:
+        raise ProviderContractError(
+            "Top-level citations must exactly match statement-level citations"
+        )
+    recommendation_citations = set(
+        _evidence_ids(
+            citation_map["recommendation_summary"],
+            "recommendation summary citations",
+            minimum=1,
+        )
+    )
+    if not {"issue", "repository"}.issubset(recommendation_citations):
+        raise ProviderContractError(
+            "Recommendation summary must cite Issue and repository evidence"
+        )
+    fit_rows = _list(citation_map["fit_reasons"], "fit reason citations", maximum=5)
+    if not any(
+        {"issue", "repository"}.issubset(
+            set(_evidence_ids(row, "fit reason citation", minimum=1))
+        )
+        for row in fit_rows
+    ):
+        raise ProviderContractError(
+            "At least one fit reason must cite Issue and repository evidence"
+        )
+    ensure_no_sensitive_data(value, context="structured analysis")
+
+
+def _validate_v3(
+    value: Mapping[str, Any],
+    *,
+    allowed_evidence_ids: Sequence[str] | None,
+) -> None:
     if set(value) != _REQUIRED_FIELDS_V3:
         raise ProviderContractError(
             "Structured analysis fields do not match analysis-schema-v3"
         )
-    v2_value = {
-        key: item
-        for key, item in value.items()
-        if key in _REQUIRED_FIELDS_V2
-    }
+    v2_value = {key: item for key, item in value.items() if key in _REQUIRED_FIELDS_V2}
     v2_value["citation_map"] = {
         key: item
         for key, item in value["citation_map"].items()
         if key in _CITATION_MAP_SCHEMA["required"]
     }
+    v2_value["cited_evidence_ids"] = sorted(_citation_union(v2_value["citation_map"]))
     _validate_v2(
         v2_value,
         allowed_evidence_ids=allowed_evidence_ids,
@@ -357,7 +465,7 @@ def validate_structured_analysis(
     citation_map = _object(value["citation_map"], "citation map")
     _exact(
         citation_map,
-        set(ANALYSIS_OUTPUT_SCHEMA["properties"]["citation_map"]["required"]),
+        set(ANALYSIS_OUTPUT_SCHEMA_V3["properties"]["citation_map"]["required"]),
         "citation map",
     )
     recommendation_citations = _evidence_ids(
@@ -370,12 +478,8 @@ def validate_structured_analysis(
         "recommendation summary citations",
         minimum=1,
     )
-    if (
-        set(recommendation_citations) | set(summary_citations)
-    ) - set(citations):
-        raise ProviderContractError(
-            "recommendation contains undeclared citations"
-        )
+    if (set(recommendation_citations) | set(summary_citations)) - set(citations):
+        raise ProviderContractError("recommendation contains undeclared citations")
     for field in ("fit_reasons", "next_steps", "maintainer_questions"):
         field_citations = _list(citation_map[field], f"{field} citations", maximum=10)
         if len(field_citations) != len(value[field]):
@@ -384,7 +488,24 @@ def validate_structured_analysis(
             nested = _evidence_ids(item, f"{field} citation", minimum=1)
             if set(nested) - set(citations):
                 raise ProviderContractError(f"{field} contains undeclared citations")
+    if _citation_union(citation_map) != set(citations):
+        raise ProviderContractError(
+            "Top-level citations must exactly match statement-level citations"
+        )
     ensure_no_sensitive_data(value, context="structured analysis")
+
+
+def _citation_union(citation_map: Mapping[str, Any]) -> set[str]:
+    used: set[str] = set()
+    for value in citation_map.values():
+        if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+            continue
+        for item in value:
+            if isinstance(item, str):
+                used.add(item)
+            elif isinstance(item, Sequence) and not isinstance(item, (str, bytes)):
+                used.update(nested for nested in item if isinstance(nested, str))
+    return used
 
 
 def _validate_v2(
@@ -396,9 +517,7 @@ def _validate_v2(
         raise ProviderContractError(
             "Structured analysis fields do not match analysis-schema-v2"
         )
-    v1_value = {
-        key: item for key, item in value.items() if key != "citation_map"
-    }
+    v1_value = {key: item for key, item in value.items() if key != "citation_map"}
     citations = _validate_v1(
         v1_value,
         allowed_evidence_ids=allowed_evidence_ids,
@@ -500,9 +619,7 @@ def _validate_v1(
             "Estimated effort hours must both be set or both be null"
         )
     if hours_min is not None and hours_max is not None and hours_min > hours_max:
-        raise ProviderContractError(
-            "Minimum effort hours cannot exceed maximum"
-        )
+        raise ProviderContractError("Minimum effort hours cannot exceed maximum")
     _text(effort["rationale"], "effort rationale", maximum=1_000)
 
     bounty = _object(value["bounty_basis"], "bounty basis")
@@ -510,16 +627,15 @@ def _validate_v1(
     if not isinstance(bounty["has_bounty"], bool):
         raise ProviderContractError("Bounty flag must be a boolean")
     amount = bounty["amount_usd"]
-    if amount is not None:
-        if (
-            isinstance(amount, bool)
-            or not isinstance(amount, (int, float))
-            or not math.isfinite(float(amount))
-            or amount < 0
-        ):
-            raise ProviderContractError(
-                "Bounty amount must be a non-negative finite number or null"
-            )
+    if amount is not None and (
+        isinstance(amount, bool)
+        or not isinstance(amount, (int, float))
+        or not math.isfinite(float(amount))
+        or amount < 0
+    ):
+        raise ProviderContractError(
+            "Bounty amount must be a non-negative finite number or null"
+        )
     if not bounty["has_bounty"] and amount is not None:
         raise ProviderContractError(
             "Bounty amount must be null when no bounty is present"
@@ -626,9 +742,7 @@ def _validate_citation_map(
 
 
 def _object(value: Any, name: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping) or not all(
-        isinstance(key, str) for key in value
-    ):
+    if not isinstance(value, Mapping) or not all(isinstance(key, str) for key in value):
         raise ProviderContractError(f"{name} must be an object")
     return value
 
@@ -665,9 +779,7 @@ def _text_list(
 ) -> tuple[str, ...]:
     items = _list(value, name, maximum=maximum)
     if len(items) < minimum:
-        raise ProviderContractError(
-            f"{name} must contain at least {minimum} item"
-        )
+        raise ProviderContractError(f"{name} must contain at least {minimum} item")
     result = tuple(_text(item, name, maximum=1_000) for item in items)
     if len(result) != len(set(result)):
         raise ProviderContractError(f"{name} must not contain duplicates")
@@ -682,9 +794,7 @@ def _evidence_ids(
 ) -> tuple[str, ...]:
     items = _list(value, name, maximum=100)
     if len(items) < minimum:
-        raise ProviderContractError(
-            f"{name} must contain at least {minimum} item"
-        )
+        raise ProviderContractError(f"{name} must contain at least {minimum} item")
     result = tuple(_text(item, name, maximum=128) for item in items)
     if len(result) != len(set(result)):
         raise ProviderContractError(f"{name} must not contain duplicates")

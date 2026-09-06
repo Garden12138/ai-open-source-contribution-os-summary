@@ -6,7 +6,8 @@
 
 ```text
 GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
-              → 七维评分 → 个性化推荐 → 候选比较 → 贡献进度
+              → 七维评分 → 个性化推荐 → 批量 AI 筛选 → 候选比较
+              → Vibe Coding 工作台 → Review → Draft PR 意图 → 贡献进度
 ```
 
 ## 已实现
@@ -21,7 +22,10 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 - 首次使用可设置贡献目标、偏好语言、每周投入与最低赏金；推荐会对完整合格候选池重新排序，但不会覆盖原始规则分。
 - 原生 Web 产品分为“发现机会 / 我的候选 / 贡献进度”三个主视图，支持 2～3 个候选并排比较。
 - 支持每日自动扫描、候选提醒，以及新增高匹配机会和候选内容/评分变化的站内通知；需持续运行 Worker。
-- AI 深析按需启动，优先给出“是否值得做、为什么、预计投入和下一步”，技术证据默认折叠。
+- 默认发现结果明确使用条件查询、硬筛选和规则/偏好排序，不会暗中调用模型；Provider 就绪时可对当前规则 Top 30 中最匹配的 5 个候选批量运行有预算上限的 AI 筛选。
+- AI 结论只调整独立的决策排序，不覆盖原始规则分；旧 Snapshot 的分析不会用于新扫描候选，也不能启动新的贡献任务。
+- 分析先从冻结仓库快照生成中文项目介绍，再从冻结 Issue 生成中文需求概括，后续匹配度、工作量、竞争、风险和结论都基于这两部分；详情以精简 Markdown 报告展示并可直接下载，结构化 JSON 仅保留给内部校验、评分和不可变溯源。
+- “我的候选”可直接进入 AI 评估与 Vibe Coding 工作台；“贡献进度”可继续已有任务，完成计划、批准、执行、Review 和发布意图流程。
 - FastAPI、SQLite、原生 Web 产品和可供 cron 调用的 CLI。
 
 当前不会修改第三方仓库，不会评论 Issue，也没有真实 GitHub 写权限。独立 Review、发布意图和 Draft PR 可在 Fake 运行时离线走通；真实 Draft PR 仍未启用。
@@ -31,18 +35,20 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 | 环节 | 库 / API / UI | 默认 `serve` + `worker` |
 | --- | --- | --- |
 | GitHub 扫描与 3/3/2/2 榜单 | 已完成 | **可点** |
-| AI 深析 | 已完成 | 需 `ANALYSIS_PROVIDER=fake`；真实 Codex 仍未接线 |
+| AI 深析与批量筛选 | 已完成 | `fake` 可离线演示；`nvidia_nim` 使用 MiniMax M3，经独立 Model Gateway 调用 |
 | 计划版本、对话、批准 | 已完成 | 可点（需先有 AnalysisVersion） |
 | 隔离执行 Explore/Implement/Verify | 引擎与状态机已完成 | 采集归档后，`SANDBOX_STAGE_RUNTIME=fake` 可离线跑通 Explore → ChangeSet → Implement → Verify |
-| 从计划生成代码 / ChangeSet | Fake 提议已接线 | 需先 Explore 成功；真实 Implementer Provider 未接线 |
-| 独立 Review / 有界修复 | 已完成（Fake） | Verify 成功后可点；`fake_blocking` 用于离线修复回路 |
-| 发布意图 / Fake Draft PR | 已完成（Fake） | 需 Review 通过；未确认不会产生记录；真实 `gh` 写未启用 |
+| 从计划生成代码 / ChangeSet | 已接线 | DeepSeek V4 Pro 支持冻结上下文、多轮对话、结构化提案和精确哈希确认 |
+| 独立 Review / 有界修复 | 已完成 | Fake 可离线演示；MiniMax M3 可审查精确 diff 与测试 Artifact |
+| 发布意图 / Fake Draft PR | 已完成（Fake） | 页面明确标注本地演示；需 Review 通过且再次确认；真实 `gh` 写未启用 |
 | PR 事件 / 生命周期 / 热力图 | 已完成（本地观测） | 看板可点；真实 GitHub 轮询未启用 |
 
 ## 快速开始
 
 完整的安装、配置、双进程启动步骤和分层测试案例见
 [部署、启动与自测指南](docs/deployment-and-self-test.md)。
+NVIDIA Build 的模型分工、密钥隔离、Compose Profile 和完整五进程启动方式见
+[NVIDIA Provider 接入指南](docs/nvidia-provider.md)。
 
 要求 Python 3.11+。推荐使用 `uv`：
 
@@ -103,6 +109,10 @@ source .env
 set +a
 ```
 
+该共享注入方式只适合 `none`/`fake` 快速体验。启用 NVIDIA 时不要把同一份完整
+`.env` 注入所有进程；按 NVIDIA 指南分别给 Gateway、Provider Worker 和 Sandbox
+Worker 最小权限配置。
+
 ## API
 
 | 方法 | 路径 | 用途 |
@@ -116,6 +126,7 @@ set +a
 | `POST` | `/api/v1/jobs/{id}/retry` | 重试可重试的终态 Job |
 | `GET` | `/api/v1/opportunities/daily` | 当日精选榜单 |
 | `GET` | `/api/v1/recommendations` | 按本地偏好重排后的完整合格候选池 |
+| `POST` | `/api/v1/recommendations/analyses` | 为最多 5 个当前 Top-30 候选排队有总预算上限的分析 Job |
 | `GET/POST` | `/api/v1/preferences/current` | 读取或创建不可变的新一版推荐偏好 |
 | `POST` | `/api/v1/opportunities/{id}/dispositions` | 加入/移出候选、忽略或设置提醒 |
 | `GET` | `/api/v1/shortlist` | 当前候选清单 |
@@ -125,6 +136,8 @@ set +a
 | `GET` | `/api/v1/opportunities/{id}` | 完整评分与风险详情 |
 | `POST` | `/api/v1/opportunities/{id}/analyses` | 在 Provider 就绪时排队一次分析 Job |
 | `GET` | `/api/v1/opportunities/{id}/analyses` | 不可变分析版本历史 |
+| `GET` | `/api/v1/opportunities/{id}/analyses/{version}/document` | 查看或下载包含项目介绍、需求内容和关联判断的 Markdown 分析报告 |
+| `GET` | `/api/v1/opportunities/{id}/analyses/compare/document` | 查看两个版本的重要内容中文差异 |
 | `POST` | `/api/v1/tasks` | 从精确 AnalysisVersion 创建贡献任务 |
 | `GET` | `/api/v1/tasks/{id}` | 任务、计划、批准与执行摘要 |
 | `POST` | `/api/v1/tasks/{id}/plan-versions` | 创建或修订结构化计划 |
@@ -132,6 +145,12 @@ set +a
 | `POST` | `/api/v1/plan-versions/{id}/archives` | 为已批准计划排队只读仓库归档采集 Job |
 | `POST` | `/api/v1/plan-versions/{id}/executions` | 以精确审批、base SHA、归档和 Runner digest 幂等创建执行 |
 | `POST` | `/api/v1/executions/{id}/change-sets` | 在 Explore 成功后接受 ChangeSet 并排队 Implement |
+| `POST` | `/api/v1/executions/{id}/coding-context` | 在 Sandbox Worker 中冻结批准路径的编码上下文 |
+| `GET` | `/api/v1/executions/{id}/coding-session` | 读取经哈希链复验的多轮编码会话与提案 |
+| `POST` | `/api/v1/executions/{id}/coding/messages` | 排队一次 DeepSeek 编码对话 |
+| `POST` | `/api/v1/executions/{id}/coding/proposals` | 从当前对话生成不可变 ChangeSet 提案 |
+| `POST` | `/api/v1/change-set-proposals/{id}/accept` | 按精确 ChangeSet 哈希确认并排队 Implement |
+| `POST` | `/api/v1/executions/{id}/review-jobs` | 排队一次 MiniMax 独立 Review |
 | `GET` | `/api/v1/executions/{id}` | 查询经溯源复验的执行、阶段、Job 与 Artifact 清单 |
 | `GET` | `/api/v1/executions/{id}/artifacts` | 列出属于该执行的经复验 Artifact |
 | `GET` | `/api/v1/executions/{id}/artifacts/{artifact_id}` | 按 SHA-256 复验并读取 Artifact 内容 |
@@ -174,7 +193,7 @@ Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
      - 风险扣分
 ```
 
-这是不会被 AI 或个人偏好覆盖的基础规则分。产品推荐会按用户目标调整七个维度的权重，并应用语言、时间和最低赏金偏好；个性化结果是新的展示排序，不是对基础分的改写。所有评分都只是决策辅助，不承诺 PR 一定合并或赏金一定兑现。
+这是不会被 AI 或个人偏好覆盖的基础规则分。产品推荐会按用户目标调整七个维度的权重，并应用语言、时间和最低赏金偏好；AI 对当前 Snapshot 的 `pursue / consider / skip / insufficient_evidence` 结论只形成独立、可解释的决策排序调整。`GET /api/v1/recommendations?analysis_filter=recommended` 可只读取 AI 建议投入或继续确认的机会。所有评分都只是决策辅助，不承诺 PR 一定合并或赏金一定兑现。
 
 ## 配置
 
@@ -186,10 +205,14 @@ Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
 - `STRATEGIC_KEYWORDS`：战略项目关键词。
 - `DATABASE_URL`：默认 `sqlite:///./data/contribos.db`。
 - `APP_TIMEZONE`：每日榜单的日期时区，默认 `Asia/Shanghai`。
-- `ANALYSIS_PROVIDER`：`none`（默认，规则榜单回退）或 `fake`（离线分析）。`codex` 尚未接线。
+- `ANALYSIS_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `nvidia/nemotron-3.5-lightning-30b-a3b`。
+- `IMPLEMENTATION_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `deepseek-ai/deepseek-v4-pro-0813`。
+- `REVIEW_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `minimaxai/minimax-m3`。
+- `NVIDIA_API_KEY`：只允许注入 `contribos model-gateway`，不得注入 API、Provider 或 Sandbox Worker。
+- `MODEL_GATEWAY_SIGNING_KEY`：至少 32 字节十六进制，用于签发短期、限次、任务绑定的 Gateway 凭据。
 - `SANDBOX_JOB_SPEC_KEY_ID`：JobSpec 签名密钥 ID，默认 `local-v1`。
 - `SANDBOX_JOB_SPEC_SIGNING_KEY`：至少 32 字节的十六进制 HMAC 密钥。未设置时执行只创建 `explore/pending`，不会入队沙箱 Job。
-- `SANDBOX_STAGE_RUNTIME`：`none`（默认）或 `fake`（离线 Fake Explore/Implement/Verify，不解压仓库）。Docker runtime 仍只属于 Sandbox Worker。
+- `SANDBOX_STAGE_RUNTIME`：`none`、`fake` 或 `docker`。Docker runtime 只在 `contribos sandbox-worker` 装配，API/Provider 不读取 Docker 配置。
 - `GITHUB_ARCHIVE_HOSTS`：允许接收无凭证归档下载的 HTTPS 主机，默认 `codeload.github.com`。GitHub Token 不会发往这些主机。
 
 ## 验证
@@ -204,6 +227,6 @@ python -m compileall -q app
 ## 下一阶段
 
 1. 完成原生 Linux amd64 + Docker Engine 恶意套件验收（P5-G06）。
-2. 将 Fake 阶段 runtime 换成真实 Docker Explore/Implement/Verify（API 进程仍不得持有 Docker socket）。
-3. 接入真实 Implementer/Reviewer Provider，同时保留按需调用、预算和证据边界。
+2. 在用户提供的 Linux 环境完成同一 Runner 与恶意套件验收。
+3. 为 NVIDIA 分析、编码和 Review 运行受控的真实账户验收并记录预算证据。
 4. 在精确用户确认后接通真实 Draft PR，并同步远端 PR 状态。

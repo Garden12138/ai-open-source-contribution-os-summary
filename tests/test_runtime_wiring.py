@@ -15,8 +15,9 @@ from app.providers import (
     AnalysisBudget,
     FakeProvider,
     resolve_analysis_runtime,
-    resolve_stage_runtimes,
 )
+from app.providers.nvidia_nim import NVIDIA_ANALYSIS_JOB_TIMEOUT_SECONDS
+from app.sandbox_worker.runtime import resolve_stage_runtimes
 from app.sandbox_worker.fake import FakeExploreRuntime
 from app.sandbox_worker.specs import JobSpecSigner
 from app.worker import ContribOSWorker, DiscoveryJobWorker
@@ -50,7 +51,28 @@ def test_env_can_enable_fake_analysis_and_job_spec_signer(
     assert settings.sandbox_job_spec_signing_key == bytes.fromhex(SIGNING_KEY_HEX)
 
 
-@pytest.mark.parametrize("value", ("docker", "unknown", "FAKE"))
+def test_api_can_report_discovery_token_capability_without_receiving_token(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GITHUB_DISCOVERY_TOKEN_CONFIGURED", "true")
+    settings = Settings.from_env()
+    assert settings.github_token is None
+    assert settings.github_discovery_token_configured is True
+
+    app = create_app(
+        Settings(
+            database_url=(
+                f"sqlite+pysqlite:///{tmp_path / 'token-capability.db'}"
+            ),
+            github_discovery_token_configured=True,
+        )
+    )
+    with TestClient(app) as client:
+        assert client.get("/api/v1/meta").json()["token_configured"] is True
+
+
+@pytest.mark.parametrize("value", ("unknown", "FAKE"))
 def test_unsupported_stage_runtime_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
     value: str,
@@ -90,6 +112,13 @@ def test_resolve_analysis_runtime_is_none_until_fake_is_selected() -> None:
     assert isinstance(provider, FakeProvider)
     assert isinstance(budget, AnalysisBudget)
     assert provider.identity.provider == "fake"
+
+    provider, budget = resolve_analysis_runtime(
+        Settings(analysis_provider="nvidia_nim")
+    )
+    assert provider is not None
+    assert budget is not None
+    assert budget.max_duration_ms == NVIDIA_ANALYSIS_JOB_TIMEOUT_SECONDS * 5_000
 
 
 def test_create_app_wires_fake_provider_from_settings(tmp_path: Path) -> None:

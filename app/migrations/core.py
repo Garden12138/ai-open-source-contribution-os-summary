@@ -34,6 +34,7 @@ class Migration:
     upgrade: Upgrade
     recovery: str
     matches_existing_schema: ExistingSchemaCheck | None = None
+    requires_foreign_keys_disabled: bool = False
 
     @property
     def checksum(self) -> str:
@@ -123,15 +124,24 @@ class MigrationRunner:
                 applied[first.revision] = first.checksum
                 stamped_now.append(first.revision)
 
-            for migration in self.migrations:
-                if migration.revision in applied:
-                    continue
-                migration.upgrade(connection)
-                self._record(connection, migration)
-                applied[migration.revision] = migration.checksum
-                applied_now.append(migration.revision)
+        for migration in self.migrations:
+            if migration.revision in applied:
+                continue
+            if migration.requires_foreign_keys_disabled:
+                self._apply_with_foreign_keys_disabled(migration)
+            else:
+                with self.engine.begin() as connection:
+                    current = self._read_applied(connection)
+                    self._validate_applied(current)
+                    if migration.revision in current:
+                        applied[migration.revision] = migration.checksum
+                        continue
+                    migration.upgrade(connection)
+                    self._record(connection, migration)
+            applied[migration.revision] = migration.checksum
+            applied_now.append(migration.revision)
 
-            current_revision = next(reversed(applied), None)
+        current_revision = next(reversed(applied), None)
 
         return MigrationReport(
             previous_revision=previous_revision,
@@ -139,6 +149,40 @@ class MigrationRunner:
             applied=tuple(applied_now),
             stamped=tuple(stamped_now),
         )
+
+    def _apply_with_foreign_keys_disabled(
+        self,
+        migration: Migration,
+    ) -> None:
+        if self.engine.dialect.name != "sqlite":
+            raise MigrationError(
+                f"Migration {migration.revision} requires SQLite table rebuild"
+            )
+        with self.engine.connect() as connection:
+            try:
+                connection.exec_driver_sql("PRAGMA foreign_keys = OFF")
+                connection.exec_driver_sql("PRAGMA legacy_alter_table = ON")
+                connection.commit()
+                with connection.begin():
+                    applied = self._read_applied(connection)
+                    self._validate_applied(applied)
+                    if migration.revision in applied:
+                        return
+                    migration.upgrade(connection)
+                    violations = connection.exec_driver_sql(
+                        "PRAGMA foreign_key_check"
+                    ).all()
+                    if violations:
+                        raise MigrationError(
+                            f"Migration {migration.revision} left invalid foreign keys"
+                        )
+                    self._record(connection, migration)
+            finally:
+                if connection.in_transaction():
+                    connection.rollback()
+                connection.exec_driver_sql("PRAGMA legacy_alter_table = OFF")
+                connection.exec_driver_sql("PRAGMA foreign_keys = ON")
+                connection.commit()
 
     def current_revision(self) -> str | None:
         with self.engine.connect() as connection:

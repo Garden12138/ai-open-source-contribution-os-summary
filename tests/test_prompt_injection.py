@@ -159,7 +159,10 @@ def test_prompt_injection_is_data_and_cannot_reconfigure_provider_boundary(
     assert untrusted["evidence"][0]["content"] == fixture["content"]
     assert invocation.input_hash == request.input_hash
     assert invocation.model == "fixture-model"
-    assert invocation.output_schema == INSPECTION_OUTPUT_SCHEMA
+    assert invocation.output_schema is not INSPECTION_OUTPUT_SCHEMA
+    assert invocation.output_schema["properties"]["cited_evidence_ids"][
+        "items"
+    ]["enum"] == [fixture["id"]]
     assert invocation.output_schema["additionalProperties"] is False
 
     schema_path = tmp_path / "schema.json"

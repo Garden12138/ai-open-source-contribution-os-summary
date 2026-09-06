@@ -71,7 +71,7 @@ class FakeGitHubPublisher:
             provider="fake",
             number=self._number,
             html_url=(
-                f"https://github.com/{request.upstream_repository}"
+                f"https://local.contribos.invalid/{request.upstream_repository}"
                 f"/pull/{self._number}"
             ),
         )

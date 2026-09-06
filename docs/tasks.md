@@ -30,8 +30,8 @@ Update rules:
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
-| Last roadmap audit | 2026-08-28 |
-| Feature note | User-directed offline Review → PublishIntent → Fake Draft PR and product-experience slices are implemented; platform gates stay unchecked. |
+| Last roadmap audit | 2026-09-02 |
+| Feature note | User-directed NVIDIA analysis, Vibe Coding and independent Review wiring is implemented behind separated Gateway/Provider/Sandbox processes; live-account, real Draft PR and Linux platform gates stay unchecked. |
 
 ## Fixed end-to-end chain
 
@@ -611,8 +611,10 @@ Production wiring (2026-08-15), in-phase while P5-G06 remains blocked:
   bound to the approved plan paths, advances to Implement, and the worker
   then Verify. Fake runtimes never extract the archive on the host. Docker
   stage runtimes remain unwired in the API process.
-- Live Codex analysis, a real Implementer Provider, Docker stage runtimes,
-  and native Linux acceptance remain open. Phase 6 is not started.
+- At this checkpoint, Live Codex analysis, a real Implementer Provider, Docker
+  stage runtimes, and native Linux acceptance remained open. The first three
+  items are superseded by the NVIDIA adaptation recorded below; native Linux
+  acceptance remains open. Phase 6 is not started.
 
 Product-experience slice (2026-08-28), user-directed while P5-G06 remains
 blocked:
@@ -643,6 +645,299 @@ blocked:
   contract coverage; Python compile, ES-module syntax, HTML parse, and diff
   checks also passed. This feature work does not provide native Linux evidence;
   P5-G06 and Phase 5 remain open.
+
+Real local product acceptance 2026-08-31, user-directed while P5-G06 remains
+blocked:
+
+- U-01–U-06 and U-08–U-12 passed against the running Compose deployment. The
+  real read-only GitHub scan retained 94 snapshots, 94 rule-score versions, 67
+  eligible candidates and 10 verified daily picks. U-07's next-day first
+  trigger was not executed because a successful scan already existed; same-day
+  idempotency and Worker restart created no duplicate scheduled Job.
+- Acceptance found and fixed bounded GitHub secondary-rate-limit handling,
+  unsafe-candidate isolation in the frozen analysis corpus, UTC response
+  normalization, and the macOS launcher-injected Worker environment variable.
+- Corrective migration `0026_review_artifact_bindings` replaces only the
+  ReviewRun insert trigger. A new real local Fake workflow proved Review
+  `ec34b066-6543-4955-91d6-553a2506155e` directly equals its immutable
+  `unified-diff` and `normalized-test-results` Artifact IDs; its binding hash
+  was independently recomputed, and its PublishIntent retained both hashes.
+  Fake Draft URLs now use the reserved `local.contribos.invalid` domain rather
+  than a misleading real GitHub URL.
+- API/Worker restart preserved an exact business-state digest
+  `390f77cd84ff716fbb8a84f6031314aed5d2bde9a37656257abc99cde1c7f4cb`;
+  SQLite integrity was `ok`, no Job remained queued/leased/running, and none of
+  three configured secret values appeared in 16 persisted database/Artifact
+  files. Full offline suite `285 passed, 10 skipped`; compile, ES-module, HTML,
+  and diff checks passed. Native Linux amd64/Docker Engine evidence is still
+  absent, so P5-G06 and Phase 5 remain open.
+
+Product-experience continuation 2026-09-01, user-directed while P5-G06 remains
+blocked:
+
+- `POST /api/v1/recommendations/analyses` queues at most five current,
+  rule-Top-30 candidates as durable Provider Jobs. The batch divides the
+  existing total invocation, Token, cost, duration, candidate and retry budgets
+  across those Jobs; exact idempotency replay and already-active Snapshot Jobs
+  do not create duplicates.
+- Recommendation reads now use only an AnalysisVersion bound to the exact
+  current Snapshot. AI recommendation, confidence and a bounded explainable
+  decision-score adjustment are returned separately from the unchanged rule
+  and personalized scores; `analysis_filter=analyzed|recommended` supports an
+  explicit AI-filtered view. Historical Snapshot analyses remain readable but
+  cannot launch a current contribution task.
+- The native Discover view exposes batch analysis status and AI-only filtering.
+  Shortlist cards directly open the analysis/plan/Vibe Coding workbench, and
+  Contributions task rows reopen the full plan → execution → Review → publish
+  intent flow. Existing tasks are reused by AnalysisVersion instead of being
+  duplicated.
+- `/api/v1/meta` and the UI label the actual runtime boundary: current analysis,
+  stage execution and Draft PR publication are Fake demonstrations or
+  unavailable. No real LLM credential, Docker execution, GitHub write or new
+  persistent schema was introduced.
+- Full offline suite passed `286 passed, 10 skipped`; focused analysis,
+  Provider Job, API/security, planning, execution and publication tests passed.
+  Python compile, ES-module syntax and diff checks passed. This UX work does not
+  supply native Linux amd64/Docker Engine evidence, so P5-G06 remains open.
+
+NVIDIA Provider adaptation 2026-09-01, user-directed while P5-G06 remains
+blocked:
+
+- `nvidia_nim` is a real Provider option for analysis, implementation dialogue,
+  ChangeSet proposal and Review. Current defaults bind Nemotron 3.5 Lightning
+  (`nvidia/nemotron-3.5-lightning-30b-a3b`) to analysis, MiniMax M3
+  (`minimaxai/minimax-m3`) to Review, and DeepSeek V4 Pro 0813
+  (`deepseek-ai/deepseek-v4-pro-0813`) to coding. `/api/v1/meta` and the native
+  UI expose the actual configured Provider/model instead of labelling this path
+  Fake or unwired.
+- A separately runnable Model Gateway is the only component that reads
+  `NVIDIA_API_KEY`. It accepts only short-lived HMAC task tokens bound to the
+  exact stage, model, request, correlation, Snapshot and input hash; enforces
+  request/response and use limits; refuses redirects; and forwards only to the
+  allowlisted NVIDIA HTTPS endpoint. Provider Worker has neither the upstream
+  key nor Docker/GitHub credentials, and Sandbox Worker has neither model nor
+  GitHub credentials.
+- Explore success can now create an immutable, content-addressed coding context
+  from approved paths inside the Docker Sandbox Worker. Hash-chained user and
+  DeepSeek turns produce a separate immutable ChangeSet proposal with exact
+  prior-file hashes. Only a new `accept_change_set` action bound to the displayed
+  ChangeSet and current conversation hashes advances to Implement; stale or
+  altered inputs fail closed.
+- NVIDIA Review is a durable Provider Job over only the approved plan, exact
+  finalized diff and normalized test Artifact. Its structured verdict is bound
+  to a separately immutable `AgentInvocation`; malformed or inconsistent output
+  creates neither ReviewRun nor task-state transition. Existing Fake Review,
+  repair and local Fake publication behavior remains available.
+- Forward migrations `0027_nvidia_agent_workflows` and
+  `0028_nvidia_review_runs` add the immutable coding/invocation/proposal records
+  and extend Review without weakening direct Artifact provenance. A populated
+  ReviewRun rebuild test preserves an existing NVIDIA Review and its
+  PublishIntent, then passes `PRAGMA foreign_key_check`.
+- Offline verification passed `295 passed, 10 skipped` (`305` collected),
+  including NVIDIA endpoint/polling/redirect, task-token, malformed-output,
+  migration replay, API/UI and trust-domain import tests. Python compilation,
+  ES-module syntax, HTML parsing, both base and NVIDIA Compose configurations,
+  and diff checks passed. No live NVIDIA key was used, so real-account response,
+  quota and cost acceptance remains pending; real Draft PR publication remains
+  explicitly Fake. No native Linux amd64/Docker Engine run was performed, so
+  P5-G06 and Phase 5 remain open.
+- A first real Compose restart on macOS/OrbStack exposed two deployment-specific
+  gaps without exposing credential values: Compose did not reliably discover
+  the repository-root `.env` when `-f docs/deployment/compose.yaml` changed its
+  project directory, and OrbStack did not publish `127.0.0.1:8000` for an API
+  attached only to an `internal: true` network. Deployment commands now require
+  explicit `--env-file .env`; API retains the private app network and adds one
+  single-service host bridge, while Model Gateway/Provider isolation remains
+  unchanged. Static Compose validation proves the API has both networks and the
+  exact loopback port declaration. A post-change live host `curl` remains to be
+  confirmed and does not affect P5-G06.
+- A live Top-5 analysis attempt exposed NVIDIA closing the upstream connection
+  before sending HTTP response headers (`RemoteProtocolError`), rather than a
+  request timeout. The hosted transport now treats all `httpx.TransportError`
+  values as bounded-retryable failures and the Provider-to-Gateway client
+  returns a redacted retryable error for the same failure class. Focused
+  transport and Provider tests verify both paths; a successful live NVIDIA
+  response remains pending external service availability and does not affect
+  P5-G06.
+- Follow-up live diagnosis found the Provider-to-Gateway client exhausting its
+  180-second deadline while one Provider Worker serially consumed the five
+  queued analysis Jobs. NVIDIA's upstream request deadline is now 360 seconds,
+  the Gateway client allows 390 seconds, and the NVIDIA batch budget preserves
+  840 seconds for each candidate's Inspect plus Analyze calls. The browser's
+  batch polling deadline now accounts for its serial queue position. Existing
+  queued Jobs retain their immutable older 240-second budgets and must finish,
+  fail, or be cancelled before a newly queued batch uses these limits.
+- NVIDIA's Kimi K3 reference invocation uses SSE (`stream: true`), while the
+  initial adapter buffered a non-streaming JSON completion. Live analysis
+  attempts all failed in the first Inspect call after the Gateway received a
+  502, with small frozen inputs. The Gateway now requests and safely aggregates
+  bounded SSE deltas internally before applying the existing structured-output
+  validation. This code path is covered by an offline SSE fixture; real NVIDIA
+  acceptance remains pending after deployment.
+- At the user's direction, Kimi K3 analysis and Review parameters now match
+  NVIDIA's reference example (`max_tokens=16384`, `seed=0`,
+  `temperature=1`, `reasoning_effort=max`); the DeepSeek coding profile remains
+  separately tuned.
+- The batch UI now reports its durable Job states as completed, running and
+  queued counts while the single Provider Worker serially consumes Top-5
+  analysis. It no longer leaves the ambiguous static “queued” label visible
+  throughout active execution.
+- The UI now gates Top-5 analysis behind one successful, current-Snapshot
+  sample analysis. A failed sample does not enqueue the batch, preventing a
+  repeated NVIDIA upstream failure from immediately consuming five Jobs.
+- A direct host invocation of NVIDIA's official SSE example identified an
+  inherited HTTPS proxy closing the connection before any response. NVIDIA
+  outbound and Provider-to-Gateway HTTP clients now set `trust_env=False` so
+  proxy environment variables cannot redirect those constrained trust-domain
+  paths. A no-proxy host validation remains in progress; no batch is permitted
+  until a sample completes.
+- The no-proxy host validation subsequently reached NVIDIA but returned HTTP
+  `504` after 302.3 seconds with zero SSE events, using the user-provided
+  official Kimi K3 example. This proves direct host connectivity while leaving
+  NVIDIA inference/service availability as the external blocker. The UI keeps
+  Top-5 gated behind a successful one-sample run; no live NVIDIA acceptance is
+  claimed.
+- This intermediate diagnosis temporarily used MiniMax M3 for analysis and
+  Review. The later Nemotron v24 acceptance record below supersedes the
+  analysis default; Review remains MiniMax M3, and Kimi coverage remains
+  isolated for a possible future dedicated Kimi profile.
+  The two NVIDIA API keys pasted during diagnosis must be revoked and replaced
+  locally before a real one-sample acceptance run. No key is stored in the
+  repository, database, artifacts, logs, or this record.
+- Live MiniMax diagnosis on macOS/OrbStack found that host shell requests used
+  an unauthenticated loopback HTTPS proxy while the credential-owning Gateway
+  correctly rejected inherited proxy variables and therefore received an
+  upstream `502` on direct egress. The Gateway now accepts only an explicit,
+  credential-free `NVIDIA_HTTPS_PROXY`; it remains the sole process receiving
+  that setting and keeps `trust_env=False`. OrbStack maps a host loopback proxy
+  through `host.docker.internal:<port>`. A GET reachability check through that
+  mapped proxy returned NVIDIA's expected `405`; a real one-sample acceptance
+  run remains pending after deployment with the explicit setting.
+- A later real sample completed Inspect in 49.7 seconds but failed Analyze with
+  the safe `nvidia_nim_network_protocol` category after the local proxy closed
+  the long HTTP/1.1 response before headers. The user’s successful host `curl`
+  path negotiates HTTP/2, so the allowlisted NVIDIA transport now enables HTTP/2
+  with the explicit `h2` dependency. This does not change the internal Gateway
+  HTTP boundary or credential separation; one-sample acceptance remains pending.
+- HTTP/2 connectivity then verified successfully (`405` on an unauthenticated
+  NVIDIA endpoint request), but a later structured request still hit the local
+  proxy's pre-response disconnect. MiniMax's official invocation exposes a
+  `stream` switch, so its active analysis/Review profile now requests SSE and
+  the Gateway performs bounded internal aggregation before the unchanged JSON
+  boundary. This lets response progress reach the proxy before a full analysis
+  object is complete; no upstream SSE transcript is persisted or exposed.
+- Live MiniMax acceptance subsequently proved that Inspect and Analyze reach
+  the model through the Gateway, but Analyze fails closed when the model emits
+  citations outside its validated inspection allowlist. Output failures now
+  have redacted stable categories rather than the ambiguous
+  `codex_malformed_output`. A non-project-data live probe confirmed MiniMax
+  accepts a required function call, so the current v6 adapter uses one
+  tool-call schema with frozen evidence IDs encoded as enums, accepting either
+  NVIDIA's decoded object arguments or OpenAI-style JSON-string arguments. The MiniMax
+  profile uses NVIDIA's non-streaming JSON mode for that tool-call response,
+  followed by unchanged JSON/schema/provenance validation. A new live one-sample acceptance
+  is required before Top-5 can be enabled.
+- Follow-up macOS/OrbStack diagnosis found the Gateway's direct NVIDIA path
+  timing out within a bounded 10-second non-project-data probe, while the
+  explicit local CONNECT proxy path previously closed both HTTP/2 and HTTP/1.1
+  long requests before response headers. The Gateway now uses NVIDIA's
+  documented `requests`-style HTTPS client only when that explicit, credential-
+  free proxy is configured; all model credentials remain confined to the
+  Gateway. Focused tests cover the proxy transport selection. The new v9
+  one-sample Job was cancelled before completion to avoid consuming further
+  quota, so live NVIDIA acceptance remains blocked on a Docker-reachable
+  NVIDIA egress path and Top-5 remains gated.
+
+NVIDIA Nemotron live acceptance 2026-09-04, superseding the pending live
+analysis notes above:
+
+- The active analysis profile is
+  `nvidia/nemotron-3.5-lightning-30b-a3b`. Adapter
+  `nvidia-nim-chat-v24` uses one forced native tool call, disables visible
+  reasoning, fixes temperature at zero, streams through the credential-owning
+  Gateway, and enforces a 360-second hard total upstream deadline even while
+  SSE data continues to arrive. Hosted NVIDIA Build rejects the self-hosted
+  NIM `nvext.guided_json` extension, so it is not sent.
+- The model-facing schema constrains each aligned narrative/citation list to
+  one item and requires a non-placeholder, testable statement. The application
+  still performs the unchanged strict schema, citation allowlist and immutable
+  provenance validation. Because top-level `cited_evidence_ids` is redundant,
+  v24 deterministically rebuilds only that union from the authoritative
+  `citation_map`; it neither creates missing statement citations nor permits an
+  evidence ID outside the frozen allowlist.
+- A 4096-token live batch produced one explicit completion truncation, so the
+  bound was raised to 6144 while retaining the same hard deadline and
+  per-candidate two-invocation budget. A v24 one-sample run
+  (`c9baabb4-9796-4d92-930f-020a60c31071`) then succeeded on its first attempt
+  in 47,976 ms. Only after that gate passed, five new Top-5 Jobs
+  (`5c50692f-6fb1-4590-87b5-e21b95e0fe64`,
+  `14d632a9-0b80-4c72-baa4-18e423292639`,
+  `33570c81-f933-4ab1-9499-196a88c76dd5`,
+  `599a5ae8-d1be-4986-a882-cc3b8e1100af`, and
+  `0a9761bd-2646-40ec-86e4-2007f6b50dad`) all completed Inspect and Analyze on
+  their first attempt with zero retries in 38,591, 25,045, 27,960, 39,997 and
+  36,044 ms respectively. Every persisted result identifies Nemotron and v24.
+- NVIDIA's hosted SSE responses did not include usage counters, so persisted
+  token usage is truthfully zero/unknown rather than estimated. Calls remain
+  bounded by candidate count, invocation count, `max_tokens`, retries, job time
+  and the Gateway hard deadline. This live macOS/OrbStack result does not supply
+  native Linux amd64/Docker Engine evidence; P5-G06 and Phase 5 remain open.
+- Post-acceptance verification collected 331 offline tests and passed 321 with
+  10 platform/real-service skips. Python compilation and `git diff --check`
+  passed. The rebuilt API and Gateway remained healthy for 23 hours; the
+  recommendation API exposed 12 analyzed candidates, and the database,
+  repository (excluding local secret input files), and 24-hour service logs
+  contained no `nvapi-` credential pattern. Those logs also contained no
+  `ERROR` or `Traceback` line.
+
+Analysis Markdown presentation update 2026-09-06, user-directed while P5-G06
+remains open:
+
+- AnalysisVersion keeps its validated structured JSON, citations, usage and
+  provenance unchanged for machine decisions. A deterministic
+  `analysis-document-v2` projection now produces the concise user-facing
+  Markdown report used by both the native UI and `.md` download; no migration
+  or provenance rewrite is required.
+- The report begins with `项目介绍` and `需求内容`, each followed by its trusted
+  GitHub source link. `综合分析`, effort/bounty/exact-Issue competition, risks,
+  acceptance criteria and actions follow those two inputs. Empty or repetitive
+  narrative and report-level Provider, model, Prompt, Token, hash and
+  evidence-ID fields are omitted; structured effort and competition objects are
+  rendered as prose rather than JSON.
+- Detail and comparison Markdown endpoints use ETags, safe download headers and
+  same-Opportunity validation. The browser renders only a fixed heading/list/
+  paragraph/link/list subset through DOM text nodes; important version
+  differences use Chinese semantic labels instead of JSON Pointer paths or
+  serialized objects. Existing structured JSON APIs remain backward compatible
+  for machine callers.
+- New analysis Jobs use `analysis-schema-v4` and `analyze-prompt-v11`. Analyze
+  now receives the hash-bound frozen repository and Issue evidence directly.
+  `project_summary` is repository-only, `requirement_summary` is Issue-only,
+  and the recommendation summary plus fit reasoning must cite and connect both.
+  Competition means other contributors working on this exact Issue; absence of
+  assignees, linked PRs or explicit comments yields `unknown`, not a market or
+  similar-product comparison. Field-level citation constraints are bound into
+  the model schema and revalidated locally. v1-v3 schemas and v1-v10 prompts
+  remain replayable without rewriting immutable history; the UI labels their
+  missing project-demand context and offers a new analysis run.
+- NVIDIA adapter `nvidia-nim-chat-v27` passed the live macOS/OrbStack acceptance
+  on Opportunity 319, snapshot
+  `c4c8726f-43f0-4ead-8de1-f748188dd95c`. Job
+  `a459d1c3-efaa-45b8-882d-22583ddc69f3` completed Inspect and Analyze on its
+  first attempt in 43,149 ms with zero retries and created AnalysisVersion
+  `d9e8b810-c270-4145-ae62-a5308062504b`. Its Markdown report concretely
+  describes `ChelseaKR/trans-docs-navigator`, Issue 209's 16 missing sources,
+  10 missing forms and 11 disagreements, connects the follow-up recommendation
+  to that repository scope, and reports competition as unknown from exact-Issue
+  contributor signals. Earlier v25/v26 diagnostic Jobs failed closed before
+  persistence on malformed statement citations; their redacted error categories
+  led to the stronger field-level contract rather than a relaxed validator.
+- The complete offline suite collected `346` tests and passed `336` with `10`
+  platform/real-service skips. Python compilation, ES-module syntax, focused
+  Ruff and `git diff --check` passed. Rebuilt API and Gateway health checks pass;
+  recent service logs contain neither `ERROR`/`Traceback` nor an `nvapi-`
+  credential pattern. This work supplies no native Linux amd64/Docker Engine
+  evidence, so P5-G06 and Phase 5 remain open.
 
 ---
 
@@ -693,7 +988,7 @@ computed at read time when the latest attempt or bound hashes change.
 
 ### Phase 6 exit gate
 
-- [ ] **P6-G01** Review binds exactly to plan, base, diff, tests, and policy hashes.
+- [x] **P6-G01** Review binds exactly to plan, base, diff, tests, and policy hashes.
 - [ ] **P6-G02** Any file/artifact change makes the old Review unusable.
 - [ ] **P6-G03** Reviewer write, publication, or permission-bypass requests are
   denied by policy.

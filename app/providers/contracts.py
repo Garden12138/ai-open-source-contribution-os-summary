@@ -46,6 +46,9 @@ class ProviderRunError(RuntimeError):
 class ProviderStage(StrEnum):
     INSPECT = "inspect"
     ANALYZE = "analyze"
+    CODING = "coding"
+    CHANGE_SET = "change_set"
+    REVIEW = "review"
 
 
 def _require_text(value: str, name: str, *, maximum: int) -> None:
@@ -405,6 +408,7 @@ class AnalyzeRequest:
     snapshot_id: str
     score_version_id: str
     inspection: InspectionResult
+    evidence: tuple[FrozenEvidence, ...]
     prompt_version: str
     policy_version: str
     output_schema_version: str
@@ -421,11 +425,19 @@ class AnalyzeRequest:
             (self.output_schema_version, "output schema version"),
         ):
             _require_text(value, name, maximum=128)
+        object.__setattr__(self, "evidence", tuple(self.evidence))
+        if not self.evidence:
+            raise ProviderContractError("analyze request requires frozen evidence")
+        _unique(
+            tuple(item.evidence_id for item in self.evidence),
+            "analysis evidence IDs",
+        )
         _require_sha256(self.input_hash, "analyze input hash")
         expected = self.calculate_hash(
             snapshot_id=self.snapshot_id,
             score_version_id=self.score_version_id,
             inspection=self.inspection,
+            evidence=self.evidence,
             prompt_version=self.prompt_version,
             policy_version=self.policy_version,
             output_schema_version=self.output_schema_version,
@@ -442,6 +454,7 @@ class AnalyzeRequest:
         snapshot_id: str,
         score_version_id: str,
         inspection: InspectionResult,
+        evidence: tuple[FrozenEvidence, ...],
         prompt_version: str,
         policy_version: str,
         output_schema_version: str,
@@ -452,6 +465,7 @@ class AnalyzeRequest:
             snapshot_id=snapshot_id,
             score_version_id=score_version_id,
             inspection=inspection,
+            evidence=evidence,
             prompt_version=prompt_version,
             policy_version=policy_version,
             output_schema_version=output_schema_version,
@@ -459,6 +473,7 @@ class AnalyzeRequest:
                 snapshot_id=snapshot_id,
                 score_version_id=score_version_id,
                 inspection=inspection,
+                evidence=evidence,
                 prompt_version=prompt_version,
                 policy_version=policy_version,
                 output_schema_version=output_schema_version,
@@ -471,21 +486,29 @@ class AnalyzeRequest:
         snapshot_id: str,
         score_version_id: str,
         inspection: InspectionResult,
+        evidence: tuple[FrozenEvidence, ...],
         prompt_version: str,
         policy_version: str,
         output_schema_version: str,
     ) -> str:
-        return content_hash(
-            {
-                "snapshot_id": snapshot_id,
-                "score_version_id": score_version_id,
-                "inspection_input_hash": inspection.input_hash,
-                "inspection_output_hash": inspection.output_hash,
-                "prompt_version": prompt_version,
-                "policy_version": policy_version,
-                "output_schema_version": output_schema_version,
-            }
-        )
+        payload: dict[str, object] = {
+            "snapshot_id": snapshot_id,
+            "score_version_id": score_version_id,
+            "inspection_input_hash": inspection.input_hash,
+            "inspection_output_hash": inspection.output_hash,
+            "prompt_version": prompt_version,
+            "policy_version": policy_version,
+            "output_schema_version": output_schema_version,
+        }
+        if output_schema_version == "analysis-schema-v4":
+            payload["evidence"] = [item.hash_payload() for item in evidence]
+        return content_hash(payload)
+
+    @property
+    def allowed_evidence_ids(self) -> tuple[str, ...]:
+        if self.output_schema_version == "analysis-schema-v4":
+            return tuple(item.evidence_id for item in self.evidence)
+        return self.inspection.cited_evidence_ids
 
 
 @dataclass(frozen=True, slots=True)

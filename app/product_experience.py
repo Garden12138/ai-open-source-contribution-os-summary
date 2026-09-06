@@ -83,6 +83,15 @@ REASON_LABELS = {
     "learning_value": "具有较好的学习价值",
 }
 
+ANALYSIS_FILTERS = frozenset({"all", "analyzed", "recommended"})
+AI_RECOMMENDATION_ADJUSTMENTS = {
+    "pursue": 8.0,
+    "consider": 2.0,
+    "skip": -25.0,
+    "insufficient_evidence": -10.0,
+}
+AI_RECOMMENDED_VALUES = frozenset({"pursue", "consider"})
+
 
 class ProductExperienceNotFoundError(LookupError):
     pass
@@ -239,6 +248,7 @@ class ProductExperienceService:
         *,
         default_languages: Iterable[str],
         goal: str | None = None,
+        analysis_filter: str = "all",
         include_dismissed: bool = False,
         limit: int = 50,
         offset: int = 0,
@@ -248,6 +258,10 @@ class ProductExperienceService:
         active_goal = goal or (preference.primary_goal if preference else "balanced")
         if active_goal not in GOAL_WEIGHTS:
             raise ProductExperienceConflictError("Unsupported recommendation goal")
+        if analysis_filter not in ANALYSIS_FILTERS:
+            raise ProductExperienceConflictError(
+                "Unsupported analysis recommendation filter"
+            )
         languages = (
             preference.preferred_languages
             if preference and preference.preferred_languages
@@ -259,6 +273,9 @@ class ProductExperienceService:
                 "preference_version_id": preference.id if preference else None,
                 "goal": active_goal,
                 "total": 0,
+                "analyzed_total": 0,
+                "recommended_total": 0,
+                "pending_analysis_total": 0,
                 "items": [],
             }
         candidates = self._scan_candidates(scan.id)
@@ -282,8 +299,27 @@ class ProductExperienceService:
             items = [
                 item for item in items if item["disposition_state"] != "dismissed"
             ]
+        analyzed_total = sum(
+            item["analysis_status"] == "analyzed" for item in items
+        )
+        recommended_total = sum(
+            item["analysis_recommendation"] in AI_RECOMMENDED_VALUES
+            for item in items
+        )
+        pending_analysis_total = len(items) - analyzed_total
+        if analysis_filter == "analyzed":
+            items = [
+                item for item in items if item["analysis_status"] == "analyzed"
+            ]
+        elif analysis_filter == "recommended":
+            items = [
+                item
+                for item in items
+                if item["analysis_recommendation"] in AI_RECOMMENDED_VALUES
+            ]
         items.sort(
             key=lambda item: (
+                -float(item["decision_score"]),
                 -float(item["personalized_score"]),
                 int(item["opportunity"]["id"]),
             )
@@ -294,6 +330,9 @@ class ProductExperienceService:
             "preference_version_id": preference.id if preference else None,
             "goal": active_goal,
             "total": total,
+            "analyzed_total": analyzed_total,
+            "recommended_total": recommended_total,
+            "pending_analysis_total": pending_analysis_total,
             "items": items[offset : offset + limit],
         }
 
@@ -330,7 +369,12 @@ class ProductExperienceService:
                     disposition=disposition,
                 )
             )
-        items.sort(key=lambda item: -float(item["personalized_score"]))
+        items.sort(
+            key=lambda item: (
+                -float(item["decision_score"]),
+                -float(item["personalized_score"]),
+            )
+        )
         return items
 
     def compare(
@@ -581,11 +625,7 @@ class ProductExperienceService:
             personalized -= 15
         analysis = self.session.scalar(
             select(AnalysisVersion)
-            .join(
-                OpportunitySnapshot,
-                AnalysisVersion.snapshot_id == OpportunitySnapshot.id,
-            )
-            .where(OpportunitySnapshot.opportunity_id == opportunity.id)
+            .where(AnalysisVersion.snapshot_id == snapshot.id)
             .order_by(desc(AnalysisVersion.created_at))
             .limit(1)
         )
@@ -600,8 +640,26 @@ class ProductExperienceService:
             weights,
             key=lambda key: (-(components.get(key, 0.0) * weights[key]), key),
         )[:3]
-        recommendation = structured.get("recommendation")
-        if not isinstance(recommendation, str):
+        analysis_recommendation = structured.get("recommendation")
+        if analysis_recommendation not in AI_RECOMMENDATION_ADJUSTMENTS:
+            analysis_recommendation = None
+        ai_adjustment = AI_RECOMMENDATION_ADJUSTMENTS.get(
+            analysis_recommendation,
+            0.0,
+        )
+        decision_score = round(
+            max(0.0, min(100.0, personalized + ai_adjustment)),
+            1,
+        )
+        confidence = structured.get("confidence")
+        analysis_confidence = (
+            round(max(0.0, min(1.0, float(confidence))), 4)
+            if isinstance(confidence, (int, float))
+            and not isinstance(confidence, bool)
+            else None
+        )
+        recommendation = analysis_recommendation
+        if recommendation is None:
             recommendation = _recommendation_from_score(personalized, structured)
         summary = structured.get("recommendation_summary") or structured.get(
             "problem_summary"
@@ -615,7 +673,9 @@ class ProductExperienceService:
             "preference_version_id": preference.id if preference else None,
             "goal": goal,
             "personalized_score": personalized,
-            "recommendation_label": _score_label(personalized),
+            "decision_score": decision_score,
+            "ai_score_adjustment": ai_adjustment,
+            "recommendation_label": _score_label(decision_score),
             "recommendation": recommendation,
             "summary": summary,
             "reason_codes": ranked_reasons,
@@ -627,6 +687,9 @@ class ProductExperienceService:
             "next_steps": structured.get("next_steps", []),
             "maintainer_questions": structured.get("maintainer_questions", []),
             "analysis_version_id": analysis.id if analysis else None,
+            "analysis_status": "analyzed" if analysis else "not_analyzed",
+            "analysis_recommendation": analysis_recommendation,
+            "analysis_confidence": analysis_confidence,
             "disposition_state": disposition.state if disposition else "neutral",
             "disposition_reason": disposition.reason_code if disposition else None,
             "reminder_at": disposition.reminder_at if disposition else None,

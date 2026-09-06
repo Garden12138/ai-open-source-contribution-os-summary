@@ -591,6 +591,74 @@ Recovery:
    notification dedupe keys and preference/disposition hashes make retry state
    explicit.
 
+### `0026_review_artifact_bindings`
+
+Purpose:
+
+- replace only the `ReviewRun` insert provenance trigger;
+- require every new Review to reference the exact `unified-diff` Artifact from
+  its successful Implement manifest;
+- require every new Review to reference the exact `normalized-test-results`
+  Artifact from its successful Verify manifest;
+- retain existing immutable Review rows. Earlier rows remain transitively bound
+  through their content-addressed stage-result Artifacts and are not rewritten
+  to claim the new direct binding.
+
+Recovery:
+
+1. Stop review and publication writers and preserve the SQLite file before
+   upgrade.
+2. Restore that backup if trigger replacement fails; do not disable the Review
+   provenance trigger to accept a record.
+3. Never rewrite an existing Review, PublishIntent, or DraftPullRequest to use
+   a different hash.
+4. After restore, run `PRAGMA integrity_check`, verify the execution Artifact
+   manifests, and re-run the forward migration normally.
+
+### `0027_nvidia_agent_workflows`
+
+Purpose:
+
+- add immutable `CodingSession`, hash-chained `CodingTurn`, `AgentInvocation`,
+  and `ChangeSetProposal` records;
+- bind every coding session to one exact PlanVersion, base commit, Explore result
+  and content-addressed coding-context Artifact;
+- bind a model-generated ChangeSet to the exact conversation hash and require a
+  separate user confirmation before Implement.
+
+Recovery:
+
+1. Stop API, Provider Worker and Sandbox Worker; preserve SQLite and the complete
+   Artifact root together.
+2. Restore both backups if table/index/trigger creation fails.
+3. Never invent an AgentInvocation or rewrite a turn/proposal hash to recover a
+   partially completed model Job; retry the durable Job from its verified inputs.
+
+### `0028_nvidia_review_runs`
+
+Purpose:
+
+- extend the database-level Review kind constraint with `nvidia_nim`;
+- rebuild only `review_runs` while retaining every existing Fake Review and the
+  `PublishIntent` foreign keys that reference it;
+- recreate the direct diff/test Artifact provenance trigger and immutable-row
+  triggers before the migration commits.
+
+This migration is the only current SQLite table rebuild that requests foreign
+keys be temporarily disabled. The migration runner applies revisions in separate
+transactions, enables legacy rename behavior, runs `PRAGMA foreign_key_check`
+before recording the revision, then re-enables foreign keys. A failed check rolls
+back the rebuild and must never be treated as a successful migration.
+
+Recovery:
+
+1. Stop Review, Provider and Publisher writers; back up SQLite and Artifact root.
+2. Restore the backup if the rebuild or foreign-key check fails.
+3. Verify `PRAGMA integrity_check` and `PRAGMA foreign_key_check` after restore,
+   then rerun the forward migration.
+4. Do not bypass `ck_review_run_kind` or the Review provenance trigger to insert
+   a provider result.
+
 ## Adding a migration
 
 1. Add an immutable module under `app/migrations/versions`.

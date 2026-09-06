@@ -13,15 +13,19 @@
 | --- | --- | --- |
 | GitHub Issue 扫描、过滤、评分、榜单 | GitHub 只读 API | 是 |
 | 偏好、候选、比较、提醒、贡献看板 | 本地 SQLite | 是 |
-| AI 深入评估 | `fake` 演示 Provider | 否，当前不调用真实模型 |
-| Explore / Implement / Verify | `fake` 演示 Runtime | 否，当前不执行仓库代码 |
-| Review、发布意图、Draft PR | 本地 Fake Publisher | 否，不会在 GitHub 创建 PR |
+| AI 深入评估与批量筛选 | `fake` 或 NVIDIA/Nemotron 3.5 Lightning | NVIDIA 配置后真实调用模型 |
+| Vibe Coding / ChangeSet | NVIDIA/DeepSeek + 精确确认 | 完整五进程模式下真实调用模型 |
+| Explore / Implement / Verify | `fake` 或专用 Docker Sandbox Worker | Docker 模式真实执行不可信代码 |
+| Review | `fake` 或 NVIDIA/MiniMax | NVIDIA 配置后真实审查精确 Artifact |
+| 发布意图、Draft PR | 本地 Fake Publisher | 否，不会在 GitHub 创建 PR |
 
 因此，本文把验收分成两组：
 
 - “真实产品功能”可以验证 GitHub 只读发现和本地工作台。
 - “离线完整流程演示”可以验证页面、状态流和操作衔接，但不能作为真实 AI、真实
   容器执行或真实 Draft PR 的验收证据。
+- NVIDIA 与真实 Sandbox 的配置见
+  [`nvidia-provider.md`](nvidia-provider.md)；Linux P5-G06 在真实机器验收前仍未完成。
 
 ## 2. 使用 Docker Compose 部署
 
@@ -56,8 +60,8 @@ cp .env.example .env
 | `GITHUB_TOKEN` | GitHub fine-grained 只读 Token | 提高真实扫描额度；推荐配置 |
 | `LOCAL_ACCESS_TOKEN` | 本地随机字符串 | 保护页面中的保存、扫描等操作；推荐配置 |
 | `APP_TIMEZONE` | 例如 `Asia/Shanghai` | 每日扫描和榜单日期 |
-| `ANALYSIS_PROVIDER` | `none` 或 `fake` | `fake` 用于离线体验深入评估 |
-| `SANDBOX_STAGE_RUNTIME` | `none` 或 `fake` | `fake` 用于离线体验执行流程 |
+| `ANALYSIS_PROVIDER` | `none`、`fake` 或 `nvidia_nim` | `nvidia_nim` 通过内部 Gateway 调用 MiniMax M3 |
+| `SANDBOX_STAGE_RUNTIME` | `none`、`fake` 或 `docker` | `fake` 用于离线体验；`docker` 只能由专用 Sandbox Worker 使用 |
 | `SANDBOX_JOB_SPEC_SIGNING_KEY` | 64 位以上十六进制字符串 | 允许 Fake 执行任务进入队列 |
 
 生成本地访问令牌和 Fake 执行签名密钥时，可分别运行一次：
@@ -89,18 +93,22 @@ SANDBOX_JOB_SPEC_SIGNING_KEY=<替换为 openssl rand -hex 32 的输出>
 
 `fake` 模式不会调用真实模型、不会执行不可信仓库代码，也不会写入 GitHub。
 
+若要启用 NVIDIA Build，把分析、实现和 Review Provider 设为 `nvidia_nim`，并只
+向 Model Gateway 提供 `NVIDIA_API_KEY`。完整配置和权限拆分不要直接照抄到同一个
+进程，按 [`NVIDIA Provider 接入指南`](nvidia-provider.md) 操作。
+
 ### 2.3 一条命令启动
 
 在仓库根目录执行：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml up -d --build
+docker compose --env-file .env -f docs/deployment/compose.yaml up -d --build
 ```
 
 第一次启动会构建本地镜像并安装依赖。随后检查状态：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml ps
+docker compose --env-file .env -f docs/deployment/compose.yaml ps
 ```
 
 预期结果：
@@ -119,60 +127,104 @@ Compose 会启动两个容器：
 两者共用名为 `contribos-local-data` 的持久卷。重新创建容器不会清空数据库和
 Artifact。
 
+启用 NVIDIA Profile 时使用：
+
+```bash
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia up -d --build
+```
+
+这会额外启动不能直接出网的 `provider-worker` 和唯一持有 NVIDIA key 的
+`model-gateway`。基础 Compose 不挂载 Docker socket；真实 Vibe Coding 的专用
+Sandbox Worker 使用本机分离启动方式。
+
+必须显式传入仓库根目录的 `--env-file .env`。部分 Compose 版本会以 Compose
+文件所在的 `docs/deployment` 作为默认环境文件目录；省略该参数会让 NVIDIA 和
+Gateway 密钥展开为空。API 同时连接私有应用网络和一个仅 API 使用的 host bridge，
+以兼容 OrbStack 对 internal-only 网络不发布宿主机端口的行为；宿主机仍只绑定
+`127.0.0.1:8000`。
+
 ### 2.4 常用运维命令
+
+下面展示的是基础 Profile。若 `.env` 启用了 NVIDIA，所有 `ps`、`logs`、`up`、
+`stop`、`start`、`down`、`cp` 和 `restart` 命令都应在
+`-f docs/deployment/compose.yaml` 后增加 `--profile nvidia`，否则可能遗漏 Gateway
+和 Provider Worker。不要运行不带 `-q` 的 `config` 后公开其输出，以免泄露展开后的
+密钥。
 
 查看运行状态：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml ps
+docker compose --env-file .env -f docs/deployment/compose.yaml ps
 ```
 
 查看最近日志：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml logs --tail=200 api worker
+docker compose --env-file .env -f docs/deployment/compose.yaml logs --tail=200 api worker
 ```
 
 持续查看日志：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml logs -f api worker
+docker compose --env-file .env -f docs/deployment/compose.yaml logs -f api worker
 ```
 
 修改 `.env` 后重建容器以加载新配置：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml up -d --force-recreate
+docker compose --env-file .env -f docs/deployment/compose.yaml up -d --force-recreate
+```
+
+NVIDIA Profile 更新代码或配置时使用：
+
+```bash
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia config -q
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia up -d --build --force-recreate
 ```
 
 停止但保留数据：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml stop
+docker compose --env-file .env -f docs/deployment/compose.yaml stop
 ```
 
 再次启动：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml start
+docker compose --env-file .env -f docs/deployment/compose.yaml start
 ```
 
 停止并删除容器，但保留数据卷：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml down
+docker compose --env-file .env -f docs/deployment/compose.yaml down
 ```
 
 不要执行 `down -v`，除非明确要永久删除本地产品数据。
 
 ### 2.5 备份本地数据
 
-先停止两个容器，确保 SQLite、WAL 和 Artifact 处于同一个一致恢复点：
+先停止所有会写业务数据的容器，确保 SQLite、WAL 和 Artifact 处于同一个一致恢复点。
+基础 Profile 使用：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml stop
-docker compose -f docs/deployment/compose.yaml cp api:/data ./contribos-data-backup
-docker compose -f docs/deployment/compose.yaml start
+docker compose --env-file .env -f docs/deployment/compose.yaml stop
+docker compose --env-file .env -f docs/deployment/compose.yaml cp api:/data ./contribos-data-backup
+docker compose --env-file .env -f docs/deployment/compose.yaml start
+```
+
+NVIDIA Profile 必须把 Provider Worker 一起停止：
+
+```bash
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia stop
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia cp api:/data ./contribos-data-backup
+docker compose --env-file .env -f docs/deployment/compose.yaml \
+  --profile nvidia start
 ```
 
 请把生成的 `contribos-data-backup` 放到安全位置。不要只复制一个正在写入的
@@ -343,7 +395,7 @@ SANDBOX_JOB_SPEC_SIGNING_KEY=<至少 64 位十六进制字符串>
 修改后必须重新创建容器：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml up -d --force-recreate
+docker compose --env-file .env -f docs/deployment/compose.yaml up -d --force-recreate
 ```
 
 这些案例验证“用户能否顺畅使用流程”，不证明真实 AI、真实隔离执行或真实 GitHub
@@ -355,17 +407,24 @@ docker compose -f docs/deployment/compose.yaml up -d --force-recreate
 
 操作：
 
-1. 在机会卡片中点击“深入评估”。
-2. 展开分析区，点击“运行深度分析”。
-3. 等待状态从排队、运行变为完成。
-4. 查看建议、问题摘要、预计投入、风险、下一步和“分析依据与技术详情”。
-5. 再点击“生成新版本”，并尝试比较两个分析版本。
+1. 在“发现机会”点击“AI 筛选前 5 个（演示）”，观察批量 Job 进度。
+2. 点击“只看 AI 推荐”，确认只保留 `pursue / consider` 结论。
+3. 也可以在单张机会卡片点击“查看分析报告”，运行或查看精简 Markdown 结论。
+4. 确认报告先展示基于仓库快照的“项目介绍”和基于 Issue 快照的“需求内容”，再给出与两者具体关联的综合分析、风险与验收、行动建议。
+5. 下载同一份 `.md` 文档；旧版分析应显示关联性不足提示，并提供“重新生成关联分析”。
+6. 再点击“生成新版本”，确认版本对比包含项目介绍、需求内容和其他重要内容的中文语义差异。
 
 通过标准：
 
 - 分析在 Worker 中完成，页面不会因刷新丢失任务；
+- 批量操作最多创建 5 个当前规则 Top-30 候选 Job，总调用、Token、成本和时长预算有界；
 - 每次运行生成新的不可变版本；
-- 可以查看版本详情和差异；
+- 页面与下载使用同一份 Markdown，且不出现分析 JSON、证据 ID、Token、Prompt、哈希或报告级 Provider 信息；
+- 新版分析的项目介绍引用冻结仓库证据，需求内容引用冻结 Issue 证据，结论和至少一项匹配理由同时关联两者；
+- 工作量、竞争、风险和建议包含具体项目或需求事实，不使用与当前机会无关的通用模板；
+- 可以查看版本详情和精简语义差异；
+- AI 结论只调整独立决策排序，不覆盖基础规则分；
+- 历史 Snapshot 结论只读，不能从旧分析创建本轮贡献任务；
 - 页面明确显示这是 Fake Provider，而不是伪装成真实 AI 结论。
 
 ### U-09：创建、修订和批准贡献计划
@@ -374,7 +433,7 @@ docker compose -f docs/deployment/compose.yaml up -d --force-recreate
 
 操作：
 
-1. 在分析结果下点击“创建贡献任务”。
+1. 在“我的候选”点击“开始 Vibe Coding”，或在分析结果下点击“创建贡献任务”。
 2. 检查目标、验收标准、实施步骤和测试，点击“创建初始计划”。
 3. 在“计划对话与决策”追加一条修改建议。
 4. 修改计划并保存为新修订。
@@ -425,9 +484,9 @@ docker compose -f docs/deployment/compose.yaml up -d --force-recreate
 
 1. 点击“启动独立 Review”。
 2. 确认 Review 显示“通过”及其绑定哈希。
-3. 填写 Draft PR 标题和说明，点击“创建发布意图”。
-4. 检查仓库、分支和允许动作，再点击“确认发布 Draft PR”。
-5. 打开顶部“贡献进度”。
+3. 填写 Draft PR 标题和说明，点击“创建 Fake 发布意图”。
+4. 检查仓库、分支和允许动作，再点击“确认发布 Draft PR（本地演示）”。
+5. 打开顶部“贡献进度”，点击某个任务的“继续贡献”重新进入工作台。
 
 通过标准：
 
@@ -435,7 +494,7 @@ docker compose -f docs/deployment/compose.yaml up -d --force-recreate
 - 创建发布意图后仍需要第二次明确确认；
 - 确认后只生成本地 Fake Draft PR 记录；
 - GitHub 上不应出现真实分支或 PR；
-- “贡献进度”显示任务漏斗、历史和下一步状态。
+- “贡献进度”显示任务漏斗、历史和下一步状态，并可继续已有任务。
 
 ### U-12：重启后的数据恢复
 
@@ -444,7 +503,7 @@ docker compose -f docs/deployment/compose.yaml up -d --force-recreate
 操作：
 
 ```bash
-docker compose -f docs/deployment/compose.yaml restart
+docker compose --env-file .env -f docs/deployment/compose.yaml restart
 ```
 
 等待 `api` 恢复健康后刷新页面。
@@ -474,20 +533,50 @@ docker compose -f docs/deployment/compose.yaml restart
 
 记录中不要包含 GitHub Token、`LOCAL_ACCESS_TOKEN`、签名密钥或完整 `.env`。
 
+### 2026-08-31 本地产业功能验收记录
+
+环境：macOS arm64 + OrbStack；GitHub 只读扫描使用真实公开数据；U-08～U-11
+按本文定义使用 Fake Provider、Fake Stage Runtime 和本地 Fake Publisher。未向
+GitHub 执行 Fork、Push、评论或 PR 创建。
+
+| 案例 | 结果 | 证据或说明 |
+| --- | --- | --- |
+| U-01 首次设置 | 通过 | 目标在 `learning` 与 `bounty` 间切换时排序变化；恢复 `learning` 后刷新保持，最终偏好版本 7、自动扫描关闭 |
+| U-02 GitHub 扫描 | 通过 | Job `99b45246-30eb-4524-b865-96cb8045315b`；Scan `b29d23c0-d733-4924-9803-e62ee8437178`；94 候选、67 通过、10 精选 |
+| U-03 评分解释 | 通过 | 机会 93 展示七项评分、赏金条款风险、接收/竞争/影响等级及正确 Issue 链接；未触发扫描 |
+| U-04 候选比较 | 通过 | 2～3 项比较成功，第 4 项返回 422；移除、刷新和持久化正常 |
+| U-05 忽略恢复 | 通过 | 机会 66 以 `too_large` 忽略后默认隐藏，包含已忽略时可见，恢复后重新出现；扫描记录未变 |
+| U-06 提醒通知 | 通过 | 机会 55 到期生成通知 `ad9a392e-8965-4a11-bb79-f162375aa90c`；单条/全部已读正确，提醒以 UTC `Z` 返回 |
+| U-07 自动扫描 | 未执行 | 当天已有成功扫描，未删除数据库伪造前置条件；同日启用及重启均未创建重复 `scheduled-scan:2026-08-31`，次日首次触发仍待验收 |
+| U-08 Fake 分析 | 通过 | 同一 Snapshot 生成不可变版本 `2f38abc7-9997-4388-805e-18ed496a45de`、`e167bfd4-3a41-4c14-ad33-41ce3bfe9d90`；差异比较成功，页面/API 标识 `fake` |
+| U-09 计划批准 | 通过 | Plan v1/v2/v3 链保留；有效 Approval `a593d4fb-3422-43d5-bebd-498c0fea079c`；短/错误 SHA 和批准后编辑均被拒绝 |
+| U-10 Fake 执行 | 通过 | Execution `e6e67143-97c8-4074-bcf2-debb6905455a` 按 Explore → Implement → Verify 成功；3 个清单、9 条状态、全部 Artifact 内容哈希复验一致 |
+| U-11 Fake 发布 | 通过 | 修复后 Review `ec34b066-6543-4955-91d6-553a2506155e` 直接匹配 diff/test Artifact 和 binding hash；Intent `c0a1fdd2-a009-49a1-acc9-76199fd7c62d`；本地 Draft `bf7c2d82-66cc-4567-9905-f87ad1e713dc` 使用 `local.contribos.invalid`，未写 GitHub |
+| U-12 重启恢复 | 通过 | API/Worker 重启前后业务状态摘要均为 `390f77cd84ff716fbb8a84f6031314aed5d2bde9a37656257abc99cde1c7f4cb`；SQLite `integrity_check=ok`，非终态 Job 为 0 |
+
+验收中修复了 GitHub 二级限流识别、分析语料中单个不安全候选阻断全部候选、
+产品时间戳 UTC 展示、Review 直接 Artifact 绑定、Fake Draft 误导性 GitHub URL，
+以及 macOS 启动器自动注入 Worker 环境变量的问题。完整离线回归为
+`285 passed, 10 skipped`；跳过项和未执行的 U-07 次日案例均不计为通过。
+
 ## 7. 常见问题
 
 | 现象 | 用户侧检查方式 |
 | --- | --- |
-| 首页打不开 | 运行 `docker compose -f docs/deployment/compose.yaml ps`，确认 `api` 为 `healthy` |
-| API 一直不健康 | 查看 `docker compose -f docs/deployment/compose.yaml logs --tail=200 api` |
+| 首页打不开 | 运行 `docker compose --env-file .env -f docs/deployment/compose.yaml ps`，确认 `api` 为 `healthy` |
+| API 一直不健康 | 查看 `docker compose --env-file .env -f docs/deployment/compose.yaml logs --tail=200 api` |
 | 扫描一直排队 | 确认 `worker` 为 `Up`，再查看 Worker 日志 |
 | 页面提示 401 | 输入 `.env` 中的 `LOCAL_ACCESS_TOKEN`，不要输入 GitHub Token |
-| 扫描提示 403/429 | 检查只读 Token 和 GitHub 配额，等待配额恢复后重试 |
-| 没有“运行深度分析” | 将 `ANALYSIS_PROVIDER` 设为 `fake` 并重建容器 |
+| 扫描提示 403/429 | 检查只读 Token 和 GitHub 配额；Worker 会按 `Retry-After`/额度重置时间有界重试，无提示头的二级限流会先等待至少 60 秒，重试耗尽后再从页面重试 |
+| 没有“运行深度分析” | 将 `ANALYSIS_PROVIDER` 设为 `fake`，或按 NVIDIA 指南启用 `nvidia_nim` Profile |
+| NVIDIA Job 一直排队 | 确认 `provider-worker` 与 `model-gateway` 健康，且两者使用同一 `MODEL_GATEWAY_SIGNING_KEY` |
+| Gateway 反复重启并提示缺少 `MODEL_GATEWAY_SIGNING_KEY` | 确认命令显式包含 `--env-file .env`，密钥为至少 64 位偶数长度十六进制，然后用 NVIDIA Profile `up -d --force-recreate` |
+| API 显示 `healthy` 但 `curl 127.0.0.1:8000` 失败，端口只有 `8000/tcp` | 当前容器仍使用旧的 internal-only 网络；执行 NVIDIA Profile `down`（不要加 `-v`），再按最新 Compose 文件 `up -d --build --force-recreate`，端口必须显示 `127.0.0.1:8000->8000/tcp` |
+| Vibe Coding 上下文一直排队 | 真实模式需要单独运行 `contribos sandbox-worker`；不要把 Docker socket 或模型密钥给 API |
 | 执行停在 pending | 确认 Fake Runtime 和签名密钥均已配置，且 API/Worker 使用同一 `.env` |
 | 归档采集失败 | 确认输入的是目标仓库真实、完整的 commit SHA，且能访问 GitHub |
 | 提醒没有出现 | 确认 Worker 运行，等待数秒后刷新页面 |
-| 修改 `.env` 没生效 | 使用 `up -d --force-recreate`，普通浏览器刷新不会重载容器环境变量 |
+| 修改 `.env` 没生效 | `restart` 不会更新容器环境；使用带正确 Profile 的 `up -d --force-recreate`，普通浏览器刷新不会重载容器环境变量 |
 
 ## 8. 不使用 Docker 的备用启动方式
 

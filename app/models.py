@@ -1003,6 +1003,168 @@ class PlanConversationEntry(Base):
     )
 
 
+class CodingSession(Base):
+    __tablename__ = "coding_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    execution_attempt_id: Mapped[str] = mapped_column(
+        ForeignKey("execution_attempts.id", ondelete="RESTRICT"),
+        unique=True,
+        index=True,
+    )
+    context_job_id: Mapped[str] = mapped_column(
+        ForeignKey("jobs.id", ondelete="RESTRICT"),
+        unique=True,
+    )
+    plan_version_id: Mapped[str] = mapped_column(
+        ForeignKey("plan_versions.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    schema_version: Mapped[str] = mapped_column(String(32))
+    plan_content_hash: Mapped[str] = mapped_column(String(64))
+    plan_record_hash: Mapped[str] = mapped_column(String(64))
+    base_commit_sha: Mapped[str] = mapped_column(String(64))
+    explore_result_hash: Mapped[str] = mapped_column(String(64))
+    context_artifact_id: Mapped[str] = mapped_column(
+        ForeignKey("artifacts.id", ondelete="RESTRICT")
+    )
+    context_hash: Mapped[str] = mapped_column(String(64))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "schema_version = 'coding-session-v1'",
+            name="ck_coding_session_schema",
+        ),
+    )
+
+
+class CodingTurn(Base):
+    __tablename__ = "coding_turns"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("coding_sessions.id", ondelete="RESTRICT"), index=True
+    )
+    job_id: Mapped[str | None] = mapped_column(
+        ForeignKey("jobs.id", ondelete="RESTRICT"), unique=True
+    )
+    sequence: Mapped[int] = mapped_column(BigInteger)
+    schema_version: Mapped[str] = mapped_column(String(32))
+    role: Mapped[str] = mapped_column(String(16))
+    idempotency_key: Mapped[str] = mapped_column(String(128), unique=True)
+    content: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    provider_name: Mapped[str | None] = mapped_column(String(80))
+    model_name: Mapped[str | None] = mapped_column(String(120))
+    previous_turn_hash: Mapped[str | None] = mapped_column(String(64))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id", "sequence", name="uq_coding_turn_sequence"
+        ),
+        CheckConstraint(
+            "schema_version = 'coding-turn-v1'",
+            name="ck_coding_turn_schema",
+        ),
+        CheckConstraint("sequence >= 1", name="ck_coding_turn_sequence"),
+        CheckConstraint(
+            "role IN ('user', 'assistant')", name="ck_coding_turn_role"
+        ),
+        CheckConstraint(
+            "(role = 'user' AND provider_name IS NULL AND model_name IS NULL) "
+            "OR (role = 'assistant' AND provider_name IS NOT NULL "
+            "AND model_name IS NOT NULL)",
+            name="ck_coding_turn_provider",
+        ),
+    )
+
+
+class AgentInvocation(Base):
+    __tablename__ = "agent_invocations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_id: Mapped[str] = mapped_column(
+        ForeignKey("jobs.id", ondelete="RESTRICT"), index=True
+    )
+    attempt_number: Mapped[int] = mapped_column(Integer)
+    role: Mapped[str] = mapped_column(String(24), index=True)
+    provider_name: Mapped[str] = mapped_column(String(80))
+    adapter_version: Mapped[str] = mapped_column(String(80))
+    model_name: Mapped[str] = mapped_column(String(120))
+    model_version: Mapped[str] = mapped_column(String(120))
+    input_hash: Mapped[str] = mapped_column(String(64))
+    output_hash: Mapped[str] = mapped_column(String(64))
+    input_tokens: Mapped[int] = mapped_column(BigInteger)
+    cached_input_tokens: Mapped[int] = mapped_column(BigInteger)
+    output_tokens: Mapped[int] = mapped_column(BigInteger)
+    duration_ms: Mapped[int] = mapped_column(BigInteger)
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "job_id", "attempt_number", name="uq_agent_invocation_attempt"
+        ),
+        CheckConstraint(
+            "role IN ('coding', 'change_set', 'review')",
+            name="ck_agent_invocation_role",
+        ),
+        CheckConstraint(
+            "attempt_number >= 1", name="ck_agent_invocation_attempt"
+        ),
+        CheckConstraint(
+            "input_tokens >= 0 AND cached_input_tokens >= 0 "
+            "AND cached_input_tokens <= input_tokens AND output_tokens >= 0 "
+            "AND duration_ms >= 0",
+            name="ck_agent_invocation_usage",
+        ),
+    )
+
+
+class ChangeSetProposal(Base):
+    __tablename__ = "change_set_proposals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("coding_sessions.id", ondelete="RESTRICT"), index=True
+    )
+    job_id: Mapped[str] = mapped_column(
+        ForeignKey("jobs.id", ondelete="RESTRICT"), unique=True
+    )
+    agent_invocation_id: Mapped[str] = mapped_column(
+        ForeignKey("agent_invocations.id", ondelete="RESTRICT"), unique=True
+    )
+    schema_version: Mapped[str] = mapped_column(String(32))
+    conversation_hash: Mapped[str] = mapped_column(String(64))
+    change_set_artifact_id: Mapped[str] = mapped_column(
+        ForeignKey("artifacts.id", ondelete="RESTRICT")
+    )
+    change_set_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    summary: Mapped[str] = mapped_column(String(1000))
+    paths: Mapped[list[str]] = mapped_column(JSON)
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "schema_version = 'change-set-proposal-v1'",
+            name="ck_change_set_proposal_schema",
+        ),
+    )
+
+
 class ExecutionAttempt(Base):
     __tablename__ = "execution_attempts"
 
@@ -1650,7 +1812,7 @@ class ReviewRun(Base):
             name="ck_review_run_number",
         ),
         CheckConstraint(
-            "reviewer_kind IN ('fake', 'fake_blocking')",
+            "reviewer_kind IN ('fake', 'fake_blocking', 'nvidia_nim')",
             name="ck_review_run_kind",
         ),
         CheckConstraint(

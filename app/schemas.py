@@ -410,6 +410,87 @@ class ChangeSetResponse(BaseModel):
     paths: list[str]
 
 
+class CodingMessageCreateRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=12_000)
+
+
+class CodingProposalAcceptRequest(BaseModel):
+    action: Literal["accept_change_set"]
+    expected_change_set_hash: str = Field(
+        min_length=64,
+        max_length=64,
+        pattern=r"^[0-9a-f]{64}$",
+    )
+
+
+class CodingTurnResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    sequence: int
+    role: Literal["user", "assistant"]
+    content: str
+    content_hash: str
+    provider_name: str | None
+    model_name: str | None
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class ChangeSetProposalResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    session_id: str
+    job_id: str
+    conversation_hash: str
+    change_set_hash: str
+    summary: str
+    paths: list[str]
+    record_hash: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
+class CodingSessionResponse(BaseModel):
+    id: str
+    execution_attempt_id: str
+    plan_version_id: str
+    base_commit_sha: str
+    explore_result_hash: str
+    context_hash: str
+    record_hash: str
+    created_at: datetime
+    turns: list[CodingTurnResponse]
+    proposals: list[ChangeSetProposalResponse]
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+
 class RepositoryArchiveCreateRequest(BaseModel):
     approval_id: str = Field(min_length=1, max_length=128)
     base_commit_sha: str = Field(
@@ -677,6 +758,14 @@ class ReviewCreateRequest(BaseModel):
         pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
     )
     reviewer: Literal["fake", "fake_blocking"] = "fake"
+
+
+class ProviderReviewCreateRequest(BaseModel):
+    actor_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    )
 
 
 class ReviewRunResponse(BaseModel):
@@ -1069,6 +1158,14 @@ class MetaResponse(BaseModel):
     queries: list[str]
     daily_pick_count: int
     timezone: str
+    analysis_provider: Literal["none", "fake", "nvidia_nim"]
+    analysis_model: str
+    implementation_provider: Literal["none", "fake", "nvidia_nim"] = "none"
+    implementation_model: str
+    review_provider: Literal["none", "fake", "nvidia_nim"] = "none"
+    review_model: str
+    sandbox_stage_runtime: Literal["none", "fake", "docker"]
+    draft_pr_publisher: Literal["fake"]
 
 
 class PreferenceUpsertRequest(BaseModel):
@@ -1107,6 +1204,15 @@ class PreferenceResponse(BaseModel):
     auto_scan_local_time: str
     record_hash: str
     created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
 
 
 class PreferenceCurrentResponse(BaseModel):
@@ -1153,6 +1259,20 @@ class DispositionResponse(BaseModel):
     record_hash: str
     created_at: datetime
 
+    @field_validator("reminder_at", "created_at")
+    @classmethod
+    def normalize_timestamps(
+        cls,
+        value: datetime | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
 
 class RecommendationResponse(BaseModel):
     scan_run_id: str
@@ -1161,6 +1281,8 @@ class RecommendationResponse(BaseModel):
     preference_version_id: str | None
     goal: str
     personalized_score: float
+    decision_score: float
+    ai_score_adjustment: float
     recommendation_label: str
     recommendation: str
     summary: str
@@ -1173,10 +1295,29 @@ class RecommendationResponse(BaseModel):
     next_steps: list[str]
     maintainer_questions: list[str]
     analysis_version_id: str | None
+    analysis_status: Literal["not_analyzed", "analyzed"]
+    analysis_recommendation: Literal[
+        "pursue", "consider", "skip", "insufficient_evidence"
+    ] | None
+    analysis_confidence: float | None
     disposition_state: str
     disposition_reason: str | None
     reminder_at: datetime | None
     opportunity: dict[str, Any]
+
+    @field_validator("reminder_at")
+    @classmethod
+    def normalize_reminder_at(
+        cls,
+        value: datetime | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
 
 
 class RecommendationFeedResponse(BaseModel):
@@ -1184,7 +1325,27 @@ class RecommendationFeedResponse(BaseModel):
     preference_version_id: str | None
     goal: str
     total: int
+    analyzed_total: int
+    recommended_total: int
+    pending_analysis_total: int
     items: list[RecommendationResponse]
+
+
+class RecommendationAnalysisBatchRequest(BaseModel):
+    limit: int = Field(default=5, ge=1, le=5)
+
+
+class RecommendationAnalysisJobResponse(BaseModel):
+    opportunity_id: int
+    snapshot_id: str
+    created: bool
+    job: JobResponse
+
+
+class RecommendationAnalysisBatchResponse(BaseModel):
+    scan_run_id: str
+    requested: int
+    jobs: list[RecommendationAnalysisJobResponse]
 
 
 class NotificationResponse(BaseModel):
@@ -1197,6 +1358,15 @@ class NotificationResponse(BaseModel):
     is_read: bool
     created_at: datetime
 
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
 
 class NotificationReadResponse(BaseModel):
     notification_id: str | None = None
@@ -1208,6 +1378,20 @@ class ScanChangesResponse(BaseModel):
     generated_at: datetime | None
     new_matches: int
     shortlist_updates: int
+
+    @field_validator("generated_at")
+    @classmethod
+    def normalize_generated_at(
+        cls,
+        value: datetime | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
 
 
 class HealthResponse(BaseModel):

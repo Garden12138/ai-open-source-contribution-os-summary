@@ -22,7 +22,9 @@ export async function requestJSON(url, options) {
     const detail = payload && (
       payload.detail || payload.message || nestedError || payload.error
     );
-    throw new Error(detail || `请求失败（HTTP ${response.status}）`);
+    const error = new Error(detail || `请求失败（HTTP ${response.status}）`);
+    error.status = response.status;
+    throw error;
   }
 
   return payload || {};
@@ -33,7 +35,7 @@ export async function requestArtifact(url, options) {
   const response = await fetch(url, {
     ...requestOptions,
     headers: {
-      Accept: "application/json, text/plain, text/x-diff",
+      Accept: "application/json, text/markdown, text/plain, text/x-diff",
       ...requestOptions.headers,
     },
   });
@@ -52,9 +54,11 @@ export async function requestArtifact(url, options) {
     const nested = payload.error && typeof payload.error === "object"
       ? payload.error.message
       : null;
-    throw new Error(
+    const error = new Error(
       payload.detail || payload.message || nested || `请求失败（HTTP ${response.status}）`,
     );
+    error.status = response.status;
+    throw error;
   }
   return {
     mediaType,

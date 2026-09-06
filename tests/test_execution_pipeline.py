@@ -4,14 +4,17 @@ import asyncio
 import gzip
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.api import create_app
 from app.archives import RepositoryArchiveStore
+from app.authorizations import UserAction
 from app.config import Settings
 from app.database import Database
 from app.planning import ContributionTaskService
 from app.plans import PlanVersionService
+from app.reviews import ReviewConflictError, ReviewRunService
 from app.worker import ContribOSWorker
 from tests.test_planning import _plan_content, _seed_analysis
 from tests.test_runtime_wiring import SIGNING_KEY_HEX
@@ -186,6 +189,27 @@ def _complete_verified_execution(tmp_path: Path, *, key_prefix: str = "pub"):
     return app, execution_id, task_id, worker
 
 
+def test_review_service_requires_verified_artifact_storage(
+    tmp_path: Path,
+) -> None:
+    app, execution_id, _task_id, _worker = _complete_verified_execution(
+        tmp_path,
+        key_prefix="review-artifact-store",
+    )
+    with app.state.database.session() as session:
+        with pytest.raises(
+            ReviewConflictError,
+            match="requires verified artifact storage",
+        ):
+            ReviewRunService(session).create(
+                execution_attempt_id=execution_id,
+                action=UserAction.START_REVIEW,
+                idempotency_key="review-without-artifact-store",
+                actor_type="local_user",
+                actor_id="user-1",
+            )
+
+
 def test_fake_review_publish_events_and_dashboard(tmp_path: Path) -> None:
     app, execution_id, task_id, _worker = _complete_verified_execution(tmp_path)
     with TestClient(app) as client:
@@ -244,6 +268,37 @@ def test_fake_review_publish_events_and_dashboard(tmp_path: Path) -> None:
         assert passed.status_code == 201
         assert passed.json()["verdict"] == "pass"
         assert passed.json()["stale"] is False
+        execution = client.get(f"/api/v1/executions/{repair_id}")
+        verify_manifest = next(
+            item
+            for item in execution.json()["artifact_manifests"]
+            if item["stage"] == "verify"
+        )
+        test_results_artifact = next(
+            item
+            for item in verify_manifest["entries"]
+            if item["role"] == "normalized-test-results"
+        )
+        assert (
+            passed.json()["test_results_hash"]
+            == test_results_artifact["artifact_id"]
+        )
+        assert (
+            passed.json()["test_results_hash"]
+            != passed.json()["verify_result_hash"]
+        )
+        implement_manifest = next(
+            item
+            for item in execution.json()["artifact_manifests"]
+            if item["stage"] == "implement"
+        )
+        diff_artifact = next(
+            item
+            for item in implement_manifest["entries"]
+            if item["role"] == "unified-diff"
+        )
+        assert passed.json()["diff_hash"] == diff_artifact["artifact_id"]
+        assert passed.json()["diff_hash"] != implement_manifest["result_hash"]
         fetched = client.get(f"/api/v1/reviews/{passed.json()['id']}")
         assert fetched.json()["binding_hash"] == passed.json()["binding_hash"]
         task = client.get(f"/api/v1/tasks/{task_id}")
@@ -275,6 +330,9 @@ def test_fake_review_publish_events_and_dashboard(tmp_path: Path) -> None:
         assert confirmed.status_code == 200
         draft_id = confirmed.json()["draft_pull_request"]["id"]
         assert confirmed.json()["draft_pull_request"]["provider"] == "fake"
+        assert confirmed.json()["draft_pull_request"]["html_url"].startswith(
+            "https://local.contribos.invalid/"
+        )
         replay_confirm = client.post(
             f"/api/v1/publish-intents/{intent.json()['id']}/confirm",
             json={

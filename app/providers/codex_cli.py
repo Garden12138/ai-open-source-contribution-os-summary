@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import hashlib
 import json
 import os
@@ -62,10 +63,18 @@ _ALLOWED_CODEX_ENV = frozenset(
 INSPECTION_SCHEMA_VERSION = "inspection-schema-v1"
 CODEX_PROMPT_ENVELOPE_VERSION = "codex-prompt-envelope-v1"
 INSPECT_PROMPT_VERSION = "inspect-prompt-v2"
-ANALYZE_PROMPT_VERSION = "analyze-prompt-v3"
+ANALYZE_PROMPT_VERSION = "analyze-prompt-v11"
 ANALYSIS_POLICY_VERSION = "analysis-policy-v3"
 _LEGACY_INSPECT_PROMPT_VERSION = "inspect-prompt-v1"
 _LEGACY_ANALYZE_PROMPT_VERSION = "analyze-prompt-v1"
+_PREVIOUS_ANALYZE_PROMPT_VERSION = "analyze-prompt-v3"
+_PREVIOUS_ANALYZE_PROMPT_V4 = "analyze-prompt-v4"
+_PREVIOUS_ANALYZE_PROMPT_V5 = "analyze-prompt-v5"
+_PREVIOUS_ANALYZE_PROMPT_V6 = "analyze-prompt-v6"
+_PREVIOUS_ANALYZE_PROMPT_V7 = "analyze-prompt-v7"
+_PREVIOUS_ANALYZE_PROMPT_V8 = "analyze-prompt-v8"
+_PREVIOUS_ANALYZE_PROMPT_V9 = "analyze-prompt-v9"
+_PREVIOUS_ANALYZE_PROMPT_V10 = "analyze-prompt-v10"
 _LEGACY_ANALYSIS_POLICY_VERSION = "analysis-policy-v1"
 _TRUSTED_POLICY_PREFIX = "CONTRIBOS_TRUSTED_SYSTEM_POLICY_JSON="
 _UNTRUSTED_LENGTH_PREFIX = (
@@ -80,6 +89,58 @@ _TRUSTED_POLICY_RULES = (
     "Use only evidence IDs present in the frozen input.",
     "Write user-facing analysis narrative in Simplified Chinese while preserving code identifiers.",
     "Return only one JSON object matching the supplied output schema.",
+)
+_ANALYZE_V8_RULES = (
+    (
+        "Write every natural-language output value in Simplified Chinese; "
+        "keep only code, paths, identifiers, product names, and URLs unchanged."
+    ),
+)
+_ANALYZE_V9_RULES = (
+    *_ANALYZE_V8_RULES,
+    (
+        "Derive project_summary only from repository evidence and "
+        "requirement_summary only from Issue evidence."
+    ),
+    (
+        "citation_map.project_summary must include repository; "
+        "citation_map.requirement_summary must include issue; "
+        "citation_map.recommendation_summary and at least one "
+        "citation_map.fit_reasons row must include both issue and repository."
+    ),
+    (
+        "Analyze fit, effort, competition, risks, recommendation, and next "
+        "steps only after establishing project_summary and requirement_summary; "
+        "tie every conclusion to concrete project or requirement facts."
+    ),
+    (
+        "Do not use generic filler such as saying only that the task matches "
+        "the repository; state insufficient evidence when a concrete judgment "
+        "cannot be supported."
+    ),
+)
+_ANALYZE_V10_RULES = (
+    *_ANALYZE_V9_RULES,
+    (
+        "Competition means evidence that another contributor is working on "
+        "this exact Issue, such as assignees, linked pull requests, or explicit "
+        "comments. Never infer competition from similar products, market "
+        "position, repository popularity, or the project domain; use unknown "
+        "when exact-Issue evidence is absent."
+    ),
+    (
+        "Ground effort in concrete requirement work items and relevant project "
+        "characteristics. Translate ordinary English prose into Chinese instead "
+        "of preserving phrases such as future, per-jurisdiction, or open fact."
+    ),
+)
+_ANALYZE_V11_RULES = (
+    *_ANALYZE_V10_RULES,
+    (
+        "When competition is unknown because exact-Issue competition signals are absent, "
+        "still cite issue in citation_map.competition because the frozen Issue assignee "
+        "and comment fields support that absence; citation arrays must never be empty."
+    ),
 )
 
 INSPECTION_OUTPUT_SCHEMA: dict[str, Any] = {
@@ -336,8 +397,10 @@ class CodexCLIAdapter:
         max_jsonl_events: int = 10_000,
         max_jsonl_bytes: int = 4_000_000,
     ) -> None:
-        if identity.provider != "codex_cli":
-            raise ValueError("Codex CLI identity provider must be codex_cli")
+        if identity.provider not in {"codex_cli", "nvidia_nim"}:
+            raise ValueError(
+                "Structured analysis identity must be codex_cli or nvidia_nim"
+            )
         if max_jsonl_events < 1:
             raise ValueError("max_jsonl_events must be positive")
         if max_jsonl_bytes < 1:
@@ -406,7 +469,7 @@ class CodexCLIAdapter:
             output_schema_version=request.output_schema_version,
             prompt=self._analyze_prompt(request),
             output_schema=ANALYSIS_OUTPUT_SCHEMA,
-            allowed_citations=request.inspection.cited_evidence_ids,
+            allowed_citations=request.allowed_evidence_ids,
             emit=emit,
         )
         return AnalysisResult.create(
@@ -457,7 +520,10 @@ class CodexCLIAdapter:
                     snapshot_id=snapshot_id,
                     input_hash=input_hash,
                     prompt=prompt,
-                    output_schema=output_schema,
+                    output_schema=_bind_evidence_id_enums(
+                        output_schema,
+                        allowed_citations,
+                    ),
                     model=self.identity.model,
                 )
             )
@@ -510,11 +576,7 @@ class CodexCLIAdapter:
             UnicodeError,
             ValueError,
         ) as exc:
-            error = ProviderRunError(
-                "codex_malformed_output",
-                "Codex CLI returned malformed or unsafe structured output",
-                retryable=False,
-            )
+            error = _malformed_output_error(exc)
             await self._emit_failure(
                 emit,
                 request_id=request_id,
@@ -608,9 +670,12 @@ class CodexCLIAdapter:
             raise ProviderContractError(
                 "Codex JSONL did not contain a completed structured response"
             )
-        structured_output = json.loads(messages[-1])
+        structured_output = _structured_message_object(messages[-1])
         if not isinstance(structured_output, dict):
             raise ProviderContractError("Codex final response must be an object")
+        if stage == ProviderStage.ANALYZE:
+            _canonicalize_unknown_competition_citation(structured_output)
+            _canonicalize_analysis_citation_union(structured_output)
         self._validate_structured_output(stage, structured_output)
         ensure_no_sensitive_data(
             structured_output,
@@ -714,7 +779,7 @@ class CodexCLIAdapter:
             ProviderProgressEvent(
                 event_id=self._id_factory(),
                 sequence=2,
-                message_code=f"provider.codex_cli.{stage.value}.completed",
+                message_code=f"provider.{self.identity.provider}.{stage.value}.completed",
                 completed_units=1,
                 total_units=1,
                 **common,
@@ -797,7 +862,23 @@ class CodexCLIAdapter:
             "inspection_output": request.inspection.structured_output,
             "allowed_evidence_ids": request.inspection.cited_evidence_ids,
         }
-        return self._versioned_prompt(
+        if request.prompt_version in {
+            ANALYZE_PROMPT_VERSION,
+            _PREVIOUS_ANALYZE_PROMPT_V9,
+            _PREVIOUS_ANALYZE_PROMPT_V10,
+        }:
+            frozen_input["evidence"] = [
+                {
+                    "evidence_id": item.evidence_id,
+                    "kind": item.kind,
+                    "source_uri": item.source_uri,
+                    "content_hash": item.content_hash,
+                    "content": item.content,
+                }
+                for item in request.evidence
+            ]
+            frozen_input["allowed_evidence_ids"] = request.allowed_evidence_ids
+        prompt = self._versioned_prompt(
             stage=ProviderStage.ANALYZE,
             input_hash=request.input_hash,
             prompt_version=request.prompt_version,
@@ -805,6 +886,13 @@ class CodexCLIAdapter:
             output_schema_version=request.output_schema_version,
             frozen_input=frozen_input,
         )
+        # Repeating this small, validated allowlist after the large frozen
+        # input makes opaque citation IDs mechanically copyable for hosted
+        # models. It adds no new evidence and does not relax validation.
+        citation_allowlist = _single_line_json(
+            {"allowed_evidence_ids": list(request.allowed_evidence_ids)}
+        )
+        return prompt + "\nCONTRIBOS_CITATION_ID_ALLOWLIST_JSON=" + citation_allowlist
 
     @staticmethod
     def _versioned_prompt(
@@ -834,8 +922,26 @@ class CodexCLIAdapter:
                 stage=stage,
                 frozen_input=frozen_input,
             )
+        supports_previous_analysis_prompt = (
+            stage is ProviderStage.ANALYZE
+            and prompt_version
+            in {
+                _PREVIOUS_ANALYZE_PROMPT_VERSION,
+                _PREVIOUS_ANALYZE_PROMPT_V4,
+                _PREVIOUS_ANALYZE_PROMPT_V5,
+                _PREVIOUS_ANALYZE_PROMPT_V6,
+                _PREVIOUS_ANALYZE_PROMPT_V7,
+                _PREVIOUS_ANALYZE_PROMPT_V8,
+                _PREVIOUS_ANALYZE_PROMPT_V9,
+                _PREVIOUS_ANALYZE_PROMPT_V10,
+            }
+            and policy_version == ANALYSIS_POLICY_VERSION
+        )
         if (
-            prompt_version != expected_prompt_version
+            (
+                prompt_version != expected_prompt_version
+                and not supports_previous_analysis_prompt
+            )
             or policy_version != ANALYSIS_POLICY_VERSION
         ):
             raise ProviderContractError(
@@ -843,6 +949,16 @@ class CodexCLIAdapter:
             )
         untrusted_json = _single_line_json(frozen_input)
         untrusted_bytes = untrusted_json.encode("utf-8")
+        rules = list(_TRUSTED_POLICY_RULES)
+        if stage is ProviderStage.ANALYZE:
+            if prompt_version == ANALYZE_PROMPT_VERSION:
+                rules.extend(_ANALYZE_V11_RULES)
+            elif prompt_version == _PREVIOUS_ANALYZE_PROMPT_V10:
+                rules.extend(_ANALYZE_V10_RULES)
+            elif prompt_version == _PREVIOUS_ANALYZE_PROMPT_V9:
+                rules.extend(_ANALYZE_V9_RULES)
+            elif prompt_version == _PREVIOUS_ANALYZE_PROMPT_V8:
+                rules.extend(_ANALYZE_V8_RULES)
         trusted_policy = {
             "envelope_version": CODEX_PROMPT_ENVELOPE_VERSION,
             "stage": stage.value,
@@ -853,7 +969,7 @@ class CodexCLIAdapter:
             "untrusted_payload_sha256": hashlib.sha256(
                 untrusted_bytes
             ).hexdigest(),
-            "rules": list(_TRUSTED_POLICY_RULES),
+            "rules": rules,
         }
         prompt = "\n".join(
             (
@@ -902,6 +1018,267 @@ def _single_line_json(value: Mapping[str, JSONValue]) -> str:
         .replace("\u0085", "\\u0085")
         .replace("\u2028", "\\u2028")
         .replace("\u2029", "\\u2029")
+    )
+
+
+_JSON_FENCE = re.compile(
+    r"\A```(?:json)?[ \t]*\r?\n(?P<object>\{.*\})\s*```\s*\Z",
+    flags=re.DOTALL | re.IGNORECASE,
+)
+
+
+def _structured_message_object(message: str) -> dict[str, Any]:
+    """Accept exactly one JSON object, optionally in one Markdown JSON fence."""
+
+    candidate = message.strip()
+    fenced = _JSON_FENCE.fullmatch(candidate)
+    if fenced is not None:
+        candidate = fenced.group("object")
+    parsed = json.loads(candidate)
+    if not isinstance(parsed, dict):
+        raise ProviderContractError("Codex final response must be an object")
+    return parsed
+
+
+def _canonicalize_analysis_citation_union(output: dict[str, Any]) -> None:
+    """Rebuild the redundant top-level citation index from the statement map.
+
+    This does not create or align statement citations. It only makes the
+    top-level index a deterministic first-seen union; the existing validator
+    still rejects malformed rows and IDs outside the frozen evidence allowlist.
+    """
+
+    citation_map = output.get("citation_map")
+    if not isinstance(citation_map, dict):
+        return
+    ordered: list[str] = []
+
+    def collect(value: Any) -> bool:
+        if not isinstance(value, list):
+            return False
+        for item in value:
+            if isinstance(item, str):
+                if item not in ordered:
+                    ordered.append(item)
+            elif isinstance(item, list):
+                if not collect(item):
+                    return False
+            else:
+                return False
+        return True
+
+    if all(collect(value) for value in citation_map.values()):
+        output["cited_evidence_ids"] = ordered
+
+
+def _canonicalize_unknown_competition_citation(output: dict[str, Any]) -> None:
+    """Bind an explicit absence-of-signal judgment to the frozen Issue.
+
+    The Issue snapshot contains the assignee and discussion signals needed to
+    support ``unknown``. This narrow normalization does not manufacture
+    citations for a positive competition judgment or any other statement; the
+    schema and request allowlist continue to reject unsupported output.
+    """
+
+    competition = output.get("competition")
+    citation_map = output.get("citation_map")
+    if not isinstance(competition, dict) or not isinstance(citation_map, dict):
+        return
+    if competition.get("level") != "unknown":
+        return
+    if citation_map.get("competition") == []:
+        citation_map["competition"] = ["issue"]
+
+
+def _bind_evidence_id_enums(
+    output_schema: Mapping[str, JSONValue],
+    allowed_evidence_ids: tuple[str, ...],
+) -> dict[str, JSONValue]:
+    """Copy a schema and constrain its citation strings to frozen IDs only."""
+
+    schema = copy.deepcopy(dict(output_schema))
+    allowed = list(dict.fromkeys(allowed_evidence_ids))
+    if not allowed:
+        return schema
+
+    def visit(value: object, key: str | None = None) -> None:
+        if not isinstance(value, dict):
+            if isinstance(value, list):
+                for item in value:
+                    visit(item)
+            return
+        if (
+            value.get("type") == "string"
+            and value.get("minLength") == 1
+            and value.get("maxLength") == 128
+        ):
+            value["enum"] = allowed
+        if key in {"evidence_ids", "cited_evidence_ids"}:
+            items = value.get("items")
+            if isinstance(items, dict) and items.get("type") == "string":
+                items["enum"] = allowed
+        for child_key, child in value.items():
+            visit(child, child_key)
+
+    visit(schema)
+    properties = schema.get("properties")
+    citation_map = (
+        properties.get("citation_map")
+        if isinstance(properties, dict)
+        else None
+    )
+    citation_properties = (
+        citation_map.get("properties")
+        if isinstance(citation_map, dict)
+        else None
+    )
+    if (
+        isinstance(citation_properties, dict)
+        and "issue" in allowed
+        and "repository" in allowed
+    ):
+        exact_sources = {
+            "project_summary": ["repository"],
+            "requirement_summary": ["issue"],
+            "recommendation_summary": ["issue", "repository"],
+        }
+        for field, evidence_ids in exact_sources.items():
+            field_schema = citation_properties.get(field)
+            if not isinstance(field_schema, dict):
+                continue
+            field_schema = copy.deepcopy(field_schema)
+            citation_properties[field] = field_schema
+            field_schema["minItems"] = len(evidence_ids)
+            field_schema["maxItems"] = len(evidence_ids)
+            items = field_schema.get("items")
+            if isinstance(items, dict):
+                items["enum"] = evidence_ids
+        fit_schema = citation_properties.get("fit_reasons")
+        if isinstance(fit_schema, dict):
+            fit_schema = copy.deepcopy(fit_schema)
+            citation_properties["fit_reasons"] = fit_schema
+        fit_row_schema = (
+            fit_schema.get("items") if isinstance(fit_schema, dict) else None
+        )
+        if isinstance(fit_row_schema, dict):
+            fit_row_schema["minItems"] = 2
+            fit_row_schema["maxItems"] = 2
+            fit_items = fit_row_schema.get("items")
+            if isinstance(fit_items, dict):
+                fit_items["enum"] = ["issue", "repository"]
+    return schema
+
+
+def _malformed_output_error(exc: Exception) -> ProviderRunError:
+    """Map local validation failures to stable, non-content-bearing codes."""
+
+    if isinstance(exc, json.JSONDecodeError):
+        code = "codex_output_json_invalid"
+    elif isinstance(exc, SensitiveDataError):
+        code = "codex_output_sensitive"
+    elif isinstance(exc, ProviderContractError):
+        message = str(exc)
+        if "JSONL" in message or "usage event" in message:
+            code = "codex_output_protocol_invalid"
+        elif "outside the frozen input" in message:
+            code = "codex_output_citation_allowlist_invalid"
+        elif "undeclared citations" in message:
+            code = "codex_output_citation_declaration_invalid"
+        elif "citation count" in message or "citations must align" in message:
+            field = next(
+                (
+                    name
+                    for name in (
+                        "acceptance_criteria",
+                        "missing_information",
+                        "similar_issue_pr_evidence",
+                        "risks",
+                        "fit_reasons",
+                        "next_steps",
+                        "maintainer_questions",
+                    )
+                    if name in message
+                ),
+                None,
+            )
+            code = (
+                f"codex_output_citation_alignment_{field}_invalid"
+                if field is not None
+                else "codex_output_citation_alignment_invalid"
+            )
+        elif "exactly match statement-level citations" in message:
+            code = "codex_output_citation_union_invalid"
+        elif "citation map fields" in message:
+            code = "codex_output_citation_map_fields_invalid"
+        elif "Project summary must cite" in message:
+            code = "codex_output_citation_project_invalid"
+        elif "Requirement summary must cite" in message:
+            code = "codex_output_citation_requirement_invalid"
+        elif "Recommendation summary must cite" in message:
+            code = "codex_output_citation_recommendation_summary_invalid"
+        elif "At least one fit reason must cite" in message:
+            code = "codex_output_citation_fit_relationship_invalid"
+        elif "citation" in message:
+            field = next(
+                (
+                    name
+                    for label, name in (
+                        ("project summary", "project"),
+                        ("requirement summary", "requirement"),
+                        ("problem_summary", "problem"),
+                        ("current_behavior", "current_behavior"),
+                        ("expected_behavior", "expected_behavior"),
+                        ("acceptance_criteria", "acceptance_criteria"),
+                        ("missing_information", "missing_information"),
+                        ("similar_issue_pr_evidence", "similar_evidence"),
+                        ("competition", "competition"),
+                        ("estimated_effort", "estimated_effort"),
+                        ("bounty_basis", "bounty_basis"),
+                        ("risks", "risks"),
+                        ("confidence", "confidence"),
+                        ("recommendation summary", "recommendation_summary"),
+                        ("recommendation", "recommendation"),
+                        ("fit_reasons", "fit_reasons"),
+                        ("next_steps", "next_steps"),
+                        ("maintainer_questions", "maintainer_questions"),
+                    )
+                    if label in message
+                ),
+                None,
+            )
+            code = (
+                f"codex_output_citation_{field}_invalid"
+                if field is not None
+                else "codex_output_citations_invalid"
+            )
+        elif "citation" in message or "evidence" in message:
+            code = "codex_output_citations_invalid"
+        elif (
+            "hours must both" in message
+            or "Minimum effort hours" in message
+            or "Bounty amount must be null" in message
+        ):
+            code = "codex_output_consistency_invalid"
+        elif "duplicates" in message or "must be unique" in message:
+            code = "codex_output_uniqueness_invalid"
+        elif "final response must be an object" in message:
+            code = "codex_output_object_invalid"
+        elif message.startswith("Structured analysis fields"):
+            code = "codex_output_top_level_fields_invalid"
+        elif "fields" in message:
+            code = "codex_output_nested_fields_invalid"
+        elif "values" in message:
+            code = "codex_output_values_invalid"
+        elif "schema" in message:
+            code = "codex_output_schema_invalid"
+        else:
+            code = "codex_output_contract_invalid"
+    else:
+        code = "codex_output_contract_invalid"
+    return ProviderRunError(
+        code,
+        "Codex CLI returned malformed or unsafe structured output",
+        retryable=False,
     )
 
 

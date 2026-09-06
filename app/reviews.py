@@ -10,7 +10,11 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.artifacts import ArtifactStore, ExecutionArtifactManifestView
+from app.artifacts import (
+    ArtifactError,
+    ArtifactStore,
+    ExecutionArtifactManifestView,
+)
 from app.audit import AuditService
 from app.authorizations import (
     AuthorizationActionError,
@@ -24,6 +28,7 @@ from app.executions import (
     ExecutionStageStatus,
 )
 from app.models import (
+    AgentInvocation,
     ExecutionAttempt,
     ExecutionStageVersion,
     ReviewRun,
@@ -42,7 +47,7 @@ _IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
 _ACTOR_TYPE = re.compile(r"^[a-z][a-z0-9_.-]{0,39}$")
 _ACTOR_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
-_REVIEWER_KINDS = frozenset({"fake", "fake_blocking"})
+_REVIEWER_KINDS = frozenset({"fake", "fake_blocking", "nvidia_nim"})
 
 
 class ReviewError(RuntimeError):
@@ -76,7 +81,7 @@ class ReviewFinding:
 
 
 class ReviewRunService:
-    """Independent Fake review bound to exact execution hashes."""
+    """Independent review bound to exact execution and artifact hashes."""
 
     def __init__(
         self,
@@ -95,7 +100,12 @@ class ReviewRunService:
         actor_type: str,
         actor_id: str,
         reviewer_kind: str = "fake",
+        findings_override: tuple[ReviewFinding, ...] | None = None,
+        verdict_override: str | None = None,
+        reason_code_override: str | None = None,
+        reviewer_invocation_id: str | None = None,
         now: datetime | None = None,
+        commit: bool = True,
     ) -> ReviewRun:
         try:
             require_user_action(action, expected=UserAction.START_REVIEW)
@@ -156,7 +166,18 @@ class ReviewRunService:
             raise ReviewConflictError(
                 "Review requires a succeeded Verify stage"
             )
-        test_results_hash = self._test_results_hash(attempt, verify.result_hash)
+        diff_hash = self._artifact_hash(
+            attempt,
+            stage="implement",
+            stage_result_hash=implement.result_hash,
+            role="unified-diff",
+        )
+        test_results_hash = self._artifact_hash(
+            attempt,
+            stage="verify",
+            stage_result_hash=verify.result_hash,
+            role="normalized-test-results",
+        )
         binding = review_binding_payload(
             plan_content_hash=attempt.plan_content_hash,
             plan_record_hash=attempt.plan_record_hash,
@@ -164,17 +185,37 @@ class ReviewRunService:
             repository_archive_hash=attempt.repository_archive_hash,
             sandbox_policy_hash=attempt.sandbox_policy_hash,
             attempt_record_hash=attempt.record_hash,
-            diff_hash=implement.result_hash,
+            diff_hash=diff_hash,
             verify_result_hash=verify.result_hash,
             test_results_hash=test_results_hash,
         )
-        findings, verdict, reason_code = evaluate_fake_review(
-            reviewer_kind=reviewer_kind,
-            binding=binding,
-        )
+        if reviewer_kind == "nvidia_nim":
+            findings, verdict, reason_code = _model_review_result(
+                findings_override,
+                verdict=verdict_override,
+                reason_code=reason_code_override,
+                reviewer_invocation_id=reviewer_invocation_id,
+            )
+        else:
+            if any(
+                value is not None
+                for value in (
+                    findings_override,
+                    verdict_override,
+                    reason_code_override,
+                    reviewer_invocation_id,
+                )
+            ):
+                raise ReviewConflictError(
+                    "Fake Review cannot consume provider result overrides"
+                )
+            findings, verdict, reason_code = evaluate_fake_review(
+                reviewer_kind=reviewer_kind,
+                binding=binding,
+            )
         findings_payload = [item.to_wire() for item in findings]
         findings_hash = content_hash(findings_payload)
-        invocation_id = str(uuid4())
+        invocation_id = reviewer_invocation_id or str(uuid4())
         states = ContributionTaskStateService(self.session)
         try:
             current = states.current(attempt.task_id)
@@ -232,7 +273,7 @@ class ReviewRunService:
             sandbox_policy_hash=attempt.sandbox_policy_hash,
             attempt_record_hash=attempt.record_hash,
             implement_stage_version_id=implement.id,
-            diff_hash=implement.result_hash,
+            diff_hash=diff_hash,
             verify_stage_version_id=verify.id,
             verify_result_hash=verify.result_hash,
             test_results_hash=test_results_hash,
@@ -272,7 +313,7 @@ class ReviewRunService:
             sandbox_policy_hash=attempt.sandbox_policy_hash,
             attempt_record_hash=attempt.record_hash,
             implement_stage_version_id=implement.id,
-            diff_hash=implement.result_hash,
+            diff_hash=diff_hash,
             verify_stage_version_id=verify.id,
             verify_result_hash=verify.result_hash,
             test_results_hash=test_results_hash,
@@ -315,7 +356,10 @@ class ReviewRunService:
                 "Review audit evidence could not be prepared"
             ) from exc
         try:
-            self.session.commit()
+            if commit:
+                self.session.commit()
+            else:
+                self.session.flush()
         except IntegrityError as exc:
             self.session.rollback()
             replay = self.session.scalar(
@@ -376,12 +420,48 @@ class ReviewRunService:
             or review.task_id != attempt.task_id
             or review.plan_version_id != attempt.plan_version_id
             or review.attempt_record_hash != attempt.record_hash
+            or review.binding_hash
+            != content_hash(
+                review_binding_payload(
+                    plan_content_hash=review.plan_content_hash,
+                    plan_record_hash=review.plan_record_hash,
+                    base_commit_sha=review.base_commit_sha,
+                    repository_archive_hash=review.repository_archive_hash,
+                    sandbox_policy_hash=review.sandbox_policy_hash,
+                    attempt_record_hash=review.attempt_record_hash,
+                    diff_hash=review.diff_hash,
+                    verify_result_hash=review.verify_result_hash,
+                    test_results_hash=review.test_results_hash,
+                )
+            )
             or review.findings_hash != content_hash(list(review.findings))
             or review.record_hash != content_hash(expected)
         ):
             raise ReviewConflictError(
                 "ReviewRun content does not match its immutable inputs"
             )
+        if review.reviewer_kind == "nvidia_nim":
+            invocation = self.session.get(
+                AgentInvocation, review.reviewer_invocation_id
+            )
+            if (
+                invocation is None
+                or invocation.role != "review"
+                or invocation.provider_name != "nvidia_nim"
+                or invocation.output_hash
+                != content_hash(
+                    {
+                        "verdict": review.verdict,
+                        "reason_code": review.reason_code,
+                        "findings": list(review.findings),
+                    }
+                )
+                or invocation.record_hash
+                != content_hash(_agent_invocation_payload(invocation))
+            ):
+                raise ReviewConflictError(
+                    "NVIDIA Review invocation binding is invalid"
+                )
         return review
 
     def is_stale(self, review_id: str) -> bool:
@@ -415,7 +495,7 @@ class ReviewRunService:
         return (
             implement is None
             or verify is None
-            or implement.result_hash != review.diff_hash
+            or implement.id != review.implement_stage_version_id
             or verify.result_hash != review.verify_result_hash
             or attempt.plan_content_hash != review.plan_content_hash
             or attempt.plan_record_hash != review.plan_record_hash
@@ -436,29 +516,99 @@ class ReviewRunService:
         )
         return tuple(self.get_verified(row.id) for row in rows)
 
-    def _test_results_hash(
+    def _artifact_hash(
         self,
         attempt: ExecutionAttempt,
-        verify_result_hash: str,
+        *,
+        stage: str,
+        stage_result_hash: str,
+        role: str,
     ) -> str:
         if self.artifacts is None:
-            return verify_result_hash
+            raise ReviewConflictError(
+                "Review requires verified artifact storage"
+            )
         try:
             manifests = self.artifacts.execution_manifests(attempt.id)
-        except Exception:
-            return verify_result_hash
-        verify_manifest = next(
+        except ArtifactError as exc:
+            raise ReviewConflictError(
+                "Review artifacts failed integrity verification"
+            ) from exc
+        manifest = next(
             (
                 item
                 for item in manifests
-                if item.stage == "verify" and item.result_hash == verify_result_hash
+                if item.stage == stage
+                and item.result_hash == stage_result_hash
             ),
             None,
         )
-        if verify_manifest is None:
-            return verify_result_hash
-        extracted = _test_hash_from_manifest(verify_manifest)
-        return extracted or verify_result_hash
+        if manifest is None:
+            raise ReviewConflictError(
+                f"Review requires a verified {role} artifact"
+            )
+        extracted = _artifact_hash_from_manifest(manifest, role=role)
+        if extracted is None:
+            raise ReviewConflictError(
+                f"Review requires a verified {role} artifact"
+            )
+        return extracted
+
+
+def _model_review_result(
+    findings: tuple[ReviewFinding, ...] | None,
+    *,
+    verdict: str | None,
+    reason_code: str | None,
+    reviewer_invocation_id: str | None,
+) -> tuple[tuple[ReviewFinding, ...], str, str]:
+    values = tuple(findings or ())
+    if (
+        not values
+        or len(values) > 100
+        or verdict not in {"pass", "block"}
+        or not isinstance(reason_code, str)
+        or not re.fullmatch(r"[a-z][a-z0-9_]{0,99}", reason_code)
+        or not isinstance(reviewer_invocation_id, str)
+        or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}", reviewer_invocation_id)
+    ):
+        raise ReviewConflictError("NVIDIA Review result is invalid")
+    for finding in values:
+        if (
+            finding.severity
+            not in {"info", "low", "medium", "high", "blocking"}
+            or finding.verdict not in {"pass", "block"}
+            or not finding.location.strip()
+            or len(finding.location) > 500
+            or not finding.evidence.strip()
+            or len(finding.evidence) > 4000
+            or not finding.recommendation.strip()
+            or len(finding.recommendation) > 4000
+        ):
+            raise ReviewConflictError("NVIDIA Review finding is invalid")
+    has_block = any(item.verdict == "block" for item in values)
+    if (verdict == "block") != has_block:
+        raise ReviewConflictError("NVIDIA Review verdict is inconsistent")
+    return values, verdict, reason_code
+
+
+def _agent_invocation_payload(invocation: AgentInvocation) -> dict[str, object]:
+    return {
+        "id": invocation.id,
+        "job_id": invocation.job_id,
+        "attempt_number": invocation.attempt_number,
+        "role": invocation.role,
+        "provider_name": invocation.provider_name,
+        "adapter_version": invocation.adapter_version,
+        "model_name": invocation.model_name,
+        "model_version": invocation.model_version,
+        "input_hash": invocation.input_hash,
+        "output_hash": invocation.output_hash,
+        "input_tokens": invocation.input_tokens,
+        "cached_input_tokens": invocation.cached_input_tokens,
+        "output_tokens": invocation.output_tokens,
+        "duration_ms": invocation.duration_ms,
+    }
 
 
 def evaluate_fake_review(
@@ -625,11 +775,17 @@ def _latest_stage(
     return matches[-1] if matches else None
 
 
-def _test_hash_from_manifest(
+def _artifact_hash_from_manifest(
     manifest: ExecutionArtifactManifestView,
+    *,
+    role: str,
 ) -> str | None:
-    del manifest
-    return None
+    matches = tuple(
+        entry.artifact_id
+        for entry in manifest.entries
+        if entry.role == role
+    )
+    return matches[0] if len(matches) == 1 else None
 
 
 def _idempotency_key(value: str) -> str:

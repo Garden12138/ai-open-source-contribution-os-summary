@@ -180,6 +180,75 @@ def test_403_rate_limit_uses_reset_header() -> None:
     assert 0 <= delays[0] <= 5
 
 
+def test_403_secondary_rate_limit_with_remaining_quota_waits_one_minute() -> None:
+    calls = 0
+    delays: list[float] = []
+
+    async def record_sleep(seconds: float) -> None:
+        delays.append(seconds)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return httpx.Response(
+                403,
+                headers={
+                    "X-RateLimit-Remaining": "27",
+                    "X-RateLimit-Reset": "4102444800",
+                },
+                json={
+                    "message": "You have exceeded a secondary rate limit.",
+                    "documentation_url": (
+                        "https://docs.github.com/rest/using-the-rest-api/"
+                        "rate-limits-for-the-rest-api"
+                    ),
+                },
+                request=request,
+            )
+        return httpx.Response(200, json={"items": []}, request=request)
+
+    async def run() -> None:
+        async with GitHubClient(
+            settings(),
+            transport=httpx.MockTransport(handler),
+            sleep=record_sleep,
+            random_value=lambda: 0,
+        ) as client:
+            await client.search_issues("secondary-limit-query", limit=1)
+
+    asyncio.run(run())
+
+    assert calls == 2
+    assert delays == [60.0]
+
+
+def test_non_rate_limit_403_is_not_retried() -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            403,
+            headers={"X-RateLimit-Remaining": "27"},
+            json={"message": "Resource not accessible by personal access token"},
+            request=request,
+        )
+
+    async def run() -> None:
+        async with GitHubClient(
+            settings(),
+            transport=httpx.MockTransport(handler),
+        ) as client:
+            with pytest.raises(GitHubAPIError, match="HTTP 403"):
+                await client.search_issues("permission-query", limit=1)
+
+    asyncio.run(run())
+
+    assert calls == 1
+
+
 def test_network_error_retries_without_exposing_exception_details() -> None:
     calls = 0
     delays: list[float] = []

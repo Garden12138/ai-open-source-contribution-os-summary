@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -15,6 +16,9 @@ from app.providers.gateway import (
     GatewayAuthorizationScopeError,
     InternalModelGateway,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_model_gateway_app(gateway: InternalModelGateway) -> FastAPI:
@@ -38,7 +42,12 @@ def create_model_gateway_app(gateway: InternalModelGateway) -> FastAPI:
             "Internal model gateway request failed",
         )
 
+    @app.get("/health")
+    async def health() -> dict[str, str]:
+        return {"status": "ok"}
+
     @app.post("/v1/responses")
+    @app.post("/v1/chat/completions")
     async def create_response(request: Request) -> JSONResponse:
         content_type = request.headers.get("content-type", "")
         if content_type.split(";", 1)[0].strip().lower() != "application/json":
@@ -102,7 +111,12 @@ def create_model_gateway_app(gateway: InternalModelGateway) -> FastAPI:
                 "gateway_authorization_invalid",
                 "Model gateway authorization was rejected",
             )
-        except ProviderRunError:
+        except ProviderRunError as exc:
+            logger.warning(
+                "Model gateway upstream request failed: code=%s retryable=%s",
+                exc.code,
+                exc.retryable,
+            )
             return _error(
                 502,
                 "gateway_upstream_failure",

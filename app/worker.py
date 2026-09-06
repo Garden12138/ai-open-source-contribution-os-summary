@@ -11,18 +11,28 @@ from sqlalchemy import select
 
 from app.archives import RepositoryArchiveJobWorker, RepositoryArchiveStore
 from app.changesets import ChangeSetStore
+from app.coding import CodingContextJobWorker, NvidiaCodingJobWorker
 from app.config import Settings
 from app.database import Database
 from app.jobs import JobService, JobState, JobTransitionError
 from app.models import Job, ScanRun
 from app.product_experience import ProductExperienceService
+from app.review_provider import NvidiaReviewJobWorker
 from app.execution_worker import ExecutionStageWorker
 from app.providers import (
+    MINIMAX_M3_PARAMETERS,
+    NVIDIA_NIM_ADAPTER_VERSION,
+    NVIDIA_NIM_MODEL_VERSION,
+    NVIDIA_NIM_PROVIDER,
+    NvidiaNimGatewayRunner,
+    NvidiaNimParameters,
     ProviderAnalysisJobWorker,
+    ProviderIdentity,
     resolve_analysis_runtime,
     resolve_job_spec_signer,
-    resolve_stage_runtimes,
+    resolve_model_gateway_broker,
 )
+from app.sandbox_worker.runtime import resolve_stage_runtimes
 from app.service import DiscoveryService, GitHubReader
 
 
@@ -234,7 +244,10 @@ class ContribOSWorker:
             worker_id=worker_id,
             heartbeat_interval_seconds=heartbeat_interval_seconds,
         )
-        provider, _budget = resolve_analysis_runtime(settings)
+        provider, _budget = resolve_analysis_runtime(
+            settings,
+            execution_enabled=settings.analysis_provider == "fake",
+        )
         self.analysis = (
             ProviderAnalysisJobWorker(
                 database,
@@ -242,12 +255,16 @@ class ContribOSWorker:
                 worker_id=worker_id,
                 heartbeat_interval_seconds=heartbeat_interval_seconds,
             )
-            if provider is not None
+            if provider is not None and settings.analysis_provider != "nvidia_nim"
             else None
         )
         signer = resolve_job_spec_signer(settings)
         archive_store = RepositoryArchiveStore(settings.artifact_root)
-        stage_runtimes = resolve_stage_runtimes(settings)
+        stage_runtimes = (
+            resolve_stage_runtimes(settings)
+            if settings.sandbox_stage_runtime != "docker"
+            else None
+        )
         self.execution = (
             ExecutionStageWorker(
                 database,
@@ -267,7 +284,7 @@ class ContribOSWorker:
                     None if stage_runtimes is None else stage_runtimes.verify
                 ),
             )
-            if signer is not None
+            if signer is not None and settings.sandbox_stage_runtime != "docker"
             else None
         )
 
@@ -326,6 +343,154 @@ class ContribOSWorker:
                 payload={"queries": None, "top_n": None},
                 now=aware,
             )
+
+    async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:
+        interval = max(0.1, poll_interval_seconds)
+        while True:
+            job = await self.run_once()
+            if job is None:
+                await asyncio.sleep(interval)
+
+
+class ContribOSProviderWorker:
+    """Lease model-provider Jobs without GitHub or Docker capabilities."""
+
+    def __init__(
+        self,
+        database: Database,
+        settings: Settings,
+        *,
+        worker_id: str,
+        heartbeat_interval_seconds: float = 15,
+    ) -> None:
+        self.analysis = None
+        if settings.analysis_provider == "nvidia_nim":
+            provider, _budget = resolve_analysis_runtime(
+                settings,
+                execution_enabled=True,
+            )
+            self.analysis = (
+                None
+                if provider is None
+                else ProviderAnalysisJobWorker(
+                    database,
+                    provider,
+                    worker_id=worker_id,
+                    heartbeat_interval_seconds=heartbeat_interval_seconds,
+                )
+            )
+        self.coding = None
+        if settings.implementation_provider == "nvidia_nim":
+            broker = resolve_model_gateway_broker(settings)
+            identity = ProviderIdentity(
+                provider=NVIDIA_NIM_PROVIDER,
+                adapter_version=NVIDIA_NIM_ADAPTER_VERSION,
+                model=settings.implementation_model,
+                model_version=NVIDIA_NIM_MODEL_VERSION,
+            )
+            self.coding = NvidiaCodingJobWorker(
+                database,
+                artifact_root=settings.artifact_root,
+                runner=NvidiaNimGatewayRunner(
+                    broker=broker,
+                    parameters=NvidiaNimParameters(
+                        temperature=0.2,
+                        reasoning_effort="high",
+                        max_tokens=16_384,
+                    ),
+                ),
+                identity=identity,
+                worker_id=worker_id,
+            )
+        self.review = None
+        if settings.review_provider == "nvidia_nim":
+            review_identity = ProviderIdentity(
+                provider=NVIDIA_NIM_PROVIDER,
+                adapter_version=NVIDIA_NIM_ADAPTER_VERSION,
+                model=settings.review_model,
+                model_version=NVIDIA_NIM_MODEL_VERSION,
+            )
+            self.review = NvidiaReviewJobWorker(
+                database,
+                artifact_root=settings.artifact_root,
+                runner=NvidiaNimGatewayRunner(
+                    broker=resolve_model_gateway_broker(settings),
+                    parameters=MINIMAX_M3_PARAMETERS,
+                ),
+                identity=review_identity,
+                worker_id=worker_id,
+            )
+        if self.analysis is None and self.coding is None and self.review is None:
+            raise ValueError("A real NVIDIA provider is not configured")
+
+    async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        if self.analysis is not None:
+            completed = await self.analysis.run_once(now=now)
+            if completed is not None:
+                return completed
+        if self.coding is not None:
+            completed = await self.coding.run_once(now=now)
+            if completed is not None:
+                return completed
+        if self.review is not None:
+            return await self.review.run_once(now=now)
+        return None
+
+    async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:
+        interval = max(0.1, poll_interval_seconds)
+        while True:
+            job = await self.run_once()
+            if job is None:
+                await asyncio.sleep(interval)
+
+
+class ContribOSSandboxWorker:
+    """Lease Docker-only Jobs without GitHub or model credentials."""
+
+    def __init__(
+        self,
+        database: Database,
+        settings: Settings,
+        *,
+        worker_id: str,
+    ) -> None:
+        if settings.sandbox_stage_runtime != "docker":
+            raise ValueError("sandbox-worker requires SANDBOX_STAGE_RUNTIME=docker")
+        signer = resolve_job_spec_signer(settings)
+        if signer is None:
+            raise ValueError("sandbox-worker requires a JobSpec signing key")
+        runtimes = resolve_stage_runtimes(settings)
+        if runtimes is None:
+            raise ValueError("Docker stage runtimes are unavailable")
+        from app.sandbox_worker.coding_context import DockerCodingContextRuntime
+
+        docker_environment = dict(runtimes.explore.docker_environment)
+        self.context = CodingContextJobWorker(
+            database,
+            artifact_root=settings.artifact_root,
+            runtime=DockerCodingContextRuntime(
+                docker_environment=docker_environment
+            ),
+            worker_id=worker_id,
+        )
+        self.execution = ExecutionStageWorker(
+            database,
+            signer,
+            worker_id=worker_id,
+            archive_store=RepositoryArchiveStore(settings.artifact_root),
+            change_set_store=ChangeSetStore(settings.artifact_root),
+            artifact_root=settings.artifact_root,
+            secrets=(),
+            explore_runtime=runtimes.explore,
+            implement_runtime=runtimes.implement,
+            verify_runtime=runtimes.verify,
+        )
+
+    async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        completed = await self.context.run_once(now=now)
+        if completed is not None:
+            return completed
+        return await self.execution.run_once(now=now)
 
     async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:
         interval = max(0.1, poll_interval_seconds)

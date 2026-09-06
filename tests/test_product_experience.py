@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ from app.api import create_app
 from app.config import Settings
 from app.database import Database
 from app.models import (
+    Job,
     Opportunity,
     OpportunitySnapshot,
     Repository,
@@ -20,6 +22,9 @@ from app.models import (
 )
 from app.product_experience import ProductExperienceService
 from app.provenance import content_hash
+from app.providers import ProviderAnalysisJobWorker
+from app.service import DiscoveryService
+from tests.test_analysis_evidence import NOW, _CandidateGitHub, _scan
 
 
 def _seed_candidates(database: Database) -> tuple[int, int, str]:
@@ -212,10 +217,134 @@ def test_goal_profiles_rerank_full_pool_without_overwriting_rule_scores(
             )
             assert impact_feed["items"][0]["opportunity"]["id"] == impact_id
             assert bounty_feed["items"][0]["opportunity"]["id"] == bounty_id
+            assert impact_feed["analyzed_total"] == 0
+            assert impact_feed["recommended_total"] == 0
+            assert impact_feed["pending_analysis_total"] == 2
+            assert all(
+                item["decision_score"] == item["personalized_score"]
+                and item["analysis_status"] == "not_analyzed"
+                for item in impact_feed["items"]
+            )
             assert session.get(Opportunity, bounty_id).score_total == 73.4
             assert session.get(Opportunity, impact_id).score_total == 67.9
     finally:
         database.close()
+
+
+def test_batch_analysis_reranks_current_snapshots_with_bounded_jobs(
+    tmp_path,
+) -> None:
+    database_url = f"sqlite+pysqlite:///{tmp_path / 'analysis-screen.db'}"
+    database = Database(database_url)
+    database.create_schema()
+    _scan(database, count=3)
+    database.close()
+    app = create_app(
+        Settings(
+            database_url=database_url,
+            analysis_provider="fake",
+            github_queries=("evidence-query",),
+        )
+    )
+
+    with TestClient(app) as client:
+        meta = client.get("/api/v1/meta").json()
+        mutation_headers = {
+            "Origin": "http://testserver",
+            "X-CSRF-Token": meta["csrf_token"],
+            "Idempotency-Key": "batch-analysis-screen",
+        }
+        before = client.get("/api/v1/recommendations").json()
+        assert before["analyzed_total"] == 0
+        assert before["pending_analysis_total"] == 3
+        assert meta["analysis_provider"] == "fake"
+        assert meta["sandbox_stage_runtime"] == "none"
+        assert meta["draft_pr_publisher"] == "fake"
+
+        queued = client.post(
+            "/api/v1/recommendations/analyses",
+            headers=mutation_headers,
+            json={"limit": 3},
+        )
+        replay = client.post(
+            "/api/v1/recommendations/analyses",
+            headers=mutation_headers,
+            json={"limit": 3},
+        )
+        assert queued.status_code == 202
+        assert queued.json()["requested"] == 3
+        assert len(queued.json()["jobs"]) == 3
+        assert [item["job"]["id"] for item in replay.json()["jobs"]] == [
+            item["job"]["id"] for item in queued.json()["jobs"]
+        ]
+        assert all(item["created"] is False for item in replay.json()["jobs"])
+
+        with app.state.database.session() as session:
+            jobs = [
+                session.get(Job, item["job"]["id"])
+                for item in queued.json()["jobs"]
+            ]
+            assert all(job is not None for job in jobs)
+            assert sum(
+                int(job.payload["budget"]["max_model_invocations"])
+                for job in jobs
+                if job is not None
+            ) <= 20
+
+        worker = ProviderAnalysisJobWorker(
+            app.state.database,
+            app.state.analysis_provider,
+            worker_id="recommendation-analysis-worker",
+        )
+        for _ in queued.json()["jobs"]:
+            completed = asyncio.run(worker.run_once())
+            assert completed is not None and completed.state == "succeeded"
+
+        after = client.get("/api/v1/recommendations").json()
+        analyzed = client.get(
+            "/api/v1/recommendations",
+            params={"analysis_filter": "analyzed"},
+        ).json()
+        recommended = client.get(
+            "/api/v1/recommendations",
+            params={"analysis_filter": "recommended"},
+        ).json()
+        assert after["analyzed_total"] == 3
+        assert after["recommended_total"] == 3
+        assert after["pending_analysis_total"] == 0
+        assert analyzed["total"] == 3
+        assert recommended["total"] == 3
+        assert all(
+            item["analysis_status"] == "analyzed"
+            and item["analysis_recommendation"] == "consider"
+            and item["analysis_confidence"] == 1.0
+            and item["decision_score"]
+            == min(100.0, item["personalized_score"] + 2.0)
+            for item in after["items"]
+        )
+
+        with app.state.database.session() as session:
+            next_scan = asyncio.run(
+                DiscoveryService(
+                    session,
+                    _CandidateGitHub(3),
+                    app.state.settings,
+                ).scan(
+                    now=NOW + timedelta(days=1),
+                    top_n=3,
+                )
+            )
+            assert next_scan.status == "completed"
+        refreshed = client.get("/api/v1/recommendations").json()
+        assert refreshed["analyzed_total"] == 0
+        assert refreshed["recommended_total"] == 0
+        assert refreshed["pending_analysis_total"] == 3
+        assert all(
+            item["analysis_version_id"] is None
+            and item["analysis_status"] == "not_analyzed"
+            and item["ai_score_adjustment"] == 0
+            for item in refreshed["items"]
+        )
 
 
 def test_product_api_shortlist_compare_reminders_and_notifications(tmp_path) -> None:
@@ -232,6 +361,13 @@ def test_product_api_shortlist_compare_reminders_and_notifications(tmp_path) -> 
             "Origin": "http://testserver",
             "X-CSRF-Token": meta["csrf_token"],
         }
+        unavailable_analysis = client.post(
+            "/api/v1/recommendations/analyses",
+            headers=mutation_headers,
+            json={"limit": 2},
+        )
+        assert unavailable_analysis.status_code == 409
+        assert "provider_not_configured" in unavailable_analysis.text
         preference = client.post(
             "/api/v1/preferences/current",
             headers=mutation_headers,
@@ -245,6 +381,7 @@ def test_product_api_shortlist_compare_reminders_and_notifications(tmp_path) -> 
             },
         )
         assert preference.status_code == 200
+        assert preference.json()["created_at"].endswith("Z")
         for opportunity_id in (bounty_id, impact_id):
             saved = client.post(
                 f"/api/v1/opportunities/{opportunity_id}/dispositions",
@@ -268,6 +405,7 @@ def test_product_api_shortlist_compare_reminders_and_notifications(tmp_path) -> 
         assert len(comparison.json()) == 2
         assert notifications.status_code == 200
         assert len(notifications.json()) == 1
+        assert notifications.json()[0]["created_at"].endswith("Z")
         notification_id = notifications.json()[0]["id"]
         read = client.post(
             f"/api/v1/notifications/{notification_id}/read",
@@ -288,6 +426,25 @@ def test_product_api_shortlist_compare_reminders_and_notifications(tmp_path) -> 
         assert client.get(
             "/api/v1/notifications", params={"unread_only": True}
         ).json() == []
+
+        reminder_at = "2026-08-28T10:00:00Z"
+        saved_reminder = client.post(
+            f"/api/v1/opportunities/{bounty_id}/dispositions",
+            headers=mutation_headers,
+            json={
+                "state": "shortlisted",
+                "reminder_at": reminder_at,
+            },
+        )
+        assert saved_reminder.status_code == 200
+        assert saved_reminder.json()["reminder_at"] == reminder_at
+        refreshed_shortlist = client.get("/api/v1/shortlist").json()
+        refreshed_bounty = next(
+            item
+            for item in refreshed_shortlist
+            if item["opportunity"]["id"] == bounty_id
+        )
+        assert refreshed_bounty["reminder_at"] == reminder_at
 
 
 def test_preference_history_and_due_reminders_are_immutable_and_idempotent(

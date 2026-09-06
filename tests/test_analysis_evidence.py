@@ -68,8 +68,10 @@ class _CandidateGitHub:
         count: int,
         *,
         body: str | None = None,
+        unsafe_index: int | None = None,
     ) -> None:
         self.count = count
+        self.unsafe_index = unsafe_index
         self.body = body or (
             "Steps to reproduce, current behavior, expected behavior, and an "
             "acceptance checklist are included for deterministic analysis."
@@ -81,7 +83,12 @@ class _CandidateGitHub:
                 "id": 10_000 + index,
                 "number": index,
                 "title": f"Candidate {index:02d} improve analysis",
-                "body": self.body,
+                "body": (
+                    "Credential-shaped public text must be excluded: "
+                    "github_pat_FROZEN_CORPUS_CANARY_123456"
+                    if index == self.unsafe_index
+                    else self.body
+                ),
                 "html_url": (
                     f"https://github.com/fixture/evidence/issues/{index}"
                 ),
@@ -135,7 +142,13 @@ def _database(tmp_path: Path, name: str) -> Database:
     return database
 
 
-def _scan(database: Database, *, count: int, body: str | None = None) -> str:
+def _scan(
+    database: Database,
+    *,
+    count: int,
+    body: str | None = None,
+    unsafe_index: int | None = None,
+) -> str:
     settings = Settings(
         database_url=str(database.engine.url),
         github_queries=("evidence-query",),
@@ -146,7 +159,11 @@ def _scan(database: Database, *, count: int, body: str | None = None) -> str:
         run = asyncio.run(
             DiscoveryService(
                 session,
-                _CandidateGitHub(count, body=body),
+                _CandidateGitHub(
+                    count,
+                    body=body,
+                    unsafe_index=unsafe_index,
+                ),
                 settings,
             ).scan(
                 now=NOW,
@@ -429,6 +446,38 @@ def test_credential_like_content_cannot_become_frozen_analysis_evidence() -> Non
         )
 
 
+def test_unsafe_candidate_is_excluded_without_blocking_safe_corpus(
+    tmp_path: Path,
+) -> None:
+    database = _database(tmp_path, "evidence-mixed-safety.db")
+    try:
+        scan_run_id = _scan(database, count=2, unsafe_index=1)
+        with database.session() as session:
+            frozen = AnalysisInputFreezer(session).freeze_top_candidates(
+                scan_run_id=scan_run_id,
+                limit=2,
+            )
+            unsafe = next(
+                snapshot
+                for snapshot in session.scalars(
+                    select(OpportunitySnapshot).where(
+                        OpportunitySnapshot.scan_run_id == scan_run_id
+                    )
+                )
+                if snapshot.issue_data["number"] == 1
+            )
+
+        assert unsafe is not None
+        assert len(frozen) == 1
+        assert frozen[0].snapshot_id != unsafe.id
+        assert frozen[0].rule_rank in {1, 2}
+        assert "FROZEN_CORPUS_CANARY" not in "".join(
+            item.content for item in frozen[0].evidence
+        )
+    finally:
+        database.close()
+
+
 def _run_frozen_provider_job(
     database: Database,
     *,
@@ -518,9 +567,11 @@ def test_succeeded_provider_job_creates_one_immutable_analysis_version(
                 "rule_score",
             }
             assert version.structured_output["problem_summary"] == (
-                "Deterministic fake analysis"
+                "确定性的演示分析。"
             )
             assert set(version.structured_output) == {
+                "project_summary",
+                "requirement_summary",
                 "problem_summary",
                 "current_behavior",
                 "expected_behavior",

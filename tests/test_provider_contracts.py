@@ -106,6 +106,7 @@ def analyze_request(
         snapshot_id="snapshot-1",
         score_version_id="score-1",
         inspection=inspection,
+        evidence=evidence(),
         prompt_version="analyze-prompt-v1",
         policy_version="analysis-policy-v1",
         output_schema_version="analysis-schema-v1",
@@ -156,6 +157,44 @@ def test_provider_inputs_and_outputs_are_hash_bound_and_replay_stable() -> None:
     )
 
     assert first_analysis.output_hash == replay_analysis.output_hash
+
+
+def test_contextual_analysis_hash_binds_the_direct_frozen_evidence() -> None:
+    inspection = inspection_result(inspect_request())
+    original = AnalyzeRequest.create(
+        request_id="analyze-context-original",
+        correlation_id="analysis-1",
+        snapshot_id="snapshot-1",
+        score_version_id="score-1",
+        inspection=inspection,
+        evidence=evidence(),
+        prompt_version="analyze-prompt-v11",
+        policy_version="analysis-policy-v3",
+        output_schema_version="analysis-schema-v4",
+    )
+    changed_evidence = (
+        evidence()[0],
+        FrozenEvidence.capture(
+            evidence_id="repository",
+            kind="github_repository",
+            source_uri="github://fixture/repository",
+            content="Changed repository context.",
+        ),
+    )
+    changed = AnalyzeRequest.create(
+        request_id="analyze-context-changed",
+        correlation_id="analysis-1",
+        snapshot_id="snapshot-1",
+        score_version_id="score-1",
+        inspection=inspection,
+        evidence=changed_evidence,
+        prompt_version="analyze-prompt-v11",
+        policy_version="analysis-policy-v3",
+        output_schema_version="analysis-schema-v4",
+    )
+
+    assert original.allowed_evidence_ids == ("issue", "repository")
+    assert original.input_hash != changed.input_hash
 
 
 def test_provider_contract_rejects_stale_hashes_and_invalid_usage() -> None:

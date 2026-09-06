@@ -541,7 +541,7 @@ def _validate_endpoint(
     parsed = urlparse(base_url)
     if (
         parsed.scheme != "http"
-        or parsed.hostname != service_name
+        or parsed.hostname not in {service_name, "127.0.0.1"}
         or parsed.username is not None
         or parsed.password is not None
         or parsed.query
