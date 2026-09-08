@@ -203,6 +203,36 @@ class NvidiaReviewJobWorker:
                         artifacts=artifacts,
                     )
                     _require_job_matches(payload, frozen_after, self.identity)
+                    tests_value = json.loads(tests)
+                    from dataclasses import replace
+
+                    findings = tuple(
+                        replace(f, verdict="block")
+                        if f.severity in {"high", "blocking"} else f
+                        for f in findings
+                    )
+                    if (
+                        not isinstance(tests_value, list)
+                        or not tests_value
+                        or any(
+                            not isinstance(t, dict)
+                            or t.get("outcome") != "passed"
+                            or t.get("exit_code") != 0
+                            for t in tests_value
+                        )
+                    ):
+                        findings = (
+                            *findings[:99],
+                            ReviewFinding(
+                                severity="blocking",
+                                location="verification",
+                                evidence="The exact Verify artifact contains failed, missing or unrun tests.",
+                                recommendation="Repair the approved implementation and rerun complete verification.",
+                                verdict="block",
+                            ),
+                        )
+                    if any(f.verdict == "block" for f in findings):
+                        verdict, reason_code = "block", "verification_or_review_blocked"
                     output_payload = {
                         "verdict": verdict,
                         "reason_code": reason_code,

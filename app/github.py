@@ -254,6 +254,21 @@ class GitHubClient:
             page += 1
         return collected
 
+    async def resolve_repository_head(self, full_name: str, branch: str | None = None) -> tuple[str, str]:
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", full_name):
+            raise ValueError("Repository name is invalid")
+        if branch is None:
+            repository = await self._get(f"/repos/{full_name}")
+            branch = repository.get("default_branch")
+        if not isinstance(branch, str) or not branch or len(branch) > 255:
+            raise GitHubAPIError("Repository default branch is invalid")
+        from urllib.parse import quote
+        commit = await self._get(f"/repos/{full_name}/commits/{quote(branch, safe='')}")
+        sha = commit.get("sha", "")
+        if not isinstance(sha, str) or not _BASE_SHA.fullmatch(sha):
+            raise GitHubAPIError("Repository commit is invalid")
+        return branch, sha
+
     async def download_repository_archive(
         self,
         full_name: str,
@@ -277,6 +292,8 @@ class GitHubClient:
                     path,
                     Path(destination),
                     max_bytes,
+                    repository_full_name=full_name,
+                    commit_sha=commit_sha,
                 )
             except httpx.HTTPError as exc:
                 last_error = GitHubAPIError(
@@ -314,6 +331,9 @@ class GitHubClient:
         path: str,
         destination: Path,
         max_bytes: int,
+        *,
+        repository_full_name: str,
+        commit_sha: str,
     ) -> int:
         redirected: str | None = None
         async with self.client.stream("GET", path) as response:
@@ -326,7 +346,9 @@ class GitHubClient:
                         response.status_code,
                     )
                 redirected = self._validate_archive_redirect(
-                    urljoin(str(response.request.url), location)
+                    urljoin(str(response.request.url), location),
+                    repository_full_name=repository_full_name,
+                    commit_sha=commit_sha,
                 )
             elif response.is_error:
                 raise GitHubAPIError(
@@ -380,7 +402,9 @@ class GitHubClient:
                     max_bytes,
                 )
 
-    def _validate_archive_redirect(self, value: str) -> str:
+    def _validate_archive_redirect(
+        self, value: str, *, repository_full_name: str, commit_sha: str
+    ) -> str:
         parsed = urlsplit(value)
         host = (parsed.hostname or "").lower()
         allowed = {item.lower() for item in self.settings.github_archive_hosts}
@@ -392,12 +416,32 @@ class GitHubClient:
             )
         if not host or host not in allowed:
             raise GitHubAPIError("GitHub archive redirect host is not allowed")
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise GitHubAPIError("GitHub archive redirect port is invalid") from exc
+        if port not in {None, 443}:
+            raise GitHubAPIError("GitHub archive redirect port is not allowed")
         query_names = {name.lower() for name in parse_qs(parsed.query)}
         if query_names & _ARCHIVE_CREDENTIAL_QUERY:
             raise GitHubAPIError(
                 "GitHub archive redirect must not contain credentials"
             )
-        return value
+        repository_path = "/" + quote(repository_full_name, safe="/")
+        canonical_path = f"{repository_path}/tar.gz/{commit_sha}"
+        legacy_path = f"{repository_path}/legacy.tar.gz/{commit_sha}"
+        if (
+            parsed.path not in {canonical_path, legacy_path}
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise GitHubAPIError(
+                "GitHub archive redirect does not match the requested repository and commit"
+            )
+        # GitHub's API returns legacy.tar.gz, whose root uses an abbreviated SHA.
+        # The canonical format matches the Runner's repository/full-SHA check.
+        # Keep the authenticated API lookup and credential-free codeload request.
+        return parsed._replace(path=canonical_path).geturl()
 
     @staticmethod
     async def _write_archive_stream(

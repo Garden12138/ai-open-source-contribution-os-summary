@@ -16,7 +16,7 @@ from app.models import Base
 
 FIXTURES = Path(__file__).parent / "fixtures"
 BASELINE_REVISION = "0001_phase1_baseline"
-LATEST_REVISION = "0028_nvidia_review_runs"
+LATEST_REVISION = "0029_workbench"
 
 
 def _load_phase1_fixture(path: Path) -> None:
@@ -66,6 +66,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "0025_product_experience",
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
+            "0028_nvidia_review_runs",
             LATEST_REVISION,
         )
         assert first.stamped == ()
@@ -118,6 +119,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "score_versions",
             "task_lifecycle_marks",
             "user_preference_versions",
+            "workbench_events",
         }
     finally:
         database.close()
@@ -237,6 +239,7 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
             "0025_product_experience",
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
+            "0028_nvidia_review_runs",
             LATEST_REVISION,
         )
         assert report.stamped == (BASELINE_REVISION,)
@@ -370,6 +373,7 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
             "0025_product_experience",
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
+            "0028_nvidia_review_runs",
             LATEST_REVISION,
         )
         with database.session() as session:
@@ -409,6 +413,7 @@ def test_product_experience_and_review_binding_upgrade_preserves_rows(
             "0025_product_experience",
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
+            "0028_nvidia_review_runs",
             LATEST_REVISION,
         )
         with database.session() as session:
@@ -416,6 +421,7 @@ def test_product_experience_and_review_binding_upgrade_preserves_rows(
             assert retained.payload == {"retained": True}
         assert {
             "user_preference_versions",
+            "workbench_events",
             "opportunity_disposition_versions",
             "in_app_notifications",
             "notification_reads",

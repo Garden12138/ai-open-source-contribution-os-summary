@@ -751,7 +751,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             review_provider=current.review_provider,
             review_model=current.review_model,
             sandbox_stage_runtime=current.sandbox_stage_runtime,
-            draft_pr_publisher="fake",
+            draft_pr_publisher=settings.publisher_mode,
         )
 
     @app.get(
@@ -2577,6 +2577,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
         try:
+            if JobService(session).get(job_id).kind == "publication_write":
+                raise HTTPException(status_code=409, detail="发布已确认；远端操作只能完成或重试核对，不能中途取消")
             job = JobService(session).request_cancel(job_id)
         except JobNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -2777,6 +2779,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> PublishIntentResponse:
         try:
+            if settings.publisher_mode != "fake":
+                raise HTTPException(409, "此接口仅用于明确启用的演示；真实发布请使用贡献工作台")
             service = PublishIntentService(session, FakeGitHubPublisher())
             intent = service.create(
                 review_run_id=review_id,
@@ -2829,6 +2833,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> PublishConfirmationResponse:
         try:
+            if settings.publisher_mode != "fake":
+                raise HTTPException(409, "此接口仅用于明确启用的演示；真实发布请使用贡献工作台")
             service = PublishIntentService(session, FakeGitHubPublisher())
             intent, draft, _confirmation = service.confirm(
                 intent_id=intent_id,
@@ -2944,6 +2950,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ContributionDashboardService(session).snapshot()
         )
 
+    from app.workbench_api import register_workbench_routes
+    register_workbench_routes(app, get_session, require_mutation_access)
     return app
 
 

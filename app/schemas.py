@@ -1165,7 +1165,7 @@ class MetaResponse(BaseModel):
     review_provider: Literal["none", "fake", "nvidia_nim"] = "none"
     review_model: str
     sandbox_stage_runtime: Literal["none", "fake", "docker"]
-    draft_pr_publisher: Literal["fake"]
+    draft_pr_publisher: Literal["none", "fake", "gh"]
 
 
 class PreferenceUpsertRequest(BaseModel):

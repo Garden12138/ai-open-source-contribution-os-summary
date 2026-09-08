@@ -1,3 +1,4 @@
+import { mountContributionWorkbench } from "./workbench.js?v=workbench-v1";
 import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {
@@ -1746,7 +1747,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     copy.append(
       element("span", "planning-kicker", "START CONTRIBUTING"),
       element("h4", "", "开始准备这个贡献"),
-      element("p", "", "把分析报告整理成可确认的实施步骤，并继续保留完整的不可变溯源。"),
+      element("p", "", "让 AI 阅读代码、讨论改造方案；您可以编辑，确认后自动实施和验证。"),
     );
     const body = element("div", "planning-launcher-body");
     const analysisVersionId = cleanText(analysisDetail && analysisDetail.id);
@@ -1757,7 +1758,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       || cleanText(existingTask && existingTask.id);
     if (knownTaskId) panel.taskIds.set(analysisVersionId, knownTaskId);
     const action = analysisAction(
-      knownTaskId ? "打开任务工作台" : "创建贡献任务",
+      knownTaskId ? "打开贡献方案" : "制定贡献方案",
       async () => {
         if (!analysisVersionId) {
           showToast("当前分析版本标识无效。", true);
@@ -1816,6 +1817,14 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   }
 
   function renderPlanningWorkbench(container, panel, analysisDetail, taskDetail) {
+    mountContributionWorkbench(container, taskDetail.task.id, {
+      ensureAccess: ensureLocalAccessToken,
+      headers: mutationHeaders,
+      renderExecution: (root, detail, plan, refresh) => renderExecutionDetail(root, detail, plan, refresh, true),
+    });
+  }
+
+  function renderLegacyPlanningWorkbench(container, panel, analysisDetail, taskDetail) {
     container.replaceChildren();
     const task = objectValue(taskDetail.task);
     const currentState = objectValue(taskDetail.current_state);
@@ -2520,7 +2529,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     return section;
   }
 
-  function renderExecutionDetail(root, detail, plan, refresh) {
+  function renderExecutionDetail(root, detail, plan, refresh, automated = false) {
     root.replaceChildren();
     const current = objectValue(detail.current_stage);
     const stages = Array.isArray(detail.stages) ? detail.stages : [];
@@ -2541,7 +2550,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     root.appendChild(summary);
 
     if (
-      cleanText(current.stage) === "explore"
+      !automated && cleanText(current.stage) === "explore"
       && cleanText(current.status) === "succeeded"
     ) {
       if (
@@ -2586,7 +2595,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     const reviews = Array.isArray(detail.reviews) ? detail.reviews : [];
     const latestReview = reviews.length ? reviews[reviews.length - 1] : null;
     if (
-      cleanText(current.stage) === "verify"
+      !automated && cleanText(current.stage) === "verify"
       && cleanText(current.status) === "succeeded"
       && !latestReview
     ) {
@@ -2634,7 +2643,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       root.appendChild(reviewForm);
     }
     if (latestReview) {
-      root.appendChild(buildReviewCard(latestReview, refresh));
+      root.appendChild(buildReviewCard(latestReview, refresh, automated));
     }
 
     if (
@@ -3295,7 +3304,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     root.replaceChildren(list);
   }
 
-  function buildReviewCard(review, refresh) {
+  function buildReviewCard(review, refresh, automated = false) {
     const card = element("section", "execution-subcard review-card");
     const stale = Boolean(review.stale);
     card.append(
@@ -3322,7 +3331,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       list.appendChild(item);
     });
     card.appendChild(list);
-    if (cleanText(review.verdict) === "block" && !stale) {
+    if (!automated && cleanText(review.verdict) === "block" && !stale) {
       const repairForm = element("form", "planning-execution-form");
       const repair = analysisAction("启动有界修复", () => {});
       repair.type = "submit";
@@ -3354,7 +3363,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       });
       card.appendChild(repairForm);
     }
-    if (cleanText(review.verdict) === "pass" && !stale) {
+    if (!automated && cleanText(review.verdict) === "pass" && !stale) {
       card.appendChild(buildPublishForm(review, refresh));
     }
     return card;

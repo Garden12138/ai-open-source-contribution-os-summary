@@ -16,6 +16,8 @@ x-app-environment: &app-environment
   IMPLEMENTATION_MODEL: ${IMPLEMENTATION_MODEL:-deepseek-ai/deepseek-v4-pro-0813}
   REVIEW_PROVIDER: ${REVIEW_PROVIDER:-none}
   REVIEW_MODEL: ${REVIEW_MODEL:-minimaxai/minimax-m3}
+  WORKBENCH_RUNNER_IMAGE: ${WORKBENCH_RUNNER_IMAGE:-}
+  PUBLISHER_MODE: ${PUBLISHER_MODE:-none}
   SANDBOX_STAGE_RUNTIME: ${SANDBOX_STAGE_RUNTIME:-none}
   SANDBOX_JOB_SPEC_KEY_ID: ${SANDBOX_JOB_SPEC_KEY_ID:-local-v1}
 
@@ -68,6 +70,7 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       GITHUB_ALLOWED_HOSTS: ${GITHUB_ALLOWED_HOSTS:-api.github.com}
       GITHUB_ARCHIVE_HOSTS: ${GITHUB_ARCHIVE_HOSTS:-codeload.github.com}
+      SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}
     networks:
       - app-internal
       - external-egress
@@ -90,6 +93,87 @@ services:
     depends_on:
       model-gateway:
         condition: service_healthy
+
+  # Trusted supervisor, distinct from the untrusted Runner containers it starts.
+  # Mount the existing volume at its daemon-side path so child bind mounts refer
+  # to the same archive/request files without sharing the database with Runners.
+  sandbox-worker:
+    profiles: ["sandbox"]
+    image: contribos-sandbox-worker:0.1.0
+    build:
+      context: ../..
+      dockerfile: docs/deployment/SandboxWorker.Dockerfile
+      additional_contexts:
+        contribos-app: service:api
+    command: ["sandbox-worker"]
+    environment:
+      DATABASE_URL: sqlite:///${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}/contribos.db
+      ARTIFACT_ROOT: ${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}/artifacts
+      TMPDIR: ${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}/sandbox-tmp
+      SANDBOX_STAGE_RUNTIME: docker
+      SANDBOX_JOB_SPEC_KEY_ID: ${SANDBOX_JOB_SPEC_KEY_ID:-local-v1}
+      SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - type: volume
+        source: contribos-data
+        target: ${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}
+        volume:
+          nocopy: true
+      - type: bind
+        source: ${SANDBOX_DOCKER_SOCKET:-/var/run/docker.sock}
+        target: /var/run/docker.sock
+        bind:
+          create_host_path: false
+    group_add: ["${SANDBOX_DOCKER_GID:-0}"]
+    network_mode: none
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=64m
+    mem_limit: 2g
+    cpus: 1
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    stop_grace_period: 30s
+    depends_on:
+      api:
+        condition: service_healthy
+
+  publisher:
+    profiles: ["publisher"]
+    image: contribos-publisher:0.1.0
+    build:
+      context: ../..
+      dockerfile: docs/deployment/Publisher.Dockerfile
+    command: []
+    environment:
+      DATABASE_URL: sqlite:////data/contribos.db
+      ARTIFACT_ROOT: /data/artifacts
+      PUBLISHER_MODE: gh
+      GH_CONFIG_DIR: /publisher-auth
+    volumes:
+      - contribos-data:/data
+      - type: bind
+        source: ${PUBLISHER_GH_CONFIG_DIR:-./publisher-auth}
+        target: /publisher-auth
+        read_only: true
+        bind:
+          create_host_path: false
+    networks: [external-egress]
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=1536m
+    mem_limit: 2g
+    cpus: 1
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    stop_grace_period: 30s
 
   model-gateway:
     <<: *contribos-image

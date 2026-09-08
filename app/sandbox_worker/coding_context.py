@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import signal
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -233,11 +234,13 @@ class DockerCodingContextRuntime:
         archive.verify()
         request = (canonical_json({"paths": list(normalized)}) + "\n").encode()
         with tempfile.TemporaryDirectory(prefix="contribos-coding-context-") as tmp:
+            runner_archive = self._stage_archive(archive, Path(tmp))
             request_path = Path(tmp) / "request.json"
             request_path.write_bytes(request)
+            request_path.chmod(0o444)
             name = f"contribos-coding-context-{uuid4().hex}"
             argv = self._argv(
-                archive=archive,
+                archive=runner_archive,
                 request_path=request_path,
                 image_digest=image_digest,
                 policy=policy,
@@ -268,6 +271,27 @@ class DockerCodingContextRuntime:
         if tuple(item.path for item in entries) != normalized:
             raise CodingContextError("Coding context paths do not match request")
         return entries
+
+    def _stage_archive(
+        self, archive: RepositoryArchive, directory: Path
+    ) -> RepositoryArchive:
+        """Expose only a verified temporary copy to the separate Runner UID."""
+        from app.sandbox_worker.explore import RepositoryArchive
+
+        path = directory / "repository.tar"
+        shutil.copyfile(archive.path, path)
+        staged = RepositoryArchive.capture(
+            repository_full_name=archive.repository_full_name,
+            base_commit_sha=archive.base_commit_sha,
+            path=path,
+            allowed_root=directory,
+        )
+        if staged.archive_hash != archive.archive_hash:
+            raise CodingContextError("Repository archive changed while staging")
+        # The parent stays mode 0700. Docker mounts this individual file read-only;
+        # no database, artifact directory or persistent file permissions change.
+        path.chmod(0o444)
+        return staged
 
     def _argv(
         self,
@@ -343,7 +367,7 @@ class DockerCodingContextRuntime:
             stdout, stderr = await asyncio.wait_for(
                 process.communicate(), timeout=timeout_seconds
             )
-        except TimeoutError as exc:
+        except (TimeoutError, asyncio.CancelledError) as exc:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:

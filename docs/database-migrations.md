@@ -677,3 +677,34 @@ Recovery:
 
 Never edit a registered migration after it has been applied. Corrective work is
 a new revision.
+
+### `0029_workbench`
+
+Adds the immutable, hash-chained `workbench_events` journal and unique task
+sequence/idempotency constraints. Planning evidence, execution consent, human
+publication confirmation and external-write reconciliation events are appended,
+never overwritten. Historical plans are preserved without fabricating code-read
+provenance. Explicit `user_replan` allows a stopped execution/review to return to
+planning; a newly approved plan can start a new execution sequence while repair
+budgets remain approval-specific.
+
+The migration also rebuilds `plan_versions`, preserving every row and trigger,
+and scopes content uniqueness to task/parent/content so identical text can form a
+new child when code evidence or planning state changes. Version numbers, hashes,
+parent links and idempotency remain unique and immutable.
+
+The migration rebuilds `draft_pull_requests` within the migration transaction to
+allow distinct `fake` and `github` providers, copying all rows and restoring
+indexes/immutability triggers. The migration runner disables foreign-key rename
+rewrites only for this operation and checks foreign keys before completion.
+The upgrade test preserves existing Draft PR hashes and confirmation references.
+
+Recovery: stop API and every worker, including Publisher. Before upgrading, use
+the SQLite backup API to take a consistent pre-upgrade backup and preserve the
+matching artifact tree (do not copy only a live WAL database file). If rollback
+is necessary, preserve the failed-upgrade files, restore that database/artifact
+pair and the previous application, then check `PRAGMA integrity_check` and
+`PRAGMA foreign_key_check`. Do not delete migration stamps or provenance rows.
+After a real publish confirmation, reconcile any remote write against the saved
+intent before restoring or retrying: restoring SQLite cannot undo a Fork, Push
+or Draft PR. Keep the post-confirmation database and audit evidence available.

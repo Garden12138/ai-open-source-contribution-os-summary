@@ -44,6 +44,7 @@ class ProviderRunError(RuntimeError):
 
 
 class ProviderStage(StrEnum):
+    PLANNING = "planning"
     INSPECT = "inspect"
     ANALYZE = "analyze"
     CODING = "coding"

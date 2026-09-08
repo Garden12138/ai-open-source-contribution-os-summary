@@ -78,6 +78,8 @@ from app.migrations.versions.v0028_nvidia_review_runs import (
     MIGRATION as NVIDIA_REVIEW_RUNS,
 )
 
+from app.migrations.versions.v0029_workbench import MIGRATION as WORKBENCH
+
 MIGRATIONS: tuple[Migration, ...] = (
     PHASE1_BASELINE,
     PROVENANCE,
@@ -107,6 +109,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     REVIEW_ARTIFACT_BINDINGS,
     NVIDIA_AGENT_WORKFLOWS,
     NVIDIA_REVIEW_RUNS,
+    WORKBENCH,
 )
 
 __all__ = ["MIGRATIONS"]

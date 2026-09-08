@@ -91,6 +91,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=f"sandbox-{socket.gethostname()}-{uuid4()}",
     )
 
+    publisher_worker = subparsers.add_parser("publisher-worker", help="Run exact user-confirmed publication using host gh authentication")
+    publisher_worker.add_argument("--once", action="store_true")
+    publisher_worker.add_argument("--poll-interval", type=float, default=2)
+    publisher_worker.add_argument("--worker-id", default=f"publisher-{socket.gethostname()}-{uuid4()}")
+
     doctor = subparsers.add_parser(
         "doctor",
         help="Verify Sandbox Worker runtime prerequisites",
@@ -171,6 +176,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     settings = Settings.from_env()
     if args.command == "scan":
         return asyncio.run(run_scan(settings, args.queries, args.top))
+    if args.command == "publisher-worker":
+        return asyncio.run(run_publisher_worker(settings, args))
     if args.command == "worker":
         return asyncio.run(run_worker(settings, args))
     if args.command == "provider-worker":
@@ -289,7 +296,27 @@ def _gateway_secret(
     if not value or len(value) > 8_192 or any(char.isspace() for char in value):
         raise ValueError(f"{environment_name} is not configured safely")
     return value
-
+async def run_publisher_worker(settings: Settings, args: argparse.Namespace) -> int:
+    from app.publication import PublicationWorker
+    from app.workbench import WorkbenchError
+    if any(os.environ.get(name) for name in (
+        "GITHUB_TOKEN", "GH_TOKEN", "NVIDIA_API_KEY", "OPENAI_API_KEY",
+        "MODEL_GATEWAY_SIGNING_KEY", "SANDBOX_JOB_SPEC_SIGNING_KEY", "DOCKER_HOST",
+    )) or Path("/var/run/docker.sock").exists() and os.access("/var/run/docker.sock", os.W_OK):
+        raise WorkbenchError("Publisher 必须使用独立环境：仅 gh 登录、数据库和产物；不能访问 Docker 或模型凭证")
+    database = Database(settings.database_url)
+    database.create_schema()
+    try:
+        worker = PublicationWorker(database, settings, worker_id=args.worker_id)
+        if args.once:
+            await worker.run_once()
+            return 0
+        while True:
+            job = await worker.run_once()
+            if job is None:
+                await asyncio.sleep(max(0.1, args.poll_interval))
+    finally:
+        database.close()
 
 if __name__ == "__main__":
     raise SystemExit(main())

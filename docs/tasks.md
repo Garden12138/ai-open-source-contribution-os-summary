@@ -939,6 +939,178 @@ remains open:
   credential pattern. This work supplies no native Linux amd64/Docker Engine
   evidence, so P5-G06 and Phase 5 remain open.
 
+
+AI contribution workbench redesign (2026-09-07), explicitly user-directed while
+P5-G06 remains blocked:
+
+- [x] **WB-T01** Replace the primary manual-plan entry with AI chat plus an
+  editable plan document. Planning resolves a fixed upstream commit, reads a
+  bounded archive inside the credential-free Runner, requests clarification or
+  additional files, and persists immutable parent/child PlanVersions. A stale
+  browser cannot execute a newly generated version without seeing and confirming
+  it; unsaved edits and cached version diffs survive polling.
+- [x] **WB-T02** Persist planning and orchestration Jobs plus an append-only,
+  hash-verified Workbench journal in forward migration `0029_workbench`. Tests
+  cover idempotency, stale edits, cancelled late model results and upgrade of
+  populated historical Draft PR/confirmation rows without changing hashes or
+  foreign-key references. Recovery is documented in `docs/database-migrations.md`.
+- [x] **WB-T03** Bind explicit approval/start consent to the plan, inspected
+  base/archive, policy/image and model identities. Drive existing Explore,
+  context capture, code proposal, Implement, Verify and independent Review
+  services automatically. Pass stops at human acceptance; blocked review has at
+  most two automatic repairs; failed/unrun tests override a model pass. Tests
+  exercise the entire deterministic chain and a revised plan's second execution.
+- [x] **WB-T04** Add a separately deployed `publisher-worker` and optional
+  Publisher-only Compose profile. Read-only preview reconstructs the actual Git
+  commit and verifies baseline/result inventory, diff, test and review hashes.
+  Final nonce confirmation atomically freezes PublishIntent, authorization,
+  audit and Job before Fork/Push/Draft. Fixed branches, remote reconciliation and
+  a durable pre-POST marker prevent duplicate PR creation after uncertain writes.
+  Offline contracts cover lost responses, unknown outcomes, moved base and
+  single-use confirmation; actual Git operations on a trusted local fixture
+  produce identical commit/tree hashes twice and reject changed evidence.
+- [x] **WB-G01** Focused workflow/publication/upgrade/security tests and the
+  appropriate regression suite pass. The latest completed full run had
+  `352 passed, 11 skipped`, including failed-test/model-pass and identical-text
+  revisions after code-evidence changes. Dedicated Publisher image build and a
+  no-network, no-credential, temporary-database startup check also pass. Python compilation, ES-module syntax and diff checks pass. Canary
+  output is rejected before plan persistence.
+- [x] **WB-G02** Native browser acceptance on a temporary database verifies
+  editable documents, parent-version diffs and polling at `1280×900` and
+  `390×844`, with no horizontal overflow or JavaScript errors. Real macOS
+  arm64/OrbStack planning inspection passes against Runner
+  `sha256:8e60dac389c292d775edbb6b625c69fd26868ae42004e402120fbcb6e40203f6`:
+  repository code remains text, package scripts never execute, binary files are
+  omitted and traversal archives fail closed.
+- [ ] **WB-G03** Real configured model → sandbox execution → independent review
+  acceptance on a dedicated non-production repository. The local deployment now
+  includes a real Sandbox Worker, with planning/code-reading checks passing on
+  2026-09-08; real model → implementation → review acceptance remains unverified.
+- [ ] **WB-G04** Dedicated test account: human-reviewed exact preview → confirmed
+  real Fork/Push/Draft PR and live reconciliation. No real GitHub write was
+  performed during implementation; Fake contracts do not satisfy this gate.
+
+The accepted product decision is to defer **Fork until final publication
+confirmation**, together with Push and Draft creation. Planning/execution/review
+remain read-only with respect to third parties. `PUBLISHER_MODE=none` is the
+safe default; demo publishing now requires explicit `fake`. Configuration and
+operational limitations are in `docs/contribution-workbench.md`. These user-
+directed functional slices do not satisfy Phase 6/7 real acceptance or the
+native Linux amd64/Docker Engine malicious-fixture gate; P5-G06 and Phase 5
+remain open and are still the next roadmap acceptance task.
+
+
+Local deployment refresh (2026-09-08), explicitly requested by the user:
+
+- Rebuilt the application image and recreated API, coordinator Worker, NVIDIA
+  Provider Worker and Model Gateway. API/Gateway are healthy and both Workers
+  are running. The new workbench asset and all five existing task workbench
+  endpoints return successfully.
+- Before migration, paused both Workers and used SQLite backup plus an artifact
+  archive at volume path `/data/backups/pre-workbench-20260908T010332Z`.
+  Migration `0029_workbench` completed with `integrity_check=ok` and zero
+  foreign-key violations. Counts remain 462 opportunities, 36 analyses, five
+  tasks, four plans and two historical Draft PR records.
+- Recent service logs contain no ERROR/Traceback or credential pattern. The
+  existing configuration remains `SANDBOX_STAGE_RUNTIME=fake`, with no
+  `WORKBENCH_RUNNER_IMAGE` or Publisher configured; the new page explicitly
+  reports missing planning prerequisites. This restart does not enable real
+  execution/publication or satisfy WB-G03, WB-G04 or P5-G06.
+
+Planning Runner configuration repair (2026-09-08), user-reported missing image:
+
+- Bound the local configuration to the existing addressable Runner image
+  `sha256:8e60dac389c292d775edbb6b625c69fd26868ae42004e402120fbcb6e40203f6`,
+  enabled Docker stages and the new dedicated Compose `sandbox` profile. The
+  trusted supervisor uses UID `10001`, no network, the same existing data volume,
+  and only the Docker socket and JobSpec signing key needed for its role.
+  API/coordinator/Provider retain their separate trust domains. The supervisor
+  image derives from the same freshly built application image, with a pinned
+  official Docker CLI source; its build context excludes repository secrets.
+- Mounted the data volume at its verified daemon-side path and placed temporary
+  Runner inputs beneath that same volume. No business-data migration was needed;
+  the pre-update SQLite/artifact backup is
+  `/data/backups/pre-sandbox-config-20260908T025134Z`.
+- Real deployment verification uncovered a UID mismatch: private `0600`
+  repository archives owned by Worker UID `10001` cannot be read by Runner UID
+  `65532`. Planning and coding-context reads now stage a hash-checked temporary
+  copy inside a private directory and mount only readable, read-only input
+  files. Original archive permissions remain private; modified copies fail
+  before Docker invocation, and temporary inputs are cleaned on success/failure.
+- The running Compose supervisor passed three real Runner calls on
+  macOS/OrbStack: planning inspection, coding-context capture, and traversal
+  rejection. Repository scripts remained text; binary files were omitted and
+  temporary inputs were removed. All six existing workbench endpoints report
+  planning available. Full offline regression: `358 passed, 11 skipped`;
+  Python compilation and diff checks pass.
+- Live database integrity and foreign-key checks pass; record counts match the
+  pre-update backup (547 opportunities, 42 analyses, six tasks, four plans and
+  two historical Draft PRs). API responses and recent service logs contain no
+  credential patterns; configured API secrets are absent from SQLite. Broad
+  pattern matches in historical Issue/snapshot text are unchanged from the
+  backup, with no new matches introduced by this repair.
+- Configuration and recovery instructions are in `docs/contribution-workbench.md`.
+  No real model contribution, execution approval or GitHub write was performed.
+  WB-G03/WB-G04 remain unchecked; native Linux amd64/Docker Engine P5-G06 is still
+  the next roadmap gate and Phase 5 remains current.
+
+Planning archive/context repair (2026-09-08), user-reported generic task failure:
+
+- Reproduced failed Job `a9265ea4-ec8e-4ffe-be07-5db1cd95f807` for
+  `gptme/gptme` inside the real Runner. GitHub's API had redirected to
+  `legacy.tar.gz`, producing root `gptme-gptme-cd5e489`; the Runner correctly
+  rejected it because its root did not match the full frozen commit SHA.
+- The GitHub reader now validates the redirect against the exact requested
+  repository/commit and the existing HTTPS host allowlist, then requests
+  canonical `tar.gz` without credentials. Different repositories, refs, queries,
+  fragments and non-HTTPS ports fail closed. Existing archive records and
+  failed Jobs stay unchanged; a fresh user-message Job obtains a new archive.
+- Real retry uncovered credential-example patterns in three documentation
+  files. Planning context now marks those existing files unavailable before
+  artifact persistence/model invocation. It preserves inventory membership,
+  stores no altered-text hash as a real file hash, and refuses plans using an
+  unavailable file as read evidence. Safe files remain usable; secret output
+  and unread-file plan regressions are covered offline.
+- Workbench failures report the download, code-reading or model stage using
+  fixed redacted messages. A newer running/successful Job supersedes historical
+  error banners in the native UI without clearing unrelated editing errors.
+- Rebuilt/recreated API, coordinator, Provider and Sandbox Worker after backup
+  `/data/backups/pre-planning-archive-fix-20260908T080112Z`. Real retry archive
+  `d33d6847319e6cebad0940e6d50855126c7742e520ca384253c5bd86e8f1e1af`
+  binds commit `62f5e4fa1f7086e68624c31ed2e063394206689a`. Context Job
+  `c62b3151-5ca2-4d3c-a785-29ce65c73bc9` succeeded with 1,596 inventory paths,
+  45 readable files and three unavailable documentation files. Context secret
+  scanning and recent service log checks pass. Planning-only validation does
+  not approve contribution execution or any GitHub write.
+- The first real model turn requested two additional code files, which the
+  Runner read successfully. The following turn hit NVIDIA's 360-second upstream
+  timeout; a bounded retry received HTTP 200 but failed before saving a valid
+  planning result.
+  These failed Jobs remain immutable and do not create a PlanVersion.
+- Fixed a conflicting NVIDIA prompt: planning, coding and review no longer
+  inherit analysis-only citation fields/invariants. Adapter version is now
+  `nvidia-nim-chat-v28`; each stage retains its own strict output schema. When
+  upstream already implements the requested fix, planning must return a
+  clarification with evidence rather than an empty outcome or a no-op plan.
+  Model transport and schema failures now have separate redacted reason codes;
+  diagnostic logs contain only exception/error types, never raw model output,
+  validation inputs or arbitrary field names. Canary tests cover these logs.
+- Real planning Job `200763e1-19d1-48c2-bb2b-3b6659599073` then succeeded
+  using NVIDIA-hosted `deepseek-ai/deepseek-v4-pro-0813` with adapter v28. The
+  response passed strict validation and was persisted as a clarification:
+  upstream already contains the core `--tools +read` hint and regression test;
+  the user can decide whether to extend the remaining error wording. Verified
+  code evidence is `gptme/tools/__init__.py:351` and `tests/test_tools.py:120`.
+  No PlanVersion, execution approval or external write was fabricated. This
+  validates the real archive → context → supplementary read → model reply flow,
+  not the full execution/review/publication acceptance gate. Final API response,
+  stored context, event hash chain, database credentials and 453 recent service
+  log lines pass security checks; SQLite integrity and foreign keys pass.
+- Full offline regression: `373 passed, 11 skipped`; Python compilation,
+  JavaScript module syntax and diff checks pass. WB-G03/WB-G04 and native Linux
+  amd64/Docker Engine P5-G06 remain unchecked; P5-G06 is still the next roadmap
+  acceptance gate.
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

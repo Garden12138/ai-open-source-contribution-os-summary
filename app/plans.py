@@ -272,6 +272,7 @@ class PlanVersionService:
         content: PlanContent,
         idempotency_key: str,
         now: datetime | None = None,
+        commit: bool = True,
     ) -> PlanVersion:
         key = _idempotency_key(idempotency_key)
         try:
@@ -370,7 +371,10 @@ class PlanVersionService:
         )
         self.session.add(plan)
         try:
-            self.session.commit()
+            if commit:
+                self.session.commit()
+            else:
+                self.session.flush()
         except IntegrityError as exc:
             self.session.rollback()
             replay = self.session.scalar(
@@ -404,6 +408,8 @@ class PlanVersionService:
         content: PlanContent,
         idempotency_key: str,
         now: datetime | None = None,
+        commit: bool = True,
+        allow_repeated_content: bool = False,
     ) -> PlanVersion:
         key = _idempotency_key(idempotency_key)
         parent = self.get_verified(parent_version_id)
@@ -424,12 +430,13 @@ class PlanVersionService:
                     "Plan idempotency key already belongs to different content"
                 )
             return replay
-        existing = self.session.scalar(
-            select(PlanVersion).where(
-                PlanVersion.task_id == task.id,
-                PlanVersion.content_hash == content.content_hash,
-            )
+        matching_content = select(PlanVersion).where(
+            PlanVersion.task_id == task.id,
+            PlanVersion.content_hash == content.content_hash,
         )
+        if allow_repeated_content:
+            matching_content = matching_content.where(PlanVersion.parent_version_id == parent.id)
+        existing = self.session.scalar(matching_content)
         if existing is not None:
             if existing.id == parent.id:
                 raise PlanVersionConflictError(
@@ -513,7 +520,10 @@ class PlanVersionService:
         )
         self.session.add(revision)
         try:
-            self.session.commit()
+            if commit:
+                self.session.commit()
+            else:
+                self.session.flush()
         except IntegrityError as exc:
             self.session.rollback()
             replay = self.session.scalar(

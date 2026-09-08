@@ -28,7 +28,7 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 - “我的候选”可直接进入 AI 评估与 Vibe Coding 工作台；“贡献进度”可继续已有任务，完成计划、批准、执行、Review 和发布意图流程。
 - FastAPI、SQLite、原生 Web 产品和可供 cron 调用的 CLI。
 
-当前不会修改第三方仓库，不会评论 Issue，也没有真实 GitHub 写权限。独立 Review、发布意图和 Draft PR 可在 Fake 运行时离线走通；真实 Draft PR 仍未启用。
+默认禁止 GitHub 写入。“制定贡献方案”支持 AI 阅读代码、提问、可编辑方案和批准后的自动执行；验证与审查通过后停在人工验收。配置独立 Publisher 并再次确认精确发布内容后，才允许 Fork、Push 和 Draft PR。使用、隔离配置及当前验收边界见 [贡献方案工作台](docs/contribution-workbench.md)。
 
 ## 库完成 vs 生产可点
 
@@ -36,11 +36,11 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 | --- | --- | --- |
 | GitHub 扫描与 3/3/2/2 榜单 | 已完成 | **可点** |
 | AI 深析与批量筛选 | 已完成 | `fake` 可离线演示；`nvidia_nim` 使用 MiniMax M3，经独立 Model Gateway 调用 |
-| 计划版本、对话、批准 | 已完成 | 可点（需先有 AnalysisVersion） |
+| AI 规划、编辑版本、批准 | 已实现 | 需 AnalysisVersion、实现模型、固定 Runner 摘要和独立 Sandbox Worker；对话与方案同屏 |
 | 隔离执行 Explore/Implement/Verify | 引擎与状态机已完成 | 采集归档后，`SANDBOX_STAGE_RUNTIME=fake` 可离线跑通 Explore → ChangeSet → Implement → Verify |
 | 从计划生成代码 / ChangeSet | 已接线 | DeepSeek V4 Pro 支持冻结上下文、多轮对话、结构化提案和精确哈希确认 |
 | 独立 Review / 有界修复 | 已完成 | Fake 可离线演示；MiniMax M3 可审查精确 diff 与测试 Artifact |
-| 发布意图 / Fake Draft PR | 已完成（Fake） | 页面明确标注本地演示；需 Review 通过且再次确认；真实 `gh` 写未启用 |
+| 人工验收 / Draft PR | 本地实现与契约测试通过 | 默认关闭；`PUBLISHER_MODE=gh` 使用独立 Publisher，最终确认才 Fork／Push／Draft；真实账号验收待完成 |
 | PR 事件 / 生命周期 / 热力图 | 已完成（本地观测） | 看板可点；真实 GitHub 轮询未启用 |
 
 ## 快速开始
@@ -213,6 +213,8 @@ Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
 - `SANDBOX_JOB_SPEC_KEY_ID`：JobSpec 签名密钥 ID，默认 `local-v1`。
 - `SANDBOX_JOB_SPEC_SIGNING_KEY`：至少 32 字节的十六进制 HMAC 密钥。未设置时执行只创建 `explore/pending`，不会入队沙箱 Job。
 - `SANDBOX_STAGE_RUNTIME`：`none`、`fake` 或 `docker`。Docker runtime 只在 `contribos sandbox-worker` 装配，API/Provider 不读取 Docker 配置。
+- `WORKBENCH_RUNNER_IMAGE`：规划和自动执行使用的固定 Runner 镜像摘要。
+- `PUBLISHER_MODE`：`none`（默认）、`fake`（显式离线演示）或 `gh`（独立真实 Publisher）。
 - `GITHUB_ARCHIVE_HOSTS`：允许接收无凭证归档下载的 HTTPS 主机，默认 `codeload.github.com`。GitHub Token 不会发往这些主机。
 
 ## 验证

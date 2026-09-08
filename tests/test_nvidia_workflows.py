@@ -343,6 +343,8 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
         review_id = review.id
 
     with app.state.database.engine.begin() as connection:
+        connection.execute(text("DROP TABLE workbench_events"))
+        connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0029_workbench'"))
         connection.execute(
             text(
                 "DELETE FROM _schema_migrations "
@@ -350,7 +352,7 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
             )
         )
     report = app.state.database.create_schema()
-    assert report.applied == ("0028_nvidia_review_runs",)
+    assert report.applied == ("0028_nvidia_review_runs", "0029_workbench")
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None
         intent = session.get(PublishIntent, intent_id)

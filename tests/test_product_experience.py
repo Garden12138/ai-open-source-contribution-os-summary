@@ -259,7 +259,7 @@ def test_batch_analysis_reranks_current_snapshots_with_bounded_jobs(
         assert before["pending_analysis_total"] == 3
         assert meta["analysis_provider"] == "fake"
         assert meta["sandbox_stage_runtime"] == "none"
-        assert meta["draft_pr_publisher"] == "fake"
+        assert meta["draft_pr_publisher"] == "none"
 
         queued = client.post(
             "/api/v1/recommendations/analyses",

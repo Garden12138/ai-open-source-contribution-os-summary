@@ -102,9 +102,40 @@ def test_github_archive_download_follows_codeload_without_credentials(
     assert requests[0].url.host == "api.github.test"
     assert requests[0].headers["authorization"] == f"Bearer {TOKEN_CANARY}"
     assert requests[1].url.host == ARCHIVE_HOST
+    assert requests[1].url.path == f"/fixture/planning/tar.gz/{BASE_SHA}"
     assert "authorization" not in {
         key.lower() for key in requests[1].headers
     }
+
+
+@pytest.mark.parametrize("suffix", [
+    f"/fixture/planning/tar.gz/{'b' * 40}",
+    f"/another/planning/legacy.tar.gz/{BASE_SHA}",
+    "/fixture/planning/legacy.tar.gz/main",
+    f"/fixture/planning/tar.gz/{BASE_SHA}?download=1",
+    f"/fixture/planning/tar.gz/{BASE_SHA}#fragment",
+])
+def test_archive_redirect_must_bind_exact_repository_and_commit(tmp_path, suffix):
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(
+            302, headers={"location": f"https://{ARCHIVE_HOST}{suffix}"}
+        )
+
+    async def run():
+        async with GitHubClient(
+            _archive_settings(), transport=httpx.MockTransport(handler)
+        ) as client:
+            await client.download_repository_archive(
+                "fixture/planning", BASE_SHA, tmp_path / "archive.tar.gz"
+            )
+
+    with pytest.raises(GitHubAPIError, match="requested repository and commit"):
+        asyncio.run(run())
+    assert len(requests) == 1
+    assert not (tmp_path / "archive.tar.gz").exists()
 
 
 def test_github_archive_download_rejects_unallowlisted_redirect(

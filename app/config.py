@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -146,8 +147,14 @@ class Settings:
     sandbox_job_spec_key_id: str = "local-v1"
     sandbox_job_spec_signing_key: bytes | None = None
     sandbox_stage_runtime: str = "none"
+    workbench_runner_image: str = ""
+    publisher_mode: str = "none"
 
     def __post_init__(self) -> None:
+        if self.publisher_mode not in {"none", "fake", "gh"}:
+            raise ValueError("PUBLISHER_MODE must be none, fake or gh")
+        if self.workbench_runner_image and not re.fullmatch(r"sha256:[0-9a-f]{64}", self.workbench_runner_image):
+            raise ValueError("WORKBENCH_RUNNER_IMAGE must be a digest")
         if not 0 <= self.github_max_retries <= 3:
             raise ValueError("GITHUB_MAX_RETRIES must be between 0 and 3")
         if self.github_retry_base_seconds < 0:
@@ -204,6 +211,8 @@ class Settings:
             defaults.github_archive_hosts,
         )
         return cls(
+            workbench_runner_image=os.getenv("WORKBENCH_RUNNER_IMAGE", ""),
+            publisher_mode=os.getenv("PUBLISHER_MODE", "none"),
             app_name=os.getenv("APP_NAME", defaults.app_name),
             database_url=os.getenv("DATABASE_URL", defaults.database_url),
             artifact_root=os.getenv("ARTIFACT_ROOT", defaults.artifact_root),

@@ -660,6 +660,36 @@ def test_gateway_runner_uses_official_minimax_json_parameters() -> None:
     }
 
 
+@pytest.mark.parametrize("stage", [
+    ProviderStage.PLANNING, ProviderStage.CODING,
+    ProviderStage.CHANGE_SET, ProviderStage.REVIEW,
+])
+def test_non_analysis_turns_do_not_receive_analysis_citation_requirements(stage):
+    from dataclasses import replace
+
+    observed = {}
+
+    async def handler(request):
+        observed.update(json.loads(request.content))
+        return httpx.Response(200, json=_completion())
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    broker = GatewayTaskCredentialBroker(
+        codec=GatewayTaskTokenCodec(b"m" * 32),
+        base_url="http://contribos-model-gateway:8001/v1",
+        network="contribos-model-gateway-local",
+        service_name="contribos-model-gateway", provider_name="nvidia_nim",
+    )
+    invocation = replace(_invocation(), stage=stage)
+    asyncio.run(NvidiaNimGatewayRunner(broker=broker, client=client).complete(invocation))
+    asyncio.run(client.aclose())
+    instruction = observed["messages"][0]["content"]
+    assert "citation_map" not in instruction
+    assert "allowed_evidence_ids" not in instruction
+    assert "stage-specific schema" in instruction
+    assert observed["tools"][0]["function"]["parameters"] == invocation.output_schema
+
+
 def test_gateway_runner_uses_hosted_nemotron_tool_mode_without_visible_thinking() -> None:
     observed: dict[str, object] = {}
 
@@ -669,7 +699,7 @@ def test_gateway_runner_uses_hosted_nemotron_tool_mode_without_visible_thinking(
 
     invocation = _invocation()
     invocation = CodexExecInvocation(
-        stage=invocation.stage,
+        stage=ProviderStage.ANALYZE,
         request_id=invocation.request_id,
         correlation_id=invocation.correlation_id,
         snapshot_id=invocation.snapshot_id,

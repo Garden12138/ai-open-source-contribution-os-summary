@@ -752,7 +752,8 @@ class NvidiaCodingJobWorker:
                 != payload.get("previous_turn_hash")
             ):
                 raise CodingConflictError("Coding turn Job inputs are stale")
-            prompt = _coding_prompt(context, turns)
+            plan = PlanVersionService(session).get_verified(coding_session.plan_version_id)
+            prompt = _coding_prompt(context, turns, plan)
         schema = CODING_REPLY_SCHEMA
         invocation = _agent_invocation(
             stage=ProviderStage.CODING,
@@ -843,7 +844,7 @@ class NvidiaCodingJobWorker:
             plan = PlanVersionService(session).get_verified(
                 coding_session.plan_version_id
             )
-            prompt = _proposal_prompt(context, turns, plan.files_likely_to_change)
+            prompt = _proposal_prompt(context, turns, plan.files_likely_to_change, plan)
         schema = CHANGE_SET_PROPOSAL_SCHEMA
         invocation = _agent_invocation(
             stage=ProviderStage.CHANGE_SET,
@@ -1124,6 +1125,7 @@ def _agent_invocation(
 def _coding_prompt(
     context: CodingContext,
     turns: Sequence[CodingTurn],
+    plan: object | None = None,
 ) -> str:
     envelope = {
         "version": "coding-chat-prompt-v1",
@@ -1135,6 +1137,7 @@ def _coding_prompt(
             "Reply in Simplified Chinese unless code or identifiers require otherwise.",
         ],
         "coding_context": context.to_wire(),
+        "approved_plan": None if plan is None else PlanVersionService._validated_content(plan).hash_payload(),
         "conversation": [
             {"role": turn.role, "content": turn.content} for turn in turns
         ],
@@ -1146,6 +1149,7 @@ def _proposal_prompt(
     context: CodingContext,
     turns: Sequence[CodingTurn],
     allowed_paths: Sequence[str],
+    plan: object | None = None,
 ) -> str:
     envelope = {
         "version": "change-set-proposal-prompt-v1",
@@ -1158,6 +1162,7 @@ def _proposal_prompt(
             "Never include credentials, external writes, or commands.",
         ],
         "allowed_change_paths": list(allowed_paths),
+        "approved_plan": None if plan is None else PlanVersionService._validated_content(plan).hash_payload(),
         "coding_context": context.to_wire(),
         "conversation": [
             {"role": turn.role, "content": turn.content} for turn in turns

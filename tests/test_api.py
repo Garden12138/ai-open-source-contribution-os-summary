@@ -158,8 +158,8 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert dashboard.status_code == 200
     assert dashboard.headers["cache-control"] == "no-cache"
     assert "今日机会榜" in dashboard.text
-    assert "/static/styles.css?v=analysis-context-v2" in dashboard.text
-    assert "/static/app.js?v=analysis-context-v2" in dashboard.text
+    assert "/static/styles.css?v=workbench-v1" in dashboard.text
+    assert "/static/app.js?v=workbench-v1" in dashboard.text
     assert javascript.status_code == 200
     assert "runScan" in javascript.text
     assert "runAnalysis" in javascript.text

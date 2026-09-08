@@ -18,13 +18,13 @@ from app.providers.codex_cli import (
     CodexExecInvocation,
     CodexExecResult,
 )
-from app.providers.contracts import ProviderIdentity, ProviderRunError
+from app.providers.contracts import ProviderIdentity, ProviderRunError, ProviderStage
 from app.providers.gateway import GatewayTaskCredentialBroker
 from app.security import ensure_no_sensitive_data
 
 
 NVIDIA_NIM_PROVIDER = "nvidia_nim"
-NVIDIA_NIM_ADAPTER_VERSION = "nvidia-nim-chat-v27"
+NVIDIA_NIM_ADAPTER_VERSION = "nvidia-nim-chat-v28"
 NVIDIA_NIM_MODEL_VERSION = "nvidia-build-catalog"
 NVIDIA_NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
 MAX_NIM_RESPONSE_BYTES = 4_000_000
@@ -524,6 +524,7 @@ class NvidiaNimGatewayRunner:
         nemotron_structured_mode = (
             invocation.model == NEMOTRON_3_5_LIGHTNING_MODEL
         )
+        analysis_contract = invocation.stage in {ProviderStage.INSPECT, ProviderStage.ANALYZE}
         required_fields = invocation.output_schema.get("required", [])
         required_field_instruction = (
             "The top-level object must contain exactly these keys, with no "
@@ -590,26 +591,29 @@ class NvidiaNimGatewayRunner:
             "sentence, never only an Issue number or observation code; "
             "cited_evidence_ids itself must be unique and exactly equal the union "
             "of all citation_map IDs; risk codes must be unique. "
-            if nemotron_structured_mode
+            if nemotron_structured_mode and analysis_contract
             else (
                 "Call the required function exactly once with an object "
                 "matching its JSON Schema. Do not return prose or Markdown. "
             )
+        )
+        citation_instruction = (
+            "For every evidence citation, copy an opaque ID verbatim "
+            "from allowed_evidence_ids in the user input; never invent, "
+            "shorten, translate, or use a label as an ID. The top-level "
+            "cited_evidence_ids must exactly equal the union of every "
+            "citation_map entry. The final user input line repeats the "
+            "only permitted citation IDs; use those exact literals."
+            if analysis_contract else
+            "Use only the fields in the supplied stage-specific schema. "
+            "Do not add fields from other workflow stages."
         )
         payload: dict[str, Any] = {
             "model": invocation.model,
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        output_instruction
-                        + "For every evidence citation, copy an opaque ID verbatim "
-                        "from allowed_evidence_ids in the user input; never invent, "
-                        "shorten, translate, or use a label as an ID. The top-level "
-                        "cited_evidence_ids must exactly equal the union of every "
-                        "citation_map entry. The final user input line repeats the "
-                        "only permitted citation IDs; use those exact literals."
-                    ),
+                    "content": output_instruction + citation_instruction,
                 },
                 {
                     "role": "user",

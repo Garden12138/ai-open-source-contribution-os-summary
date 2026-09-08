@@ -237,6 +237,10 @@ class ContribOSWorker:
             worker_id=worker_id,
             heartbeat_interval_seconds=heartbeat_interval_seconds,
         )
+        from app.planner import PlanningArchiveWorker
+        from app.contribution_workflow import ContributionStartWorker
+        self.planning_archive = PlanningArchiveWorker(database, settings, github_client_factory, worker_id=worker_id)
+        self.contribution_start = ContributionStartWorker(database, settings, github_client_factory, worker_id=worker_id)
         self.archives = RepositoryArchiveJobWorker(
             database,
             settings,
@@ -290,6 +294,12 @@ class ContribOSWorker:
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
         self._sync_product_experience(now=now)
+        from app.contribution_workflow import advance_workflows
+        advance_workflows(self.database, self.settings)
+        for worker in (self.planning_archive, self.contribution_start):
+            completed = await worker.run_once(now=now)
+            if completed is not None:
+                return completed
         completed = await self.discovery.run_once(now=now)
         if completed is not None:
             return completed
@@ -379,6 +389,7 @@ class ContribOSProviderWorker:
                     heartbeat_interval_seconds=heartbeat_interval_seconds,
                 )
             )
+        self.planning = None
         self.coding = None
         if settings.implementation_provider == "nvidia_nim":
             broker = resolve_model_gateway_broker(settings)
@@ -388,6 +399,11 @@ class ContribOSProviderWorker:
                 model=settings.implementation_model,
                 model_version=NVIDIA_NIM_MODEL_VERSION,
             )
+            from app.planner import PlanningTurnWorker
+            self.planning = PlanningTurnWorker(database, settings,
+                NvidiaNimGatewayRunner(broker=broker, parameters=NvidiaNimParameters(
+                    temperature=0.2, reasoning_effort="high", max_tokens=16_384)),
+                identity, worker_id=worker_id)
             self.coding = NvidiaCodingJobWorker(
                 database,
                 artifact_root=settings.artifact_root,
@@ -424,6 +440,10 @@ class ContribOSProviderWorker:
             raise ValueError("A real NVIDIA provider is not configured")
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        if self.planning is not None:
+            completed = await self.planning.run_once(now=now)
+            if completed is not None:
+                return completed
         if self.analysis is not None:
             completed = await self.analysis.run_once(now=now)
             if completed is not None:
@@ -465,6 +485,10 @@ class ContribOSSandboxWorker:
         from app.sandbox_worker.coding_context import DockerCodingContextRuntime
 
         docker_environment = dict(runtimes.explore.docker_environment)
+        from app.planner import PlanningContextWorker
+        from app.sandbox_worker.planning_context import DockerPlanningContextRuntime
+        self.planning_context = PlanningContextWorker(database, settings,
+            DockerPlanningContextRuntime(docker_environment=docker_environment), worker_id=worker_id)
         self.context = CodingContextJobWorker(
             database,
             artifact_root=settings.artifact_root,
@@ -487,6 +511,9 @@ class ContribOSSandboxWorker:
         )
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        completed = await self.planning_context.run_once(now=now)
+        if completed is not None:
+            return completed
         completed = await self.context.run_once(now=now)
         if completed is not None:
             return completed

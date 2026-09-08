@@ -44,12 +44,13 @@ LEGAL_TASK_TRANSITIONS: dict[
         }
     ),
     ContributionTaskState.EXECUTING: frozenset(
-        {ContributionTaskState.REVIEWING}
+        {ContributionTaskState.REVIEWING, ContributionTaskState.PLANNING}
     ),
     ContributionTaskState.REVIEWING: frozenset(
         {
             ContributionTaskState.EXECUTING,
             ContributionTaskState.READY,
+            ContributionTaskState.PLANNING,
         }
     ),
     ContributionTaskState.READY: frozenset(
@@ -208,6 +209,8 @@ class ContributionTaskStateService:
                 f"to {target.value}"
             )
         reason = _reason_code(reason_code)
+        if source in {ContributionTaskState.EXECUTING, ContributionTaskState.REVIEWING} and target == ContributionTaskState.PLANNING and reason != "user_replan":
+            raise TaskStateTransitionError("Returning to planning requires user_replan")
         version = _build_state_version(
             task=task,
             sequence=current.sequence + 1,

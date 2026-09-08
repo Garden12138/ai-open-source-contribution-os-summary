@@ -401,7 +401,9 @@ class ExecutionAttemptService:
             )
             or 0
         ) + 1
-        if attempt_number > MAX_EXECUTION_ATTEMPTS:
+        approval_attempt_count = self.session.scalar(select(func.count(ExecutionAttempt.id)).where(
+            ExecutionAttempt.plan_approval_id == previous.plan_approval_id)) or 0
+        if approval_attempt_count >= MAX_EXECUTION_ATTEMPTS:
             raise ExecutionAttemptConflictError(
                 "Repair attempts are capped at three"
             )
@@ -1838,7 +1840,7 @@ def _valid_execution_start_state(
     ):
         return False
     if (
-        attempt.attempt_number == 1
+        attempt.attempt_number >= 1
         and executing.sequence == approved.sequence + 1
         and executing.from_state == ContributionTaskState.PLAN_APPROVED.value
         and executing.reason_code == "execution_started"
@@ -1846,7 +1848,7 @@ def _valid_execution_start_state(
     ):
         return True
     return (
-        2 <= attempt.attempt_number <= MAX_EXECUTION_ATTEMPTS
+        attempt.attempt_number >= 2
         and executing.from_state == ContributionTaskState.REVIEWING.value
         and executing.reason_code == "repair_started"
     )

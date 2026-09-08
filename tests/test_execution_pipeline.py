@@ -59,6 +59,7 @@ def test_fake_runtime_completes_explore_implement_and_verify(
         sandbox_job_spec_key_id="local-test-key",
         sandbox_job_spec_signing_key=bytes.fromhex(SIGNING_KEY_HEX),
         sandbox_stage_runtime="fake",
+        publisher_mode="fake",
     )
     app = create_app(settings)
     with TestClient(app) as client:
@@ -149,6 +150,7 @@ def _complete_verified_execution(tmp_path: Path, *, key_prefix: str = "pub"):
         sandbox_job_spec_key_id="local-test-key",
         sandbox_job_spec_signing_key=bytes.fromhex(SIGNING_KEY_HEX),
         sandbox_stage_runtime="fake",
+        publisher_mode="fake",
     )
     app = create_app(settings)
     with TestClient(app) as client:

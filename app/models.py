@@ -791,6 +791,7 @@ class PlanVersion(Base):
         ),
         UniqueConstraint(
             "task_id",
+            "parent_version_id",
             "content_hash",
             name="uq_plan_version_content",
         ),
@@ -1914,7 +1915,7 @@ class DraftPullRequest(Base):
             name="ck_draft_pull_request_schema",
         ),
         CheckConstraint(
-            "provider = 'fake'",
+            "provider IN ('fake', 'github')",
             name="ck_draft_pull_request_provider",
         ),
         CheckConstraint(
@@ -2138,3 +2139,30 @@ class AuditEvent(Base):
     __table_args__ = (
         CheckConstraint("sequence >= 1", name="ck_audit_sequence"),
     )
+
+
+class WorkbenchEvent(Base):
+    """Append-only planning, execution authorization and publication journal."""
+
+    __tablename__ = "workbench_events"
+    __table_args__ = (
+        UniqueConstraint("task_id", "sequence", name="uq_workbench_sequence"),
+        CheckConstraint("sequence >= 1", name="ck_workbench_sequence"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    task_id: Mapped[str] = mapped_column(
+        ForeignKey("contribution_tasks.id", ondelete="RESTRICT"), index=True
+    )
+    sequence: Mapped[int] = mapped_column(BigInteger)
+    kind: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[str] = mapped_column(String(128))
+    idempotency_key: Mapped[str] = mapped_column(String(128), unique=True)
+    job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="RESTRICT"))
+    plan_version_id: Mapped[str | None] = mapped_column(
+        ForeignKey("plan_versions.id", ondelete="RESTRICT")
+    )
+    payload: Mapped[dict] = mapped_column(JSON)
+    payload_hash: Mapped[str] = mapped_column(String(64))
+    previous_hash: Mapped[str | None] = mapped_column(String(64))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

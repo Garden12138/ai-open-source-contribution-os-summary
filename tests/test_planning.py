@@ -4242,12 +4242,13 @@ def test_task_state_transitions_are_legal_append_only_and_cas_guarded(
                 }
             ),
             ContributionTaskState.EXECUTING: frozenset(
-                {ContributionTaskState.REVIEWING}
+                {ContributionTaskState.REVIEWING, ContributionTaskState.PLANNING}
             ),
             ContributionTaskState.REVIEWING: frozenset(
                 {
                     ContributionTaskState.EXECUTING,
                     ContributionTaskState.READY,
+                    ContributionTaskState.PLANNING,
                 }
             ),
             ContributionTaskState.READY: frozenset(
@@ -4355,6 +4356,8 @@ def test_task_state_migration_backfills_existing_task_root(
             task_id = task.id
             task_hash = task.record_hash
         with database.engine.begin() as connection:
+            connection.execute(text("DROP TABLE workbench_events"))
+            connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0029_workbench'"))
             connection.execute(
                 text("DROP TABLE notification_reads")
             )
@@ -4660,6 +4663,7 @@ def test_task_state_migration_backfills_existing_task_root(
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
+            "0029_workbench",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

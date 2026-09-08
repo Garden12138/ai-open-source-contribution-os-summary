@@ -3445,3 +3445,34 @@ button {
     flex-direction: column;
   }
 }
+
+/* AI contribution planning: native, document-oriented editing. */
+.ai-workbench { min-width: 0; padding: 16px 0; }
+.ai-workbench-layout { display: grid; grid-template-columns: minmax(250px, .9fr) minmax(300px, 1.25fr); gap: 20px; align-items: start; }
+.ai-workbench-chat, .ai-workbench-document, .ai-workbench-publication { min-width: 0; border: 1px solid var(--border, #d9e0e8); border-radius: 12px; padding: 18px; background: var(--surface, #fff); }
+.ai-workbench-publication:empty, .ai-workbench-execution:empty { display: none; }
+.ai-workbench-execution, .ai-workbench-publication { margin-top: 22px; }
+.ai-workbench h4 { margin: 0 0 16px; }
+.ai-workbench h5 { margin: 18px 0 8px; font-size: 14px; }
+.ai-workbench p, .ai-workbench li { line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+.ai-workbench textarea, .ai-workbench input:not([type=checkbox]) { display: block; box-sizing: border-box; width: 100%; min-width: 0; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; margin-bottom: 10px; }
+.ai-workbench textarea { resize: vertical; }
+.ai-workbench button { margin: 4px 8px 4px 0; }
+.ai-workbench button:disabled { opacity: .5; cursor: not-allowed; }
+.ai-workbench pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 440px; overflow: auto; font-size: 12px; }
+.ai-workbench-messages { max-height: 560px; overflow-y: auto; padding-right: 6px; }
+.ai-message { padding: 12px; margin-bottom: 14px; border-radius: 10px; background: #f3f6fa; }
+.ai-message.user_message { background: #edf4ff; }
+.ai-plan-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.ai-plan-heading h4 { margin: 0; flex: 1; }
+.ai-plan-consent { display: block; line-height: 1.6; margin: 16px 0 8px; }
+.ai-workbench-error { color: #b42318; }
+.ai-workbench-error:empty { display: none; }
+.ai-workbench-progress { color: #435571; }
+.ai-workbench-tabs { display: none; }
+@media (max-width: 740px) {
+  .ai-workbench-layout { display: block; }
+  .ai-workbench-tabs { display: flex; margin-bottom: 12px; }
+  .ai-workbench[data-mobile-pane=chat] .ai-workbench-document { display: none; }
+  .ai-workbench[data-mobile-pane=document] .ai-workbench-chat { display: none; }
+}
