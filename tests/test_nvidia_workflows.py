@@ -343,6 +343,11 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
         review_id = review.id
 
     with app.state.database.engine.begin() as connection:
+        from tests.migration_fixtures import remove_task_visibility_schema
+        remove_task_visibility_schema(connection)
+        connection.execute(text("DROP TABLE job_model_bindings"))
+        connection.execute(text("DROP TABLE model_config_versions"))
+        connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0030_model_settings'"))
         connection.execute(text("DROP TABLE workbench_events"))
         connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0029_workbench'"))
         connection.execute(
@@ -352,7 +357,13 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
             )
         )
     report = app.state.database.create_schema()
-    assert report.applied == ("0028_nvidia_review_runs", "0029_workbench")
+    assert report.applied == (
+        "0028_nvidia_review_runs",
+        "0029_workbench",
+        "0030_model_settings",
+        "0031_task_visibility",
+        "0032_minimax_reviews",
+    )
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None
         intent = session.get(PublishIntent, intent_id)

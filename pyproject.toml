@@ -15,6 +15,7 @@ dependencies = [
   "requests>=2.32,<3",
   "sqlalchemy>=2.0,<3",
   "uvicorn>=0.35,<1",
+  "cryptography>=43,<47",
 ]
 
 [project.optional-dependencies]

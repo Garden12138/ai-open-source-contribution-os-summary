@@ -377,7 +377,7 @@ def verified_review(wb: Workbench, review_id: str) -> ReviewRun:
     review = reviews.get_verified(review_id)
     current = ContributionTaskStateService(wb.session).current(review.task_id)
     plan = wb.latest_plan(review.task_id)
-    if review.reviewer_kind != "nvidia_nim":
+    if review.reviewer_kind not in {"nvidia_nim", "openai_compatible", "minimax"}:
         raise WorkbenchError("演示审查不能用于真实发布")
     if (
         current.to_state != "ready"

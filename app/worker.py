@@ -230,6 +230,8 @@ class ContribOSWorker:
     ) -> None:
         self.database = database
         self.settings = settings
+        from app.task_erasure import TaskErasureWorker
+        self.task_erasure = TaskErasureWorker(database, settings.artifact_root, worker_id=worker_id)
         self.discovery = DiscoveryJobWorker(
             database,
             settings,
@@ -293,6 +295,9 @@ class ContribOSWorker:
         )
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        erased = await self.task_erasure.run_once(now=now)
+        if erased is not None:
+            return erased
         self._sync_product_experience(now=now)
         from app.contribution_workflow import advance_workflows
         advance_workflows(self.database, self.settings)
@@ -374,9 +379,10 @@ class ContribOSProviderWorker:
         heartbeat_interval_seconds: float = 15,
     ) -> None:
         self.analysis = None
-        if settings.analysis_provider == "nvidia_nim":
+        if settings.analysis_provider == "nvidia_nim" or settings.model_gateway_signing_key:
+            from dataclasses import replace
             provider, _budget = resolve_analysis_runtime(
-                settings,
+                replace(settings, analysis_provider="nvidia_nim"),
                 execution_enabled=True,
             )
             self.analysis = (
@@ -391,7 +397,7 @@ class ContribOSProviderWorker:
             )
         self.planning = None
         self.coding = None
-        if settings.implementation_provider == "nvidia_nim":
+        if settings.implementation_provider == "nvidia_nim" or settings.model_gateway_signing_key:
             broker = resolve_model_gateway_broker(settings)
             identity = ProviderIdentity(
                 provider=NVIDIA_NIM_PROVIDER,
@@ -419,7 +425,7 @@ class ContribOSProviderWorker:
                 worker_id=worker_id,
             )
         self.review = None
-        if settings.review_provider == "nvidia_nim":
+        if settings.review_provider == "nvidia_nim" or settings.model_gateway_signing_key:
             review_identity = ProviderIdentity(
                 provider=NVIDIA_NIM_PROVIDER,
                 adapter_version=NVIDIA_NIM_ADAPTER_VERSION,
@@ -438,8 +444,18 @@ class ContribOSProviderWorker:
             )
         if self.analysis is None and self.coding is None and self.review is None:
             raise ValueError("A real NVIDIA provider is not configured")
+        for worker in (self.analysis, self.coding, self.review):
+            if worker is not None:
+                worker.model_settings = settings
+        if self.planning is not None:
+            self.planning.resolve_profiles = True
+        from app.model_test_worker import ModelTestWorker
+        self.model_test = ModelTestWorker(database, settings, worker_id=worker_id)
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        completed = await self.model_test.run_once(now=now)
+        if completed is not None:
+            return completed
         if self.planning is not None:
             completed = await self.planning.run_once(now=now)
             if completed is not None:

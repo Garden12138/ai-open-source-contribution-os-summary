@@ -104,6 +104,87 @@ def run_turn(db, settings, reply):
     return job, runner
 
 
+@pytest.mark.parametrize("legacy_stop", [False, True])
+def test_stopping_then_new_message_survives_coordinator_and_restart(tmp_path, legacy_stop):
+    from app.contribution_workflow import advance_workflows, stop_workflow
+    from app.jobs import JobService
+
+    db, settings, task_id, content, _ = seeded(tmp_path)
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        first = wb.request(task_id, text="旧消息", parent_id=None, expected_hash=None, key="old-message")
+        if legacy_stop:
+            wb.append(task_id, "stop_requested", {}, key="stop:first-stop", actor="local-user")
+            JobService(session).request_cancel(first.id)
+        else:
+            stop_workflow(wb, task_id, key="first-stop")
+        assert JobService(session).get(first.id).state == "cancelled"
+        second = wb.request(task_id, text="修改方案", parent_id=None, expected_hash=None, key="new-message")
+    db.close()
+    db = Database(settings.database_url)
+    db.create_schema()
+    for _ in range(3):
+        advance_workflows(db, settings)
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        # Retrying an acknowledged stop must not cancel a newer user request.
+        stop_workflow(wb, task_id, key="first-stop")
+        assert JobService(session).get(second.id).state == "queued"
+        assert not wb.latest(task_id, "execution_authorized")
+    completed, runner = run_turn(db, settings, result(content))
+    assert completed.id == second.id and completed.state == "succeeded"
+    assert len(runner.invocations) == 1
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        plan = wb.latest_plan(task_id)
+        third = wb.request(task_id, text="再修改", parent_id=plan.id, expected_hash=plan.record_hash, key="third-message")
+        stop_workflow(wb, task_id, key="second-stop")
+        assert JobService(session).get(third.id).state == "cancelled"
+        assert wb.latest(task_id, "assistant_message")
+    db.close()
+
+
+def test_stop_event_and_cancellation_roll_back_together(tmp_path, monkeypatch):
+    from app.contribution_workflow import stop_workflow
+    from app.jobs import JobService
+
+    db, settings, task_id, _, _ = seeded(tmp_path)
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        pending = wb.request(task_id, text="讨论", parent_id=None, expected_hash=None, key="before-stop")
+        def fail(*args, **kwargs):
+            raise RuntimeError("injected cancellation failure")
+        with monkeypatch.context() as patch:
+            patch.setattr(JobService, "request_cancel", fail)
+            with pytest.raises(RuntimeError):
+                stop_workflow(wb, task_id, key="atomic-stop")
+            session.rollback()
+        assert wb.latest(task_id, "stop_requested") is None
+        assert JobService(session).get(pending.id).state == "queued"
+    db.close()
+
+
+def test_stop_scope_holds_sqlite_writer_lock_before_reading_jobs(tmp_path, monkeypatch):
+    import sqlite3
+    from app.contribution_workflow import stop_workflow
+    from app.jobs import JobService
+
+    db, settings, task_id, _, _ = seeded(tmp_path)
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        pending = wb.request(task_id, text="讨论", parent_id=None, expected_hash=None, key="locked-stop")
+        original_jobs = wb.jobs
+        def locked_jobs(identifier):
+            with sqlite3.connect(tmp_path / "workbench.db", timeout=0.01) as competitor:
+                with pytest.raises(sqlite3.OperationalError, match="locked"):
+                    competitor.execute("UPDATE jobs SET updated_at=updated_at WHERE id=?", (pending.id,))
+            return original_jobs(identifier)
+        monkeypatch.setattr(wb, "jobs", locked_jobs)
+        stop_workflow(wb, task_id, key="writer-lock")
+        assert JobService(session).get(pending.id).state == "cancelled"
+    db.close()
+
+
 def test_plan_chat_edit_approve_restart_and_no_writes(tmp_path):
     db, settings, task_id, content, context = seeded(tmp_path)
     with db.session() as session:
@@ -373,7 +454,7 @@ class ReadOnlyGitHub:
         return branch, "a" * 40
 
 
-def automatic_fixture(tmp_path):
+def automatic_fixture(tmp_path, configure_models=None):
     from app.archives import RepositoryArchiveStore
     from app.changesets import ChangeSetStore
     from app.coding import CodingContextJobWorker, NvidiaCodingJobWorker
@@ -389,6 +470,8 @@ def automatic_fixture(tmp_path):
     from tests.test_nvidia_workflows import FakeContextRuntime
 
     db, settings, task_id, content, context = seeded(tmp_path)
+    if configure_models:
+        configure_models(db, settings, task_id)
     archive = tmp_path / "repo.tar.gz"
     archive.write_bytes(ARCHIVE_BYTES)
     archive_hash = RepositoryArchiveStore(settings.artifact_root).put_file(archive)
@@ -651,8 +734,9 @@ def test_stale_edits_cancelled_model_and_upstream_movement_fail_closed(tmp_path)
 
     class CancellingRunner(ScriptedRunner):
         async def complete(self, invocation):
+            from app.contribution_workflow import stop_workflow
             with db.session() as session:
-                JobService(session).request_cancel(pending.id)
+                stop_workflow(PlanningService(session, settings.artifact_root), task_id, key="during-model")
             return await super().complete(invocation)
 
     job = asyncio.run(
@@ -727,6 +811,11 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
     with sqlite3.connect(db.engine.url.database) as connection:
         connection.execute("PRAGMA foreign_keys=OFF")
         connection.execute("PRAGMA legacy_alter_table=ON")
+        from tests.migration_fixtures import remove_task_visibility_schema
+        remove_task_visibility_schema(connection)
+        connection.execute("DROP TABLE job_model_bindings")
+        connection.execute("DROP TABLE model_config_versions")
+        connection.execute("DELETE FROM _schema_migrations WHERE revision='0030_model_settings'")
         connection.executescript(
             "DROP TABLE workbench_events; DROP TRIGGER draft_pull_requests_no_update; DROP TRIGGER draft_pull_requests_no_delete; ALTER TABLE draft_pull_requests RENAME TO drafts_backup;"
         )
@@ -747,7 +836,12 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
             "DELETE FROM _schema_migrations WHERE revision='0029_workbench'"
         )
     report = db.create_schema()
-    assert report.applied == ("0029_workbench",)
+    assert report.applied == (
+        "0029_workbench",
+        "0030_model_settings",
+        "0031_task_visibility",
+        "0032_minimax_reviews",
+    )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash
         assert (

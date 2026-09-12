@@ -47,7 +47,10 @@ _IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
 _ACTOR_TYPE = re.compile(r"^[a-z][a-z0-9_.-]{0,39}$")
 _ACTOR_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
-_REVIEWER_KINDS = frozenset({"fake", "fake_blocking", "nvidia_nim"})
+_MODEL_REVIEWER_KINDS = frozenset(
+    {"nvidia_nim", "openai_compatible", "minimax"}
+)
+_REVIEWER_KINDS = frozenset({"fake", "fake_blocking"}) | _MODEL_REVIEWER_KINDS
 
 
 class ReviewError(RuntimeError):
@@ -189,7 +192,7 @@ class ReviewRunService:
             verify_result_hash=verify.result_hash,
             test_results_hash=test_results_hash,
         )
-        if reviewer_kind == "nvidia_nim":
+        if reviewer_kind in _MODEL_REVIEWER_KINDS:
             findings, verdict, reason_code = _model_review_result(
                 findings_override,
                 verdict=verdict_override,
@@ -440,14 +443,14 @@ class ReviewRunService:
             raise ReviewConflictError(
                 "ReviewRun content does not match its immutable inputs"
             )
-        if review.reviewer_kind == "nvidia_nim":
+        if review.reviewer_kind in _MODEL_REVIEWER_KINDS:
             invocation = self.session.get(
                 AgentInvocation, review.reviewer_invocation_id
             )
             if (
                 invocation is None
                 or invocation.role != "review"
-                or invocation.provider_name != "nvidia_nim"
+                or invocation.provider_name != review.reviewer_kind
                 or invocation.output_hash
                 != content_hash(
                     {
@@ -460,7 +463,7 @@ class ReviewRunService:
                 != content_hash(_agent_invocation_payload(invocation))
             ):
                 raise ReviewConflictError(
-                    "NVIDIA Review invocation binding is invalid"
+                    "Model Review invocation binding is invalid"
                 )
         return review
 

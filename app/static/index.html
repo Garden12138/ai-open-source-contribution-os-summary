@@ -10,9 +10,11 @@
     >
     <title>开源机会雷达</title>
     <link rel="stylesheet" href="/static/styles.css?v=workbench-v1">
-    <script src="/static/app.js?v=workbench-v1" type="module"></script>
+    <link rel="stylesheet" href="/static/studio.css?v=studio-chat-v4">
+    <link rel="stylesheet" href="/static/execution-changes.css?v=execution-changes-v1">
+    <script src="/static/app.js?v=task-erasure-v1" type="module"></script>
   </head>
-  <body>
+  <body class="studio-app">
     <a class="skip-link" href="#main-content">跳到主要内容</a>
 
     <header class="site-header">
@@ -22,8 +24,8 @@
             <span></span><span></span><span></span>
           </span>
           <span>
-            <strong id="app-name">开源机会雷达</strong>
-            <small>精选机会 · 清晰决策</small>
+            <strong id="app-name">Contribution Studio</strong>
+            <small>开源贡献工作台</small>
           </span>
         </a>
 
@@ -32,10 +34,17 @@
           <a href="#/shortlist" data-view-link="shortlist">
             我的候选 <span id="shortlist-count">0</span>
           </a>
-          <a href="#/contributions" data-view-link="contributions">贡献进度</a>
+          <a href="#/contributions" data-view-link="contributions">贡献概览</a>
         </nav>
 
+        <section class="sidebar-history" aria-label="最近贡献任务">
+          <h2>最近任务</h2>
+          <div id="sidebar-tasks"><p class="muted">正在载入任务…</p></div>
+        </section>
+
         <div class="header-actions">
+          <a class="settings-link" href="#/settings" data-view-link="settings">模型设置</a>
+          <button id="theme-toggle" type="button" aria-label="切换深色模式">切换深色</button>
           <button class="preference-button" id="preference-button" type="button" hidden aria-expanded="false">
             调整偏好
           </button>
@@ -51,6 +60,11 @@
     </header>
 
     <main id="main-content">
+      <div class="studio-topbar">
+        <button id="sidebar-toggle" type="button" aria-label="切换侧边栏" aria-expanded="false">☰</button>
+        <span id="studio-page-title">发现机会</span>
+        <span class="studio-topbar-note">让每一次贡献更进一步</span>
+      </div>
       <section class="hero">
         <div class="shell hero-grid">
           <div class="hero-copy">
@@ -245,8 +259,15 @@
             <div class="funnel-grid" id="funnel-grid" aria-label="贡献漏斗"></div>
             <div class="heatmap-grid" id="heatmap-grid" aria-label="贡献热力图"></div>
             <section class="contribution-workbench" id="contribution-workbench" hidden aria-label="贡献工作台"></section>
-            <div class="task-history" id="task-history" aria-label="任务历史"></div>
+            <label class="settings-actions"><input id="show-archived-tasks" type="checkbox">查看已归档任务</label>
+            <div class="task-history" id="task-history" aria-label="任务历史" aria-live="polite"></div>
           </section>
+        </section>
+        <section class="product-view studio-task-view" id="task-view" data-product-view="task" hidden>
+          <div id="studio-task-root"></div>
+        </section>
+        <section class="product-view" id="settings-view" data-product-view="settings" hidden>
+          <div id="model-settings-root"></div>
         </section>
       </div>
     </main>
@@ -259,6 +280,10 @@
     </footer>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <aside id="opportunity-detail" class="studio-detail" hidden aria-label="机会详情" tabindex="-1">
+      <header><h2>机会详情</h2><button id="detail-close" type="button" aria-label="关闭机会详情">关闭 ×</button></header>
+      <div id="opportunity-detail-content"></div>
+    </aside>
     <aside class="notification-drawer" id="notification-drawer" hidden aria-label="应用内提醒">
       <header>
         <strong>提醒</strong>

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -18,8 +18,10 @@ from app.models import (
     PullRequestEvent,
     ReviewRun,
     TaskLifecycleMark,
+    Job,
 )
 from app.task_states import ContributionTaskState, ContributionTaskStateService
+from app.task_visibility import current_visibility, visibility_expression
 
 
 class ContributionDashboardService:
@@ -31,13 +33,13 @@ class ContributionDashboardService:
         analyzed = (
             self.session.scalar(select(func.count(AnalysisVersion.id))) or 0
         )
-        planned = self.session.scalar(select(func.count(PlanVersion.id))) or 0
+        planned = self.session.scalar(select(func.count(PlanVersion.id)).where(visibility_expression(PlanVersion.task_id) != "deleted")) or 0
         executed = (
-            self.session.scalar(select(func.count(ExecutionAttempt.id))) or 0
+            self.session.scalar(select(func.count(ExecutionAttempt.id)).where(visibility_expression(ExecutionAttempt.task_id) != "deleted")) or 0
         )
-        reviewed = self.session.scalar(select(func.count(ReviewRun.id))) or 0
+        reviewed = self.session.scalar(select(func.count(ReviewRun.id)).where(visibility_expression(ReviewRun.task_id) != "deleted")) or 0
         submitted = (
-            self.session.scalar(select(func.count(DraftPullRequest.id))) or 0
+            self.session.scalar(select(func.count(DraftPullRequest.id)).where(visibility_expression(DraftPullRequest.task_id) != "deleted")) or 0
         )
         states = self._current_state_counts()
         merged = states.get(ContributionTaskState.MERGED.value, 0) + states.get(
@@ -62,15 +64,15 @@ class ContributionDashboardService:
             "metrics": {
                 "merge_rate": round(merge_rate, 4),
                 "task_count": (
-                    self.session.scalar(select(func.count(ContributionTask.id)))
+                    self.session.scalar(select(func.count(ContributionTask.id)).where(visibility_expression() != "deleted"))
                     or 0
                 ),
                 "publish_intent_count": (
-                    self.session.scalar(select(func.count(PublishIntent.id)))
+                    self.session.scalar(select(func.count(PublishIntent.id)).where(visibility_expression(PublishIntent.task_id) != "deleted"))
                     or 0
                 ),
                 "pull_request_event_count": (
-                    self.session.scalar(select(func.count(PullRequestEvent.id)))
+                    self.session.scalar(select(func.count(PullRequestEvent.id)).where(visibility_expression(PullRequestEvent.task_id) != "deleted"))
                     or 0
                 ),
             },
@@ -80,10 +82,16 @@ class ContributionDashboardService:
         self,
         *,
         state: str | None = None,
+        archived: bool = False,
     ) -> list[dict[str, object]]:
+        erasure = select(Job.id).where(Job.kind == "task_erasure",
+            Job.idempotency_key == "erase:" + ContributionTask.id).exists()
+        visible = visibility_expression()
         tasks = list(
             self.session.scalars(
-                select(ContributionTask).order_by(
+                select(ContributionTask).where(
+                    or_(visible == "archived", (visible == "deleted") & erasure) if archived else visible == "active"
+                ).order_by(
                     ContributionTask.created_at,
                     ContributionTask.id,
                 )
@@ -92,6 +100,9 @@ class ContributionDashboardService:
         states = ContributionTaskStateService(self.session)
         summaries: list[dict[str, object]] = []
         for task in tasks:
+            visibility = current_visibility(self.session, task.id)
+            erasure_job = self.session.scalar(select(Job).where(
+                Job.kind == "task_erasure", Job.idempotency_key == "erase:" + task.id))
             current = states.current(task.id)
             mark = self.session.scalar(
                 select(TaskLifecycleMark).where(
@@ -111,6 +122,9 @@ class ContributionDashboardService:
             summaries.append(
                 {
                     "id": task.id,
+                    "visibility": visibility.state if visibility else "active",
+                    "visibility_sequence": visibility.sequence if visibility else 0,
+                    "erasure_state": erasure_job.state if erasure_job else None,
                     "opportunity_id": task.opportunity_id,
                     "analysis_version_id": task.analysis_version_id,
                     "current_state": visible_state,
@@ -137,7 +151,7 @@ class ContributionDashboardService:
             item.value: 0 for item in ContributionTaskState
         }
         counts.update({"failed": 0, "rejected": 0, "abandoned": 0})
-        task_ids = list(self.session.scalars(select(ContributionTask.id)))
+        task_ids = list(self.session.scalars(select(ContributionTask.id).where(visibility_expression() != "deleted")))
         for task_id in task_ids:
             mark = self.session.scalar(
                 select(TaskLifecycleMark).where(
@@ -161,16 +175,17 @@ class ContributionDashboardService:
             }
         )
         for created_at in self.session.scalars(
-            select(ContributionTask.created_at)
+            select(ContributionTask.created_at).where(visibility_expression() != "deleted")
         ):
             buckets[_as_date(created_at)]["contributions"] += 1
         for created_at in self.session.scalars(
-            select(DraftPullRequest.created_at)
+            select(DraftPullRequest.created_at).where(visibility_expression(DraftPullRequest.task_id) != "deleted")
         ):
             buckets[_as_date(created_at)]["pull_requests"] += 1
         versions = list(
             self.session.scalars(
                 select(ContributionTaskStateVersion).where(
+                    visibility_expression(ContributionTaskStateVersion.task_id) != "deleted",
                     ContributionTaskStateVersion.to_state.in_(
                         (
                             ContributionTaskState.MERGED.value,

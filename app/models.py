@@ -28,6 +28,28 @@ class Base(DeclarativeBase):
     pass
 
 
+class ModelConfigVersion(Base):
+    __tablename__ = "model_config_versions"
+    __table_args__ = (
+        UniqueConstraint("scope", "sequence", name="uq_model_config_sequence"),
+        CheckConstraint("sequence >= 1", name="ck_model_config_sequence"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    scope: Mapped[str] = mapped_column(String(160), index=True)
+    sequence: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict] = mapped_column(JSON)
+    previous_hash: Mapped[str | None] = mapped_column(String(64))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class JobModelBinding(Base):
+    __tablename__ = "job_model_bindings"
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="RESTRICT"), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("model_config_versions.id", ondelete="RESTRICT"))
+    profile_hash: Mapped[str] = mapped_column(String(64))
+
+
 class Repository(Base):
     __tablename__ = "repositories"
 
@@ -664,6 +686,27 @@ class ContributionTask(Base):
             "schema_version = '1'",
             name="ck_contribution_task_schema",
         ),
+    )
+
+
+class TaskVisibilityVersion(Base):
+    __tablename__ = "task_visibility_versions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    task_id: Mapped[str] = mapped_column(
+        ForeignKey("contribution_tasks.id", ondelete="RESTRICT"), index=True,
+    )
+    sequence: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(16))
+    task_record_hash: Mapped[str] = mapped_column(String(64))
+    previous_hash: Mapped[str | None] = mapped_column(String(64))
+    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("task_id", "sequence", name="uq_task_visibility_sequence"),
+        CheckConstraint("sequence >= 1", name="ck_task_visibility_sequence"),
+        CheckConstraint("state IN ('active','archived','deleted')", name="ck_task_visibility_state"),
     )
 
 
@@ -1813,7 +1856,8 @@ class ReviewRun(Base):
             name="ck_review_run_number",
         ),
         CheckConstraint(
-            "reviewer_kind IN ('fake', 'fake_blocking', 'nvidia_nim')",
+            "reviewer_kind IN ('fake', 'fake_blocking', 'nvidia_nim', "
+            "'openai_compatible', 'minimax')",
             name="ck_review_run_kind",
         ),
         CheckConstraint(

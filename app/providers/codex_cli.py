@@ -397,9 +397,11 @@ class CodexCLIAdapter:
         max_jsonl_events: int = 10_000,
         max_jsonl_bytes: int = 4_000_000,
     ) -> None:
-        if identity.provider not in {"codex_cli", "nvidia_nim"}:
+        if identity.provider not in {
+            "codex_cli", "nvidia_nim", "openai_compatible", "minimax"
+        }:
             raise ValueError(
-                "Structured analysis identity must be codex_cli or nvidia_nim"
+                "Structured analysis identity must use a supported model provider"
             )
         if max_jsonl_events < 1:
             raise ValueError("max_jsonl_events must be positive")

@@ -1,6 +1,7 @@
 """User-authorized orchestration of existing isolated execution services."""
 
 from __future__ import annotations
+from datetime import timezone
 from sqlalchemy import select
 from app.approvals import PlanApprovalService, ApprovalInputFingerprint
 from app.authorizations import UserAction
@@ -9,7 +10,7 @@ from app.config import Settings
 from app.execution_control import ExecutionStageControlService
 from app.executions import ExecutionAttemptService
 from app.jobs import JobService, TERMINAL_STATES
-from app.models import Job, ExecutionAttempt, ReviewRun, ExecutionStageRun
+from app.models import Job, ExecutionAttempt, ReviewRun, ExecutionStageRun, WorkbenchEvent
 from app.plan_locks import PlanLockService
 from app.provenance import content_hash, canonical_json
 from app.providers.contracts import ProviderIdentity
@@ -54,9 +55,12 @@ def authorize_execution(
         return wb.session.get(Job, old.job_id)
     planning_state_hash = wb.require_planning(task_id)
     wb.assert_idle(task_id)
+    from app.model_settings import ModelSettingsService, task_identity
+    model_service = ModelSettingsService(wb.session)
+    profiles = model_service.task_profiles(task_id, bind=True)
     if (
-        settings.implementation_provider != "nvidia_nim"
-        or settings.review_provider != "nvidia_nim"
+        (not profiles.get("implementation") and settings.implementation_provider != "nvidia_nim")
+        or (not profiles.get("review") and settings.review_provider != "nvidia_nim")
     ):
         raise WorkbenchError("自动执行需要配置实现和独立审查模型")
     if (
@@ -70,6 +74,8 @@ def authorize_execution(
     if plan.task_state_record_hash != planning_state_hash:
         raise WorkbenchError("请重新保存方案或让 AI 重新规划，为当前状态生成新版本")
     binding = wb.binding(task_id, plan.id)
+    if wb.models_changed_after(task_id, binding.sequence):
+        raise WorkbenchError("模型已切换，请重新保存方案或让 AI 生成新版本后再批准")
     context = wb.latest(task_id, "context_ready")
     if (
         context.payload["policy_hash"] != SandboxPolicy().policy_hash
@@ -89,8 +95,8 @@ def authorize_execution(
         "context": context.payload,
         "context_hash": context.record_hash,
         "max_repairs": 2,
-        "implementation": model_identity(settings.implementation_model).hash_payload(),
-        "review": model_identity(settings.review_model).hash_payload(),
+        "implementation": task_identity(wb.session, settings, task_id, "implementation").hash_payload(),
+        "review": task_identity(wb.session, settings, task_id, "review").hash_payload(),
         "actions": [
             "approve_plan",
             "start_execution",
@@ -240,15 +246,44 @@ def track(wb: Workbench, task_id: str, job: Job) -> None:
 
 
 def stop_workflow(wb: Workbench, task_id: str, *, key: str) -> None:
-    wb.append(task_id, "stop_requested", {}, key="stop:" + key, actor="local-user")
-    for job in wb.jobs(task_id):
-        if job.state not in TERMINAL_STATES:
-            JobService(wb.session).request_cancel(job.id)
+    connection = wb.session.connection()
+    if connection.dialect.name == "sqlite" and not connection.connection.driver_connection.in_transaction:
+        # Serialize the scope snapshot with child-job creation. Otherwise a worker
+        # could complete the parent and enqueue a child between the read and stop.
+        connection.exec_driver_sql("BEGIN IMMEDIATE")
+    previous = next((event for event in wb.history(task_id)
+                     if event.idempotency_key == "stop:" + key), None)
+    if previous:
+        if previous.kind != "stop_requested" or previous.actor_id != "local-user":
+            raise WorkbenchError("重复停止请求的内容不同")
+        return
+    jobs = [job for job in wb.jobs(task_id) if job.state not in TERMINAL_STATES]
+    # Freeze the cancellation scope with the journal event in the same transaction.
+    # A late/replayed coordinator tick must never cancel a later planning request.
+    wb.append(task_id, "stop_requested", {"job_ids": [job.id for job in jobs]},
+              key="stop:" + key, actor="local-user", commit=False)
+    for job in jobs:
+        JobService(wb.session).request_cancel(job.id, commit=False)
+    wb.session.commit()
+
+
+def _jobs_for_stop(wb: Workbench, task_id: str, stop: WorkbenchEvent) -> list[Job]:
+    jobs = wb.jobs(task_id)
+    if "job_ids" in stop.payload:
+        identifiers = stop.payload["job_ids"]
+        if not isinstance(identifiers, list) or any(not isinstance(value, str) for value in identifiers):
+            raise WorkbenchError("停止任务范围无效")
+        return [job for job in jobs if job.id in identifiers]
+    # Legacy stop events had no scope. Respect their original UTC boundary without
+    # rewriting history or treating the event as a permanent task-wide prohibition.
+    boundary = stop.created_at.replace(tzinfo=timezone.utc)
+    return [job for job in jobs if job.created_at.replace(tzinfo=timezone.utc) <= boundary]
 
 
 def advance_workflows(database, settings: Settings) -> None:
     """One bounded, idempotent transition per task per coordinator tick."""
     from app.models import WorkbenchEvent
+    from app.task_visibility import visibility_expression
 
     with database.session() as session:
         cursor = getattr(database, "_workbench_scan_cursor", "")
@@ -258,6 +293,7 @@ def advance_workflows(database, settings: Settings) -> None:
                 .where(
                     WorkbenchEvent.kind.in_(("automation_started", "stop_requested")),
                     WorkbenchEvent.task_id > cursor,
+                    visibility_expression(WorkbenchEvent.task_id) == "active",
                 )
                 .distinct()
                 .order_by(WorkbenchEvent.task_id)
@@ -274,6 +310,9 @@ def advance_workflows(database, settings: Settings) -> None:
                 _advance(wb, task_id, settings)
             except Exception as exc:
                 session.rollback()
+                # Archiving may win the race after this tick selected the task.
+                if session.scalar(select(visibility_expression(task_id))) != "active":
+                    continue
                 # A durable blocker stops the chain; never fall back to fake execution.
                 latest = wb.latest(task_id, "automation_started")
                 if latest:
@@ -299,7 +338,7 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
     if stop and latest_auth and latest_auth.sequence > stop.sequence:
         stop = None
     if stop and (not start or stop.sequence > start.sequence):
-        jobs = wb.jobs(task_id)
+        jobs = _jobs_for_stop(wb, task_id, stop)
         for job in jobs:
             if job.state not in TERMINAL_STATES:
                 JobService(wb.session).request_cancel(job.id)
@@ -325,11 +364,12 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
     authorization = next(
         e for e in events if e.record_hash == start.payload["authorization_hash"]
     )
+    from app.model_settings import task_identity
     if (
         authorization.payload["implementation"]
-        != model_identity(settings.implementation_model).hash_payload()
+        != task_identity(wb.session, settings, task_id, "implementation").hash_payload()
         or authorization.payload["review"]
-        != model_identity(settings.review_model).hash_payload()
+        != task_identity(wb.session, settings, task_id, "review").hash_payload()
     ):
         raise WorkbenchError("模型配置已变化")
     attempts = ExecutionAttemptService(wb.session)
@@ -439,7 +479,7 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                 attempt.id,
                 action=UserAction.START_REVIEW,
                 actor_id="local-user",
-                expected_provider=model_identity(settings.review_model),
+                expected_provider=task_identity(wb.session, settings, task_id, "review"),
                 idempotency_key="auto-review:" + attempt.id,
             )
             track(wb, task_id, job)

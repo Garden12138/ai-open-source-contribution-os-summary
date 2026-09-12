@@ -59,6 +59,7 @@ class GatewayTaskScope:
     max_requests: int
     issued_at: datetime
     expires_at: datetime
+    profile_hash: str = ""
 
     def __post_init__(self) -> None:
         for value, name in (
@@ -87,7 +88,7 @@ class GatewayTaskScope:
             raise ValueError("Gateway authorization request limit is invalid")
 
     def claims(self) -> dict[str, object]:
-        return {
+        claims = {
             "version": GATEWAY_TOKEN_VERSION,
             "jti": self.authorization_id,
             "sub": self.request_id,
@@ -102,6 +103,11 @@ class GatewayTaskScope:
             "iat": int(self.issued_at.timestamp()),
             "exp": int(self.expires_at.timestamp()),
         }
+        if self.profile_hash:
+            if not re.fullmatch(r"[0-9a-f]{64}", self.profile_hash):
+                raise ValueError("Invalid model profile hash")
+            claims["profile_hash"] = self.profile_hash
+        return claims
 
 
 @dataclass(frozen=True, slots=True)
@@ -209,6 +215,7 @@ class GatewayTaskCredentialBroker:
         provider_name: str = "codex_cli",
         ttl_seconds: int = 60,
         max_requests: int = MAX_GATEWAY_REQUESTS_PER_TASK,
+        profile_hash: str = "",
     ) -> None:
         if not 1 <= ttl_seconds <= MAX_GATEWAY_TOKEN_TTL_SECONDS:
             raise ValueError("Gateway task Token TTL is invalid")
@@ -231,6 +238,7 @@ class GatewayTaskCredentialBroker:
         self.provider_name = provider_name
         self.ttl_seconds = ttl_seconds
         self.max_requests = max_requests
+        self.profile_hash = profile_hash
 
     def issue(
         self,
@@ -252,6 +260,7 @@ class GatewayTaskCredentialBroker:
             max_requests=self.max_requests,
             issued_at=issued,
             expires_at=issued + timedelta(seconds=self.ttl_seconds),
+            profile_hash=self.profile_hash,
         )
         token = self.codec.encode(scope)
         return GatewayTaskCredential(
@@ -477,7 +486,7 @@ class InternalModelGateway:
 
 
 def _scope_from_claims(value: Any) -> GatewayTaskScope:
-    if not isinstance(value, Mapping) or set(value) != {
+    if not isinstance(value, Mapping) or set(value) - {"profile_hash"} != {
         "version",
         "jti",
         "sub",
@@ -525,6 +534,7 @@ def _scope_from_claims(value: Any) -> GatewayTaskScope:
             max_requests=value["max_requests"],
             issued_at=datetime.fromtimestamp(value["iat"], tz=timezone.utc),
             expires_at=datetime.fromtimestamp(value["exp"], tz=timezone.utc),
+            profile_hash=str(value.get("profile_hash", "")),
         )
     except (ValueError, TypeError, OSError) as exc:
         raise GatewayAuthorizationError(

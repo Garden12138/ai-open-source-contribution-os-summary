@@ -233,10 +233,9 @@ async def run_provider_worker(
 def run_model_gateway(settings: Settings, args: argparse.Namespace) -> int:
     if settings.model_gateway_signing_key is None:
         raise ValueError("MODEL_GATEWAY_SIGNING_KEY is required")
-    api_key = _gateway_secret(
-        environment_name="NVIDIA_API_KEY",
-        file_environment_name="NVIDIA_API_KEY_FILE",
-    )
+    from app.providers.studio import UnconfiguredModelUpstream
+    api_key = (_gateway_secret(environment_name="NVIDIA_API_KEY", file_environment_name="NVIDIA_API_KEY_FILE")
+        if os.getenv("NVIDIA_API_KEY") or os.getenv("NVIDIA_API_KEY_FILE") else None)
     gateway = InternalModelGateway(
         authorizer=GatewayTaskAuthorizer(
             GatewayTaskTokenCodec(settings.model_gateway_signing_key)
@@ -246,11 +245,15 @@ def run_model_gateway(settings: Settings, args: argparse.Namespace) -> int:
             transport=NvidiaNimHostedTransport(
                 proxy_url=settings.nvidia_https_proxy,
             ),
-        ),
+        ) if api_key else UnconfiguredModelUpstream(),
         provider_name="nvidia_nim",
     )
+    from app.providers.model_secrets import GatewaySecretStore
+    from app.providers.studio import StudioGateway
+    store = GatewaySecretStore(settings.model_gateway_secret_root, environment_key=api_key)
     uvicorn.run(
-        create_model_gateway_app(gateway),
+        create_model_gateway_app(StudioGateway(gateway, store, proxy_url=settings.nvidia_https_proxy),
+            secret_store=store, management_key=settings.model_gateway_management_key),
         host=args.host,
         port=args.port,
     )

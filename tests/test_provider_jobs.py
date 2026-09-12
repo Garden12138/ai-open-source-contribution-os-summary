@@ -38,6 +38,13 @@ from app.security import SensitiveDataError
 NOW = datetime.now(timezone.utc) + timedelta(seconds=1)
 
 
+@pytest.fixture(autouse=True)
+def refresh_job_clock() -> None:
+    """Keep synthetic lease timestamps fresh in long full-suite runs."""
+    global NOW
+    NOW = datetime.now(timezone.utc) + timedelta(seconds=1)
+
+
 def _budget(**overrides: int) -> AnalysisBudget:
     values = {
         "max_candidates": 1,

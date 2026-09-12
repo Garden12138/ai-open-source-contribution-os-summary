@@ -12,6 +12,7 @@ from app.models import Job
 from app.provenance import content_hash
 from app.providers.contracts import ProviderRunError
 from app.workbench import WorkbenchError
+from app.planning_diagnostics import planning_validation_details, MESSAGES
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,10 @@ class WorkbenchJobWorker:
                     return jobs.cancel(job.id, worker_id=self.worker_id)
                 if isinstance(exc, TimeoutError):
                     return jobs.time_out(job.id, worker_id=self.worker_id)
+                if job.kind == "model_connection_test":
+                    return jobs.fail(job.id, worker_id=self.worker_id,
+                        error_code=exc.code if isinstance(exc, ProviderRunError) else "model_connection_failed",
+                        error_message=exc.safe_message if isinstance(exc, ProviderRunError) else "连接测试失败，请检查配置或手动填写模型 ID")
                 error_code, error_message = {
                     "planning_archive": (
                         "planning_archive_failed",
@@ -73,12 +78,12 @@ class WorkbenchJobWorker:
                     error_code = "planning_provider_failed" if job.kind == "planning_turn" else error_code
                     error_message = "模型服务未能完成请求，现有上下文已保留，可直接重试。"
                 elif isinstance(exc, ValidationError) and job.kind == "planning_turn":
-                    error_code = "planning_output_invalid"
-                    error_message = "规划模型回复格式未通过校验，现有上下文已保留，请重试。"
+                    error_code = planning_validation_details(exc)["reason_code"]
+                    error_message = MESSAGES[error_code]
                 # Never log exception text, model output, validation inputs or
                 # arbitrary field names. Error types suffice to diagnose schemas.
                 validation_types = (
-                    sorted({e["type"] for e in exc.errors(include_input=False, include_context=False)})
+                    planning_validation_details(exc)["validation_types"]
                     if isinstance(exc, ValidationError) else []
                 )
                 logger.warning(

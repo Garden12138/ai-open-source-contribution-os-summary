@@ -160,6 +160,9 @@ class NvidiaReviewJobWorker:
             payload = dict(running.payload)
         try:
             async with asyncio.timeout(timeout_seconds):
+                if getattr(self, "model_settings", None) is not None:
+                    from app.model_settings import configure_bound_worker
+                    configure_bound_worker(self, job_id, self.model_settings)
                 with self.database.session() as session:
                     artifacts = ArtifactStore(session, self.artifact_root)
                     frozen = freeze_review_inputs(
@@ -257,7 +260,7 @@ class NvidiaReviewJobWorker:
                         idempotency_key=f"review:{job_id}",
                         actor_type=_required_text(payload, "actor_type"),
                         actor_id=_required_text(payload, "actor_id"),
-                        reviewer_kind="nvidia_nim",
+                        reviewer_kind=self.identity.provider,
                         findings_override=findings,
                         verdict_override=verdict,
                         reason_code_override=reason_code,

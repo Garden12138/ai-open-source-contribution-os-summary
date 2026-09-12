@@ -690,12 +690,18 @@ class NvidiaCodingJobWorker:
         try:
             async with asyncio.timeout(timeout_seconds):
                 if kind == CODING_TURN_JOB_KIND:
+                    if getattr(self, "model_settings", None) is not None:
+                        from app.model_settings import configure_bound_worker
+                        configure_bound_worker(self, job_id, self.model_settings)
                     return await self._complete_turn(
                         job_id,
                         payload,
                         attempt_number=attempt_number,
                         now=started,
                     )
+                if getattr(self, "model_settings", None) is not None:
+                    from app.model_settings import configure_bound_worker
+                    configure_bound_worker(self, job_id, self.model_settings)
                 return await self._complete_proposal(
                     job_id,
                     payload,

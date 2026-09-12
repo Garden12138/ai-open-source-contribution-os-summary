@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.artifacts import ArtifactStore
 from app.authorizations import UserAction
 from app.jobs import JobService
-from app.models import PublishIntent, DraftPullRequest
+from app.models import PublishIntent, DraftPullRequest, ReviewRun
 from app.publication import (
     PublicationWorker,
     request_publication,
@@ -105,10 +105,19 @@ class FakeTransport:
         self.ref = {"object": {"sha": head_sha}}
 
 
-def ready(tmp_path):
+def ready(tmp_path, *, review_provider="nvidia_nim"):
     app, attempt_id, task_id, _ = _complete_verified_execution(tmp_path)
     settings = replace(app.state.settings, publisher_mode="gh")
     db = app.state.database
+    identity = _identity(settings.review_model)
+    if review_provider == "minimax":
+        identity = replace(
+            identity,
+            provider="minimax",
+            adapter_version="studio-model-v1",
+            model="MiniMax-M3",
+            model_version="f" * 64,
+        )
     with db.session() as session:
         ProviderReviewService(
             session, artifacts=ArtifactStore(session, settings.artifact_root)
@@ -116,7 +125,7 @@ def ready(tmp_path):
             attempt_id,
             action=UserAction.START_REVIEW,
             actor_id="local-user",
-            expected_provider=_identity(settings.review_model),
+            expected_provider=identity,
             idempotency_key="review",
         )
     job = asyncio.run(
@@ -124,7 +133,7 @@ def ready(tmp_path):
             db,
             artifact_root=settings.artifact_root,
             runner=ScriptedRunner(REVIEW),
-            identity=_identity(settings.review_model),
+            identity=identity,
             worker_id="review",
         ).run_once()
     )
@@ -150,6 +159,14 @@ def ready(tmp_path):
         checkout=FakeCheckout(),
     )
     return db, settings, task_id, transport, worker
+
+
+def test_verified_minimax_review_can_prepare_real_draft_publication(tmp_path):
+    db, _, task_id, _, _ = ready(tmp_path, review_provider="minimax")
+    with db.session() as session:
+        review = session.scalar(select(ReviewRun).where(ReviewRun.task_id == task_id))
+        assert review is not None and review.reviewer_kind == "minimax"
+    db.close()
 
 
 def test_preparation_is_read_only_confirmation_publishes_exactly_once(tmp_path):

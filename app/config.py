@@ -143,6 +143,8 @@ class Settings:
     model_gateway_network: str = "contribos-model-gateway-local"
     model_gateway_service_name: str = "contribos-model-gateway"
     model_gateway_signing_key: bytes | None = None
+    model_gateway_management_key: bytes | None = None
+    model_gateway_secret_root: str = "/data/model-secrets"
     nvidia_https_proxy: str | None = None
     sandbox_job_spec_key_id: str = "local-v1"
     sandbox_job_spec_signing_key: bytes | None = None
@@ -161,9 +163,12 @@ class Settings:
             raise ValueError("GITHUB_RETRY_BASE_SECONDS must be non-negative")
         if self.github_retry_max_seconds < 0:
             raise ValueError("GITHUB_RETRY_MAX_SECONDS must be non-negative")
-        if self.analysis_provider not in {"none", "fake", "nvidia_nim"}:
+        if self.analysis_provider not in {
+            "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+        }:
             raise ValueError(
-                "ANALYSIS_PROVIDER must be 'none', 'fake', or 'nvidia_nim'"
+                "ANALYSIS_PROVIDER must be 'none', 'fake', 'nvidia_nim', "
+                "'openai_compatible', or 'minimax'"
             )
         for value, name in (
             (self.analysis_model, "ANALYSIS_MODEL"),
@@ -176,9 +181,12 @@ class Settings:
             (self.implementation_provider, "IMPLEMENTATION_PROVIDER"),
             (self.review_provider, "REVIEW_PROVIDER"),
         ):
-            if value not in {"none", "fake", "nvidia_nim"}:
+            if value not in {
+                "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+            }:
                 raise ValueError(
-                    f"{name} must be 'none', 'fake', or 'nvidia_nim'"
+                    f"{name} must be 'none', 'fake', 'nvidia_nim', "
+                    "'openai_compatible', or 'minimax'"
                 )
         if self.sandbox_stage_runtime not in {"none", "fake", "docker"}:
             raise ValueError(
@@ -302,6 +310,8 @@ class Settings:
             model_gateway_signing_key=_hex_key_env(
                 "MODEL_GATEWAY_SIGNING_KEY"
             ),
+            model_gateway_management_key=_hex_key_env("MODEL_GATEWAY_MANAGEMENT_KEY"),
+            model_gateway_secret_root=os.getenv("MODEL_GATEWAY_SECRET_ROOT", defaults.model_gateway_secret_root),
             nvidia_https_proxy=(
                 os.getenv("NVIDIA_HTTPS_PROXY", "").strip() or None
             ),

@@ -24,6 +24,7 @@ class PlanningMessageRequest(BaseModel):
     parent_id: str | None = Field(default=None, max_length=128)
     expected_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     refresh: bool = False
+    model_profile_id: str | None = None
 
 
 class WorkbenchPlanRequest(BaseModel):
@@ -39,6 +40,18 @@ class ExecutePlanRequest(BaseModel):
     approve_plan: bool
     start_execution: bool
     max_repairs: int = Field(default=2, ge=2, le=2)
+    model_binding_hash: str | None = None
+
+
+class TaskModelsRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_hash: str | None = None
+    profiles: dict[str, str | None]
+
+
+class TaskModelsResponse(BaseModel):
+    record_hash: str
+    changed: bool
 
 
 class WorkbenchResponse(BaseModel):
@@ -52,6 +65,9 @@ class WorkbenchResponse(BaseModel):
     planner_available: bool
     planner_unavailable_reason: str | None = None
     publisher_mode: str
+    model_profiles: dict[str, str | None] = Field(default_factory=dict)
+    model_labels: dict[str, str] = Field(default_factory=dict)
+    model_binding_hash: str | None = None
 
 
 class PublicationPrepareRequest(BaseModel):
@@ -68,6 +84,42 @@ class PublicationConfirmRequest(BaseModel):
 
 def register_workbench_routes(app, get_session, require_mutation_access) -> None:
     router = APIRouter(prefix="/api/v1/tasks/{task_id}/workbench", tags=["workbench"])
+
+    @router.post("/models", response_model=TaskModelsResponse, dependencies=[Depends(require_mutation_access)])
+    def task_models(task_id: str, payload: TaskModelsRequest, request: Request,
+        key: str = Header(alias="Idempotency-Key", min_length=1, max_length=80),
+        session: Session = Depends(get_session)):
+        from app.model_settings import ModelSettingsService, STAGES
+        models = ModelSettingsService(session)
+        wb = Workbench(session, request.app.state.settings.artifact_root)
+        wb.require_planning(task_id)
+        wb.assert_idle(task_id)
+        if set(payload.profiles) != set(STAGES):
+            raise HTTPException(422, "请提交四个阶段的模型选择")
+        for identifier in payload.profiles.values():
+            if identifier:
+                models.get(identifier, "profile")
+        prior = next((event for event in wb.history(task_id)
+            if event.idempotency_key == "model:" + key), None)
+        if prior:
+            if prior.payload.get("profiles") != payload.profiles:
+                raise HTTPException(409, "重复请求的模型选择不同")
+            return {"record_hash": prior.payload["binding_hash"], "changed": prior.kind == "model_changed"}
+        previous = models.latest("task:" + task_id)
+        if (previous.record_hash if previous else None) != payload.expected_hash:
+            raise HTTPException(409, "设置已在其他页面更新，请重新载入")
+        if previous and previous.payload == payload.profiles:
+            # A receipt makes replay stable even after a later genuine switch.
+            # It is not a model change and creates no configuration version.
+            wb.append(task_id, "model_selection_applied", {
+                "profiles": payload.profiles, "binding_hash": previous.record_hash,
+            }, key="model:" + key, actor="local-user")
+            return {"record_hash": previous.record_hash, "changed": False}
+        row = models.append("task:" + task_id, payload.profiles, payload.expected_hash, commit=False)
+        wb.append(task_id, "model_changed", {"profiles": payload.profiles, "binding_hash": row.record_hash},
+            key="model:" + key, actor="local-user", commit=False)
+        session.commit()
+        return {"record_hash": row.record_hash, "changed": True}
 
     @app.exception_handler(WorkbenchError)
     async def workbench_error(request, exc):
@@ -98,8 +150,12 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         context = wb.latest(task_id, "context_ready")
         jobs = wb.jobs(task_id)
         settings = request.app.state.settings
+        from app.model_settings import ModelSettingsService
+        models = ModelSettingsService(session)
+        profiles = models.task_profiles(task_id)
+        model_binding = models.latest("task:" + task_id)
         reason = None
-        if settings.implementation_provider != "nvidia_nim":
+        if not profiles.get("planning") and settings.implementation_provider != "nvidia_nim":
             reason = "尚未配置规划模型服务，请配置实现模型。"
         elif not settings.workbench_runner_image:
             reason = (
@@ -157,6 +213,9 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             planner_available=reason is None,
             planner_unavailable_reason=reason,
             publisher_mode=request.app.state.settings.publisher_mode,
+            model_profiles=profiles,
+            model_labels={stage: models.profile(identifier)["model"] for stage, identifier in profiles.items() if identifier},
+            model_binding_hash=model_binding.record_hash if model_binding else None,
         )
 
     @router.post(
@@ -172,7 +231,20 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         key: str = Header(alias="Idempotency-Key", min_length=1, max_length=80),
         session: Session = Depends(get_session),
     ):
-        if request.app.state.settings.implementation_provider != "nvidia_nim":
+        from app.model_settings import ModelSettingsService
+        models = ModelSettingsService(session)
+        profiles = models.task_profiles(task_id, bind=True)
+        if payload.model_profile_id and payload.model_profile_id != profiles.get("planning"):
+            models.get(payload.model_profile_id, "profile")
+            wb = Workbench(session, request.app.state.settings.artifact_root)
+            wb.require_planning(task_id)
+            wb.assert_idle(task_id)
+            previous = models.latest("task:" + task_id)
+            profiles = {**profiles, "planning": payload.model_profile_id}
+            models.append("task:" + task_id, profiles, previous.record_hash if previous else None, commit=False)
+            wb.append(task_id, "model_changed", {"planning_profile_id": payload.model_profile_id},
+                key="model:" + key, actor="local-user", commit=False)
+        if not profiles.get("planning") and request.app.state.settings.implementation_provider != "nvidia_nim":
             raise HTTPException(409, "请先配置用于规划的实现模型服务")
         try:
             job = PlanningService(
@@ -184,6 +256,7 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
                 expected_hash=payload.expected_hash,
                 key=key,
                 refresh=payload.refresh,
+                model_profile_id=payload.model_profile_id,
             )
             return JobResponse.model_validate(job)
         except (IntegrityError, JobConflictError):
@@ -232,6 +305,12 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         if not payload.approve_plan or not payload.start_execution:
             raise HTTPException(403, "需要明确批准方案并启动执行")
         settings = request.app.state.settings
+        from app.model_settings import ModelSettingsService
+        current_binding = ModelSettingsService(session).latest("task:" + task_id)
+        if not current_binding and any(ModelSettingsService(session).defaults().values()):
+            raise HTTPException(409, "请先在当前任务中确认模型，或发送消息重新规划")
+        if current_binding and payload.model_binding_hash != current_binding.record_hash:
+            raise HTTPException(409, "模型选择已变化，请重新确认当前方案和模型")
         job = authorize_execution(
             Workbench(session, settings.artifact_root),
             task_id,

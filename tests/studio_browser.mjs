@@ -1,0 +1,113 @@
+// Run with PLAYWRIGHT_MODULE pointing to an installed playwright package.
+import {createRequire} from "node:module";
+import assert from "node:assert/strict";
+const require=createRequire(import.meta.url);
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE || "playwright");
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE});
+const context=await browser.newContext({viewport:{width:1440,height:1000}});
+const page=await context.newPage();
+const errors=[];page.on("pageerror",e=>errors.push(e.message));
+const connectionName="Browser connection "+Date.now();
+const modelName="Browser model "+Date.now();
+try {
+  await page.goto("http://127.0.0.1:8765");
+  await page.locator(".studio-card-title").first().waitFor();
+  assert.equal(await page.locator("#opportunity-list .analysis-workbench").count(),0);
+  await page.locator(".studio-card-title").first().click();
+  await page.locator("#opportunity-detail .opportunity-card").waitFor();
+  assert.equal(await page.locator("#opportunity-detail").isVisible(),true);
+  await page.keyboard.press("Escape");await page.waitForTimeout(150);
+  assert.equal(await page.locator("#opportunity-detail").isVisible(),false);
+  await page.screenshot({path:"/tmp/contribos-studio-discover.png",fullPage:true});
+  await page.locator("#sidebar-tasks a").first().click();
+  const taskRoute=await page.evaluate(()=>location.hash);
+  await page.getByLabel("发送给规划助手的消息").waitFor();
+  await page.locator(".ai-workbench-error").filter({hasText:"本次请求已取消"}).waitFor();
+  assert.equal(await page.locator(".ai-workbench-tabs, .studio-chat-tools").count(),0);
+  assert.equal(await page.getByRole("button",{name:"停止",exact:true}).count(),0);
+  assert.equal(await page.getByRole("button",{name:"重新读取上游代码",exact:true}).count(),0);
+  await page.getByLabel("更多任务操作").click();
+  await page.getByRole("button",{name:"重新读取上游代码",exact:true}).waitFor();
+  await page.keyboard.press("Escape");
+  assert.equal(await page.getByRole("button",{name:"重新读取上游代码",exact:true}).count(),0);
+  await page.locator(".studio-plan-card").first().click();
+  await page.getByRole("button",{name:"返回对话",exact:true}).click();
+  assert.equal(await page.locator(".studio-plan-card").first().evaluate(el=>el===document.activeElement),true);
+  await page.getByLabel("发送给规划助手的消息").fill("修改方案");
+  await page.getByRole("button",{name:"发送",exact:true}).click();
+  await page.locator(".ai-workbench-progress").filter({hasText:"AI 正在制定方案"}).waitFor();
+  assert.equal(await page.locator(".ai-workbench > .ai-workbench-progress").count(),0);
+  assert.equal(await page.locator(".ai-workbench-messages > .ai-workbench-progress").count(),1);
+  assert.equal(await page.locator(".ai-message.user_message > strong").count(),0);
+  const progressBox=await page.locator(".ai-workbench-progress").boundingBox();
+  const assistantBox=await page.locator(".ai-message.assistant_message").first().boundingBox();
+  assert.ok(Math.abs(progressBox.x-assistantBox.x)<2,"Progress aligns with assistant messages");
+  // Freeze network state: a local second tick must not depend on the 3s poll.
+  const frozenState=await (await page.request.get("http://127.0.0.1:8765/api/v1/tasks/"+taskRoute.split("/").at(-1)+"/workbench")).json();
+  await page.route("**/workbench",route=>route.fulfill({json:frozenState}));
+  const seconds=async()=>Number((await page.locator(".ai-workbench-progress").textContent()).match(/(\d+) 秒/)[1]);
+  await page.waitForFunction(()=>Number(document.querySelector(".ai-workbench-progress").textContent.match(/(\d+) 秒/)?.[1])>0);
+  const before=await seconds();
+  await page.waitForTimeout(1100);
+  assert.ok([1,2].includes((await seconds())-before),"Elapsed time advances in seconds between state polls");
+  await page.unroute("**/workbench");
+  assert.equal(await page.locator(".ai-workbench-error").textContent(),"");
+  assert.equal(await page.getByRole("button",{name:"发送",exact:true}).count(),0);
+  await page.getByRole("button",{name:"停止",exact:true}).click();
+  await page.locator(".ai-workbench-error").filter({hasText:"本次请求已取消"}).waitFor();
+  await page.getByLabel("发送给规划助手的消息").fill("保留这个草稿");
+  await page.locator(".studio-plan-card").first().click();
+  await page.getByRole("button",{name:"编辑方案",exact:true}).click();
+  await page.getByLabel("目标与改造说明",{exact:true}).fill("保留未保存的方案编辑");
+  await page.locator('[data-view-link="discover"]').click();
+  await page.locator("#sidebar-tasks a").first().click();
+  await page.getByLabel("发送给规划助手的消息").waitFor();
+  assert.equal(await page.getByLabel("发送给规划助手的消息").inputValue(),"保留这个草稿");
+  await page.locator(".studio-plan-card").first().click();
+  assert.equal(await page.getByLabel("目标与改造说明",{exact:true}).inputValue(),"保留未保存的方案编辑");
+  await page.screenshot({path:"/tmp/contribos-studio-workbench.png",fullPage:true});
+  await page.locator('[data-view-link="settings"]').click();
+  await page.getByRole("heading",{name:"模型设置",exact:true}).waitFor();
+  await page.getByRole("heading",{name:"推荐默认模型",exact:true}).waitFor();
+  assert.equal(await page.getByLabel("MiniMax API Key",{exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole("button",{name:"配置并设为四阶段默认",exact:true}).isEnabled(),true);
+  await page.getByLabel("连接名称",{exact:true}).fill(connectionName);
+  await page.getByLabel("Base URL",{exact:true}).fill("https://models.example.com/v1");
+  await page.getByLabel("API Key",{exact:true}).fill("browser-fixture-credential");
+  await page.getByRole("button",{name:"添加连接",exact:true}).click();
+  await page.locator(".settings-saved-item").filter({hasText:connectionName}).first().waitFor();
+  assert.equal(await page.getByLabel("API Key",{exact:true}).inputValue(),"");
+  await page.getByLabel("模型显示名称",{exact:true}).fill(modelName);
+  await page.getByLabel("使用连接",{exact:true}).selectOption({label:connectionName});
+  await page.getByLabel("模型 ID",{exact:true}).fill("example/model");
+  await page.getByRole("button",{name:"添加模型",exact:true}).click();
+  await page.locator(".settings-saved-item").filter({hasText:modelName}).first().waitFor();
+  await page.getByLabel("默认模型",{exact:true}).selectOption({label:modelName});
+  for(const label of ["机会分析","方案讨论","代码实现","独立审查"])await page.getByLabel(label,{exact:true}).selectOption("");
+  await page.getByRole("button",{name:"保存默认设置",exact:true}).click();
+  await page.waitForTimeout(300);
+  await page.evaluate(()=>scrollTo(0,0));
+  await page.screenshot({path:"/tmp/contribos-studio-settings.png",fullPage:false});
+  await page.getByRole("button",{name:"切换深色模式",exact:true}).click();
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),"dark");
+  for(const viewport of [{width:1280,height:900},{width:390,height:844}]) {
+    await page.setViewportSize(viewport);
+    for(const route of [taskRoute,"#/discover","#/settings"]) {
+      await page.evaluate(hash=>location.hash=hash,route);await page.waitForTimeout(250);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`Overflow at ${viewport.width} ${route}`);
+      if(route===taskRoute) {
+        const back=page.getByRole("button",{name:"返回对话",exact:true});
+        if(await back.isVisible())await back.click();
+        await page.getByLabel("发送给规划助手的消息").waitFor();
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight),true,"Task viewport must not scroll");
+        await page.locator(".studio-plan-card").first().click();
+        assert.equal(await page.locator(".ai-workbench-document").isVisible(),true);
+        await page.screenshot({path:`/tmp/contribos-studio-task-${viewport.width}.png`,fullPage:true});
+      }
+    }
+  }
+  await page.evaluate(()=>scrollTo(0,0));
+  await page.screenshot({path:"/tmp/contribos-studio-mobile.png",fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log("Studio browser checks passed: cards, details, drafts, encrypted credentials, model settings, theme, mobile.");
+} finally {await browser.close();}

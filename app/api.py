@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import date, datetime
 from pathlib import Path
 from secrets import compare_digest, token_urlsafe
-from typing import Iterator
+from typing import Iterator, Literal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -82,6 +82,7 @@ from app.reviews import (
     ReviewRunService,
 )
 from app.review_provider import ProviderReviewService
+from app.model_settings import execution_model_configured, task_identity
 from app.github import GitHubClient
 from app.jobs import (
     JobConflictError,
@@ -191,6 +192,9 @@ from app.schemas import (
     AnalysisVersionDetailResponse,
     AnalysisVersionSummaryResponse,
     ContributionTaskCreateRequest,
+    TaskVisibilityRequest,
+    TaskVisibilityResponse,
+    TaskDeletionResponse,
     ContributionTaskDetailResponse,
     ContributionTaskResponse,
     ContributionTaskStateResponse,
@@ -613,6 +617,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         database.create_schema()
+        if settings.model_gateway_management_key:
+            from app.model_settings import ModelSettingsService
+            with database.session() as session:
+                ModelSettingsService(session).bootstrap(settings)
         yield
         database.close()
 
@@ -730,8 +738,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return HealthResponse(status="ok", database="ok")
 
     @app.get("/api/v1/meta", response_model=MetaResponse, tags=["system"])
-    def metadata(request: Request) -> MetaResponse:
+    def metadata(request: Request, session: Session = Depends(get_session)) -> MetaResponse:
         current: Settings = request.app.state.settings
+        from dataclasses import replace
+        from app.model_settings import ModelSettingsService
+        model_service = ModelSettingsService(session)
+        overrides = {}
+        for stage, identifier in model_service.defaults().items():
+            if identifier and stage != "planning":
+                profile = model_service.profile(identifier)
+                overrides[stage + "_provider"] = profile["connection"]["provider"]
+                overrides[stage + "_model"] = profile["model"]
+        current = replace(current, **overrides)
         return MetaResponse(
             app_name=current.app_name,
             token_configured=(
@@ -856,8 +874,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         session: Session = Depends(get_session),
         _: None = Depends(require_mutation_access),
     ) -> RecommendationAnalysisBatchResponse:
-        provider = request.app.state.analysis_provider
-        budget = request.app.state.analysis_budget
+        from app.model_settings import analysis_runtime
+        provider, budget = analysis_runtime(request, session)
         availability = resolve_analysis_availability(
             provider=provider,
             budget=budget,
@@ -1114,10 +1132,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if picks
             else "not_generated"
         )
-        analysis = resolve_analysis_availability(
-            provider=request.app.state.analysis_provider,
-            budget=request.app.state.analysis_budget,
-        )
+        from app.model_settings import analysis_runtime
+        current_provider, current_budget = analysis_runtime(request, session)
+        analysis = resolve_analysis_availability(provider=current_provider, budget=current_budget)
         return DailyLeaderboardResponse(
             selection_date=selection_date,
             scan_run_id=scan.id if scan else None,
@@ -1195,8 +1212,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         session: Session = Depends(get_session),
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
-        provider = request.app.state.analysis_provider
-        budget = request.app.state.analysis_budget
+        from app.model_settings import analysis_runtime
+        provider, budget = analysis_runtime(request, session)
         availability = resolve_analysis_availability(
             provider=provider,
             budget=budget,
@@ -1316,11 +1333,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def list_contribution_tasks(
         state: str | None = Query(default=None, max_length=40),
+        archived: bool = Query(default=False),
         session: Session = Depends(get_session),
     ) -> list[ContributionTaskSummaryResponse]:
         try:
             summaries = ContributionDashboardService(session).task_summaries(
                 state=state,
+                archived=archived,
             )
         except TaskStateError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -1328,6 +1347,43 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ContributionTaskSummaryResponse.model_validate(item)
             for item in summaries
         ]
+
+    def change_task_visibility(task_id: str, target: Literal["active", "archived", "deleted"], payload: TaskVisibilityRequest, session: Session) -> TaskVisibilityResponse:
+        from app.task_visibility import TaskVisibilityService
+
+        try:
+            version = TaskVisibilityService(session).change(
+                task_id, target=target, expected_sequence=payload.expected_sequence,
+            )
+        except ContributionTaskNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ContributionTaskConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return TaskVisibilityResponse.model_validate(version)
+
+    @app.post("/api/v1/tasks/{task_id}/archive", response_model=TaskVisibilityResponse, tags=["planning"])
+    def archive_contribution_task(task_id: str, payload: TaskVisibilityRequest,
+        session: Session = Depends(get_session), _: None = Depends(require_mutation_access),
+    ) -> TaskVisibilityResponse:
+        return change_task_visibility(task_id, "archived", payload, session)
+
+    @app.post("/api/v1/tasks/{task_id}/restore", response_model=TaskVisibilityResponse, tags=["planning"])
+    def restore_contribution_task(task_id: str, payload: TaskVisibilityRequest,
+        session: Session = Depends(get_session), _: None = Depends(require_mutation_access),
+    ) -> TaskVisibilityResponse:
+        return change_task_visibility(task_id, "active", payload, session)
+
+    @app.delete("/api/v1/tasks/{task_id}", response_model=TaskDeletionResponse, status_code=202, tags=["planning"])
+    def delete_contribution_task(task_id: str, payload: TaskVisibilityRequest,
+        session: Session = Depends(get_session), _: None = Depends(require_mutation_access),
+    ) -> TaskDeletionResponse:
+        from app.task_erasure import enqueue_erasure
+        try:
+            job = enqueue_erasure(session, task_id, payload.expected_sequence)
+        except ContributionTaskConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return TaskDeletionResponse(task_id=task_id, state="deleting" if job else "deleted",
+                                    job_id=job.id if job else None)
 
     @app.get(
         "/api/v1/tasks/{task_id}",
@@ -1901,7 +1957,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> JobResponse:
         settings: Settings = request.app.state.settings
         if (
-            settings.implementation_provider != "nvidia_nim"
+            not execution_model_configured(session, settings, execution_attempt_id, "implementation")
             or settings.sandbox_stage_runtime != "docker"
         ):
             raise HTTPException(
@@ -1966,7 +2022,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
         settings: Settings = request.app.state.settings
-        if settings.implementation_provider != "nvidia_nim":
+        if not execution_model_configured(session, settings, execution_attempt_id, "implementation"):
             raise HTTPException(
                 status_code=409,
                 detail="NVIDIA implementation provider is not configured",
@@ -2007,7 +2063,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
         settings: Settings = request.app.state.settings
-        if settings.implementation_provider != "nvidia_nim":
+        if not execution_model_configured(session, settings, execution_attempt_id, "implementation"):
             raise HTTPException(
                 status_code=409,
                 detail="NVIDIA implementation provider is not configured",
@@ -2631,17 +2687,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
         settings: Settings = request.app.state.settings
-        if settings.review_provider != "nvidia_nim":
+        if not execution_model_configured(session, settings, execution_attempt_id, "review"):
             raise HTTPException(
                 status_code=409,
                 detail="NVIDIA Review provider is not configured",
             )
-        identity = ProviderIdentity(
-            provider=NVIDIA_NIM_PROVIDER,
-            adapter_version=NVIDIA_NIM_ADAPTER_VERSION,
-            model=settings.review_model,
-            model_version=NVIDIA_NIM_MODEL_VERSION,
-        )
+        attempt = ExecutionAttemptService(session).get_verified(execution_attempt_id)
+        identity = task_identity(session, settings, attempt.task_id, "review")
         try:
             job, _created = ProviderReviewService(
                 session,
@@ -2952,6 +3004,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     from app.workbench_api import register_workbench_routes
     register_workbench_routes(app, get_session, require_mutation_access)
+    from app.model_settings_api import register_model_settings_routes
+    register_model_settings_routes(app, get_session, require_mutation_access)
     return app
 
 

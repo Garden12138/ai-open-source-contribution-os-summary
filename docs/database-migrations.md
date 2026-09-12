@@ -644,8 +644,8 @@ Purpose:
 - recreate the direct diff/test Artifact provenance trigger and immutable-row
   triggers before the migration commits.
 
-This migration is the only current SQLite table rebuild that requests foreign
-keys be temporarily disabled. The migration runner applies revisions in separate
+This migration requests foreign keys be temporarily disabled for its SQLite
+table rebuild. The migration runner applies revisions in separate
 transactions, enables legacy rename behavior, runs `PRAGMA foreign_key_check`
 before recording the revision, then re-enables foreign keys. A failed check rolls
 back the rebuild and must never be treated as a successful migration.
@@ -708,3 +708,109 @@ pair and the previous application, then check `PRAGMA integrity_check` and
 After a real publish confirmation, reconcile any remote write against the saved
 intent before restoring or retrying: restoring SQLite cannot undo a Fork, Push
 or Draft PR. Keep the post-confirmation database and audit evidence available.
+
+### `0030_model_settings`
+
+Adds append-only `model_config_versions` with unique scope/sequence and verified
+hash chains, plus immutable `job_model_bindings` referencing an exact profile
+ID/hash. Connections, profiles, defaults and task stage overrides contain only
+non-secret configuration and opaque Gateway credential references. Existing Jobs
+and environment-backed task history remain intact; no legacy binding is invented.
+
+Rebuilds `review_runs` preserving every row/index/foreign-key reference and
+immutability/provenance triggers. New `openai_compatible` reviews must reference
+an invocation whose actual provider exactly matches the recorded reviewer kind;
+diff and normalized test Artifact binding remains mandatory. Like earlier table
+rebuilds, the migration runner handles temporary foreign-key mode and checks
+all references before recording the revision.
+
+Recovery:
+
+1. Stop API and every worker, including Publisher. Take a consistent SQLite
+   backup using the backup API, alongside its Artifact tree. Preserve deployment
+   configuration separately; never put real keys into the business backup.
+2. Stop Gateway and privately back up its **whole** `contribos-model-secrets`
+   volume (`credentials.sqlite3`, `master.key`, `envelope.pem`). Restore matching
+   files with `0700` directory and `0600` file permissions. An old business backup
+   can use a newer private volume retaining its old immutable credential refs;
+   a newer business database cannot use a private backup missing referenced keys.
+3. If upgrade fails, preserve failure evidence, restore the pre-upgrade database
+   and Artifact pair and previous application. Verify `PRAGMA integrity_check`
+   and `PRAGMA foreign_key_check` before normal forward migration.
+4. Do not remove migration rows, triggers or profile bindings to downgrade. If
+   new tasks were already created, preserve the upgraded data and repair forward;
+   restoring an older backup would omit these tasks and cannot undo remote writes.
+5. A lost Gateway master key cannot be regenerated to recover old ciphertext.
+   Re-enter credentials through a new connection/profile version and re-plan;
+   never rewrite immutable task/execution identity to hide missing credentials.
+
+Upgrade tests preserve populated historical review/publication records, check
+foreign keys, and reject changes to the new immutable records. Private Gateway
+storage reopen and identical-envelope retry are tested separately from SQLite
+business migrations; neither test claims host-crash or cross-platform acceptance.
+
+### `0031_task_visibility`
+
+Adds append-only `task_visibility_versions`, preserving all existing task and
+provenance rows. Absence of a version means active; legal transitions are active
+→ archived → active or deleted. Deleted is terminal. Each version binds its task
+hash, predecessor hash, sequence and UTC time; its audit event commits in the
+same transaction. Sequence uniqueness guards stale requests. SQLite triggers
+reject mutation of visibility history, illegal transitions, archiving active
+jobs, and creating/retrying task work while archived or deleted.
+
+Recovery: stop API and workers and take a consistent SQLite/Artifact backup
+before upgrading. If upgrade fails, preserve the failed copy and restore the
+pre-upgrade database and Artifact pair together with the previous application.
+Check `PRAGMA integrity_check` and `PRAGMA foreign_key_check`, then upgrade
+forward. Do not remove visibility rows or migration entries to downgrade; an
+older binary could resume archived work. If new records already exist, preserve
+the upgraded database and repair forward. Task deletion is a visibility action,
+not an Artifact purge or an undo of any remote action.
+
+`tests/test_task_visibility.py` upgrades a populated 0030 fixture without task
+hash loss, reopens the upgraded store, and restores/upgrades its pre-migration
+backup with integrity and foreign-key checks. These tests do not claim host
+crash or Linux/Docker acceptance.
+
+### `0032_minimax_reviews`
+
+Rebuilds `review_runs` to add `minimax` as a real model-backed reviewer kind.
+The insertion trigger requires every MiniMax Review to reference an immutable
+`AgentInvocation` whose role is `review` and whose provider is exactly
+`minimax`; existing Fake, NVIDIA and OpenAI-compatible rows, artifact bindings,
+indexes and hashes are copied unchanged. The task-visibility insertion guard is
+recreated after the table rebuild so archived or deleted tasks cannot receive a
+new Review.
+
+Recovery: stop API, Provider Worker and Publisher, then restore the consistent
+pre-upgrade SQLite and Artifact backup with the previous application. Verify
+`PRAGMA integrity_check` and `PRAGMA foreign_key_check` before retrying the
+forward migration. Do not edit Review rows, provider identities, triggers or
+migration stamps to downgrade. The Gateway credential volume is unchanged by
+this migration and must remain separately protected.
+
+### Explicit task erasure (2026-09-10)
+
+User-authorized permanent deletion supersedes the earlier retention policy for
+the selected task. The erasure feature itself adds no schema or model change;
+the current schema revision is 0032. A durable `task_erasure` Job and the existing deleted visibility state are
+committed together. The worker requires idle background work and an exclusive
+SQLite write transaction. It computes task descendants, preserves shared data,
+suspends only affected DELETE triggers transactionally, deletes selected rows,
+restores the exact trigger SQL and verifies foreign keys before committing.
+Ordinary UPDATE/DELETE constraints remain enforced outside this explicit service.
+
+File cleanup happens before the final database commit. On file failure or a
+crash, the inaccessible task and cleanup Job remain for idempotent retry; some
+of its files may already be gone. This is forward completion, not restoration.
+Managed backups containing the task are deleted as part of the same requested
+scope. Successful erasure removes the task, its audit entries and its cleanup
+Job; surviving audit events are not rehashed to conceal resulting chain gaps.
+`secure_delete` and a WAL checkpoint reduce SQLite remnants; this is application
+data erasure, not a forensic erasure guarantee for storage snapshots or SSDs.
+
+Do not restore a pre-erasure backup to recover a failure: it could resurrect
+data explicitly requested for deletion. Retry cleanup instead. Tests cover
+completed execution/publication dependency graphs, preserved shared files and
+discovery data, trigger restoration, file-failure retry and symlink rejection.

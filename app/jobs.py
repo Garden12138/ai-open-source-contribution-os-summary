@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -86,6 +86,13 @@ class JobService:
             context="job idempotency key",
         )
         ensure_no_sensitive_data(payload, context="job payload")
+        from app.task_visibility import require_active_payload_task
+        from app.planning import ContributionTaskError
+
+        try:
+            require_active_payload_task(self.session, payload)
+        except ContributionTaskError as exc:
+            raise JobConflictError("任务已归档或删除，不能启动新处理") from exc
 
         payload_hash = content_hash(payload)
         existing = self.session.scalar(
@@ -119,6 +126,9 @@ class JobService:
         )
         self.session.add(job)
         try:
+            self.session.flush()
+            from app.model_settings import bind_job_model
+            bind_job_model(self.session, job)
             if commit:
                 self.session.commit()
             else:
@@ -145,6 +155,8 @@ class JobService:
         *,
         worker_id: str,
         kinds: tuple[str, ...] | None = None,
+        exclude_model_bound: bool = False,
+        exclude_fake_provider: bool = False,
         lease_seconds: int = 60,
         now: datetime | None = None,
     ) -> Job | None:
@@ -167,6 +179,12 @@ class JobService:
         )
         if kinds:
             query = query.where(Job.kind.in_(kinds))
+        if exclude_model_bound:
+            from app.models import JobModelBinding
+            query = query.where(Job.id.not_in(select(JobModelBinding.job_id)))
+        if exclude_fake_provider:
+            provider_name = Job.payload["expected_provider"]["provider"].as_string()
+            query = query.where(or_(provider_name.is_(None), provider_name != "fake"))
         job_id = self.session.scalar(query)
         if job_id is None:
             return None
@@ -435,6 +453,13 @@ class JobService:
             raise JobTransitionError(
                 f"Job {job_id} cannot retry from state {job.state}"
             )
+        from app.task_visibility import require_active_job_task
+        from app.planning import ContributionTaskError
+
+        try:
+            require_active_job_task(self.session, job)
+        except ContributionTaskError as exc:
+            raise JobTransitionError("任务已归档或删除，不能重试") from exc
         if job.attempt_count >= job.max_attempts:
             raise JobTransitionError(f"Job {job_id} exhausted its attempts")
         job.state = JobState.QUEUED.value

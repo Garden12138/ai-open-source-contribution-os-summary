@@ -368,6 +368,9 @@ class ProviderAnalysisJobWorker:
             leased = service.lease_next(
                 worker_id=self.worker_id,
                 kinds=(PROVIDER_ANALYSIS_JOB_KIND,),
+                exclude_model_bound=self.provider.identity.provider == "fake",
+                exclude_fake_provider=self.provider.identity.provider
+                in {"nvidia_nim", "openai_compatible", "minimax"},
                 lease_seconds=60,
                 now=started_at,
             )
@@ -399,6 +402,9 @@ class ProviderAnalysisJobWorker:
         )
         active: _ActiveInvocation | None = None
         try:
+            if getattr(self, "model_settings", None) is not None:
+                from app.model_settings import configure_bound_worker
+                configure_bound_worker(self, job_id, self.model_settings, analysis=True)
             spec = ProviderAnalysisJobSpec.from_payload(payload)
             if self.provider.identity != spec.expected_provider:
                 raise ProviderRunError(

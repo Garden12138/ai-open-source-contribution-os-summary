@@ -46,6 +46,18 @@ class Workbench:
         self.session = session
         self.artifacts = ArtifactStore(session, artifact_root)
 
+    def models_changed_after(self, task_id: str, sequence: int) -> bool:
+        from app.model_settings import ModelSettingsService
+
+        models = ModelSettingsService(self.session)
+        # Examine every change: A→B→A or a real switch followed by a duplicate
+        # must not be hidden by only checking the newest event.
+        return any(
+            event.kind == "model_changed" and event.sequence > sequence
+            and not models.is_redundant_task_selection(task_id, event.payload)
+            for event in self.history(task_id)
+        )
+
     def history(self, task_id: str) -> list[WorkbenchEvent]:
         ContributionTaskService(self.session).get_verified(task_id)
         rows = list(

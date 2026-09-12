@@ -1,4 +1,7 @@
-import { mountContributionWorkbench } from "./workbench.js?v=workbench-v1";
+import { mountContributionWorkbench } from "./workbench.js?v=execution-changes-v1";
+import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
+import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown } from "./studio.js?v=studio-v1";
+import { mountModelSettings } from "./model-settings.js?v=studio-v2";
 import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {
@@ -72,7 +75,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     not_run: "未运行",
   };
 
-  const state = {
+const state = {
     picks: [],
     activeFilter: "all",
     toastTimer: null,
@@ -105,13 +108,30 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     sandboxStageRuntime: "none",
     draftPrPublisher: "fake",
     tasks: [],
-  };
+    taskHistoryGeneration: 0,
+};
+
+const REAL_MODEL_PROVIDERS = new Set(["nvidia_nim", "openai_compatible", "minimax"]);
+function isRealModelProvider(provider) { return REAL_MODEL_PROVIDERS.has(provider); }
+function modelProviderLabel(provider) {
+  if (provider === "minimax") return "MiniMax";
+  if (provider === "nvidia_nim") return "NVIDIA";
+  return "模型服务";
+}
 
   const dom = {};
+  const opportunityPicks = new Map();
+  let routeGeneration = 0;
+  let mountedTaskId = null;
+  let mountedWorkbench = null;
+  let settingsMounted = false;
+  let detailOrigin = "#/discover";
+  let detailFocus = null;
 
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
+    initStudioChrome();
     Object.assign(dom, {
       appName: document.querySelector("#app-name"),
       tokenStatus: document.querySelector("#token-status"),
@@ -178,6 +198,10 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     dom.notificationButton.addEventListener("click", toggleNotifications);
     dom.notificationReadAll.addEventListener("click", markAllNotificationsRead);
     window.addEventListener("hashchange", renderActiveView);
+    document.querySelector("#detail-close").addEventListener("click", () => { location.hash = detailOrigin; });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !document.querySelector("#opportunity-detail").hidden) location.hash = detailOrigin;
+    });
 
     renderActiveView();
     loadInitialData();
@@ -225,7 +249,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     if (preferenceResult.status === "fulfilled") {
       renderPreference(preferenceResult.value);
     } else {
-      dom.onboardingCard.hidden = false;
+      dom.onboardingCard.hidden = true;
+      dom.preferenceButton.hidden = false;
     }
 
     if (recommendationResult.status === "fulfilled") {
@@ -245,12 +270,18 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     }
   }
 
-  function renderActiveView() {
+  async function renderActiveView() {
     const requested = cleanText(window.location.hash).replace(/^#\//, "");
-    const view = ["discover", "shortlist", "contributions"].includes(requested)
+    const generation = ++routeGeneration;
+    const taskMatch = /^tasks\/([A-Za-z0-9-]+)$/.exec(requested);
+    const detailMatch = /^opportunities\/(\d+)$/.exec(requested);
+    const view = taskMatch ? "task" : detailMatch ? detailOrigin.replace("#/", "") : ["discover", "shortlist", "contributions", "settings"].includes(requested)
       ? requested
       : "discover";
     state.currentView = view;
+    if (view === "contributions") renderTaskHistory();
+    document.body.dataset.view = view;
+    document.querySelector("#studio-page-title").textContent = {discover:"发现机会",shortlist:"我的候选",contributions:"贡献概览",task:"贡献工作台",settings:"模型设置"}[view];
     document.querySelectorAll("[data-product-view]").forEach((section) => {
       section.hidden = section.dataset.productView !== view;
     });
@@ -260,16 +291,74 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       if (active) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+    const detail = document.querySelector("#opportunity-detail");
+    detail.hidden = !detailMatch;
+    if (!detailMatch && detailFocus) { detailFocus.focus({preventScroll:true}); detailFocus = null; }
+    if (view !== "task" && mountedTaskId) {
+      mountedWorkbench?.dispose?.(); mountedWorkbench = null; mountedTaskId = null;
+      document.querySelector("#studio-task-root").replaceChildren();
+    }
+    if (view === "settings" && !settingsMounted) {
+      settingsMounted = true;
+      mountModelSettings(document.querySelector("#model-settings-root"), {
+        ensureAccess:ensureLocalAccessToken, headers:mutationHeaders,
+        onSaved: async () => { const [meta,daily] = await Promise.all([requestJSON(API.meta),requestJSON(API.daily)]); renderMeta(meta); renderDaily(daily); await reloadProductExperience(); },
+      });
+    }
+    if (detailMatch) {
+      const id = Number(detailMatch[1]);
+      const root = document.querySelector("#opportunity-detail-content");
+      root.replaceChildren(analysisMessage("正在载入机会", "读取 Issue 和分析信息…", true));
+      try {
+        const opportunity = await requestJSON(`${API.opportunities}/${id}`);
+        if (generation !== routeGeneration) return;
+        const pick = opportunityPicks.get(id) || {opportunity, score_snapshot:opportunity.score_total};
+        root.replaceChildren(buildExpandedOpportunityCard({...pick,opportunity}, `detail-${id}`));
+        const shortlisted = state.shortlist.find(item => item.opportunity.id === id);
+        if (shortlisted) {
+          const controls = element("div", "settings-actions");
+          const reminder = document.createElement("input"); reminder.type="datetime-local"; reminder.setAttribute("aria-label","提醒时间");
+          const existing = parseDate(shortlisted.reminder_at); if (existing) reminder.value=toLocalInputValue(existing);
+          controls.append(reminder,analysisAction("保存提醒",async()=>{
+            try { await setOpportunityDisposition(id,{state:"shortlisted",reason_code:null,reminder_at:reminder.value ? new Date(reminder.value).toISOString() : null}); await reloadProductExperience();showToast("候选提醒已更新。"); }
+            catch(error) {showToast(friendlyError(error),true);}
+          }),analysisAction("移出候选",async()=>{
+            try { await setOpportunityDisposition(id,{state:"neutral",reason_code:null,reminder_at:null});await reloadProductExperience();location.hash=detailOrigin; }
+            catch(error) {showToast(friendlyError(error),true);}
+          }));
+          root.append(controls);
+        }
+        if (opportunity.body) { const body = element("details", "issue-body"); body.append(element("summary", "", "Issue 原文")); const content = element("div"); renderMarkdown(content, opportunity.body); body.append(content); root.append(body); }
+        const panel = state.analysisPanels.get(analysisPanelKey("discover", id));
+        if (panel && panel.body.hidden) await toggleAnalysisPanel(panel);
+        detail.focus({preventScroll:true});
+      } catch(error) { if (generation === routeGeneration) root.replaceChildren(analysisMessage("机会详情载入失败", friendlyError(error))); }
+    }
+    if (taskMatch && mountedTaskId !== taskMatch[1]) {
+      mountedWorkbench?.dispose?.(); mountedTaskId = taskMatch[1];
+      const root = document.querySelector("#studio-task-root");
+      root.replaceChildren(analysisMessage("正在恢复任务", "同步对话与方案…", true));
+      try {
+        const task = await requestJSON(`${API.tasks}/${encodeURIComponent(mountedTaskId)}`);
+        if (generation !== routeGeneration) return;
+        const summary = state.tasks.find(t => t.id === mountedTaskId) || {};
+        const header = element("header", "studio-task-root-heading");
+        header.append(element("h2", "", summary.opportunity_title || "贡献任务"), element("small", "", summary.repository_full_name || ""));
+        const body = element("div", "studio-task-body"); root.replaceChildren(header,body);
+        mountedWorkbench = renderPlanningWorkbench(body, null, null, task);
+        renderSidebarTasks(state.tasks);
+      } catch(error) { if (generation === routeGeneration) { mountedTaskId = null; root.replaceChildren(analysisMessage("任务载入失败", friendlyError(error))); } }
+    }
   }
 
   function renderPreference(data) {
     const configured = Boolean(data && data.configured);
     const preference = objectValue(data && data.preference);
     state.preference = configured ? preference : null;
-    dom.onboardingCard.hidden = configured;
-    dom.preferenceButton.hidden = !configured;
+    dom.onboardingCard.hidden = true;
+    dom.preferenceButton.hidden = false;
     dom.preferenceButton.setAttribute("aria-expanded", "false");
-    dom.preferenceButton.textContent = "调整偏好";
+    dom.preferenceButton.textContent = "推荐偏好";
     if (!configured) return;
     const form = dom.preferenceForm.elements;
     form.primary_goal.value = cleanText(preference.primary_goal) || "balanced";
@@ -319,6 +408,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   }
 
   function togglePreferenceEditor() {
+    if (state.currentView === "task" || state.currentView === "settings") location.hash = "#/discover";
     const opening = dom.onboardingCard.hidden;
     dom.onboardingCard.hidden = !opening;
     dom.preferenceButton.setAttribute("aria-expanded", String(opening));
@@ -698,6 +788,19 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   }
 
   function buildShortlistCard(item, index) {
+    const card = buildOpportunityCard(recommendationAsPick(item,index), index);
+    const label = element("label", "compare-check");
+    const input = document.createElement("input"); input.type = "checkbox";
+    input.addEventListener("change", () => {
+      const id = item.opportunity.id;
+      if (input.checked && state.compareSelection.size >= 3) { input.checked=false; showToast("一次最多比较三个机会。",true); return; }
+      if (input.checked) state.compareSelection.add(id); else state.compareSelection.delete(id);
+      dom.compareButton.disabled = state.compareSelection.size < 2;
+    });
+    label.append(input,document.createTextNode("选择比较")); card.append(label); return card;
+  }
+
+  function buildLegacyShortlistCard(item, index) {
     const opportunity = objectValue(item.opportunity);
     const repository = objectValue(opportunity.repository);
     const card = element("article", "shortlist-card");
@@ -911,8 +1014,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     const languages = toStringArray(meta.preferred_languages);
     const queryCount = Array.isArray(meta.queries) ? meta.queries.length : 0;
 
-    dom.appName.textContent = appName;
-    document.title = `${appName} · 每日机会榜`;
+    dom.appName.textContent = "Contribution Studio";
+    document.title = `${appName} · 贡献工作台`;
 
     dom.systemStatus.classList.remove("is-warning");
     dom.tokenNotice.classList.remove("is-loading", "is-warning", "is-error");
@@ -935,7 +1038,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     const summaries = [];
     if (languages.length) summaries.push(`偏好语言：${languages.join(" / ")}`);
     if (queryCount) summaries.push(`${formatNumber(queryCount)} 条检索规则`);
-    summaries.push(state.analysisProvider === "nvidia_nim"
+    summaries.push(isRealModelProvider(state.analysisProvider)
       ? "AI：真实分析已接入"
       : state.analysisProvider === "fake" ? "AI：Fake 演示" : "AI：未接入");
     dom.metaSummary.textContent = summaries.join(" · ");
@@ -944,21 +1047,21 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
 
   function renderRuntimeBoundary() {
     if (!dom.runtimeBoundary) return;
-    const analysis = state.analysisProvider === "nvidia_nim"
-      ? "AI 分析使用真实模型"
+    const analysis = isRealModelProvider(state.analysisProvider)
+      ? `AI 分析使用 ${modelProviderLabel(state.analysisProvider)} ${state.analysisModel}`
       : state.analysisProvider === "fake"
         ? "AI 分析为 Fake 演示，不调用真实 LLM"
         : "真实 LLM 尚未接线";
     const execution = (
-      state.implementationProvider === "nvidia_nim"
+      isRealModelProvider(state.implementationProvider)
       && state.sandboxStageRuntime === "docker"
     )
-      ? `Vibe Coding 使用 NVIDIA ${state.implementationModel} 与独立 Docker Sandbox Worker`
+      ? `Vibe Coding 使用 ${modelProviderLabel(state.implementationProvider)} ${state.implementationModel} 与独立 Docker Sandbox Worker`
       : state.sandboxStageRuntime === "fake"
         ? "Vibe Coding 为 Fake Explore / Implement / Verify 演示"
         : "真实隔离代码执行尚未接线";
-    const review = state.reviewProvider === "nvidia_nim"
-      ? `独立审查使用 NVIDIA ${state.reviewModel}`
+    const review = isRealModelProvider(state.reviewProvider)
+      ? `独立审查使用 ${modelProviderLabel(state.reviewProvider)} ${state.reviewModel}`
       : state.reviewProvider === "fake"
         ? "独立审查为 Fake 演示"
         : "真实独立审查尚未接线";
@@ -1054,6 +1157,16 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   }
 
   function buildOpportunityCard(pick, index) {
+    const id = Number(pick.opportunity?.id);
+    opportunityPicks.set(id,pick);
+    return compactOpportunity(pick, {
+      open: () => { detailOrigin = state.currentView === "shortlist" ? "#/shortlist" : "#/discover"; detailFocus = document.activeElement; location.hash = `#/opportunities/${id}`; },
+      save: async () => { try { await setOpportunityDisposition(id,{state:"shortlisted",reason_code:null,reminder_at:null}); await reloadProductExperience(); } catch(error) { showToast(friendlyError(error),true); } },
+      dismiss: async () => { try { const restore = pick.product_recommendation?.disposition_state === "dismissed"; await setOpportunityDisposition(id,{state:restore ? "neutral" : "dismissed",reason_code:restore ? null : "not_interested",reminder_at:null}); await reloadProductExperience(); } catch(error) { showToast(friendlyError(error),true); } },
+    });
+  }
+
+  function buildExpandedOpportunityCard(pick, index) {
     const opportunity = pick && pick.opportunity && typeof pick.opportunity === "object"
       ? pick.opportunity
       : {};
@@ -1747,7 +1860,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     copy.append(
       element("span", "planning-kicker", "START CONTRIBUTING"),
       element("h4", "", "开始准备这个贡献"),
-      element("p", "", "让 AI 阅读代码、讨论改造方案；您可以编辑，确认后自动实施和验证。"),
+      element("p", "", "让 AI 阅读代码、讨论改造方案；可直接编辑，确认后自动实施和验证。"),
     );
     const body = element("div", "planning-launcher-body");
     const analysisVersionId = cleanText(analysisDetail && analysisDetail.id);
@@ -1785,7 +1898,8 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
           if (!taskId) throw new Error("任务响应缺少标识");
           panel.taskIds.set(analysisVersionId, taskId);
           action.textContent = "任务已创建";
-          await loadPlanningWorkbench(body, panel, analysisDetail, taskId);
+          await renderTaskHistory();
+          window.location.hash = `#/tasks/${encodeURIComponent(taskId)}`;
         } catch (error) {
           body.replaceChildren(
             analysisMessage("任务工作台不可用", friendlyError(error)),
@@ -1798,7 +1912,6 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     action.classList.add("planning-primary-action");
     heading.append(copy, action);
     section.append(heading, body);
-    if (knownTaskId) action.click();
     return section;
   }
 
@@ -1817,9 +1930,15 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   }
 
   function renderPlanningWorkbench(container, panel, analysisDetail, taskDetail) {
-    mountContributionWorkbench(container, taskDetail.task.id, {
+    return mountContributionWorkbench(container, taskDetail.task.id, {
       ensureAccess: ensureLocalAccessToken,
       headers: mutationHeaders,
+      onArchive: async () => {
+        const tasks = await requestJSON(API.tasks);
+        const summary = tasks.find(task => task.id === taskDetail.task.id);
+        if (!summary) throw new Error("任务状态已变化，请刷新后重试。");
+        await changeTaskVisibility(summary, "archive");
+      },
       renderExecution: (root, detail, plan, refresh) => renderExecutionDetail(root, detail, plan, refresh, true),
     });
   }
@@ -2464,12 +2583,12 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
   function buildExecutionWorkbench(executionId, plan) {
     const section = element("section", "planning-card execution-workbench");
     const liveVibeCoding = (
-      state.implementationProvider === "nvidia_nim"
+      isRealModelProvider(state.implementationProvider)
       && state.sandboxStageRuntime === "docker"
     );
     const heading = planningCardHeading(
       liveVibeCoding
-        ? "Vibe Coding · NVIDIA"
+        ? `Vibe Coding · ${modelProviderLabel(state.implementationProvider)}`
         : state.sandboxStageRuntime === "fake" ? "Vibe Coding（Fake 演示）" : "隔离执行",
       liveVibeCoding
         ? `在冻结的仓库上下文中与 ${state.implementationModel} 多轮协作；只有你确认的精确 ChangeSet 哈希会进入 Implement。`
@@ -2529,6 +2648,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     return section;
   }
 
+  const executionChangeViews = new WeakMap();
   function renderExecutionDetail(root, detail, plan, refresh, automated = false) {
     root.replaceChildren();
     const current = objectValue(detail.current_stage);
@@ -2554,7 +2674,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
       && cleanText(current.status) === "succeeded"
     ) {
       if (
-        state.implementationProvider === "nvidia_nim"
+        isRealModelProvider(state.implementationProvider)
         && state.sandboxStageRuntime === "docker"
       ) {
         root.appendChild(buildVibeCodingPanel(detail, refresh));
@@ -2610,7 +2730,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
         reviewStatus.textContent = "正在绑定 Verify 产物并启动独立 Review…";
         try {
           await ensureLocalAccessToken();
-          const providerReview = state.reviewProvider === "nvidia_nim";
+          const providerReview = isRealModelProvider(state.reviewProvider);
           const queued = await requestJSON(
             `${API.executions}/${encodeURIComponent(detail.id)}/${providerReview ? "review-jobs" : "reviews"}`,
             {
@@ -2770,18 +2890,16 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     ));
     const evidence = artifacts.filter((item) => item.role === "stage-result");
     const inventory = artifacts.find((item) => item.role === "file-inventory");
-    const diff = artifacts.find((item) => item.role === "unified-diff");
     const tests = artifacts.find((item) => item.role === "normalized-test-results");
     const artifactGrid = element("div", "execution-artifact-grid");
-    if (diff) {
-      artifactGrid.appendChild(
-        buildExecutionArtifactCard(
-          diff,
-          "代码变更",
-          "查看本次修改的具体内容。",
-          renderExecutionDiff,
-        ),
-      );
+    if (!automated) {
+      let changeView = executionChangeViews.get(root);
+      if (!changeView) {
+        changeView = createExecutionChanges();
+        executionChangeViews.set(root, changeView);
+      }
+      changeView.update(detail);
+      root.appendChild(changeView.viewer);
     }
     if (tests) {
       artifactGrid.appendChild(
@@ -2793,7 +2911,7 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
         ),
       );
     }
-    if (inventory) {
+    if (inventory && !automated) {
       artifactGrid.appendChild(
         buildExecutionArtifactCard(
           inventory,
@@ -3206,12 +3324,6 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     return card;
   }
 
-  function renderExecutionDiff(root, _value, text) {
-    const diff = element("pre", "execution-diff");
-    diff.textContent = text || "空 diff";
-    root.replaceChildren(diff);
-  }
-
   function renderExecutionTests(root, value) {
     const tests = Array.isArray(value) ? value : [];
     if (!tests.length) {
@@ -3573,16 +3685,25 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
     if (!dom.taskHistory) {
       return;
     }
+    const generation = ++state.taskHistoryGeneration;
+    const archived = document.querySelector("#show-archived-tasks").checked;
+    document.querySelector("#show-archived-tasks").onchange = () => renderTaskHistory();
+    dom.taskHistory.setAttribute("aria-busy", "true");
     try {
-      const tasks = await requestJSON(API.tasks);
+      const [tasks, archiveTasks] = await Promise.all([
+        requestJSON(API.tasks),
+        archived ? requestJSON(`${API.tasks}?archived=true`) : Promise.resolve([]),
+      ]);
+      if (generation !== state.taskHistoryGeneration) return;
       dom.taskHistory.replaceChildren();
-      const rows = Array.isArray(tasks) ? tasks : [];
-      state.tasks = rows;
+      const rows = archived ? archiveTasks : tasks;
+      state.tasks = tasks;
+      renderSidebarTasks(tasks);
       if (!rows.length) {
-        dom.taskHistory.appendChild(element("p", "", "还没有贡献任务。"));
+        dom.taskHistory.appendChild(element("p", "", archived ? "还没有归档任务。" : "还没有贡献任务。"));
         return;
       }
-      rows.slice(-12).reverse().forEach((task) => {
+      rows.slice().reverse().forEach((task) => {
         const item = element("article", "task-history-item");
         const progress = document.createElement("progress");
         progress.max = 100;
@@ -3596,20 +3717,82 @@ import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context
           element("span", "task-next-action", cleanText(task.next_action) || "当前阶段已完成"),
         );
         const actions = element("div", "task-history-actions");
-        const open = analysisAction("继续贡献", () => openContributionTask(task));
-        open.classList.add("is-compact");
-        actions.appendChild(open);
+        if (!archived) {
+          const open = analysisAction("继续贡献", () => openContributionTask(task));
+          open.classList.add("is-compact");
+          actions.appendChild(open);
+        }
+        const erasing = task.visibility === "deleted";
+        if (erasing) item.append(element("span", "", ["queued", "leased", "running"].includes(task.erasure_state) ? "正在永久删除…" : "删除未完成，请重试。"));
+        for (const [action, label] of archived ? (erasing ? [["delete", "重试删除"]] : [["restore", "恢复任务"], ["delete", "删除任务"]]) : [["archive", "归档任务"]]) {
+          const control = analysisAction(label, async () => {
+            if (control.disabled) return;
+            control.disabled = true;
+            try { await changeTaskVisibility(task, action); }
+            catch (error) { showToast(friendlyError(error), true); }
+            finally { control.disabled = false; }
+          });
+          control.classList.add("is-compact");
+          control.disabled = erasing && ["queued", "leased", "running"].includes(task.erasure_state);
+          actions.appendChild(control);
+        }
         item.appendChild(actions);
         dom.taskHistory.appendChild(item);
       });
     } catch (error) {
+      if (generation !== state.taskHistoryGeneration) return;
       dom.taskHistory.replaceChildren(
         element("p", "", `任务历史暂不可用：${friendlyError(error)}`),
+        analysisAction("重试载入任务", () => renderTaskHistory()),
       );
+    } finally {
+      if (generation === state.taskHistoryGeneration) dom.taskHistory.setAttribute("aria-busy", "false");
     }
   }
 
+  async function changeTaskVisibility(task, action) {
+    if (action === "delete" && !window.confirm(`永久删除任务“${task.opportunity_title || "贡献任务"}”？计划、对话、执行、审查、审计、专属文件及包含该任务的本地备份会被清除，无法恢复。`)) return;
+    await ensureLocalAccessToken();
+    const result = await requestJSON(`${API.tasks}/${encodeURIComponent(task.id)}${action === "delete" ? "" : `/${action}`}`, {
+      method: action === "delete" ? "DELETE" : "POST",
+      headers: mutationHeaders({"Content-Type": "application/json"}),
+      body: JSON.stringify({expected_sequence: task.visibility_sequence}),
+    });
+    if (action === "delete" && result.job_id) {
+      showToast("正在永久删除任务和关联文件…");
+      await renderTaskHistory();
+      let complete = false;
+      for (let attempt = 0; attempt < 125; attempt++) {
+        await sleep(1000);
+        try {
+          const job = await requestJSON(`${API.jobs}/${encodeURIComponent(result.job_id)}`);
+          if (["failed", "cancelled", "timed_out"].includes(job.state)) {
+            await renderTaskHistory();
+            throw new Error(job.error_message || "删除未完成，请在归档列表重试。");
+          }
+        } catch (error) {
+          if (error.status === 404) { complete = true; break; }
+          throw error;
+        }
+      }
+      if (!complete) throw new Error("删除仍在后台进行，可在归档列表查看进度。");
+    }
+    for (const panel of state.analysisPanels.values()) {
+      for (const [analysisId, id] of panel.taskIds || []) if (id === task.id) panel.taskIds.delete(analysisId);
+    }
+    if (mountedTaskId === task.id) {
+      mountedWorkbench?.dispose?.();
+      location.hash = "#/contributions";
+    }
+    showToast({archive: "任务已归档，可在贡献概览中查看和恢复。", restore: "任务已恢复。", delete: "任务已删除。"}[action]);
+    await renderTaskHistory();
+  }
+
   async function openContributionTask(summary) {
+    window.location.hash = `#/tasks/${encodeURIComponent(summary.id)}`;
+  }
+
+  async function openLegacyContributionTask(summary) {
     const taskId = cleanText(summary && summary.id);
     const opportunityId = Math.trunc(
       toFiniteNumber(summary && summary.opportunity_id, 0),

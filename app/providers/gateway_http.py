@@ -21,7 +21,7 @@ from app.providers.gateway import (
 logger = logging.getLogger(__name__)
 
 
-def create_model_gateway_app(gateway: InternalModelGateway) -> FastAPI:
+def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None, management_key=None) -> FastAPI:
     """Create the internal-only HTTP boundary consumed by Codex CLI."""
 
     app = FastAPI(
@@ -45,6 +45,33 @@ def create_model_gateway_app(gateway: InternalModelGateway) -> FastAPI:
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.post("/internal/settings")
+    async def manage(request: Request):
+        from app.providers.model_secrets import verify_management
+        if secret_store is None or management_key is None:
+            return _error(403, "management_disabled", "Gateway management is disabled")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 24000:
+                return _error(413, "management_limit", "Gateway management request is too large")
+        try:
+            verify_management(management_key, bytes(body), request.headers.get("X-Gateway-Management", ""))
+            payload = json.loads(body)
+            operation = payload["operation"]
+            if operation == "grant":
+                import re
+                if not re.fullmatch(r"[a-zA-Z0-9-]{1,80}", payload["connection_id"]):
+                    raise ValueError()
+                return secret_store.grant(payload["connection_id"])
+            if operation == "save":
+                return secret_store.save(payload["connection_id"], payload["envelope"])
+            if operation == "has":
+                return {"configured": secret_store.has(payload["credential_ref"])}
+            raise ValueError()
+        except (ValueError, KeyError, TypeError):
+            return _error(403, "management_rejected", "Gateway management request was rejected")
 
     @app.post("/v1/responses")
     @app.post("/v1/chat/completions")

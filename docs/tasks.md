@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | User-directed NVIDIA analysis, Vibe Coding and independent Review wiring is implemented behind separated Gateway/Provider/Sandbox processes; live-account, real Draft PR and Linux platform gates stay unchecked. |
+| Feature note | MiniMax-M3 domestic direct access is the settings-page four-stage default after explicit encrypted-key activation; NVIDIA/OpenAI-compatible Profiles remain manual alternatives. Live MiniMax, real Draft PR and Linux platform gates stay unchecked. |
 
 ## Fixed end-to-end chain
 
@@ -1110,6 +1110,454 @@ Planning archive/context repair (2026-09-08), user-reported generic task failure
   JavaScript module syntax and diff checks pass. WB-G03/WB-G04 and native Linux
   amd64/Docker Engine P5-G06 remain unchecked; P5-G06 is still the next roadmap
   acceptance gate.
+
+---
+
+## User-directed Studio UI and model settings (2026-09-09)
+
+This is the user's requested product-experience slice while Phase 5 remains
+current. It does not begin the next roadmap phase or close P5-G06.
+
+- [x] **ST-T04** User-requested task archive/restore and deletion from the archive
+  list. Native workbench “更多” and contribution-history actions use protected
+  API mutations and version-based CAS; active jobs and unresolved publication
+  prevent archiving. Archived/deleted tasks cannot enqueue/retry work or resume
+  through stale coordinator ticks. Deleted tasks disappear from lists and
+  contribution statistics. Permanent deletion now removes selected task
+  provenance, audits, jobs, files and matching local backups while preserving
+  shared opportunity data. Migration `0031_task_visibility` preserves existing rows; 0030 upgrade,
+  backup recovery, repeat requests, stale requests, authorization/CSRF, audit
+  rollback, immutable records and credential-canary coverage are in
+  `tests/test_task_visibility.py` and `tests/test_task_erasure.py`. Full offline regression: **439 passed,
+  7 skipped, 4 malicious-platform tests deselected**. Real Chromium against a
+  temporary offline fixture passed desktop archive, reload, restore, mobile
+  archive, delete cancellation, confirmed deletion and persistence via
+  `tests/task_visibility_browser.mjs`. Python compilation, native JS syntax and
+  diff checks pass. Deployed to the running Compose stack; deployment verification
+  was confirmed on 2026-09-10. Next roadmap gate remains **P5-G06**, native Linux
+  amd64/Docker Engine.
+  - Database/Artifact backup `/data/backups/pre-studio-20260909T153227Z` was
+    removed with the selected task set after the user requested permanent deletion.
+  - Application image: `sha256:44f6e80672099fe52e6b3e6dcc3272923e4e48f24b2129357dfce41a2cad0106`;
+    trusted Sandbox Worker: `sha256:62b14b946bd6a0341dd6a39839f4772e4a8dc937a0c99031d80faaf35e60618a`.
+  - Migration `0031_task_visibility`, database integrity and foreign-key checks
+    pass after erasure. Current database has 735 opportunities, zero tasks,
+    plans, executions and reviews, six unrelated audits, zero managed backups
+    and zero artifact files. Credential values remain absent from business
+    SQLite and recent logs; model profiles remain available.
+  - All five services run, with healthy API/Gateway. Read-only live Chromium
+    passes task navigation, archive controls/list, model settings and desktop/
+    mobile layouts without JavaScript errors. The deployed archive, restore and
+    delete API routes and updated asset version are present; this live check
+    submits no task mutations. Fixture mutation acceptance remains recorded above.
+
+- [x] **ST-T01** Native conversation-first Studio shell: sidebar navigation and
+  task history, compact discovery/shortlist cards, click-to-open opportunity
+  details, dedicated task routes, optional plan/result pane, light/dark themes,
+  independent pane scrolling and narrow-screen panel switching. Existing
+  comparison, reminders, plan versioning, cancellation and publication consent
+  remain available; opening a task does not automatically call a model.
+- [x] **ST-T02** Versioned NVIDIA/OpenAI-compatible connections and profiles,
+  default and four-stage overrides, explicit per-task model changes, persistent
+  cancellable connection probes/model listing. Jobs bind exact profile IDs and
+  hashes; changing global defaults does not change bound or legacy in-flight
+  tasks. Model changes invalidate direct execution of an older plan.
+- [x] **ST-T03** Gateway-only encrypted credentials, browser WebCrypto envelopes,
+  one-use grants with exact-replay idempotency, a separate management HMAC/network
+  and private volume. Provider task tokens bind profile hashes and cannot call
+  the management interface. Custom HTTPS endpoints reject non-global DNS/IPs,
+  redirects and credential-bearing URLs. Business records never store API Keys.
+- [x] **ST-G01** Forward migration `0030_model_settings` and response/UI contracts
+  verified. Full offline suite: **394 passed, 11 skipped**. Coverage includes
+  upgrades retaining historical review/publication references, CAS/immutability,
+  four-stage frozen bindings, legacy-task compatibility, model-switch stale-plan
+  rejection, real/Fake worker queue separation, success/failure/cancellation,
+  same-origin/CSRF, encrypted-store reopen/replay, private DNS rejection and
+  credential canaries absent from responses, stored records and captured logs.
+  Python compilation, native JS syntax, `git diff --check`, and Compose config
+  validation using `.env.example` pass.
+- [x] **ST-G02** Real Chromium browser, entirely offline temporary database:
+  card details/Escape, message and unsaved-plan drafts surviving route changes,
+  encrypted key saving without echo, custom profile/default selection, themes
+  and no horizontal overflow at desktop and `390×844`. Task chat/document
+  switching and fixed-height scrolling pass at `1280×900` and `390×844`.
+  Reproducible fixtures: `tests/studio_browser_server.py`,
+  `tests/studio_browser.mjs`; final run used the latest API on a fresh database.
+- [ ] **ST-G03** Real custom model connection and complete configured model →
+  Sandbox → independent Review acceptance. No new real provider call, deployment
+  mutation or third-party write was performed for this slice. A public HTTPS
+  provider with supported structured output and valid user-supplied credential
+  is required; simulated transport contracts are not real-provider evidence.
+
+Usage, configuration, dependency/security tradeoffs and limitations are in
+`docs/studio-workbench.md`; business and private Gateway backup/recovery are in
+`docs/database-migrations.md`. The running deployment was rebuilt and the
+selected task history was permanently erased on 2026-09-12.
+WB-G03, WB-G04 and native Linux amd64/Docker Engine P5-G06 remain unchecked;
+**P5-G06 is still the next roadmap acceptance task**.
+
+### Studio local deployment refresh (2026-09-09)
+
+Explicitly requested after ST-G01/G02 implementation acceptance:
+
+- Built and deployed application image index
+  `sha256:d5ea8a95688aa74285176ff5794c4524f9c0858a4cec43031ae3d2e469e501ed`
+  and trusted Sandbox Worker index
+  `sha256:29960d98ec329c6e21be71e6adfe07ae85126bde4a439fe2a6373a684825b87e`.
+  API, coordinator, Provider, Sandbox Worker and Gateway are running; API and
+  Gateway health checks pass. The existing digest-pinned untrusted Runner and
+  `PUBLISHER_MODE=none` were retained.
+- Stopped all business writers with no active Jobs. A credential-free,
+  no-network maintenance container created the consistent SQLite/Artifact backup
+  at `/data/backups/pre-studio-20260909T022609Z` on `contribos-local-data`.
+  Forward migration `0030_model_settings`, integrity and foreign-key checks pass.
+  All rows/hashes in the seven checked domain tables are identical to backup:
+  547 opportunities, 43 analyses, six tasks, four plans, two executions, two
+  reviews and two historical Draft PR records. No legacy provenance was rewritten.
+- Provisioned an independent API/Gateway management key without printing it;
+  local `.env` is `0600`. Existing NVIDIA key/proxy, execution signing key,
+  Runner configuration and GitHub read-only credential were preserved. Gateway
+  now has its own `contribos-model-secrets` volume (`0700`, all three files `0600`)
+  and management network; four environment-backed model profiles were imported.
+  Signed management access verifies the existing credential reference without
+  calling NVIDIA or saving a new provider key.
+- Read-only deployed Chromium smoke passes against `127.0.0.1:8000`: new brand,
+  compact card/detail/Escape, restored task chat, enabled key input with no echo,
+  and mobile routes without horizontal overflow or JavaScript errors. The check
+  asserts **GET-only** traffic. All six workbench endpoints report planning
+  available. Runtime credential values are absent from business SQLite and
+  recent service logs; validation emits only aggregate evidence.
+- Reproducible maintenance utilities live in `docs/deployment/`:
+  `provision_model_management.py`, `studio_backup.py`, `verify_studio.py`; live
+  browser smoke is `tests/studio_live_browser.mjs`. Compilation and diff checks
+  pass. OrbStack retained old container config/manifest identities but did not
+  expose them as taggable images, so no old-image rollback tag was created;
+  rollback requires the matching previous application plus the recorded backup.
+- This refresh does not call a real model, authorize contribution execution,
+  start Publisher, perform a GitHub write, or satisfy ST-G03/WB-G03/WB-G04/P5-G06.
+
+---
+
+### Stop-scope regression repair (2026-09-09)
+
+- User task `15ea2bdc-8aea-4236-9c26-05a54f16e604` accepted “修改方案” in Job
+  `574012c1-a780-42e5-bdb1-38c69774f075`, then cancelled it about 12 seconds later.
+  A September 8 `stop_requested` event was still cancelling every subsequent
+  task Job on each coordinator tick. The UI only surfaced failed/time-out Jobs,
+  so cancellation looked like a message receiving no response.
+- Reopened WB-T03 and ST-G01 for this regression, then reverified them. New stop
+  events freeze exact active Job IDs and cancellation requests in one transaction.
+  SQLite's writer lock is held before the scope snapshot to prevent concurrent
+  child-Job creation from escaping it. Legacy events retain their original UTC
+  cutoff without any journal rewrite. Idempotent stop replay never expands scope;
+  a new stop still cancels the new request. Historical cancellations remain intact.
+- The native UI explicitly reports cancellation and permits a new message after
+  cancellation settles; queued/running work clears that old notice. Asset versions
+  were bumped to avoid stale browser code. No automatic resend, execution consent
+  or publication authorization was added.
+- Offline full regression: **398 passed, 11 skipped**. New tests reproduce the
+  original failure before the fix and cover legacy/new stop events, coordinator
+  ticks after database reopen, request replay, a second stop, cancellation rollback,
+  SQLite writer contention, and rejecting late model results after an actual stop.
+  Browser checks cover cancelled → resend → queued → stop → cancelled plus the
+  existing draft, settings and responsive checks. Compile/module/diff checks pass.
+- Deployed after a consistent backup at
+  `/data/backups/pre-studio-20260909T063320Z`. Application image index is
+  `sha256:9c3ee7273560269a54343a08abf38fbf6b4303a613a450c4ae8e698f84a3cf80`;
+  Sandbox Worker index is
+  `sha256:1b27579f144600ad9cac754869b45dd149aa05625b34d7741971c577b5e0175b`.
+  The previous working images were preserved under `pre-stop-fix-20260909` tags.
+  An initial PyPI timeout was resolved by rebuilding; no live service was stopped
+  until the new images were ready. Schema stays at `0030_model_settings`.
+- All five services are running, API/Gateway health checks pass, seven domain
+  tables retain exactly the backup row counts/hashes, and configured credentials
+  remain absent from business SQLite and recent logs. Read-only evaluation of
+  the deployed stop-scope helper confirms the user's latest message is outside
+  the old stop boundary. A GET-only Chromium check of the exact reported task
+  verifies the cancellation notice, enabled Send button, task/settings routes and
+  mobile layout. No live message was resent, no cancelled record rewritten, and
+  no model call or contribution execution/publication was initiated. The user
+  must refresh the task page and explicitly send a new message to continue.
+
+---
+
+### Planning output diagnostics and contract repair (2026-09-09)
+
+- User-authorized repair for task `15ea2bdc-8aea-4236-9c26-05a54f16e604`.
+  Original Job `06f2a4d6-6c7d-449e-beee-2e5079aae0b0` only recorded a generic
+  `value_error`; its discarded raw reply cannot be reconstructed or assigned a
+  more precise historical cause.
+- Planning JSON Schema now expresses the same mutually exclusive question/read/
+  plan branches enforced locally. Fixed custom reason codes distinguish absent
+  outcomes, conflicting outcomes, duplicate question IDs and sensitive output.
+  Rejected output creates a hash-bound `model_output_rejected` journal event with
+  only allowlisted field/type codes; arbitrary keys, inputs and exception text
+  never enter diagnostics. Invalid output is not coerced into a valid plan, and
+  no automatic repair call or failure retry was added. No schema migration is
+  needed for the existing generic append-only event payload.
+- Initial deployment backup: `/data/backups/pre-studio-20260909T072429Z`.
+  All seven domain table hashes matched backup, all six workbench endpoints were
+  available, five services were running, and credentials were absent from SQLite
+  and recent logs. Original working images remain tagged
+  `pre-planning-diag-20260909` for both app and trusted Sandbox Worker.
+- Exactly one authorized API retry of “修改方案” used the unchanged frozen
+  planning profile and stable key `diagnostic-retry-06f2a4d6-planning-v2`.
+  Job `753f78e6-ccc8-4fd3-a942-c9186ca7ccae` failed after about 47 seconds;
+  event sequence 30 safely records types `missing` / `string_type` and fields
+  `reply`, `plan.implementation_steps`, `plan.tests_to_add_or_run`. These are
+  aggregate diagnostics, not a reconstruction of individual invalid values.
+  The task still has no saved plan. The idempotent retry utility will return the
+  existing Job without submitting another request.
+- Follow-up `planning-v3-typed-outcome` adds explicit top-level reply and string
+  array descriptions to schema and prompt, plus envelope/item-type examples.
+  Regression cases cover missing reply and object-valued step/test entries;
+  sensitive canaries remain absent from journal, database, logs and errors.
+  This follow-up has not received another real model call; real planning success
+  remains unverified, and existing failed Jobs are not rewritten.
+- Final verification: **409 passed, 11 skipped** (420 collected) using Python
+  3.12; focused diagnostics/workbench/NVIDIA tests pass (33 cases), along with
+  compile and diff checks. The bare system `pytest` resolved to unsupported
+  Python 3.10 and failed collection; tests were rerun with the explicit supported
+  interpreter. GET-only live Chromium smoke passes for the exact task, card/detail
+  flow, enabled model settings without key echo, and mobile layout with no JS errors.
+- Final deployment backup: `/data/backups/pre-studio-20260909T133858Z`.
+  App index `sha256:7208a588b0c1401c84dea56dba95fffb417de76f038aaca445e8e32911c0dd9e`;
+  trusted Sandbox Worker index
+  `sha256:177140d2819010048ebb0013ce444de48b0c3fa0da1edb31f0fc076663334929`.
+  Five services are running and API/Gateway health checks pass; schema remains
+  `0030_model_settings`, seven domain tables retain their exact original counts
+  and hashes, and runtime credentials remain absent from database and recent logs.
+- No contribution execution, model switching, publication or GitHub write was
+  authorized. ST-G03, WB-G03, WB-G04 and P5-G06 remain unchecked; native Linux
+  amd64/Docker Engine P5-G06 remains the next roadmap acceptance task.
+
+---
+
+### Optional planning narration and inline chat progress (2026-09-09)
+
+- Latest reported Job `7b23249c-fc14-42b7-b6ae-26c3483edae4` failed under
+  `planning-v3-typed-outcome`. Its safe diagnostic contains only `missing` at
+  `reply`. This identifies a presentation-field failure, not proof that all later
+  semantic checks on the discarded response would have passed.
+- `planning-v4-optional-narration` makes outer narration optional (absent or empty
+  string); a complete, valid question/read/plan outcome remains mandatory. Stored
+  narration stays empty and the UI uses a fixed status for a generated plan,
+  without inventing model speech. Wrong narration types, malformed plans,
+  conflicting outcomes, credential patterns and downstream evidence/policy checks
+  still fail closed. Existing failed responses/Jobs are not reconstructed or
+  rewritten, and no automatic model retry is added. This changes the provider
+  schema, not the durable database schema or execution/publication authority.
+- User-directed ST-G01 interaction rework moves running status into the end of
+  the conversation, left-aligned with assistant messages. A local 1-second clock
+  is independent of 3-second API polling and is disposed on navigation. The
+  elapsed counter is excluded from live announcements to avoid speaking every
+  second. User bubbles no longer have the “您” speaker label; new prompts request
+  direct language, while historical message bodies remain unmodified. Native
+  asset keys were bumped to `studio-chat-v3`.
+- Focused suite: **41 passed**. Full regression: **417 passed, 11 skipped**;
+  compilation, JS module syntax and diff checks pass. Browser regression verifies
+  left-aligned inline progress, per-second increments with frozen network state,
+  label removal, stop/resend, drafts, model settings and desktop/mobile layout.
+  Missing narration cases prove valid plans persist without execution, while
+  omitted narration cannot bypass incomplete/conflicting/sensitive outcomes.
+- No real model request was submitted during this repair. A fresh real planning
+  result remains unverified. ST-G03, WB-G03, WB-G04 and P5-G06 stay unchecked;
+  native Linux amd64/Docker Engine P5-G06 remains the next roadmap gate.
+- Deployed with no active Jobs after consistent backup
+  `/data/backups/pre-studio-20260909T142131Z`. App index:
+  `sha256:9360d80d83ec6bd4e410883ac489fb465eee67deb8bfe1d367d5e8854644c9bc`;
+  trusted Sandbox Worker index:
+  `sha256:897f23f4e31aa85c5244320f31cbaca28f6144fd712f41ac526faec696259883`.
+  Five services are running; API/Gateway health, all six task endpoints, SQLite
+  integrity/foreign keys, exact seven-table backup hashes and credential absence
+  checks pass. GET-only deployed Chromium verifies inline status, removed user
+  label, card/details, settings and mobile layout without JavaScript errors.
+
+---
+
+### Conversation-first contextual actions (2026-09-09)
+
+- User-requested ST-G01 refinement removes the three permanent view buttons and
+  the bottom reread/stop toolbar. Existing plan cards open the plan; contextual
+  execution cards open code/test/review evidence. The detail pane has a return
+  control with focus restoration and remains reachable on mobile. No extra model
+  invocation or action is inferred from viewing cards or from chat text.
+- Composer actions are model selection, a compact native “更多” disclosure, and
+  Send (replaced by Stop while busy). Reread, task-model settings, and returning
+  completed execution to planning remain explicit menu actions using the same
+  authenticated/idempotent APIs. A detail-pane Stop preserves mobile access during
+  execution. Confirmed publication exposes neither Stop nor return-to-planning;
+  exact execution and publication confirmations remain unchanged.
+- Task-model settings are still reachable before the first plan exists. Results
+  are offered only with workflow/execution evidence, with an honest empty state
+  before an execution record is finalized. Native asset keys: `studio-chat-v4`.
+- Focused API/workbench tests: **26 passed**. Full regression: **417 passed,
+  11 skipped**; JS syntax and diff checks pass. Browser checks cover hidden idle
+  actions, More/Escape, plan-card focus restoration, busy Send→Stop, cancellation,
+  drafts, settings and desktop/mobile layout. Additional GET-only browser fixtures
+  cover results navigation, pre-plan model settings and publication restrictions;
+  these fixtures are not real execution/publication acceptance evidence.
+- No business schema change, real model request, contribution execution or
+  GitHub mutation. ST-G03/WB-G03/WB-G04/P5-G06 remain open; native Linux
+  amd64/Docker Engine P5-G06 is still the next roadmap acceptance task.
+- Deployed after backup `/data/backups/pre-studio-20260909T144409Z` with no active
+  Jobs. App index `sha256:942432a9345e4ada1957c2abff6ceb3c7a42da73aa116172cc95f6de53b0a854`;
+  trusted Sandbox Worker index
+  `sha256:1157bc421a2505513e3f9147906e6e5ff58e5723d5b248540a6c37d73e132cf9`.
+  Five services run with healthy API/Gateway, all six workbench endpoints pass,
+  credentials are absent from SQLite/recent logs, and seven domain tables match
+  the immediate predeployment backup exactly (including five existing plans).
+  GET-only live Chromium confirms the simplified layout and More menu, restored
+  task chat, cards/details, settings and mobile routes without JavaScript errors.
+- Read-only observation also confirms the previously reported task now has
+  succeeded Job `f902f5c2-21ca-42f4-b343-89d3b9c140e6` and v1 plan
+  `0e83ec5d-018c-4a9a-99e3-3e9b4bb29e95`, already present before this deployment.
+  This agent did not submit that new planning request. It is planning success,
+  not evidence for execution, independent review, publication or Linux gates.
+
+---
+
+### No-op task model selection regression repair (2026-09-09)
+
+- Task `15ea2bdc-8aea-4236-9c26-05a54f16e604` had identical four-stage profile
+  IDs in model configuration versions 1 and 2. Clicking Apply nevertheless
+  appended `model_changed` sequence 39 after plan binding sequence 36 and caused
+  a false stale-model rejection during execution confirmation.
+- `/workbench/models` now returns typed `{record_hash, changed}` results. An
+  unchanged selection validates the current expected hash and writes only a
+  `model_selection_applied` receipt, not a configuration version or switch event.
+  Replay searches the complete task journal so an old no-op cannot restore an
+  earlier selection after a real switch. Stale new requests and conflicting keys
+  still fail closed.
+- Historical switch events are ignored only when their exact profile map matches
+  the referenced task configuration, both adjacent configurations verify, and
+  previous hash plus all four profile IDs prove equality. All events since the
+  plan binding are examined; real A→B→A, a real switch followed by a duplicate,
+  narrow planning-switch events and unprovable history still invalidate approval.
+  No historical data is edited or deleted. Genuine model changes also participate
+  in the plan's unchanged-basis check, so resaving identical text creates a child
+  version rather than silently rebinding the old plan.
+- The UI disables unchanged Apply, distinguishes unchanged/changed responses,
+  keeps a stable expected hash while editing model selections, and disables
+  execution for unapplied choices. Explicit null deployment-default selections
+  are preserved instead of being replaced by global defaults during UI loading.
+  Assets use `studio-model-noop-v1`; native model controls remain framework-free.
+- Focused model/workbench regression: **49 passed**. Full suite: **426 passed,
+  11 skipped**; compilation, JS syntax and diff checks pass. New deterministic
+  tests cover no-op replay, stale hashes, old duplicate compatibility without
+  rewriting history, genuine/narrow/unprovable switches, round trips and resaving
+  into a child plan. Browser checks verify unchanged Apply, modified/reverted
+  selection and the execution consent guard without issuing execution requests.
+- This is an ST-G01/model-binding regression repair, not execution acceptance.
+  No real planning/execution/publication request was submitted. ST-G03, WB-G03,
+  WB-G04 and P5-G06 stay open; native Linux/Docker P5-G06 remains the next gate.
+- Deployment backup: `/data/backups/pre-studio-20260909T150121Z`. App index
+  `sha256:a301ec2d09f144a0602d12d245e973b2a214af9f1298ff9e39d6503aa10455f6`;
+  trusted Sandbox Worker index
+  `sha256:14e61119b79cd899e48fd9b5020ebd377c5d3fdd7bf85f62d23c12396c381e08`.
+  Five services run with healthy API/Gateway; seven domain tables match backup,
+  schema remains `0030_model_settings`, and credential-absence checks pass.
+  A SQLite `mode=ro` evaluation against the actual v1 plan and binding sequence
+  36 proves `material_model_change_after_plan=false` without modifying a row or
+  authorizing execution. GET-only live Chromium verifies unchanged Apply is
+  disabled and task navigation, settings and mobile layout remain usable.
+
+---
+
+## User-directed execution change viewer (2026-09-10)
+
+- [x] **ST-T05** Conversation file summary and per-file red/green unified diff,
+  old/new line numbers, added/modified/deleted status, exact text-line counts,
+  copy path, collapsible files, raw fallback and paged large diffs. Both Studio
+  and the existing execution detail reuse the native viewer. Test/review state
+  remains separate from evidence that code changed.
+- Reads use the existing execution-scoped Artifact API and pair diff/inventory
+  from one Implement manifest. No API or persistent schema change. Task-local
+  hash caching preserves expanded files during polling; failure clears stale
+  evidence, disposed requests cannot render into another task, and retry is
+  read-only. Binary/unrecorded or malformed content never gets invented counts.
+- Evidence: Node parser/contract suite **5 passed**; focused artifact, execution,
+  workbench and API tests **33 passed**; security/API-security tests **7 passed**,
+  including credential canary absence from responses, database and logs.
+  Compilation, JavaScript syntax and `git diff --check` pass.
+- Three Chromium scripts pass against the disposable Studio server:
+  `execution_changes_browser.mjs`, `studio_browser.mjs`, and
+  `studio_actions_browser.mjs`. Coverage includes exact line numbers, safe HTML
+  text, failure/retry, empty/pending, status polling, late disposed responses,
+  large-file paging, conversation return, drafts and model settings. Desktop
+  1440px/mobile 390px light/dark screenshots have no horizontal page overflow;
+  the results-pane return control stays visible during diff navigation.
+- Redeployed on 2026-09-10 after confirming zero active Jobs. A credential-free,
+  networkless maintenance container created the consistent SQLite/Artifact backup
+  `/data/backups/pre-studio-20260910T020922Z`; the previous application and
+  Sandbox Worker images remain tagged `pre-execution-changes-20260910`.
+  The deployed application index is
+  `sha256:a2bece4c423f9dd2a06267ab7b840b7cf4fd391bf998006d1c2ec7c2d401e88c`
+  and the Sandbox Worker index is
+  `sha256:1781b5ecfdbe9fe1f9235bd49e70b8ab052328a11ec000cfffa54d125aedb7f5`.
+- Five services run and API/Gateway health checks pass. Schema remains
+  `0031_task_visibility`; exact backup hashes and counts match after deployment
+  for 643 opportunities, 43 analyses, six tasks, five plans, two executions,
+  two reviews and two historical Draft PR records. SQLite integrity/foreign keys,
+  four model profiles, all task endpoints and credential absence from SQLite and
+  recent logs pass. GET-only deployed Chromium verifies the new assets, desktop/
+  mobile navigation without JavaScript errors, and opens the change summary plus
+  per-file viewer for an existing real historical execution Artifact. This read
+  does not constitute a new execution or publication acceptance.
+- No real model request, new contribution execution or GitHub mutation was
+  performed. ST-G03, WB-G03, WB-G04 and **P5-G06** remain unchecked; native
+  Linux/Docker acceptance remains the next roadmap gate.
+
+---
+
+## User-directed MiniMax M3 domestic provider (2026-09-12)
+
+- [x] **ST-T06** Add first-class `minimax` support through the official domestic
+  `https://api.minimax.cn/v1` endpoint and make `MiniMax-M3` the four-stage
+  default when the user activates the encrypted settings-page preset. Analysis,
+  planning, implementation and independent Review freeze the same exact Profile
+  ID/hash; existing Profiles remain manual alternatives and existing tasks are
+  never silently rebound.
+- The Gateway maps bounded Studio requests to MiniMax Chat Completions with
+  `max_completion_tokens`, adaptive thinking and one required tool call. It
+  rejects alternate MiniMax endpoints, NVIDIA's environment credential reference,
+  unsupported reasoning settings, redirects, private DNS targets, malformed
+  output and credential-bearing content. Failure never triggers an unapproved
+  cross-provider fallback.
+- Migration `0032_minimax_reviews` preserves existing Review rows and adds
+  `minimax` only when the Review references an exact immutable model invocation.
+  The rebuild restores the task-visibility guard. Verified MiniMax, NVIDIA and
+  OpenAI-compatible Reviews may enter the unchanged exact Draft PR approval
+  boundary; Fake Reviews remain prohibited.
+- Verification: the complete offline Python suite collected **456** tests and
+  passed **445** with **11** platform/real-service skips. MiniMax-focused
+  tests cover the public preset, fixed endpoint, request translation, secret
+  isolation, four-stage frozen identities, migration constraints and publication
+  eligibility. Five Node contract tests, Python compilation, JavaScript syntax,
+  the new migration's Ruff check, `git diff --check` and repository credential
+  pattern checks pass.
+- Redeployed the five-service macOS/OrbStack stack on 2026-09-12 after confirming
+  zero active Jobs. The credential-free, networkless backup is
+  `/data/backups/pre-studio-20260912T113326Z`; application image ID is
+  `sha256:bbbbe062cec0638eb21e970e068cf5748274671f8a573b192cc1ae3cbcf6bf7a`
+  and Sandbox Worker image ID is
+  `sha256:a57d130495c67e1d5f41b6c86822425157f90049159cbd6907260de329bc4152`.
+  API/Gateway health, migration `0032_minimax_reviews`, the public
+  `minimax-m3-cn` preset, all five service processes, exact predeployment domain
+  row hashes and credential absence from SQLite/recent logs pass.
+- After the user saved a real key through the browser, deployed connection-test
+  Job `de6e8491-eed1-42c2-81ee-c0c2215b5315` completed against the official
+  domestic MiniMax endpoint with `provider=minimax`, `model=MiniMax-M3`, a valid
+  structured response and 2049 ms end-to-end duration. Its frozen Profile hash
+  matches the immutable Profile record and all four stage defaults still resolve
+  to that Profile. A post-call deployment audit again found the credential absent
+  from SQLite and recent logs; all five services and both health checks pass.
+  This proves connection and structured-response acceptance, but not a complete
+  real analysis/planning/implementation/review workflow. Headless Studio
+  acceptance was attempted against the disposable loopback fixture but the
+  environment has no Playwright module; no browser pass is claimed. No GitHub
+  mutation or native Linux/Docker run occurred, so **P5-G06** remains the next
+  roadmap gate.
 
 ---
 

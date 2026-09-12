@@ -4357,6 +4357,11 @@ def test_task_state_migration_backfills_existing_task_root(
             task_hash = task.record_hash
         with database.engine.begin() as connection:
             connection.execute(text("DROP TABLE workbench_events"))
+            from tests.migration_fixtures import remove_task_visibility_schema
+            remove_task_visibility_schema(connection)
+            connection.execute(text("DROP TABLE job_model_bindings"))
+            connection.execute(text("DROP TABLE model_config_versions"))
+            connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0030_model_settings'"))
             connection.execute(text("DELETE FROM _schema_migrations WHERE revision = '0029_workbench'"))
             connection.execute(
                 text("DROP TABLE notification_reads")
@@ -4664,6 +4669,9 @@ def test_task_state_migration_backfills_existing_task_root(
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
             "0029_workbench",
+            "0030_model_settings",
+            "0031_task_visibility",
+            "0032_minimax_reviews",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

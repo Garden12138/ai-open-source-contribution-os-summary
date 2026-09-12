@@ -16,7 +16,7 @@ from app.models import Base
 
 FIXTURES = Path(__file__).parent / "fixtures"
 BASELINE_REVISION = "0001_phase1_baseline"
-LATEST_REVISION = "0029_workbench"
+LATEST_REVISION = "0032_minimax_reviews"
 
 
 def _load_phase1_fixture(path: Path) -> None:
@@ -67,6 +67,9 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
+            "0029_workbench",
+            "0030_model_settings",
+            "0031_task_visibility",
             LATEST_REVISION,
         )
         assert first.stamped == ()
@@ -120,7 +123,25 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "task_lifecycle_marks",
             "user_preference_versions",
             "workbench_events",
+            "model_config_versions",
+            "job_model_bindings",
+            "task_visibility_versions",
         }
+        with database.engine.connect() as connection:
+            review_sql = connection.execute(
+                text(
+                    "SELECT sql FROM sqlite_master WHERE type='table' "
+                    "AND name='review_runs'"
+                )
+            ).scalar_one()
+            visibility_trigger = connection.execute(
+                text(
+                    "SELECT sql FROM sqlite_master WHERE type='trigger' "
+                    "AND name='review_runs_task_active'"
+                )
+            ).scalar_one()
+        assert "'minimax'" in review_sql
+        assert "Task is archived or deleted" in visibility_trigger
     finally:
         database.close()
 
@@ -240,6 +261,9 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
+            "0029_workbench",
+            "0030_model_settings",
+            "0031_task_visibility",
             LATEST_REVISION,
         )
         assert report.stamped == (BASELINE_REVISION,)
@@ -374,6 +398,9 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
+            "0029_workbench",
+            "0030_model_settings",
+            "0031_task_visibility",
             LATEST_REVISION,
         )
         with database.session() as session:
@@ -414,6 +441,9 @@ def test_product_experience_and_review_binding_upgrade_preserves_rows(
             "0026_review_artifact_bindings",
             "0027_nvidia_agent_workflows",
             "0028_nvidia_review_runs",
+            "0029_workbench",
+            "0030_model_settings",
+            "0031_task_visibility",
             LATEST_REVISION,
         )
         with database.session() as session:

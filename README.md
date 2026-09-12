@@ -20,7 +20,8 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 - 保存每个维度的分数、风险扣分和原因，结果可审计。
 - 每日榜单优先组合 3 个赏金、3 个高影响力、2 个技术匹配和 2 个战略机会；不足时按总分补位。
 - 首次使用可设置贡献目标、偏好语言、每周投入与最低赏金；推荐会对完整合格候选池重新排序，但不会覆盖原始规则分。
-- 原生 Web 产品分为“发现机会 / 我的候选 / 贡献进度”三个主视图，支持 2～3 个候选并排比较。
+- 原生 Studio 工作台：侧栏导航／任务历史、卡片机会列表、点击展开详情、独立任务对话和可编辑方案，支持候选比较、浅色／深色和窄屏布局。
+- 模型设置支持 MiniMax 国内官方 API、NVIDIA 与 OpenAI 兼容服务、自定义模型、默认及四阶段覆盖；API Key 由浏览器加密并仅保存到独立 Gateway，任务冻结模型版本。
 - 支持每日自动扫描、候选提醒，以及新增高匹配机会和候选内容/评分变化的站内通知；需持续运行 Worker。
 - 默认发现结果明确使用条件查询、硬筛选和规则/偏好排序，不会暗中调用模型；Provider 就绪时可对当前规则 Top 30 中最匹配的 5 个候选批量运行有预算上限的 AI 筛选。
 - AI 结论只调整独立的决策排序，不覆盖原始规则分；旧 Snapshot 的分析不会用于新扫描候选，也不能启动新的贡献任务。
@@ -35,7 +36,7 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 | 环节 | 库 / API / UI | 默认 `serve` + `worker` |
 | --- | --- | --- |
 | GitHub 扫描与 3/3/2/2 榜单 | 已完成 | **可点** |
-| AI 深析与批量筛选 | 已完成 | `fake` 可离线演示；`nvidia_nim` 使用 MiniMax M3，经独立 Model Gateway 调用 |
+| AI 深析与批量筛选 | 已完成 | MiniMax-M3 可通过国内官方 API 直连并作为四阶段默认；其他 Profile 可手动切换 |
 | AI 规划、编辑版本、批准 | 已实现 | 需 AnalysisVersion、实现模型、固定 Runner 摘要和独立 Sandbox Worker；对话与方案同屏 |
 | 隔离执行 Explore/Implement/Verify | 引擎与状态机已完成 | 采集归档后，`SANDBOX_STAGE_RUNTIME=fake` 可离线跑通 Explore → ChangeSet → Implement → Verify |
 | 从计划生成代码 / ChangeSet | 已接线 | DeepSeek V4 Pro 支持冻结上下文、多轮对话、结构化提案和精确哈希确认 |
@@ -49,6 +50,9 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 [部署、启动与自测指南](docs/deployment-and-self-test.md)。
 NVIDIA Build 的模型分工、密钥隔离、Compose Profile 和完整五进程启动方式见
 [NVIDIA Provider 接入指南](docs/nvidia-provider.md)。
+新界面、通用模型配置和独立密钥卷的升级要求见 [Studio 使用说明](docs/studio-workbench.md)。
+在模型设置页录入 MiniMax API Key 并选择“配置并设为四阶段默认”，即可通过
+`https://api.minimax.cn/v1` 使用官方 `MiniMax-M3`；密钥不会进入业务数据库。
 
 要求 Python 3.11+。推荐使用 `uv`：
 

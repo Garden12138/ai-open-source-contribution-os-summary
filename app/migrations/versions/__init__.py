@@ -79,6 +79,9 @@ from app.migrations.versions.v0028_nvidia_review_runs import (
 )
 
 from app.migrations.versions.v0029_workbench import MIGRATION as WORKBENCH
+from app.migrations.versions.v0030_model_settings import MIGRATION as MODEL_SETTINGS
+from app.migrations.versions.v0031_task_visibility import MIGRATION as TASK_VISIBILITY
+from app.migrations.versions.v0032_minimax_reviews import MIGRATION as MINIMAX_REVIEWS
 
 MIGRATIONS: tuple[Migration, ...] = (
     PHASE1_BASELINE,
@@ -110,6 +113,9 @@ MIGRATIONS: tuple[Migration, ...] = (
     NVIDIA_AGENT_WORKFLOWS,
     NVIDIA_REVIEW_RUNS,
     WORKBENCH,
+    MODEL_SETTINGS,
+    TASK_VISIBILITY,
+    MINIMAX_REVIEWS,
 )
 
 __all__ = ["MIGRATIONS"]

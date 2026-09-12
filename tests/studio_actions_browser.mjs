@@ -1,0 +1,71 @@
+// Read-only UI states supplied by a deterministic browser route, not real execution evidence.
+import {createRequire} from "node:module";
+import assert from "node:assert/strict";
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || "playwright");
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE});
+const page=await browser.newPage();
+const mutations=[],errors=[];
+page.on("request",r=>{if(!["GET","HEAD","OPTIONS"].includes(r.method()))mutations.push(r.method());});
+page.on("pageerror",e=>errors.push(e.message));
+try {
+  await page.goto("http://127.0.0.1:8765");
+  await page.locator("#sidebar-tasks a").first().click();
+  const taskId=(await page.evaluate(()=>location.hash)).split("/").at(-1);
+  const base=await (await page.request.get(`http://127.0.0.1:8765/api/v1/tasks/${taskId}/workbench`)).json();
+  let state={...base,state:"ready",busy:false,events:[...base.events,{id:"fixture-ready",kind:"awaiting_acceptance",payload:{}}]};
+  await page.route("**/workbench",route=>route.fulfill({json:state}));
+  for(const width of [1440,390]) {
+    await page.setViewportSize({width,height:900});
+    await page.reload();
+    await page.locator(".studio-results-card").click();
+    await page.getByRole("heading",{name:"代码、测试与审查",exact:true}).waitFor();
+    assert.equal(await page.locator(".ai-workbench-document").isVisible(),true);
+    assert.equal(await page.getByRole("button",{name:"确认方案并执行",exact:true}).count(),0);
+    await page.getByRole("button",{name:"返回对话",exact:true}).click();
+    await page.getByLabel("发送给规划助手的消息").waitFor();
+    await page.getByLabel("更多任务操作").click();
+    await page.getByRole("button",{name:"返回方案讨论",exact:true}).waitFor();
+    await page.keyboard.press("Escape");
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  }
+  await page.route("**/api/v1/model-settings",async route=>{
+    const response=await route.fetch();
+    const settings=await response.json();
+    await route.fulfill({json:{...settings,profiles:[...settings.profiles,{id:"fixture-alternative",payload:{name:"Alternative fixture",model:"fixture-model"}}]}});
+  });
+  state={...base,state:"planning",busy:false};
+  await page.reload();
+  await page.getByLabel("更多任务操作").click();
+  await page.getByRole("button",{name:"任务模型设置",exact:true}).click();
+  const apply=page.getByRole("button",{name:"应用到此任务",exact:true});
+  const implementation=page.getByLabel("本任务实现模型",{exact:true});
+  await implementation.locator('option[value="fixture-alternative"]').waitFor({state:"attached"});
+  assert.equal(await apply.isDisabled(),true);
+  const original=await implementation.inputValue();
+  await page.locator(".ai-plan-consent input").check();
+  const execute=page.getByRole("button",{name:"确认方案并执行",exact:true});
+  assert.equal(await execute.isEnabled(),true);
+  await implementation.selectOption("fixture-alternative");
+  assert.equal(await apply.isEnabled(),true);
+  assert.equal(await execute.isDisabled(),true);
+  await implementation.selectOption(original);
+  assert.equal(await apply.isDisabled(),true);
+  assert.equal(await execute.isEnabled(),true);
+  state={...base,plans:[],events:[],jobs:[],state:"planning",busy:false};
+  await page.reload();
+  await page.getByRole("heading",{name:"从这个贡献开始",exact:true}).waitFor();
+  assert.equal(await page.locator(".studio-plan-card").count(),0);
+  await page.getByLabel("更多任务操作").click();
+  await page.getByRole("button",{name:"任务模型设置",exact:true}).click();
+  assert.equal(await page.locator(".studio-task-models").evaluate(el=>el.open),true);
+  await page.getByRole("button",{name:"返回对话",exact:true}).click();
+  state={...base,state:"ready",busy:true,events:[...base.events,{id:"fixture-publishing",kind:"publication_confirmed",payload:{}}]};
+  await page.reload();
+  await page.locator(".ai-workbench-progress").filter({hasText:"验证与审查"}).waitFor();
+  assert.equal(await page.getByRole("button",{name:"停止",exact:true}).count(),0);
+  await page.getByLabel("更多任务操作").click();
+  assert.equal(await page.getByRole("button",{name:"返回方案讨论",exact:true}).count(),0);
+  assert.deepEqual(mutations,[]);
+  assert.deepEqual(errors,[]);
+  console.log("Contextual actions passed: result cards, return navigation, pre-plan model access, publication boundary; no mutations.");
+} finally {await browser.close();}

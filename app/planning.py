@@ -139,6 +139,9 @@ class ContributionTaskService:
         return task
 
     def get_verified(self, task_id: str) -> ContributionTask:
+        from app.task_visibility import require_active_task
+
+        require_active_task(self.session, task_id)
         task = self.session.get(ContributionTask, task_id)
         if task is None:
             raise ContributionTaskNotFoundError(

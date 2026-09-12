@@ -76,6 +76,27 @@ class AnalysisCreateRequest(BaseModel):
     snapshot_id: str = Field(min_length=1, max_length=128)
 
 
+class TaskVisibilityRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_sequence: int = Field(ge=0)
+
+
+class TaskDeletionResponse(BaseModel):
+    task_id: str
+    state: Literal["deleting", "deleted"]
+    job_id: str | None = None
+
+
+class TaskVisibilityResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    task_id: str
+    state: Literal["active", "archived", "deleted"]
+    sequence: int
+    record_hash: str
+
+
 class ContributionTaskCreateRequest(BaseModel):
     analysis_version_id: str = Field(min_length=1, max_length=128)
 
@@ -968,6 +989,9 @@ class TaskLifecycleRequest(BaseModel):
 
 
 class ContributionTaskSummaryResponse(BaseModel):
+    visibility: Literal["active", "archived", "deleted"] = "active"
+    visibility_sequence: int = 0
+    erasure_state: str | None = None
     id: str
     opportunity_id: int
     analysis_version_id: str
@@ -1158,11 +1182,17 @@ class MetaResponse(BaseModel):
     queries: list[str]
     daily_pick_count: int
     timezone: str
-    analysis_provider: Literal["none", "fake", "nvidia_nim"]
+    analysis_provider: Literal[
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+    ]
     analysis_model: str
-    implementation_provider: Literal["none", "fake", "nvidia_nim"] = "none"
+    implementation_provider: Literal[
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+    ] = "none"
     implementation_model: str
-    review_provider: Literal["none", "fake", "nvidia_nim"] = "none"
+    review_provider: Literal[
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+    ] = "none"
     review_model: str
     sandbox_stage_runtime: Literal["none", "fake", "docker"]
     draft_pr_publisher: Literal["none", "fake", "gh"]

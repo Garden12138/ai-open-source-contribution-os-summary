@@ -1008,19 +1008,24 @@ async def _stream_response_mapping(response: httpx.Response) -> Mapping[str, Any
     return result
 
 
-def _completion(value: Mapping[str, Any]) -> tuple[str, dict[str, int]]:
+def _completion(
+    value: Mapping[str, Any],
+    *,
+    error_prefix: str = "nvidia_nim",
+    provider_label: str = "NVIDIA NIM",
+) -> tuple[str, dict[str, int]]:
     choices = value.get("choices")
     if not isinstance(choices, list) or len(choices) != 1:
         raise ProviderRunError(
-            "nvidia_nim_completion_invalid",
-            "NVIDIA NIM completion response is invalid",
+            f"{error_prefix}_completion_invalid",
+            f"{provider_label} completion response is invalid",
             retryable=False,
         )
     choice = choices[0]
     if isinstance(choice, Mapping) and choice.get("finish_reason") == "length":
         raise ProviderRunError(
-            "nvidia_nim_completion_truncated",
-            "NVIDIA NIM completion exhausted its output-token budget",
+            f"{error_prefix}_completion_truncated",
+            f"{provider_label} completion exhausted its output-token budget",
             retryable=False,
         )
     message = choice.get("message") if isinstance(choice, Mapping) else None
@@ -1033,8 +1038,8 @@ def _completion(value: Mapping[str, Any]) -> tuple[str, dict[str, int]]:
         content = message.get("content") if isinstance(message, Mapping) else None
     if not isinstance(content, str) or not content.strip():
         raise ProviderRunError(
-            "nvidia_nim_completion_invalid",
-            "NVIDIA NIM completion response has no final content",
+            f"{error_prefix}_completion_invalid",
+            f"{provider_label} completion response has no final content",
             retryable=False,
         )
     raw_usage = value.get("usage")

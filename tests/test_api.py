@@ -159,7 +159,8 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert dashboard.headers["cache-control"] == "no-cache"
     assert "今日机会榜" in dashboard.text
     assert "/static/styles.css?v=workbench-v1" in dashboard.text
-    assert "/static/app.js?v=workbench-v1" in dashboard.text
+    assert "/static/app.js?v=task-erasure-v1" in dashboard.text
+    assert "/static/execution-changes.css?v=execution-changes-v1" in dashboard.text
     assert javascript.status_code == 200
     assert "runScan" in javascript.text
     assert "runAnalysis" in javascript.text
@@ -233,7 +234,7 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert ".comparison-grid" in stylesheet.text
     assert ".notification-drawer" in stylesheet.text
     assert 'type="module"' in dashboard.text
-    assert "精选机会 · 清晰决策" in dashboard.text
+    assert "开源贡献工作台" in dashboard.text
     assert leaderboard.status_code == 200
     assert leaderboard.json() == {
         "selection_date": "2026-07-17",
