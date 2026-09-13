@@ -191,7 +191,7 @@ def test_health_and_empty_daily_leaderboard(tmp_path, monkeypatch) -> None:
     assert "先告诉我们，你想获得什么" in dashboard.text
     assert 'recommendations: "/api/v1/recommendations"' in javascript.text
     assert '`${API.recommendations}/analyses`' in javascript.text
-    assert "AI 筛选前 5 个" in dashboard.text
+    assert "AI 筛选候选" in dashboard.text
     assert "开始 Vibe Coding" in javascript.text
     assert "openContributionTask" in javascript.text
     assert "contribution-workbench" in dashboard.text

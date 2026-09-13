@@ -51,8 +51,9 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 NVIDIA Build 的模型分工、密钥隔离、Compose Profile 和完整五进程启动方式见
 [NVIDIA Provider 接入指南](docs/nvidia-provider.md)。
 新界面、通用模型配置和独立密钥卷的升级要求见 [Studio 使用说明](docs/studio-workbench.md)。
-在模型设置页录入 MiniMax API Key 并选择“配置并设为四阶段默认”，即可通过
-`https://api.minimax.cn/v1` 使用官方 `MiniMax-M3`；密钥不会进入业务数据库。
+在模型设置页添加服务商连接和模型后，可在“各功能使用的模型”中分别选择机会分析、规划、
+实现和审查所用模型；每个下拉框的第一项就是默认模型。API Key 仍通过加密信封保存到独立
+Gateway，不会进入业务数据库。
 
 要求 Python 3.11+。推荐使用 `uv`：
 

@@ -64,8 +64,8 @@ NVIDIA Build hosted Endpoint 会拒绝工具参数中的 JSON Schema 元数据 `
 页面会按候选在队列中的位置增加等待时间，并实时显示已完成、正在执行与排队数量；
 不能把后排任务误判为丢失。
 
-为了避免一次性消耗五个失败请求，Discover 页面会先要求“验证 1 个样例”。只有当前
-Snapshot 的样例分析成功，才会启用“AI 筛选前 5 个”；样例失败不会自动创建批量 Job。
+Discover 页面可直接启动候选分析；系统仍按当前 Snapshot、预算和持久化 Job 逐项执行，
+单个候选失败时保留规则评分并展示失败状态。
 
 ## 1. 生成配置
 
@@ -187,8 +187,8 @@ Artifact。
 | 修改 `.env` 后没有生效 | `restart` 不会更新容器环境；必须使用 `up -d --force-recreate` |
 | 点击 AI 筛选后各项都失败，Gateway 日志有 `RemoteProtocolError: Server disconnected without sending a response` | 这是 NVIDIA 上游在返回响应前断开连接，不是超时或本地配置错误。更新到含有传输重试修复的镜像并重建；Gateway 会对这类错误做最多两次有界重试，持续发生时检查 NVIDIA Build 服务状态、额度和本机网络后再重试该批任务。 |
 | 宿主机调用 MiniMax 成功，但 Gateway 的 `POST /v1/chat/completions` 返回 `502` | Gateway 默认不会继承宿主机代理。若宿主机依赖无认证 CONNECT 代理，在 `.env` 设置仅供 Gateway 使用的 `NVIDIA_HTTPS_PROXY`；OrbStack 的宿主机本地代理要写成 `http://host.docker.internal:<port>`，然后 `up -d --build --force-recreate`。Gateway 会关闭每次上游连接并在 360 秒总预算内最多重试四次，避免 Inspect 后复用空闲代理隧道。 |
-| Gateway 直连在 10 秒内超时，代理路径又在 360 秒后报 `nvidia_nim_network_protocol` | Docker/OrbStack 到 NVIDIA 的出网路径尚不可用；这不是候选、提示词或 Schema 问题。当前 Gateway 在显式代理时使用 NVIDIA 官方示例同类的 `requests` 传输。重建后先执行“验证 1 个样例”；若仍失败，需要为 Docker/OrbStack 配置一个能持续 HTTPS CONNECT 到 `integrate.api.nvidia.com:443` 的无认证代理，或由网络管理员放通直连。不要在样例成功前启动 Top 5。 |
-| 宿主机按 Kimi K3 官方 SSE 示例直连后收到 `504`、没有任何 `data:` 事件 | 这是已观察到的 Kimi 服务端不可用现象；当前分析默认使用 Nemotron 3.5 Lightning。重建后先在页面“验证 1 个样例”；不要在样例成功前启动批量。 |
+| Gateway 直连在 10 秒内超时，代理路径又在 360 秒后报 `nvidia_nim_network_protocol` | Docker/OrbStack 到 NVIDIA 的出网路径尚不可用；这不是候选、提示词或 Schema 问题。当前 Gateway 在显式代理时使用 NVIDIA 官方示例同类的 `requests` 传输。需要为 Docker/OrbStack 配置一个能持续 HTTPS CONNECT 到 `integrate.api.nvidia.com:443` 的无认证代理，或由网络管理员放通直连。 |
+| 宿主机按 Kimi K3 官方 SSE 示例直连后收到 `504`、没有任何 `data:` 事件 | 这是已观察到的 Kimi 服务端不可用现象；当前分析默认使用 Nemotron 3.5 Lightning。服务不可用时应检查网关与网络状态。 |
 
 不要运行不带 `-q` 的 `docker compose config` 并把输出粘贴到 Issue 或聊天中，展开后
 的配置可能包含 NVIDIA、GitHub 和本地访问密钥。

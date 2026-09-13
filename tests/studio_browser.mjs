@@ -68,9 +68,6 @@ try {
   await page.screenshot({path:"/tmp/contribos-studio-workbench.png",fullPage:true});
   await page.locator('[data-view-link="settings"]').click();
   await page.getByRole("heading",{name:"模型设置",exact:true}).waitFor();
-  await page.getByRole("heading",{name:"推荐默认模型",exact:true}).waitFor();
-  assert.equal(await page.getByLabel("MiniMax API Key",{exact:true}).isVisible(),true);
-  assert.equal(await page.getByRole("button",{name:"配置并设为四阶段默认",exact:true}).isEnabled(),true);
   await page.getByLabel("连接名称",{exact:true}).fill(connectionName);
   await page.getByLabel("Base URL",{exact:true}).fill("https://models.example.com/v1");
   await page.getByLabel("API Key",{exact:true}).fill("browser-fixture-credential");
@@ -82,9 +79,8 @@ try {
   await page.getByLabel("模型 ID",{exact:true}).fill("example/model");
   await page.getByRole("button",{name:"添加模型",exact:true}).click();
   await page.locator(".settings-saved-item").filter({hasText:modelName}).first().waitFor();
-  await page.getByLabel("默认模型",{exact:true}).selectOption({label:modelName});
-  for(const label of ["机会分析","方案讨论","代码实现","独立审查"])await page.getByLabel(label,{exact:true}).selectOption("");
-  await page.getByRole("button",{name:"保存默认设置",exact:true}).click();
+  for(const label of ["机会分析","方案讨论","代码实现","独立审查"])await page.getByLabel(label,{exact:true}).selectOption({label:modelName});
+  await page.getByRole("button",{name:"保存功能模型",exact:true}).click();
   await page.waitForTimeout(300);
   await page.evaluate(()=>scrollTo(0,0));
   await page.screenshot({path:"/tmp/contribos-studio-settings.png",fullPage:false});

@@ -47,29 +47,6 @@ export function mountModelSettings(root,options) {
   function section(title) { const s=el("section","","settings-section"); s.append(el("h2",title)); content.append(s); return s; }
   function render() {
     content.replaceChildren();
-    const minimaxPreset=(data.presets || []).find(item=>item.id==="minimax-m3-cn");
-    if(minimaxPreset) {
-      const preset=section("推荐默认模型");
-      preset.append(el("p",`${minimaxPreset.name} · ${minimaxPreset.model} · 分析、规划、实现和审查统一使用`,"muted"));
-      const quick=el("form");preset.append(quick);
-      const presetSecret=field(quick,"secret","MiniMax API Key","password");presetSecret.autocomplete="new-password";
-      presetSecret.placeholder="仅加密发送至独立模型网关";presetSecret.required=true;
-      presetSecret.disabled=!data.credential_management_available;
-      const activate=action("配置并设为四阶段默认",()=>{});activate.type="submit";activate.disabled=!data.credential_management_available;
-      quick.append(activate);
-      quick.addEventListener("submit",event=>{event.preventDefault();run(activate,async()=>{
-        const scopeId=`minimax-cn-${crypto.randomUUID()}`;
-        const grant=await mutate("/api/v1/model-connections/credential-grants",{connection_id:scopeId});
-        const envelope=await sealCredential(presetSecret.value.trim(),grant);presetSecret.value="";
-        const credential=await mutate("/api/v1/model-connections/credentials",{connection_id:scopeId,envelope});
-        const connection=await mutate("/api/v1/model-connections",{scope_id:scopeId,expected_hash:null,connection:{
-          name:minimaxPreset.name,provider:minimaxPreset.provider,base_url:minimaxPreset.base_url,credential_ref:credential.credential_ref}});
-        const profile=await mutate("/api/v1/model-profiles",{scope_id:`minimax-m3-${crypto.randomUUID()}`,expected_hash:null,profile:{
-          name:minimaxPreset.name,connection_id:connection.id,model:minimaxPreset.model,...minimaxPreset.profile}});
-        await mutate("/api/v1/model-settings",{expected_hash:data.version?.record_hash || null,settings:{
-          default:profile.id,analysis:null,planning:null,implementation:null,review:null}},"PUT");
-      });});
-    }
     const connections=section("模型连接");
     if (!data.credential_management_available) connections.append(el("p","密钥管理尚未连接。请按部署文档配置 MODEL_GATEWAY_MANAGEMENT_KEY，现有模型调用不受影响。","muted"));
     for (const item of data.connections) {
@@ -149,16 +126,21 @@ export function mountModelSettings(root,options) {
       if(!data.version) await mutate("/api/v1/model-settings",{expected_hash:null,settings:{default:saved.id}},"PUT");
       profileEdit=null;
     });});
-    const defaults=section("默认模型与阶段覆盖"); const df=el("form");defaults.append(df);
+    const defaults=section("各功能使用的模型");
+    defaults.append(el("p","每个下拉框的第一项就是默认模型；需要时可为单个功能选择其他模型。","muted"));
+    const df=el("form");defaults.append(df);
     const current=data.version?.payload || {};
+    const firstProfile=data.profiles[0];
+    const defaultId=firstProfile?.id || current.default || null;
     const choices=data.profiles.map(v=>[v.id,v.payload.name]);
     for(const identifier of Object.values(current)) if(identifier && !choices.some(v=>v[0]===identifier)) choices.push([identifier,"已绑定的历史模型版本"]);
-    for(const [stage,title] of [["default","默认模型"],["analysis","机会分析"],["planning","方案讨论"],["implementation","代码实现"],["review","独立审查"]]) {
-      selectField(df,stage,title,[["",stage==="default" ? "未选择" : "继承默认模型"],...choices],current[stage] || "");
+    for(const [stage,title] of [["analysis","机会分析"],["planning","方案讨论"],["implementation","代码实现"],["review","独立审查"]]) {
+      const selected=current[stage] || current.default || defaultId || "";
+      selectField(df,stage,title,choices,selected);
     }
-    const dsave=action("保存默认设置",()=>{});dsave.type="submit";df.append(dsave);
+    const dsave=action("保存功能模型",()=>{});dsave.type="submit";dsave.disabled=!firstProfile;df.append(dsave);
     df.addEventListener("submit",event=>{event.preventDefault();run(dsave,()=>mutate("/api/v1/model-settings",{expected_hash:data.version?.record_hash || null,
-      settings:Object.fromEntries([...new FormData(df)].map(([key,value])=>[key,value || null]))},"PUT"));});
+      settings:{default:defaultId, ...Object.fromEntries([...new FormData(df)].map(([key,value])=>[key,value || defaultId]))}},"PUT"));});
   }
   async function probe(profile,operation) {
     if(testJob && !["succeeded","failed","cancelled","timed_out"].includes(testJob.state)) { status.textContent="请等待或取消当前连接测试。"; return; }

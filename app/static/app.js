@@ -98,7 +98,6 @@ const state = {
     showDismissed: false,
     analysisFilter: "all",
     bulkAnalysisRunning: false,
-    analysisProbePassed: false,
     analysisProvider: "none",
     analysisModel: "",
     implementationProvider: "none",
@@ -153,7 +152,6 @@ function modelProviderLabel(provider) {
       resultCount: document.querySelector("#result-count"),
       dismissedToggle: document.querySelector("#dismissed-toggle"),
       aiScreenButton: document.querySelector("#ai-screen-button"),
-      aiProbeButton: document.querySelector("#ai-probe-button"),
       aiFilterButton: document.querySelector("#ai-filter-button"),
       aiScreenStatus: document.querySelector("#ai-screen-status"),
       filterBar: document.querySelector("#filter-bar"),
@@ -190,7 +188,6 @@ function modelProviderLabel(provider) {
       "click",
       () => runRecommendationAnalysis(5),
     );
-    dom.aiProbeButton.addEventListener("click", () => runRecommendationAnalysis(1));
     dom.aiFilterButton.addEventListener("click", toggleAnalysisFilter);
     dom.preferenceForm.addEventListener("submit", savePreference);
     dom.preferenceButton.addEventListener("click", togglePreferenceEditor);
@@ -464,15 +461,11 @@ function modelProviderLabel(provider) {
 
   async function runRecommendationAnalysis(limit = 5) {
     if (state.bulkAnalysisRunning || !state.analysisReady) return;
-    if (limit > 1 && !state.analysisProbePassed) return;
     state.bulkAnalysisRunning = true;
-    dom.aiProbeButton.disabled = true;
     dom.aiScreenButton.disabled = true;
     dom.aiScreenButton.setAttribute("aria-busy", "true");
-    dom.aiScreenButton.textContent = limit === 1 ? "正在验证…" : "正在排队…";
-    dom.aiScreenStatus.textContent = limit === 1
-      ? "正在验证 1 个真实 NVIDIA 分析样例；成功后才能运行前 5 个。"
-      : "将为当前规则 Top 30 中最匹配的 5 个候选运行有预算上限的分析。";
+    dom.aiScreenButton.textContent = "正在排队…";
+    dom.aiScreenStatus.textContent = "将为当前规则 Top 30 中最匹配的候选运行有预算上限的分析。";
     try {
       await ensureLocalAccessToken();
       const batch = await requestJSON(`${API.recommendations}/analyses`, {
@@ -504,9 +497,7 @@ function modelProviderLabel(provider) {
         dom.aiScreenButton.textContent = running
           ? `正在分析 ${completed}/${entries.length}`
           : `已排队 ${completed}/${entries.length}`;
-        dom.aiScreenStatus.textContent = limit === 1
-          ? `样例验证：已完成 ${completed}/1；正在执行 ${running} 个，排队等待 ${queued} 个。`
-          : `AI 分析：已完成 ${completed}/${entries.length}；正在执行 ${running} 个，排队等待 ${queued} 个。`;
+        dom.aiScreenStatus.textContent = `AI 分析：已完成 ${completed}/${entries.length}；正在执行 ${running} 个，排队等待 ${queued} 个。`;
       };
       renderBatchProgress();
       const results = await Promise.all(entries.map(async (entry, index) => {
@@ -521,21 +512,10 @@ function modelProviderLabel(provider) {
       }));
       const succeeded = results.filter((job) => cleanText(job.state) === "succeeded").length;
       const failed = results.length - succeeded;
-      if (limit === 1) {
-        state.analysisProbePassed = succeeded === 1;
-        dom.aiScreenStatus.textContent = succeeded === 1
-          ? "样例验证通过；现在可以运行 AI 筛选前 5 个。"
-          : "样例验证失败；不会启动前 5 个，请先检查 NVIDIA Gateway。";
-        showToast(
-          succeeded === 1 ? "样例验证通过。" : "样例验证失败，未启动批量分析。",
-          failed > 0,
-        );
-      } else {
-        dom.aiScreenStatus.textContent = failed
-          ? `完成 ${succeeded} 个，${failed} 个失败；失败项保留规则评分。`
-          : `已完成 ${succeeded} 个 AI 分析，并按结论更新决策排序。`;
-        showToast(failed ? "部分 AI 分析未完成，已保留规则回退。" : "AI 筛选完成。", failed > 0);
-      }
+      dom.aiScreenStatus.textContent = failed
+        ? `完成 ${succeeded} 个，${failed} 个失败；失败项保留规则评分。`
+        : `已完成 ${succeeded} 个 AI 分析，并按结论更新决策排序。`;
+      showToast(failed ? "部分 AI 分析未完成，已保留规则回退。" : "AI 筛选完成。", failed > 0);
       await reloadProductExperience();
     } catch (error) {
       dom.aiScreenStatus.textContent = friendlyError(error);
@@ -640,27 +620,17 @@ function modelProviderLabel(provider) {
     if (!state.analysisReady) {
       dom.aiScreenButton.textContent = "AI 筛选未配置";
       dom.aiScreenButton.disabled = true;
-      dom.aiProbeButton.textContent = "AI 筛选未配置";
-      dom.aiProbeButton.disabled = true;
       dom.aiScreenStatus.textContent = "当前查询结果使用硬筛选与规则/偏好排序；没有调用 LLM。";
       return;
     }
     dom.aiScreenButton.textContent = state.analysisProvider === "fake"
-      ? "AI 筛选前 5 个（演示）"
-      : "AI 筛选前 5 个";
-    state.analysisProbePassed = state.analysisProbePassed
-      || toFiniteNumber(feed.analyzed_total, 0) > 0;
-    dom.aiProbeButton.textContent = state.analysisProvider === "fake"
-      ? "先验证 1 个样例（演示）"
-      : "先验证 1 个样例";
-    dom.aiProbeButton.disabled = pending === 0;
-    dom.aiScreenButton.disabled = pending === 0 || !state.analysisProbePassed;
+      ? "AI 筛选候选（演示）"
+      : "AI 筛选候选";
+    dom.aiScreenButton.disabled = pending === 0;
     if (!dom.aiScreenStatus.textContent || pending === 0) {
       dom.aiScreenStatus.textContent = pending === 0
         ? "当前候选都已有与本轮 Snapshot 对应的分析。"
-        : state.analysisProbePassed
-          ? `${formatNumber(pending)} 个候选尚未分析；批量运行不会覆盖基础规则分。`
-          : "请先验证 1 个真实 AI 分析样例；验证通过后才可运行前 5 个。";
+        : `${formatNumber(pending)} 个候选尚未分析；批量运行不会覆盖基础规则分。`;
     }
   }
 

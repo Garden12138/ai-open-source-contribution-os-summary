@@ -407,7 +407,7 @@ docker compose --env-file .env -f docs/deployment/compose.yaml up -d --force-rec
 
 操作：
 
-1. 在“发现机会”点击“AI 筛选前 5 个（演示）”，观察批量 Job 进度。
+1. 在“发现机会”点击“AI 筛选候选（演示）”，观察批量 Job 进度。
 2. 点击“只看 AI 推荐”，确认只保留 `pursue / consider` 结论。
 3. 也可以在单张机会卡片点击“查看分析报告”，运行或查看精简 Markdown 结论。
 4. 确认报告先展示基于仓库快照的“项目介绍”和基于 Issue 快照的“需求内容”，再给出与两者具体关联的综合分析、风险与验收、行动建议。
