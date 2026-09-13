@@ -1,7 +1,7 @@
 import { mountContributionWorkbench } from "./workbench.js?v=execution-changes-v1";
 import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
 import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown } from "./studio.js?v=studio-v1";
-import { mountModelSettings } from "./model-settings.js?v=studio-v2";
+import { mountModelSettings } from "./model-settings.js?v=studio-v3";
 import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {
