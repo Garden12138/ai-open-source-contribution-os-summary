@@ -30,6 +30,8 @@ SCORE_SCHEMA_VERSION = "1"
 
 
 def _clamp(value: float, low: float = 0, high: float = 100) -> float:
+    if not math.isfinite(value):
+        return low
     return max(low, min(high, value))
 
 
@@ -87,6 +89,8 @@ def score_issue(
     language = (repository.language or "").lower()
 
     bounty_amount = issue.bounty_amount_usd
+    if bounty_amount is not None and (not math.isfinite(bounty_amount) or bounty_amount <= 0):
+        bounty_amount = None
     has_bounty = issue.has_bounty_signal
     if bounty_amount:
         reward = 72 + min(28, math.log10(max(10, bounty_amount)) * 9)

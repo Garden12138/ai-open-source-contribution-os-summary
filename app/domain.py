@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -54,9 +55,16 @@ class IssueFacts:
     @property
     def bounty_amount_usd(self) -> float | None:
         for pattern in _BOUNTY_AMOUNT_PATTERNS:
-            match = pattern.search(self.searchable_text)
-            if match:
-                return float(match.group(1).replace(",", ""))
+            for match in pattern.finditer(self.searchable_text):
+                raw = match.group(1).replace(",", "")
+                if len(raw) > 12:
+                    continue
+                try:
+                    val = float(raw)
+                    if math.isfinite(val) and 0 < val <= 1_000_000:
+                        return val
+                except (ValueError, OverflowError):
+                    continue
         return None
 
     @property

@@ -28,5 +28,6 @@ def test_content_hash_rejects_non_json_and_non_finite_values() -> None:
     with pytest.raises(TypeError, match="Unsupported provenance value"):
         content_hash({"unsupported": object()})
 
-    with pytest.raises(ValueError, match="Out of range float"):
-        content_hash({"invalid": float("nan")})
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError, match="Out of range float"):
+            content_hash({"invalid": bad})

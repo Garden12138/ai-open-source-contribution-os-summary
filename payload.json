@@ -1,0 +1,1 @@
+{"model":"minimaxai/minimax-m3","messages":[{"role":"user","content":"Which number is larger, 9.11 or 9.8?"}],"temperature":1,"top_p":0.95,"max_tokens":8192,"stream":false}

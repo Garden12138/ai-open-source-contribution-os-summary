@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime, timezone
 from typing import Any
@@ -22,7 +23,15 @@ def _json_value(value: Any) -> Any:
         value, (str, bytes, bytearray)
     ):
         return [_json_value(item) for item in value]
-    if value is None or isinstance(value, (str, int, float, bool)):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError(f"Out of range float values are not JSON compliant: {value}")
+        return value
+    if value is None or isinstance(value, str):
         return value
     raise TypeError(f"Unsupported provenance value: {type(value).__name__}")
 

@@ -231,3 +231,25 @@ def test_select_daily_opportunities_backfills_when_quotas_are_unavailable() -> N
         4: "high_impact",
         5: "best_available",
     }
+
+
+def test_bounty_amount_handles_overflow_and_invalid_numbers() -> None:
+    # 1. Overflow or invalid strings followed by valid bounty
+    item = issue(
+        title="Fix issue with $99999999999999999999999999999999999999999999999999",
+        body="Previous log: $0 but actual bounty offered: $250.00 for completion.",
+    )
+    assert item.bounty_amount_usd == 250.0
+    scored = score_issue(item, Settings(), now=NOW)
+    assert scored.has_bounty is True
+    assert scored.bounty_amount_usd == 250.0
+
+    # 2. Pure invalid numbers (out of range or 0)
+    invalid_item = issue(
+        title="Memory error around $0xdeadbeef and $10000000000",
+        body="Variable $0 is uninitialized",
+    )
+    assert invalid_item.bounty_amount_usd is None
+    invalid_scored = score_issue(invalid_item, Settings(), now=NOW)
+    assert invalid_scored.has_bounty is False
+    assert invalid_scored.bounty_amount_usd is None
