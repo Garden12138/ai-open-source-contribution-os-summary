@@ -989,12 +989,15 @@ function modelProviderLabel(provider) {
 
     dom.systemStatus.classList.remove("is-warning");
     dom.tokenNotice.classList.remove("is-loading", "is-warning", "is-error");
+    const noticeIcon = dom.tokenNotice.querySelector(".notice-icon");
 
     if (tokenConfigured) {
       dom.systemStatus.classList.add("is-ready");
       dom.tokenStatus.textContent = "GitHub 数据源已就绪";
+      dom.tokenNotice.classList.add("is-ready");
       dom.tokenNoticeTitle.textContent = "GitHub Token 已配置";
       dom.tokenNoticeCopy.textContent = "扫描可使用更高的 API 额度，适合持续更新候选池。";
+      if (noticeIcon) noticeIcon.textContent = "✓";
     } else {
       dom.systemStatus.classList.remove("is-ready");
       dom.systemStatus.classList.add("is-warning");
@@ -1003,6 +1006,7 @@ function modelProviderLabel(provider) {
       dom.tokenNoticeTitle.textContent = "尚未配置 GitHub Token";
       dom.tokenNoticeCopy.textContent =
         "仍可尝试扫描，但容易触发 GitHub 访问频率限制。可设置 GITHUB_TOKEN 或 GH_TOKEN 后重启服务。";
+      if (noticeIcon) noticeIcon.textContent = "!";
     }
 
     const summaries = [];
@@ -1011,7 +1015,9 @@ function modelProviderLabel(provider) {
     summaries.push(isRealModelProvider(state.analysisProvider)
       ? "AI：真实分析已接入"
       : state.analysisProvider === "fake" ? "AI：Fake 演示" : "AI：未接入");
-    dom.metaSummary.textContent = summaries.join(" · ");
+    dom.metaSummary.replaceChildren(
+      ...summaries.map((text) => element("span", "meta-pill", text)),
+    );
     renderRuntimeBoundary();
   }
 
@@ -1045,11 +1051,13 @@ function modelProviderLabel(provider) {
     dom.systemStatus.classList.remove("is-ready");
     dom.systemStatus.classList.add("is-warning");
     dom.tokenStatus.textContent = "配置状态未知";
-    dom.tokenNotice.classList.remove("is-loading", "is-warning");
+    dom.tokenNotice.classList.remove("is-loading", "is-warning", "is-ready");
     dom.tokenNotice.classList.add("is-error");
     dom.tokenNoticeTitle.textContent = "暂时无法读取扫描配置";
     dom.tokenNoticeCopy.textContent = "榜单仍会继续加载；若扫描失败，请确认服务已正常启动。";
-    dom.metaSummary.textContent = "";
+    const noticeIcon = dom.tokenNotice.querySelector(".notice-icon");
+    if (noticeIcon) noticeIcon.textContent = "✕";
+    dom.metaSummary.replaceChildren();
   }
 
   function renderDaily(data) {
