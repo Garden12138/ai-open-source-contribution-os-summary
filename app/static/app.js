@@ -310,24 +310,10 @@ function modelProviderLabel(provider) {
         const opportunity = await requestJSON(`${API.opportunities}/${id}`);
         if (generation !== routeGeneration) return;
         const pick = opportunityPicks.get(id) || {opportunity, score_snapshot:opportunity.score_total};
-        root.replaceChildren(buildExpandedOpportunityCard({...pick,opportunity}, `detail-${id}`));
         const shortlisted = state.shortlist.find(item => item.opportunity.id === id);
-        if (shortlisted) {
-          const controls = element("div", "settings-actions");
-          const reminder = document.createElement("input"); reminder.type="datetime-local"; reminder.setAttribute("aria-label","提醒时间");
-          const existing = parseDate(shortlisted.reminder_at); if (existing) reminder.value=toLocalInputValue(existing);
-          controls.append(reminder,analysisAction("保存提醒",async()=>{
-            try { await setOpportunityDisposition(id,{state:"shortlisted",reason_code:null,reminder_at:reminder.value ? new Date(reminder.value).toISOString() : null}); await reloadProductExperience();showToast("候选提醒已更新。"); }
-            catch(error) {showToast(friendlyError(error),true);}
-          }),analysisAction("移出候选",async()=>{
-            try { await setOpportunityDisposition(id,{state:"neutral",reason_code:null,reminder_at:null});await reloadProductExperience();location.hash=detailOrigin; }
-            catch(error) {showToast(friendlyError(error),true);}
-          }));
-          root.append(controls);
-        }
-        if (opportunity.body) { const body = element("details", "issue-body"); body.append(element("summary", "", "Issue 原文")); const content = element("div"); renderMarkdown(content, opportunity.body); body.append(content); root.append(body); }
+        root.replaceChildren(buildExpandedOpportunityCard({...pick,opportunity}, `detail-${id}`, { shortlisted }));
         const panel = state.analysisPanels.get(analysisPanelKey("discover", id));
-        if (panel && panel.body.hidden) await toggleAnalysisPanel(panel);
+        if (panel && !panel.loaded) await loadAnalysisHistory(panel);
         detail.focus({preventScroll:true});
       } catch(error) { if (generation === routeGeneration) root.replaceChildren(analysisMessage("机会详情载入失败", friendlyError(error))); }
     }
@@ -1150,7 +1136,7 @@ function modelProviderLabel(provider) {
     });
   }
 
-  function buildExpandedOpportunityCard(pick, index) {
+  function buildExpandedOpportunityCard(pick, index, options = {}) {
     const opportunity = pick && pick.opportunity && typeof pick.opportunity === "object"
       ? pick.opportunity
       : {};
@@ -1160,96 +1146,131 @@ function modelProviderLabel(provider) {
     const product = objectValue(pick && pick.product_recommendation);
     const reason = cleanText(pick.selection_reason) || "best_available";
     const reasonMeta = REASONS[reason] || { label: humanize(reason), short: humanize(reason) };
-    const rank = Math.max(1, Math.trunc(toFiniteNumber(pick.rank, index + 1)));
     const score = clamp(
       toFiniteNumber(pick.score_snapshot, toFiniteNumber(opportunity.score_total, 0)),
       0,
       100,
     );
+    const shortlisted = options.shortlisted || state.shortlist.find((item) => item.opportunity && item.opportunity.id === opportunity.id);
 
-    const card = element("article", "opportunity-card");
+    const card = element("article", "opportunity-card detail-card");
     const dismissed = cleanText(product.disposition_state) === "dismissed";
     card.classList.toggle("is-dismissed", dismissed);
     card.dataset.reason = reason;
+    card.dataset.opportunityId = String(opportunity.id || "");
     card.setAttribute("aria-labelledby", `opportunity-title-${index}`);
 
-    const rankColumn = element("div", "rank-column");
-    const rankBadge = element("span", "rank-badge", String(rank));
-    if (rank <= 3) rankBadge.classList.add("is-podium");
-    rankBadge.setAttribute("aria-label", `第 ${rank} 名`);
-    rankColumn.appendChild(rankBadge);
+    // 1. Header & Repository Context Block
+    const headerBlock = element("div", "detail-header-block");
 
-    const main = element("div", "opportunity-main");
-    const topline = element("div", "card-topline");
+    const topline = element("div", "detail-topline");
+    const repoName = cleanText(repository.full_name) || "未知仓库";
+    const repoLink = link(repository.html_url, repoName, "repo-link");
+    const issueNumber = opportunity.issue_number ? `#${opportunity.issue_number}` : "";
+    const issueNumSpan = element("span", "detail-issue-number", issueNumber);
+    const ghLink = link(opportunity.html_url, "在 GitHub 打开 ↗", "detail-github-link");
     const reasonBadge = element(
       "span",
       "reason-badge",
       dismissed ? "已忽略" : reasonMeta.label,
     );
     reasonBadge.dataset.reason = reason;
-    topline.appendChild(reasonBadge);
+    topline.append(repoLink, issueNumSpan, ghLink, reasonBadge);
+    headerBlock.appendChild(topline);
 
-    const repoName = cleanText(repository.full_name) || "未知仓库";
-    const repoLink = link(repository.html_url, repoName, "repo-link");
-    topline.appendChild(repoLink);
-    main.appendChild(topline);
-
-    const title = element("h3", "issue-title");
+    const title = element("h3", "detail-issue-title");
     title.id = `opportunity-title-${index}`;
-    const issueTitle = cleanText(opportunity.title) || `Issue #${opportunity.issue_number || "—"}`;
-    title.appendChild(link(opportunity.html_url, issueTitle, "issue-link"));
-    main.appendChild(title);
+    title.textContent = cleanText(opportunity.title) || `Issue #${opportunity.issue_number || "—"}`;
+    headerBlock.appendChild(title);
 
     const description = cleanText(repository.description);
     if (description) {
-      main.appendChild(element("p", "repository-description", description));
+      headerBlock.appendChild(element("p", "detail-repo-desc", description));
     }
 
-    if (Object.keys(product).length) {
-      main.appendChild(buildDecisionSummary(product, opportunity));
+    const factsRow = element("div", "detail-facts-row");
+    const lang = cleanText(repository.language);
+    if (lang) factsRow.appendChild(element("span", "detail-meta-pill", `◉ ${lang}`));
+    if (repository.stars !== undefined && repository.stars !== null) {
+      factsRow.appendChild(element("span", "detail-meta-pill", `★ ${formatCompact(repository.stars)}`));
     }
+    const lic = cleanText(repository.license_spdx);
+    if (lic) factsRow.appendChild(element("span", "detail-meta-pill", `许可 ${lic}`));
+    if (opportunity.comments_count !== undefined && opportunity.comments_count !== null) {
+      factsRow.appendChild(element("span", "detail-meta-pill", `💬 ${formatNumber(opportunity.comments_count)} 评论`));
+    }
+    if (opportunity.has_bounty) {
+      const amount = toOptionalNumber(opportunity.bounty_amount_usd);
+      const text = amount === null
+        ? "💰 含赏金"
+        : `💰 赏金 ${formatCurrency(amount)}`;
+      factsRow.appendChild(element("span", "signal-tag is-bounty", text));
+    }
+    if (opportunity.is_strategic) {
+      factsRow.appendChild(element("span", "signal-tag", "🎯 战略方向"));
+    }
+    if (opportunity.is_tech_match) {
+      factsRow.appendChild(element("span", "signal-tag", "⚡ 偏好技术栈"));
+    }
+    headerBlock.appendChild(factsRow);
 
     const labels = toStringArray(opportunity.labels);
     if (labels.length) {
       const labelRow = element("div", "label-row");
-      labels.slice(0, 4).forEach((label) => labelRow.appendChild(element("span", "issue-label", label)));
-      if (labels.length > 4) {
-        labelRow.appendChild(element("span", "issue-label", `+${labels.length - 4}`));
+      labels.slice(0, 5).forEach((label) => labelRow.appendChild(element("span", "issue-label", label)));
+      if (labels.length > 5) {
+        labelRow.appendChild(element("span", "issue-label", `+${labels.length - 5}`));
       }
-      main.appendChild(labelRow);
+      headerBlock.appendChild(labelRow);
+    }
+    card.appendChild(headerBlock);
+
+    // 2. Build Analysis Workbench so Action Bar can reference panel
+    const workbench = buildAnalysisWorkbench(pick, opportunity, index, "discover");
+    const panel = state.analysisPanels.get(analysisPanelKey("discover", opportunity.id));
+
+    // 3. Unified Action Bar (Primary CTA, Candidate Management, Ignore)
+    const actionBar = buildDetailActionBar(product, opportunity, "discover", shortlisted, panel);
+    card.appendChild(actionBar);
+
+    // 4. Original Issue Content (Collapsible)
+    if (opportunity.body) {
+      const issueDetails = element("details", "detail-issue-details");
+      const summary = element("summary", "detail-section-summary", "📋 Issue 原文与需求说明");
+      const content = element("div", "detail-issue-markdown");
+      renderMarkdown(content, opportunity.body);
+      issueDetails.append(summary, content);
+      card.appendChild(issueDetails);
     }
 
-    const signalRow = buildSignalRow(opportunity);
-    if (signalRow.childElementCount) main.appendChild(signalRow);
+    // 5. Decision & Evaluation Summary
+    if (Object.keys(product).length) {
+      card.appendChild(buildDecisionSummary(product, opportunity));
+    }
 
+    // 6. Risk Reasons Banner
     const risks = toStringArray(opportunity.risk_reasons);
     if (risks.length) {
       const riskText = risks.map((risk) => RISK_LABELS[risk] || humanize(risk)).join("；");
-      main.appendChild(element("div", "risk-row", riskText));
+      card.appendChild(element("div", "risk-row detail-risk-banner", `⚠️ 风险提醒：${riskText}`));
     }
 
-    if (Object.keys(product).length) {
-      main.appendChild(buildProductActions(product, opportunity, "discover"));
-    }
-
-    main.appendChild(buildCardFooter(opportunity, repository));
-
-    const scoreColumn = buildScoreColumn(
-      score,
-      opportunity.score_components,
-      Object.keys(product).length > 0
-        ? cleanText(product.analysis_status) === "analyzed"
-          ? "AI 决策排序 / 100"
-          : "个性化匹配 / 100"
-        : "综合评分 / 100",
+    // 7. Score Breakdown (Collapsible & Compact)
+    card.appendChild(
+      buildScoreColumn(
+        score,
+        opportunity.score_components,
+        Object.keys(product).length > 0
+          ? cleanText(product.analysis_status) === "analyzed"
+            ? "AI 决策排序 / 100"
+            : "个性化匹配 / 100"
+          : "综合评分 / 100",
+      ),
     );
 
-    card.append(
-      rankColumn,
-      main,
-      scoreColumn,
-      buildAnalysisWorkbench(pick, opportunity, index, "discover"),
-    );
+    // 8. AI In-Depth Evaluation Workbench
+    card.appendChild(workbench);
+
     return card;
   }
 
@@ -1343,57 +1364,119 @@ function modelProviderLabel(provider) {
     return item;
   }
 
-  function buildProductActions(product, opportunity, scope) {
-    const wrapper = element("div", "product-actions");
-    const shortlisted = cleanText(product.disposition_state) === "shortlisted";
-    const dismissed = cleanText(product.disposition_state) === "dismissed";
-    const saveLabel = dismissed
-      ? "恢复推荐"
-      : shortlisted
-        ? "已加入候选"
-        : "加入候选";
-    const save = analysisAction(saveLabel, async () => {
-      save.disabled = true;
-      try {
-        await setOpportunityDisposition(opportunity.id, {
-          state: shortlisted || dismissed ? "neutral" : "shortlisted",
-          reason_code: null,
-          reminder_at: null,
-        });
-        showToast(
-          dismissed
-            ? "已恢复到推荐列表。"
-            : shortlisted
-              ? "已移出候选。"
-              : "已加入我的候选。 ",
-        );
-        await reloadProductExperience();
-      } catch (error) {
-        showToast(friendlyError(error), true);
-      } finally {
-        save.disabled = false;
-      }
-    });
-    save.classList.add("product-primary-action");
+  function buildDetailActionBar(product, opportunity, scope, shortlistedItem, panel) {
+    const bar = element("div", "detail-action-bar");
+    const isShortlisted = Boolean(shortlistedItem) || cleanText(product.disposition_state) === "shortlisted";
+    const isDismissed = cleanText(product.disposition_state) === "dismissed";
+    const isAnalyzed = cleanText(product.analysis_status) === "analyzed";
+    const analysisVersionId = cleanText(product.analysis_version_id);
 
-    const analyze = analysisAction("深入评估", () => {
-      const panel = state.analysisPanels.get(
-        analysisPanelKey(scope, opportunity.id),
-      );
-      if (panel) toggleAnalysisPanel(panel);
-    });
+    const existingTask = state.tasks.find(
+      (item) => (analysisVersionId && cleanText(item.analysis_version_id) === analysisVersionId)
+        || Number(item.opportunity_id) === Number(opportunity.id)
+    );
+    const existingTaskId = cleanText(existingTask && existingTask.id);
 
-    const dismiss = analysisAction("暂不适合", () => {
-      dismiss.hidden = true;
-      reasonField.hidden = false;
-      reasonField.querySelector("select").focus();
-    });
-    dismiss.hidden = dismissed;
-    const reasonField = element("div", "dismiss-reason");
-    reasonField.hidden = true;
-    const select = document.createElement("select");
+    const buttonsRow = element("div", "detail-action-buttons");
+
+    let primaryBtn;
+    if (isAnalyzed) {
+      primaryBtn = analysisAction(existingTaskId ? "打开贡献方案 →" : "制定贡献方案 →", async () => {
+        primaryBtn.disabled = true;
+        primaryBtn.textContent = existingTaskId ? "正在打开…" : "正在创建…";
+        try {
+          await ensureLocalAccessToken();
+          const task = existingTaskId
+            ? await requestJSON(`${API.tasks}/${encodeURIComponent(existingTaskId)}`)
+            : await requestJSON(API.tasks, {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": randomKey("web-task"),
+                }),
+                body: JSON.stringify({ analysis_version_id: analysisVersionId }),
+              });
+          const taskId = cleanText(task.task && task.task.id) || cleanText(task.id);
+          if (!taskId) throw new Error("任务响应缺少标识");
+          if (panel && analysisVersionId) panel.taskIds.set(analysisVersionId, taskId);
+          await renderTaskHistory();
+          window.location.hash = `#/tasks/${encodeURIComponent(taskId)}`;
+        } catch (err) {
+          showToast(friendlyError(err), true);
+          primaryBtn.disabled = false;
+          primaryBtn.textContent = existingTaskId ? "重新打开" : "重试制定方案";
+        }
+      });
+      primaryBtn.classList.add("detail-primary-cta");
+    } else {
+      primaryBtn = analysisAction("深入评估", async () => {
+        if (!state.analysisReady) {
+          showToast("深入评估服务或使用额度尚未就绪，请在模型设置中配置。", true);
+          return;
+        }
+        if (!panel) return;
+        primaryBtn.disabled = true;
+        primaryBtn.textContent = "正在深入评估…";
+        try {
+          await runAnalysis(panel);
+        } catch (err) {
+          showToast(friendlyError(err), true);
+        } finally {
+          primaryBtn.disabled = false;
+          primaryBtn.textContent = "深入评估";
+        }
+      });
+      primaryBtn.classList.add("detail-primary-cta");
+    }
+    buttonsRow.appendChild(primaryBtn);
+
+    const candidateBtn = analysisAction(
+      isDismissed ? "恢复推荐" : isShortlisted ? "★ 已在候选" : "☆ 加入候选",
+      async () => {
+        candidateBtn.disabled = true;
+        try {
+          await setOpportunityDisposition(opportunity.id, {
+            state: isShortlisted || isDismissed ? "neutral" : "shortlisted",
+            reason_code: null,
+            reminder_at: null,
+          });
+          showToast(
+            isDismissed
+              ? "已恢复到推荐列表。"
+              : isShortlisted
+                ? "已移出候选。"
+                : "已加入我的候选。",
+          );
+          await reloadProductExperience();
+          location.hash = `#/opportunities/${opportunity.id}`;
+        } catch (err) {
+          showToast(friendlyError(err), true);
+        } finally {
+          candidateBtn.disabled = false;
+        }
+      },
+    );
+    candidateBtn.classList.add("detail-secondary-cta");
+    if (isShortlisted) candidateBtn.classList.add("is-active");
+    buttonsRow.appendChild(candidateBtn);
+
+    const dismissReasonRow = element("div", "detail-dismiss-reason-row");
+    dismissReasonRow.hidden = true;
+
+    if (!isDismissed) {
+      const dismissBtn = analysisAction("暂不适合", () => {
+        dismissReasonRow.hidden = !dismissReasonRow.hidden;
+        if (!dismissReasonRow.hidden) dismissSelect.focus();
+      });
+      dismissBtn.classList.add("detail-ghost-cta");
+      buttonsRow.appendChild(dismissBtn);
+    }
+    bar.appendChild(buttonsRow);
+
+    const dismissSelect = document.createElement("select");
+    dismissSelect.className = "detail-dismiss-select";
     [
-      ["", "选择原因"],
+      ["", "选择暂不适合的原因…"],
       ["too_large", "任务过大"],
       ["low_reward", "收益偏低"],
       ["tech_mismatch", "技术不匹配"],
@@ -1401,32 +1484,92 @@ function modelProviderLabel(provider) {
       ["unclear_scope", "范围不清"],
       ["not_interested", "暂不感兴趣"],
       ["other", "其他"],
-    ].forEach(([value, label]) => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      select.appendChild(option);
+    ].forEach(([val, txt]) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = txt;
+      dismissSelect.appendChild(opt);
     });
-    const confirm = analysisAction("确认忽略", async () => {
-      if (!select.value) return;
-      confirm.disabled = true;
+    const confirmDismissBtn = analysisAction("确认忽略", async () => {
+      if (!dismissSelect.value) {
+        showToast("请选择忽略原因", true);
+        return;
+      }
+      confirmDismissBtn.disabled = true;
       try {
         await setOpportunityDisposition(opportunity.id, {
           state: "dismissed",
-          reason_code: select.value,
+          reason_code: dismissSelect.value,
           reminder_at: null,
         });
-        showToast("已从推荐中隐藏；可通过“查看已忽略”恢复。 ");
+        showToast("已从推荐中隐藏；可通过“查看已忽略”恢复。");
         await reloadProductExperience();
-      } catch (error) {
-        showToast(friendlyError(error), true);
-        confirm.disabled = false;
+        location.hash = detailOrigin;
+      } catch (err) {
+        showToast(friendlyError(err), true);
+        confirmDismissBtn.disabled = false;
       }
     });
-    confirm.classList.add("is-compact");
-    reasonField.append(select, confirm);
-    wrapper.append(save, analyze, dismiss, reasonField);
-    return wrapper;
+    confirmDismissBtn.classList.add("is-compact");
+    const cancelDismissBtn = analysisAction("取消", () => {
+      dismissReasonRow.hidden = true;
+    });
+    cancelDismissBtn.classList.add("is-compact", "is-secondary");
+    dismissReasonRow.append(dismissSelect, confirmDismissBtn, cancelDismissBtn);
+    bar.appendChild(dismissReasonRow);
+
+    if (isShortlisted) {
+      const reminderRow = element("div", "detail-reminder-row");
+      const reminderLabel = element("span", "detail-reminder-label", "⏰ 候选提醒：");
+      const reminderInput = document.createElement("input");
+      reminderInput.type = "datetime-local";
+      reminderInput.className = "detail-reminder-input";
+      reminderInput.setAttribute("aria-label", "设置提醒时间");
+      const existingDate = shortlistedItem && shortlistedItem.reminder_at ? parseDate(shortlistedItem.reminder_at) : null;
+      if (existingDate) reminderInput.value = toLocalInputValue(existingDate);
+
+      const saveReminderBtn = analysisAction("保存提醒", async () => {
+        saveReminderBtn.disabled = true;
+        try {
+          await setOpportunityDisposition(opportunity.id, {
+            state: "shortlisted",
+            reason_code: null,
+            reminder_at: reminderInput.value ? new Date(reminderInput.value).toISOString() : null,
+          });
+          showToast("候选提醒已更新。");
+          await reloadProductExperience();
+        } catch (err) {
+          showToast(friendlyError(err), true);
+        } finally {
+          saveReminderBtn.disabled = false;
+        }
+      });
+      saveReminderBtn.classList.add("is-compact");
+
+      const removeBtn = analysisAction("移出候选", async () => {
+        removeBtn.disabled = true;
+        try {
+          await setOpportunityDisposition(opportunity.id, {
+            state: "neutral",
+            reason_code: null,
+            reminder_at: null,
+          });
+          showToast("已移出候选。");
+          await reloadProductExperience();
+          location.hash = detailOrigin;
+        } catch (err) {
+          showToast(friendlyError(err), true);
+        } finally {
+          removeBtn.disabled = false;
+        }
+      });
+      removeBtn.classList.add("is-compact", "is-secondary");
+
+      reminderRow.append(reminderLabel, reminderInput, saveReminderBtn, removeBtn);
+      bar.appendChild(reminderRow);
+    }
+
+    return bar;
   }
 
   async function setOpportunityDisposition(opportunityId, payload) {
@@ -1492,7 +1635,7 @@ function modelProviderLabel(provider) {
 
     if (entries.length) {
       const details = element("details", "score-details");
-      const summary = element("summary", "", "查看评分构成");
+      const summary = element("summary", "", `📊 综合评分 ${formatScore(score)} 分 · 查看 7 维度细分`);
       const list = element("div", "component-list");
 
       entries.forEach(([key, value]) => {
@@ -1525,23 +1668,25 @@ function modelProviderLabel(provider) {
   function buildAnalysisWorkbench(pick, opportunity, index, scope) {
     const opportunityId = Math.trunc(toFiniteNumber(opportunity.id, 0));
     const snapshotId = cleanText(pick && pick.snapshot_id);
-    const section = element("section", "analysis-workbench");
+    const isDetail = cleanText(scope) === "discover";
+    const section = element("section", isDetail ? "analysis-workbench detail-analysis-section" : "analysis-workbench");
     const header = element("div", "analysis-workbench-header");
     const heading = element("div");
     heading.append(
-      element("strong", "", "深入评估"),
-      element("span", "", "判断投入、工作量、风险和下一步"),
+      element("strong", "", isDetail ? "AI 深入评估报告" : "深入评估"),
+      element("span", "", isDetail ? "评估代码修改范围、方案建议与贡献路径" : "判断投入、工作量、风险和下一步"),
     );
-    const toggle = element("button", "analysis-toggle", "查看分析报告");
+    const toggle = element("button", "analysis-toggle", isDetail ? "收起分析报告" : "查看分析报告");
     toggle.type = "button";
-    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-expanded", isDetail ? "true" : "false");
     const panelId = `analysis-panel-${cleanText(scope) || "discover"}-${cleanText(index)}`;
     toggle.setAttribute("aria-controls", panelId);
+    if (isDetail) toggle.hidden = true;
     const product = objectValue(pick && pick.product_recommendation);
     const status = element(
       "span",
       "analysis-status",
-      cleanText(product.analysis_status) === "analyzed" ? "已有当前分析" : "尚未载入",
+      cleanText(product.analysis_status) === "analyzed" ? (isDetail ? "已生成报告" : "已有当前分析") : (isDetail ? "待深入评估" : "尚未载入"),
     );
     if (cleanText(product.analysis_status) === "analyzed") {
       status.dataset.tone = "ready";
@@ -1549,7 +1694,7 @@ function modelProviderLabel(provider) {
     status.setAttribute("aria-live", "polite");
     const body = element("div", "analysis-panel");
     body.id = panelId;
-    body.hidden = true;
+    body.hidden = !isDetail;
 
     const panel = {
       opportunityId,
@@ -1632,14 +1777,55 @@ function modelProviderLabel(provider) {
     panel.body.replaceChildren();
     if (!panel.versions.length) {
       const copy = state.analysisReady
-        ? "这个机会还没有深入评估。运行后会保留精简报告和版本记录。"
+        ? "尚未对该 Issue 进行深度分析。运行后将全面分析仓库架构、修改范围与贡献步骤。"
         : "当前仅提供基础评分；深入评估服务或使用额度尚未就绪。";
       const empty = analysisMessage("尚无深度分析", copy);
       if (state.analysisReady && panel.snapshotId) {
-        empty.appendChild(analysisAction("运行深度分析", () => runAnalysis(panel)));
+        const runBtn = analysisAction("运行深度分析", () => runAnalysis(panel));
+        runBtn.classList.add("detail-primary-cta");
+        empty.appendChild(runBtn);
       }
       panel.body.appendChild(empty);
       return;
+    }
+
+    // Update primary CTA in detail action bar if present
+    const latestVersion = panel.versions[0];
+    const analysisVersionId = cleanText(latestVersion && latestVersion.id);
+    const existingTask = state.tasks.find(
+      (item) => (analysisVersionId && cleanText(item.analysis_version_id) === analysisVersionId)
+        || Number(item.opportunity_id) === Number(panel.opportunityId)
+    );
+    const knownTaskId = panel.taskIds.get(analysisVersionId) || cleanText(existingTask && existingTask.id);
+    const primaryCta = panel.section.closest(".opportunity-card")?.querySelector(".detail-primary-cta");
+    if (primaryCta && analysisVersionId) {
+      primaryCta.textContent = knownTaskId ? "打开贡献方案 →" : "制定贡献方案 →";
+      primaryCta.onclick = async () => {
+        primaryCta.disabled = true;
+        primaryCta.textContent = knownTaskId ? "正在打开…" : "正在创建…";
+        try {
+          await ensureLocalAccessToken();
+          const task = knownTaskId
+            ? await requestJSON(`${API.tasks}/${encodeURIComponent(knownTaskId)}`)
+            : await requestJSON(API.tasks, {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": randomKey("web-task"),
+                }),
+                body: JSON.stringify({ analysis_version_id: analysisVersionId }),
+              });
+          const taskId = cleanText(task.task && task.task.id) || cleanText(task.id);
+          if (!taskId) throw new Error("任务响应缺少标识");
+          panel.taskIds.set(analysisVersionId, taskId);
+          await renderTaskHistory();
+          window.location.hash = `#/tasks/${encodeURIComponent(taskId)}`;
+        } catch (err) {
+          showToast(friendlyError(err), true);
+          primaryCta.disabled = false;
+          primaryCta.textContent = knownTaskId ? "重新打开" : "重试制定方案";
+        }
+      };
     }
 
     const toolbar = element("div", "analysis-toolbar");
