@@ -593,6 +593,7 @@ def require_mutation_access(
         expected_csrf: str = request.app.state.csrf_token
         if csrf_token is None or not compare_digest(csrf_token, expected_csrf):
             raise HTTPException(status_code=403, detail="CSRF validation failed")
+        return
 
     if settings.local_access_token:
         bearer = None

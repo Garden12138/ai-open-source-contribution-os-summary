@@ -4146,10 +4146,7 @@ function modelProviderLabel(provider) {
   }
 
   async function ensureLocalAccessToken() {
-    if (state.accessTokenRequired && !state.accessToken) {
-      state.accessToken = window.prompt("请输入本地 API 访问令牌") || null;
-      if (!state.accessToken) throw new Error("未提供本地 API 访问令牌");
-    }
+    // Web operations rely on same-origin CSRF protection; no modal prompt required.
   }
 
   function objectValue(value) {
@@ -4240,10 +4237,6 @@ function modelProviderLabel(provider) {
     let finalNote = "扫描将更新今天的候选池与推荐榜单";
 
     try {
-      if (state.accessTokenRequired && !state.accessToken) {
-        state.accessToken = window.prompt("请输入本地 API 访问令牌") || null;
-        if (!state.accessToken) throw new Error("未提供本地 API 访问令牌");
-      }
       const idempotencyKey = window.crypto && typeof window.crypto.randomUUID === "function"
         ? window.crypto.randomUUID()
         : `web-scan-${Date.now()}-${Math.random().toString(16).slice(2)}`;

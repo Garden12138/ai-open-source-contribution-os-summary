@@ -275,6 +275,15 @@ def test_mutations_require_local_token_and_browser_csrf(
                 "Idempotency-Key": "browser-auth",
             },
         )
+        browser_allowed_without_token = client.post(
+            "/api/v1/scans",
+            json={},
+            headers={
+                "Origin": "http://testserver",
+                "X-CSRF-Token": csrf,
+                "Idempotency-Key": "browser-auth-no-token",
+            },
+        )
         secret_preference = client.post(
             "/api/v1/preferences/current",
             json={"preferred_languages": [LOCAL_TOKEN]},
@@ -337,6 +346,7 @@ def test_mutations_require_local_token_and_browser_csrf(
     assert no_csrf_notification.status_code == 403
     assert cross_origin.status_code == 403
     assert browser_allowed.status_code == 202
+    assert browser_allowed_without_token.status_code == 202
     assert secret_preference.status_code == 422
     assert LOCAL_TOKEN not in secret_preference.text
     assert cli_allowed.status_code == 202

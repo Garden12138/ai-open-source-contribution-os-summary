@@ -167,8 +167,13 @@ After implementation:
 3. Run `git diff --check`.
 4. Verify that responses, logs, fixtures, and persisted records contain no
    credential canaries.
-5. Update task checkboxes and evidence only after the exit condition is met.
-6. Report remaining risks, unverified platform gates, and the next current task.
+5. Automatically redeploy and run the service:
+   - When Docker Compose services are running or configured (`.env` present), rebuild and redeploy:
+     `docker compose --env-file .env -f docs/deployment/compose.yaml up -d --build` (or `./scripts/deploy.sh`).
+   - Confirm that services are healthy: `docker compose --env-file .env -f docs/deployment/compose.yaml ps` and `curl -s http://127.0.0.1:8000/health`.
+   - If running locally via Python CLI, restart `contribos serve` and associated background workers.
+6. Update task checkboxes and evidence only after the exit condition is met.
+7. Report remaining risks, unverified platform gates, and the next current task.
 
 ## Database and migrations
 
@@ -253,6 +258,7 @@ A task is done only when:
   relevant;
 - migrations and recovery are included for persistent changes;
 - API, schema, UI, and docs are synchronized;
+- running services are redeployed and confirmed healthy;
 - security boundaries remain intact and canary checks pass;
 - required platform checks are recorded truthfully;
 - `docs/tasks.md` reflects the verified state;
