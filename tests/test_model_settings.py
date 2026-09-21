@@ -34,6 +34,7 @@ from app.providers.contracts import ProviderStage, ProviderRunError
 from app.providers.codex_cli import CodexExecInvocation
 from app.providers.gateway import (
     GatewayTaskAuthorizer,
+    GatewayTaskCredentialBroker,
     GatewayTaskTokenCodec,
     InternalModelGateway,
 )
@@ -41,9 +42,11 @@ from app.providers.gateway_http import create_model_gateway_app
 from app.providers.model_secrets import GatewaySecretStore, b64, management_auth
 from app.providers.studio import (
     StudioGateway,
+    StudioRunner,
     PublicHTTPSClient,
     ProfileUpstream,
     runner_for_profile,
+    is_allowed_public_ip,
 )
 
 CANARY = "ghp_StudioSecretCanary1234567890"
@@ -544,6 +547,120 @@ def test_ssrf_resolves_all_addresses_before_sending(monkeypatch):
                 "https://models.example.com/v1", "/models", credential=CANARY
             )
         )
+
+
+def test_is_allowed_public_ip_checks_global_and_fake_ip():
+    import ipaddress
+
+    # Global public IPs
+    assert is_allowed_public_ip(ipaddress.ip_address("104.18.25.1")) is True
+    # Fake-IP subnet (RFC 2544, 198.18.0.0/15) used by Clash/Surge/Mihomo TUN mode
+    assert is_allowed_public_ip(ipaddress.ip_address("198.18.0.116")) is True
+    assert is_allowed_public_ip(ipaddress.ip_address("198.19.255.254")) is True
+    # Private and loopback IPs must remain forbidden
+    assert is_allowed_public_ip(ipaddress.ip_address("127.0.0.1")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("10.0.0.1")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("192.168.1.1")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("172.17.0.1")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("169.254.169.254")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("fe80::1")) is False
+
+
+def test_ssrf_allows_fake_ip_and_connects(monkeypatch):
+    monkeypatch.setattr(
+        socket,
+        "getaddrinfo",
+        lambda *a, **k: [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("198.18.0.116", 443))
+        ],
+    )
+    called = {}
+
+    class MockStreamResponse:
+        status_code = 200
+        headers = {}
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def aiter_bytes(self):
+            yield b'{"data": [{"id": "MiniMax-M3"}]}'
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        def stream(self, method, url, **kwargs):
+            called["url"] = url
+            called["host"] = kwargs.get("headers", {}).get("Host")
+            called["sni"] = kwargs.get("extensions", {}).get("sni_hostname")
+            return MockStreamResponse()
+
+    monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
+    res = asyncio.run(
+        PublicHTTPSClient().request(
+            "https://api.minimax.cn/v1", "/models", credential=CANARY
+        )
+    )
+    assert called["url"] == "https://198.18.0.116/v1/models"
+    assert called["host"] == "api.minimax.cn"
+    assert called["sni"] == "api.minimax.cn"
+    assert res == {"data": [{"id": "MiniMax-M3"}]}
+
+
+def test_studio_runner_parses_gateway_error():
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            502,
+            json={
+                "error": {
+                    "code": "gateway_endpoint_rejected",
+                    "message": "模型地址无法解析为公共 HTTPS 服务",
+                }
+            },
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    broker = GatewayTaskCredentialBroker(
+        codec=GatewayTaskTokenCodec(KEY),
+        base_url="http://contribos-model-gateway:8001/v1",
+        network="contribos-model-gateway-local",
+        service_name="contribos-model-gateway",
+        provider_name="minimax",
+    )
+    profile = {
+        "id": "test-prof",
+        "model": "MiniMax-M3",
+        "structured_output": "tools",
+        "max_tokens": 1000,
+        "timeout_seconds": 30,
+        "connection": {"provider": "minimax"},
+    }
+    runner = StudioRunner(profile, broker=broker, client=client)
+    inv = CodexExecInvocation(
+        stage=ProviderStage.PLANNING,
+        request_id="r1",
+        correlation_id="c1",
+        snapshot_id="s1",
+        input_hash="a" * 64,
+        model="MiniMax-M3",
+        prompt="hello",
+        output_schema={"type": "object"},
+    )
+    with pytest.raises(ProviderRunError) as exc_info:
+        asyncio.run(runner.complete(inv))
+    assert exc_info.value.code == "model_gateway_endpoint_rejected"
+    assert exc_info.value.retryable is False
+    assert "公共 HTTPS" in exc_info.value.safe_message
 
 
 @pytest.mark.parametrize(

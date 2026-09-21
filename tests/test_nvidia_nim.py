@@ -884,3 +884,55 @@ def test_gateway_runner_fails_closed_without_credential_broker() -> None:
     runner = NvidiaNimGatewayRunner(broker=None)
     with pytest.raises(ProviderRunError, match="not configured"):
         asyncio.run(runner.complete(_invocation()))
+
+
+def test_raise_response_error_categorizes_eol_and_status_codes() -> None:
+    with pytest.raises(ProviderRunError) as eol:
+        nvidia_nim._raise_response_error(httpx.Response(410))
+    assert eol.value.code == "nvidia_nim_model_eol"
+    assert eol.value.retryable is False
+
+    with pytest.raises(ProviderRunError) as not_found:
+        nvidia_nim._raise_response_error(httpx.Response(404))
+    assert not_found.value.code == "nvidia_nim_model_not_found"
+    assert not_found.value.retryable is False
+
+    with pytest.raises(ProviderRunError) as auth:
+        nvidia_nim._raise_response_error(httpx.Response(401))
+    assert auth.value.code == "nvidia_nim_auth_failure"
+    assert auth.value.retryable is False
+
+    with pytest.raises(ProviderRunError) as rate_limit:
+        nvidia_nim._raise_response_error(httpx.Response(429))
+    assert rate_limit.value.code == "nvidia_nim_rate_limited"
+    assert rate_limit.value.retryable is True
+
+
+def test_gateway_runner_parses_model_eol_error_response() -> None:
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            502,
+            json={
+                "error": {
+                    "code": "gateway_model_eol",
+                    "message": "Selected model has reached end of life and is no longer available",
+                }
+            },
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    broker = GatewayTaskCredentialBroker(
+        codec=GatewayTaskTokenCodec(b"g" * 32),
+        base_url="http://contribos-model-gateway:8001/v1",
+        network="contribos-model-gateway-local",
+        service_name="contribos-model-gateway",
+        provider_name="nvidia_nim",
+    )
+    runner = NvidiaNimGatewayRunner(broker=broker, client=client)
+    with pytest.raises(ProviderRunError) as captured:
+        asyncio.run(runner.complete(_invocation()))
+    asyncio.run(client.aclose())
+
+    assert captured.value.code == "model_gateway_model_eol"
+    assert captured.value.retryable is False
+    assert "end of life" in captured.value.safe_message

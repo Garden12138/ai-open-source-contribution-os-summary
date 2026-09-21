@@ -132,7 +132,11 @@ export function mountModelSettings(root,options) {
     const current=data.version?.payload || {};
     const firstProfile=data.profiles[0];
     const defaultId=firstProfile?.id || current.default || null;
-    const choices=data.profiles.map(v=>[v.id,v.payload.name]);
+    const connMap=new Map((data.connections||[]).map(c=>[c.id,c.payload?.name||c.payload?.provider||"未知连接"]));
+    const choices=data.profiles.map(v=>{
+      const connName=connMap.get(v.payload?.connection_id);
+      return [v.id, connName ? `${v.payload.name} (${connName})` : v.payload.name];
+    });
     for(const identifier of Object.values(current)) if(identifier && !choices.some(v=>v[0]===identifier)) choices.push([identifier,"已绑定的历史模型版本"]);
     for(const [stage,title] of [["analysis","机会分析"],["planning","方案讨论"],["implementation","代码实现"],["review","独立审查"]]) {
       const selected=current[stage] || current.default || defaultId || "";

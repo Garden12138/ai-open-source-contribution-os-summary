@@ -11,7 +11,7 @@ x-app-environment: &app-environment
   ARTIFACT_ROOT: /data/artifacts
   APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Shanghai}
   ANALYSIS_PROVIDER: ${ANALYSIS_PROVIDER:-none}
-  ANALYSIS_MODEL: ${ANALYSIS_MODEL:-minimaxai/minimax-m3}
+  ANALYSIS_MODEL: ${ANALYSIS_MODEL:-nvidia/nemotron-3.5-lightning-30b-a3b}
   IMPLEMENTATION_PROVIDER: ${IMPLEMENTATION_PROVIDER:-none}
   IMPLEMENTATION_MODEL: ${IMPLEMENTATION_MODEL:-deepseek-ai/deepseek-v4-pro-0813}
   REVIEW_PROVIDER: ${REVIEW_PROVIDER:-none}

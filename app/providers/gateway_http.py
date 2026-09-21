@@ -140,14 +140,61 @@ def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None
             )
         except ProviderRunError as exc:
             logger.warning(
-                "Model gateway upstream request failed: code=%s retryable=%s",
+                "Model gateway upstream request failed: code=%s retryable=%s message=%s",
                 exc.code,
                 exc.retryable,
+                exc.safe_message,
+            )
+            code_map = {
+                "nvidia_nim_model_eol": (
+                    "gateway_model_eol",
+                    "Selected model has reached end of life and is no longer available",
+                ),
+                "nvidia_nim_model_not_found": (
+                    "gateway_model_not_found",
+                    "Selected model was not found",
+                ),
+                "nvidia_nim_rate_limited": (
+                    "gateway_rate_limited",
+                    "Model provider rate limit was exceeded",
+                ),
+                "nvidia_nim_auth_failure": (
+                    "gateway_auth_failure",
+                    "Model provider authentication failed",
+                ),
+                "model_endpoint_rejected": (
+                    "gateway_endpoint_rejected",
+                    exc.safe_message or "Model endpoint was rejected",
+                ),
+                "model_unauthorized": (
+                    "gateway_auth_failure",
+                    "Model provider authentication failed",
+                ),
+                "model_forbidden": (
+                    "gateway_auth_failure",
+                    "Model provider access forbidden",
+                ),
+                "model_rate_limited": (
+                    "gateway_rate_limited",
+                    "Model provider rate limit was exceeded",
+                ),
+                "model_transport_failed": (
+                    "gateway_transport_failure",
+                    exc.safe_message or "Model transport request failed",
+                ),
+                "model_upstream_failed": (
+                    "gateway_upstream_failure",
+                    exc.safe_message or "Model upstream service failed",
+                ),
+            }
+            error_code, error_message = code_map.get(
+                exc.code,
+                ("gateway_upstream_failure", "Model gateway upstream request failed"),
             )
             return _error(
                 502,
-                "gateway_upstream_failure",
-                "Model gateway upstream request failed",
+                error_code,
+                error_message,
             )
         return JSONResponse(
             status_code=200,

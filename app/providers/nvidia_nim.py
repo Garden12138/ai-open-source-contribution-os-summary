@@ -376,8 +376,12 @@ class NvidiaNimHostedTransport:
                     _raise_response_error(response)
                 if attempt >= self.max_retries or time.monotonic() >= deadline:
                     _raise_response_error(response)
-            except httpx.TransportError as exc:
+            except (httpx.TransportError, ProviderRunError) as exc:
+                if isinstance(exc, ProviderRunError) and not exc.retryable:
+                    raise
                 if attempt >= self.max_retries or time.monotonic() >= deadline:
+                    if isinstance(exc, ProviderRunError):
+                        raise
                     raise _transport_error(exc) from exc
             finally:
                 if response is not None:
@@ -687,10 +691,33 @@ class NvidiaNimGatewayRunner:
             if owned:
                 await client.aclose()
         if response.status_code != 200:
+            error_code = "model_gateway_upstream_failure"
+            error_message = "Internal model gateway rejected the NVIDIA NIM request"
+            retryable = response.status_code >= 500
+            try:
+                err_data = response.json()
+                if isinstance(err_data, Mapping) and isinstance(err_data.get("error"), Mapping):
+                    sub_code = err_data["error"].get("code")
+                    sub_msg = err_data["error"].get("message")
+                    if sub_code and isinstance(sub_code, str):
+                        if sub_code.startswith("gateway_"):
+                            error_code = f"model_{sub_code}"
+                        else:
+                            error_code = f"model_gateway_{sub_code}"
+                    if sub_msg and isinstance(sub_msg, str):
+                        error_message = sub_msg
+            except Exception:
+                pass
+            if error_code in {
+                "model_gateway_model_eol",
+                "model_gateway_model_not_found",
+                "model_gateway_auth_failure",
+            }:
+                retryable = False
             raise ProviderRunError(
-                "model_gateway_upstream_failure",
-                "Internal model gateway rejected the NVIDIA NIM request",
-                retryable=response.status_code >= 500,
+                error_code,
+                error_message,
+                retryable=retryable,
             )
         data = _response_mapping(response)
         content, usage = _completion(data)
@@ -1149,8 +1176,26 @@ def _validated_proxy_url(value: str | None) -> str | None:
     return normalized.rstrip("/")
 
 
-def _raise_response_error(response: httpx.Response) -> None:
+def _raise_response_error(response: httpx.Response | requests.Response) -> None:
     retryable = response.status_code in {429, 500, 502, 503, 504}
+    if response.status_code == 410:
+        raise ProviderRunError(
+            "nvidia_nim_model_eol",
+            "NVIDIA NIM model has reached end of life and is no longer available",
+            retryable=False,
+        )
+    if response.status_code == 404:
+        raise ProviderRunError(
+            "nvidia_nim_model_not_found",
+            "NVIDIA NIM model was not found",
+            retryable=False,
+        )
+    if response.status_code in {401, 403}:
+        raise ProviderRunError(
+            "nvidia_nim_auth_failure",
+            "NVIDIA NIM authentication failed",
+            retryable=False,
+        )
     raise ProviderRunError(
         "nvidia_nim_rate_limited" if response.status_code == 429 else "nvidia_nim_upstream_failure",
         "NVIDIA NIM request was rate limited" if response.status_code == 429 else "NVIDIA NIM request failed",

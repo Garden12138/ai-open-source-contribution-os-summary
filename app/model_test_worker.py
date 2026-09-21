@@ -55,9 +55,18 @@ class ModelTestWorker(WorkbenchJobWorker):
                     },
                 )
             if response.status_code != 200 or len(response.content) > 4_000_000:
+                err_msg = "无法读取模型列表，可以手动填写模型 ID"
+                try:
+                    err_data = response.json()
+                    if isinstance(err_data, dict) and isinstance(err_data.get("error"), dict):
+                        sub_msg = err_data["error"].get("message")
+                        if sub_msg and isinstance(sub_msg, str):
+                            err_msg = f"{err_msg} ({sub_msg})"
+                except Exception:
+                    pass
                 raise ProviderRunError(
                     "model_list_unavailable",
-                    "无法读取模型列表，可以手动填写模型 ID",
+                    err_msg,
                     retryable=False,
                 )
             values = response.json().get("data", [])

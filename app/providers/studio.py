@@ -167,10 +167,34 @@ class StudioRunner(NvidiaNimGatewayRunner):
                 follow_redirects=False,
             )
             if response.status_code != 200 or len(response.content) > 4_000_000:
+                error_code = "model_call_failed"
+                error_message = "模型调用失败，请检查连接状态或更换模型"
+                retryable = response.status_code >= 500
+                try:
+                    err_data = response.json()
+                    if isinstance(err_data, dict) and isinstance(err_data.get("error"), dict):
+                        sub_code = err_data["error"].get("code")
+                        sub_msg = err_data["error"].get("message")
+                        if sub_code and isinstance(sub_code, str):
+                            if sub_code.startswith("gateway_"):
+                                error_code = f"model_{sub_code}"
+                            else:
+                                error_code = f"model_gateway_{sub_code}"
+                        if sub_msg and isinstance(sub_msg, str):
+                            error_message = sub_msg
+                except Exception:
+                    pass
+                if error_code in {
+                    "model_gateway_auth_failure",
+                    "model_gateway_endpoint_rejected",
+                    "model_gateway_model_not_found",
+                    "model_gateway_model_eol",
+                }:
+                    retryable = False
                 raise ProviderRunError(
-                    "model_call_failed",
-                    "模型调用失败，请检查连接状态或更换模型",
-                    retryable=response.status_code >= 500,
+                    error_code,
+                    error_message,
+                    retryable=retryable,
                 )
             data = response.json()
             provider = self.profile["connection"]["provider"]
@@ -198,6 +222,18 @@ class StudioRunner(NvidiaNimGatewayRunner):
                 await client.aclose()
 
 
+_FAKE_IP_NET = ipaddress.ip_network("198.18.0.0/15")
+
+
+def is_allowed_public_ip(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    if ip.is_global:
+        return True
+    # Allow RFC 2544 benchmark subnet used by local TUN/transparent proxies (Clash, Surge, Mihomo Fake-IP mode)
+    if isinstance(ip, ipaddress.IPv4Address) and ip in _FAKE_IP_NET:
+        return True
+    return False
+
+
 class PublicHTTPSClient:
     """Resolve once and connect to a validated IP with original TLS SNI/Host."""
 
@@ -214,7 +250,9 @@ class PublicHTTPSClient:
                 10,
             )
             ips = [row[4][0] for row in addresses]
-            if not ips or any(not ipaddress.ip_address(ip).is_global for ip in ips):
+            if not ips or any(
+                not is_allowed_public_ip(ipaddress.ip_address(ip)) for ip in ips
+            ):
                 raise ValueError()
         except (OSError, ValueError, TimeoutError):
             raise ProviderRunError(

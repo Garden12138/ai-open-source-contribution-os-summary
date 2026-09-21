@@ -511,11 +511,17 @@ function modelProviderLabel(provider) {
         return job;
       }));
       const succeeded = results.filter((job) => cleanText(job.state) === "succeeded").length;
-      const failed = results.length - succeeded;
-      dom.aiScreenStatus.textContent = failed
-        ? `完成 ${succeeded} 个，${failed} 个失败；失败项保留规则评分。`
-        : `已完成 ${succeeded} 个 AI 分析，并按结论更新决策排序。`;
-      showToast(failed ? "部分 AI 分析未完成，已保留规则回退。" : "AI 筛选完成。", failed > 0);
+      const failedJobs = results.filter((job) => cleanText(job.state) !== "succeeded");
+      const failed = failedJobs.length;
+      if (failed > 0) {
+        const firstFailed = failedJobs[0];
+        const reason = explainJobFailure(firstFailed);
+        dom.aiScreenStatus.textContent = `完成 ${succeeded} 个，${failed} 个失败；${reason} 失败项保留规则评分。`;
+        showToast(`AI 筛选未完全成功：${reason}`, true);
+      } else {
+        dom.aiScreenStatus.textContent = `已完成 ${succeeded} 个 AI 分析，并按结论更新决策排序。`;
+        showToast("AI 筛选完成。");
+      }
       await reloadProductExperience();
     } catch (error) {
       dom.aiScreenStatus.textContent = friendlyError(error);
@@ -3981,10 +3987,7 @@ function modelProviderLabel(provider) {
       const completed = await waitForAnalysisJob(panel, queued);
       if (completed.state !== "succeeded") {
         panel.retryJobId = cleanText(completed.id);
-        throw new Error(
-          cleanText(completed.error_message)
-          || `分析任务已结束（${cleanText(completed.state) || "unknown"}）`,
-        );
+        throw new Error(explainJobFailure(completed));
       }
       panel.activeJobId = null;
       panel.loaded = false;
@@ -4593,6 +4596,49 @@ function modelProviderLabel(provider) {
     return cleanText(value)
       .replace(/[_-]+/g, " ")
       .replace(/\b\w/g, (character) => character.toUpperCase()) || "其他";
+  }
+
+  function explainJobFailure(job) {
+    const code = cleanText(job && job.error_code);
+    const msg = cleanText(job && job.error_message);
+    if (code === "model_gateway_model_eol" || code === "nvidia_nim_model_eol") {
+      return "所选模型已下线 (End of Life)，请在「模型设置」中更换模型。";
+    }
+    if (code === "model_gateway_model_not_found" || code === "nvidia_nim_model_not_found") {
+      return "所选模型不存在或未开通权限，请在「模型设置」中检查模型配置。";
+    }
+    if (
+      code === "model_gateway_endpoint_rejected" ||
+      code === "gateway_endpoint_rejected" ||
+      code === "model_endpoint_rejected"
+    ) {
+      return "模型服务地址无法解析为公共 HTTPS 服务或被安全策略拦截，请检查连接地址或网络代理环境。";
+    }
+    if (
+      code === "model_gateway_auth_failure" ||
+      code === "gateway_auth_failure" ||
+      code === "nvidia_nim_auth_failure" ||
+      code === "model_unauthorized" ||
+      code === "model_forbidden"
+    ) {
+      return "模型服务商鉴权失败，请在「模型设置」中检查 API 密钥。";
+    }
+    if (code === "model_gateway_rate_limited" || code === "nvidia_nim_rate_limited") {
+      return "模型调用超出频率限制，请稍后重试。";
+    }
+    if (code === "model_gateway_upstream_failure" || code.startsWith("model_gateway_")) {
+      return "模型网关或上游调用失败，请在「模型设置」中测试连接或更换模型。";
+    }
+    if (code.startsWith("analysis_budget_")) {
+      return "已触发分析安全/预算上限。";
+    }
+    if (code === "provider_execution_timeout" || code === "execution_timeout") {
+      return "模型调用执行超时，请稍后再试。";
+    }
+    if (msg && !/failed closed/i.test(msg)) {
+      return code ? `${msg} (${code})` : msg;
+    }
+    return code ? `任务失败（${code}）` : "任务执行失败";
   }
 
   function friendlyError(error) {
