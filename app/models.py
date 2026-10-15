@@ -477,7 +477,7 @@ class AnalysisVersion(Base):
     __tablename__ = "analysis_versions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    job_id: Mapped[str] = mapped_column(
+    job_id: Mapped[str | None] = mapped_column(
         ForeignKey("jobs.id", ondelete="RESTRICT"),
         unique=True,
         index=True,
@@ -490,11 +490,11 @@ class AnalysisVersion(Base):
         ForeignKey("score_versions.id", ondelete="RESTRICT"),
         index=True,
     )
-    inspect_invocation_id: Mapped[str] = mapped_column(
+    inspect_invocation_id: Mapped[str | None] = mapped_column(
         ForeignKey("provider_invocations.id", ondelete="RESTRICT"),
         index=True,
     )
-    analyze_invocation_id: Mapped[str] = mapped_column(
+    analyze_invocation_id: Mapped[str | None] = mapped_column(
         ForeignKey("provider_invocations.id", ondelete="RESTRICT"),
         index=True,
     )
@@ -552,7 +552,15 @@ class AnalysisVersion(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "schema_version = '1'",
+            "(schema_version = '1' AND job_id IS NOT NULL "
+            "AND inspect_invocation_id IS NOT NULL AND analyze_invocation_id IS NOT NULL) "
+            "OR (schema_version = '2' AND job_id IS NULL "
+            "AND inspect_invocation_id IS NULL AND analyze_invocation_id IS NULL "
+            "AND provider_name = 'snapshot_facts' AND adapter_version = 'snapshot-assessment-v1' "
+            "AND model_name = 'none' AND model_version = 'none' "
+            "AND analyze_output_schema_version = 'snapshot-assessment-v1' "
+            "AND input_tokens = 0 AND cached_input_tokens = 0 AND output_tokens = 0 "
+            "AND estimated_cost_microusd = 0 AND duration_ms = 0)",
             name="ck_analysis_version_schema",
         ),
         CheckConstraint(

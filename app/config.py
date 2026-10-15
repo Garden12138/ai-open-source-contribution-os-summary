@@ -11,6 +11,8 @@ DEFAULT_GITHUB_QUERIES = (
     'is:issue is:open no:assignee label:"help wanted" language:TypeScript',
     'is:issue is:open no:assignee label:"good first issue" language:Python',
     "is:issue is:open no:assignee bounty in:title,body",
+    'is:issue is:open no:assignee typo in:title language:Python',
+    'is:issue is:open no:assignee typo in:title language:TypeScript',
 )
 
 DEFAULT_STRATEGIC_KEYWORDS = (
@@ -25,6 +27,14 @@ DEFAULT_STRATEGIC_KEYWORDS = (
     "openclaw",
     "vllm",
 )
+
+
+def dependency_builder_image() -> str | None:
+    """Non-secret, explicitly configured capability shared by API and Workers."""
+    value = os.getenv("DEPENDENCY_BUILDER_IMAGE", "").strip()
+    if value and not re.fullmatch(r"sha256:[0-9a-f]{64}",value):
+        raise ValueError("DEPENDENCY_BUILDER_IMAGE must be digest-pinned")
+    return value or None
 
 
 def _split_env(value: str | None, default: tuple[str, ...]) -> tuple[str, ...]:
@@ -151,8 +161,13 @@ class Settings:
     sandbox_stage_runtime: str = "none"
     workbench_runner_image: str = ""
     publisher_mode: str = "none"
+    publisher_management_key: bytes | None = None
+    publisher_management_url: str = "http://publisher:8002"
+    publisher_secret_root: str = "/publisher-private"
 
     def __post_init__(self) -> None:
+        if self.publisher_management_key is not None and len(self.publisher_management_key) < 32:
+            raise ValueError("PUBLISHER_MANAGEMENT_KEY must contain at least 32 bytes")
         if self.publisher_mode not in {"none", "fake", "gh"}:
             raise ValueError("PUBLISHER_MODE must be none, fake or gh")
         if self.workbench_runner_image and not re.fullmatch(r"sha256:[0-9a-f]{64}", self.workbench_runner_image):
@@ -221,6 +236,10 @@ class Settings:
         return cls(
             workbench_runner_image=os.getenv("WORKBENCH_RUNNER_IMAGE", ""),
             publisher_mode=os.getenv("PUBLISHER_MODE", "none"),
+            publisher_management_key=(bytes.fromhex(os.environ["PUBLISHER_MANAGEMENT_KEY"])
+                                      if os.getenv("PUBLISHER_MANAGEMENT_KEY") else None),
+            publisher_management_url=os.getenv("PUBLISHER_MANAGEMENT_URL", defaults.publisher_management_url),
+            publisher_secret_root=os.getenv("PUBLISHER_SECRET_ROOT", defaults.publisher_secret_root),
             app_name=os.getenv("APP_NAME", defaults.app_name),
             database_url=os.getenv("DATABASE_URL", defaults.database_url),
             artifact_root=os.getenv("ARTIFACT_ROOT", defaults.artifact_root),

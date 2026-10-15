@@ -10,5 +10,6 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 COPY app ./app
 RUN python -m pip install --no-cache-dir .
+RUN mkdir -p /data/artifacts /publisher-private && chown -R contribos:contribos /data /publisher-private
 USER 10001:10001
-ENTRYPOINT ["contribos", "publisher-worker"]
+ENTRYPOINT ["contribos", "publisher-service"]

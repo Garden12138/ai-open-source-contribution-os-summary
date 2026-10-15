@@ -66,6 +66,20 @@ These decisions are already accepted and must not be changed incidentally:
 - Hosted SaaS, multi-user tenancy, payment custody, automatic issue claiming,
   automatic comments, ready-for-review, merge, and formal non-draft PR automation
   are outside the local MVP and stable v1.
+  User-approved exception (2026-10-12): after an existing verified Draft PR,
+  Publisher may submit the fixed CLA Assistant signature comment only after a
+  new, explicit, one-time human consent bound to the exact agreement version,
+  account, PR/head and comment. This does not authorize general comments, legal
+  consent inferred from chat/model output, or automatic signing.
+  User-approved extension (2026-10-12): an existing verified Draft PR's title
+  and body may be updated by isolated Publisher after a fresh exact preview
+  and one-time human confirmation. This permits only title/body metadata;
+  commit/branch changes, comments and merge stay excluded.
+  User-approved extension (2026-10-12): Publisher may mark an existing verified
+  Draft PR ready for review after a new exact preview and one-time human
+  confirmation. Read-only post-publication tracking is allowed for Draft and
+  ready PRs; title/body updates remain available for both. This does not permit
+  automatic merge, comments, workflow approval or unconfirmed code pushes.
 
 ## Immutable provenance chain
 
@@ -131,10 +145,14 @@ physical separation is introduced, keep interfaces explicit and testable.
   weakening it or running the command on the host.
 - Before Draft PR publication, prohibit Fork, Push, Issue comments, labels,
   assignment, claiming, and all other third-party mutations.
-- Publication must never force-push, mark ready, merge, delete remote branches,
-  or run repository Git hooks.
+- Publication must never force-push, merge, delete remote branches, or run
+  repository Git hooks. Marking ready is limited to the separately confirmed
+  post-publication extension above.
 - External writes require a one-time user confirmation bound to the exact target,
   base/head, commit, diff hash, tests, review, PR text, and action list.
+  CLA signing uses its own agreement/account/PR/head/comment-bound consent and
+  durable outbox/reconciliation; an ambiguous comment result must never be
+  retried by posting another signature.
 
 ## Working method
 

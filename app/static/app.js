@@ -1,7 +1,8 @@
-import { mountContributionWorkbench } from "./workbench.js?v=execution-changes-v1";
+import { mountContributionWorkbench } from "./workbench.js?v=conversation-agent-v1";
 import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
-import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown } from "./studio.js?v=studio-v1";
-import { mountModelSettings } from "./model-settings.js?v=studio-v3";
+import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown, changeScopeSummary } from "./studio.js?v=small-change-v2";
+import { mountModelSettings } from "./model-settings.js?v=conversation-agent-v1";
+import { mountPublisherSettings } from "./publisher-settings.js?v=publisher-v1";
 import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {
@@ -97,6 +98,8 @@ const state = {
     notifications: [],
     showDismissed: false,
     analysisFilter: "all",
+    smallChangeOnly: false,
+    recommendationFilterLoading: false,
     bulkAnalysisRunning: false,
     analysisProvider: "none",
     analysisModel: "",
@@ -153,6 +156,8 @@ function modelProviderLabel(provider) {
       dismissedToggle: document.querySelector("#dismissed-toggle"),
       aiScreenButton: document.querySelector("#ai-screen-button"),
       aiFilterButton: document.querySelector("#ai-filter-button"),
+      smallChangeToggle: document.querySelector("#small-change-toggle"),
+      smallChangeHint: document.querySelector("#small-change-hint"),
       aiScreenStatus: document.querySelector("#ai-screen-status"),
       filterBar: document.querySelector("#filter-bar"),
       statePanel: document.querySelector("#state-panel"),
@@ -189,6 +194,7 @@ function modelProviderLabel(provider) {
       () => runRecommendationAnalysis(5),
     );
     dom.aiFilterButton.addEventListener("click", toggleAnalysisFilter);
+    dom.smallChangeToggle.addEventListener("click", toggleSmallChangeFilter);
     dom.preferenceForm.addEventListener("submit", savePreference);
     dom.preferenceButton.addEventListener("click", togglePreferenceEditor);
     dom.compareButton.addEventListener("click", compareSelectedOpportunities);
@@ -278,7 +284,7 @@ function modelProviderLabel(provider) {
     state.currentView = view;
     if (view === "contributions") renderTaskHistory();
     document.body.dataset.view = view;
-    document.querySelector("#studio-page-title").textContent = {discover:"发现机会",shortlist:"我的候选",contributions:"贡献概览",task:"贡献工作台",settings:"模型设置"}[view];
+    document.querySelector("#studio-page-title").textContent = {discover:"发现机会",shortlist:"我的候选",contributions:"贡献概览",task:"贡献工作台",settings:"设置"}[view];
     document.querySelectorAll("[data-product-view]").forEach((section) => {
       section.hidden = section.dataset.productView !== view;
     });
@@ -297,6 +303,9 @@ function modelProviderLabel(provider) {
     }
     if (view === "settings" && !settingsMounted) {
       settingsMounted = true;
+      mountPublisherSettings(document.querySelector("#publisher-settings-root"), {
+        ensureAccess:ensureLocalAccessToken, headers:mutationHeaders,
+      });
       mountModelSettings(document.querySelector("#model-settings-root"), {
         ensureAccess:ensureLocalAccessToken, headers:mutationHeaders,
         onSaved: async () => { const [meta,daily] = await Promise.all([requestJSON(API.meta),requestJSON(API.daily)]); renderMeta(meta); renderDaily(daily); await reloadProductExperience(); },
@@ -418,6 +427,7 @@ function modelProviderLabel(provider) {
   function recommendationEndpoint() {
     const query = new URLSearchParams();
     if (state.showDismissed) query.set("include_dismissed", "true");
+    if (state.smallChangeOnly) query.set("small_change_only", "true");
     if (state.analysisFilter !== "all") {
       query.set("analysis_filter", state.analysisFilter);
     }
@@ -425,28 +435,40 @@ function modelProviderLabel(provider) {
     return suffix ? `${API.recommendations}?${suffix}` : API.recommendations;
   }
 
-  async function toggleAnalysisFilter() {
-    const previous = state.analysisFilter;
-    state.analysisFilter = previous === "recommended" ? "all" : "recommended";
-    dom.aiFilterButton.disabled = true;
-    dom.aiFilterButton.setAttribute(
-      "aria-pressed",
-      String(state.analysisFilter === "recommended"),
-    );
+  function toggleAnalysisFilter() {
+    return toggleRecommendationFilter("analysisFilter", state.analysisFilter === "recommended" ? "all" : "recommended");
+  }
+
+  function toggleSmallChangeFilter() {
+    return toggleRecommendationFilter("smallChangeOnly", !state.smallChangeOnly);
+  }
+
+  async function toggleRecommendationFilter(field, value) {
+    if (state.recommendationFilterLoading || state.bulkAnalysisRunning) return;
+    const previous = state[field];
+    state[field] = value;
+    state.recommendationFilterLoading = true;
+    const buttons = [dom.smallChangeToggle, dom.aiFilterButton, dom.dismissedToggle];
+    for (const button of buttons) { button.disabled = true; button.setAttribute("aria-busy", "true"); }
     try {
       renderRecommendations(await requestJSON(recommendationEndpoint()));
     } catch (error) {
-      state.analysisFilter = previous;
+      state[field] = previous;
       showToast(friendlyError(error), true);
-      dom.aiFilterButton.setAttribute(
-        "aria-pressed",
-        String(state.analysisFilter === "recommended"),
-      );
+    } finally {
+      state.recommendationFilterLoading = false;
+      dom.smallChangeToggle.disabled = false;
+      dom.smallChangeToggle.setAttribute("aria-pressed", String(state.smallChangeOnly));
+      dom.dismissedToggle.disabled = false;
+      dom.dismissedToggle.setAttribute("aria-pressed", String(state.showDismissed));
+      dom.dismissedToggle.textContent = state.showDismissed ? "隐藏已忽略" : "查看已忽略";
+      for (const button of buttons) button.removeAttribute("aria-busy");
+      updateAnalysisScreenControls();
     }
   }
 
   async function runRecommendationAnalysis(limit = 5) {
-    if (state.bulkAnalysisRunning || !state.analysisReady) return;
+    if (state.bulkAnalysisRunning || state.recommendationFilterLoading || !state.analysisReady) return;
     state.bulkAnalysisRunning = true;
     dom.aiScreenButton.disabled = true;
     dom.aiScreenButton.setAttribute("aria-busy", "true");
@@ -460,7 +482,7 @@ function modelProviderLabel(provider) {
           "Content-Type": "application/json",
           "Idempotency-Key": randomKey("web-recommendation-analysis"),
         }),
-        body: JSON.stringify({ limit }),
+        body: JSON.stringify({ limit, small_change_only: state.smallChangeOnly }),
       });
       const entries = Array.isArray(batch.jobs) ? batch.jobs : [];
       if (!entries.length) {
@@ -519,31 +541,17 @@ function modelProviderLabel(provider) {
     }
   }
 
-  async function toggleDismissedRecommendations() {
-    state.showDismissed = !state.showDismissed;
-    dom.dismissedToggle.disabled = true;
-    dom.dismissedToggle.setAttribute("aria-pressed", String(state.showDismissed));
-    dom.dismissedToggle.textContent = state.showDismissed
-      ? "隐藏已忽略"
-      : "查看已忽略";
-    try {
-      renderRecommendations(await requestJSON(recommendationEndpoint()));
-    } catch (error) {
-      state.showDismissed = !state.showDismissed;
-      dom.dismissedToggle.setAttribute("aria-pressed", String(state.showDismissed));
-      dom.dismissedToggle.textContent = state.showDismissed
-        ? "隐藏已忽略"
-        : "查看已忽略";
-      showToast(friendlyError(error), true);
-    } finally {
-      dom.dismissedToggle.disabled = false;
-    }
+  function toggleDismissedRecommendations() {
+    return toggleRecommendationFilter("showDismissed", !state.showDismissed);
   }
 
   function renderRecommendations(data) {
     const items = Array.isArray(data && data.items) ? data.items : [];
     state.recommendations = items;
     state.recommendationFeed = objectValue(data);
+    dom.smallChangeToggle.textContent = `只看小改动 (${formatNumber(toFiniteNumber(data?.small_change_total, 0))})`;
+    dom.smallChangeToggle.setAttribute("aria-pressed", String(state.smallChangeOnly));
+    dom.smallChangeHint.hidden = !state.smallChangeOnly;
     [...state.analysisPanels.keys()]
       .filter((key) => key.startsWith("discover:"))
       .forEach((key) => state.analysisPanels.delete(key));
@@ -553,15 +561,17 @@ function modelProviderLabel(provider) {
       dom.opportunityList.replaceChildren();
       dom.statePanel.replaceChildren(
         analysisMessage(
-          state.showDismissed ? "暂时没有可展示的机会" : "当前推荐已处理完",
-          state.showDismissed
+          state.smallChangeOnly ? "当前没有符合条件的小改动机会" : state.showDismissed ? "暂时没有可展示的机会" : "当前推荐已处理完",
+          state.smallChangeOnly
+            ? "可以关闭“只看小改动”或“只看 AI 推荐”扩大范围，或扫描新的候选。不会用范围不明确的任务补足结果。"
+            : state.showDismissed
             ? "完成一次扫描后，新的匹配机会会出现在这里。"
             : "可以查看已忽略的机会，或扫描新的候选。",
         ),
       );
       dom.filterEmpty.hidden = true;
       updateFilterCounts([]);
-      dom.resultCount.textContent = state.analysisFilter === "recommended"
+      dom.resultCount.textContent = state.smallChangeOnly ? "0 个小改动机会" : state.analysisFilter === "recommended"
         ? "0 个 AI 推荐机会"
         : "0 个匹配机会";
       return;
@@ -575,7 +585,7 @@ function modelProviderLabel(provider) {
     dom.opportunityList.appendChild(fragment);
     updateFilterCounts(picks);
     applyFilter(state.activeFilter);
-    dom.resultCount.textContent = `共 ${formatNumber(toFiniteNumber(data.total, items.length))} 个匹配机会`;
+    if (state.activeFilter === "all") dom.resultCount.textContent = `共 ${formatNumber(toFiniteNumber(data.total, items.length))} 个${state.smallChangeOnly ? "小改动" : "匹配"}机会`;
     const goalLabels = {
       balanced: "综合选择",
       bounty: "赚取赏金",
@@ -606,7 +616,7 @@ function modelProviderLabel(provider) {
       "aria-pressed",
       String(state.analysisFilter === "recommended"),
     );
-    dom.aiFilterButton.disabled = state.bulkAnalysisRunning
+    dom.aiFilterButton.disabled = state.recommendationFilterLoading || state.bulkAnalysisRunning
       || (state.analysisFilter === "all" && recommended === 0);
     if (state.bulkAnalysisRunning) return;
     if (!state.analysisReady) {
@@ -619,11 +629,9 @@ function modelProviderLabel(provider) {
       ? "AI 筛选候选（演示）"
       : "AI 筛选候选";
     dom.aiScreenButton.disabled = pending === 0;
-    if (!dom.aiScreenStatus.textContent || pending === 0) {
-      dom.aiScreenStatus.textContent = pending === 0
-        ? "当前候选都已有与本轮 Snapshot 对应的分析。"
-        : `${formatNumber(pending)} 个候选尚未分析；批量运行不会覆盖基础规则分。`;
-    }
+    dom.aiScreenStatus.textContent = pending === 0
+      ? "当前范围没有待分析候选。"
+      : `当前范围有 ${formatNumber(pending)} 个候选尚未分析；批量运行不会覆盖基础规则分。`;
   }
 
   function recommendationAsPick(item, index) {
@@ -815,19 +823,13 @@ function modelProviderLabel(provider) {
     const panel = state.analysisPanels.get(
       analysisPanelKey("shortlist", opportunity.id),
     );
-    const startContribution = analysisAction(
-      item.analysis_version_id ? "开始 Vibe Coding" : "先做 AI 评估",
-      async () => {
-        if (!panel) return;
-        if (panel.body.hidden) await toggleAnalysisPanel(panel);
-        workbench.scrollIntoView({ behavior: "smooth", block: "start" });
-      },
-    );
-    startContribution.classList.add("shortlist-start-action");
-    if (!item.analysis_version_id && !state.analysisReady) {
+    const startContribution = analysisAction("开始对话制定方案", async () => {
       startContribution.disabled = true;
-      startContribution.title = "当前未配置分析服务，无法创建贡献任务";
-    }
+      try { await openContributionConversation(item, opportunity, panel); }
+      catch (error) { showToast(friendlyError(error), true); }
+      finally { startContribution.disabled = false; }
+    });
+    startContribution.classList.add("shortlist-start-action");
     const reminder = document.createElement("input");
     reminder.type = "datetime-local";
     reminder.setAttribute("aria-label", "提醒时间");
@@ -1213,6 +1215,9 @@ function modelProviderLabel(provider) {
       factsRow.appendChild(element("span", "signal-tag", "⚡ 偏好技术栈"));
     }
     headerBlock.appendChild(factsRow);
+    if (product.change_scope?.classification === "likely_small") {
+      headerBlock.appendChild(element("p", "small-change-evidence", `小改动线索：${changeScopeSummary(product.change_scope)}。实际范围和环境需读代码确认。`));
+    }
 
     const labels = toStringArray(opportunity.labels);
     if (labels.length) {
@@ -1364,11 +1369,31 @@ function modelProviderLabel(provider) {
     return item;
   }
 
+  async function openContributionConversation(product, opportunity, panel) {
+    const analysisVersionId = cleanText(product.analysis_version_id);
+    const snapshotId = cleanText(product.snapshot_id) || cleanText(panel?.snapshotId);
+    const existing = state.tasks.find(item =>
+      (analysisVersionId && cleanText(item.analysis_version_id) === analysisVersionId)
+      || Number(item.opportunity_id) === Number(opportunity.id));
+    await ensureLocalAccessToken();
+    const task = existing
+      ? await requestJSON(`${API.tasks}/${encodeURIComponent(existing.id)}`)
+      : await requestJSON(API.tasks, {
+          method: "POST",
+          headers: mutationHeaders({"Content-Type": "application/json", "Idempotency-Key": randomKey("web-task")}),
+          body: JSON.stringify(analysisVersionId ? {analysis_version_id: analysisVersionId} : {snapshot_id: snapshotId}),
+        });
+    const taskId = cleanText(task.task?.id) || cleanText(task.id);
+    if (!taskId) throw new Error("任务响应缺少标识");
+    if (panel && analysisVersionId) panel.taskIds.set(analysisVersionId, taskId);
+    await renderTaskHistory();
+    window.location.hash = `#/tasks/${encodeURIComponent(taskId)}`;
+  }
+
   function buildDetailActionBar(product, opportunity, scope, shortlistedItem, panel) {
     const bar = element("div", "detail-action-bar");
     const isShortlisted = Boolean(shortlistedItem) || cleanText(product.disposition_state) === "shortlisted";
     const isDismissed = cleanText(product.disposition_state) === "dismissed";
-    const isAnalyzed = cleanText(product.analysis_status) === "analyzed";
     const analysisVersionId = cleanText(product.analysis_version_id);
 
     const existingTask = state.tasks.find(
@@ -1379,56 +1404,33 @@ function modelProviderLabel(provider) {
 
     const buttonsRow = element("div", "detail-action-buttons");
 
-    let primaryBtn;
-    if (isAnalyzed) {
-      primaryBtn = analysisAction(existingTaskId ? "打开贡献方案 →" : "制定贡献方案 →", async () => {
-        primaryBtn.disabled = true;
-        primaryBtn.textContent = existingTaskId ? "正在打开…" : "正在创建…";
-        try {
-          await ensureLocalAccessToken();
-          const task = existingTaskId
-            ? await requestJSON(`${API.tasks}/${encodeURIComponent(existingTaskId)}`)
-            : await requestJSON(API.tasks, {
-                method: "POST",
-                headers: mutationHeaders({
-                  "Content-Type": "application/json",
-                  "Idempotency-Key": randomKey("web-task"),
-                }),
-                body: JSON.stringify({ analysis_version_id: analysisVersionId }),
-              });
-          const taskId = cleanText(task.task && task.task.id) || cleanText(task.id);
-          if (!taskId) throw new Error("任务响应缺少标识");
-          if (panel && analysisVersionId) panel.taskIds.set(analysisVersionId, taskId);
-          await renderTaskHistory();
-          window.location.hash = `#/tasks/${encodeURIComponent(taskId)}`;
-        } catch (err) {
-          showToast(friendlyError(err), true);
-          primaryBtn.disabled = false;
-          primaryBtn.textContent = existingTaskId ? "重新打开" : "重试制定方案";
-        }
-      });
-      primaryBtn.classList.add("detail-primary-cta");
-    } else {
-      primaryBtn = analysisAction("深入评估", async () => {
+    const primaryBtn = analysisAction(existingTaskId ? "打开贡献方案 →" : "开始对话制定方案 →", async () => {
+      primaryBtn.disabled = true;
+      primaryBtn.textContent = "正在打开…";
+      try { await openContributionConversation(product, opportunity, panel); }
+      catch (error) { showToast(friendlyError(error), true); }
+      finally {
+        primaryBtn.disabled = false;
+        primaryBtn.textContent = existingTaskId ? "打开贡献方案 →" : "开始对话制定方案 →";
+      }
+    });
+    primaryBtn.classList.add("detail-primary-cta");
+    buttonsRow.appendChild(primaryBtn);
+
+    if (panel) {
+      const optionalAnalysis = analysisAction("深入评估（可选）", async () => {
         if (!state.analysisReady) {
-          showToast("深入评估服务或使用额度尚未就绪，请在模型设置中配置。", true);
+          showToast("请在模型设置中配置深入评估服务；你仍可直接开始对话。", true);
           return;
         }
-        if (!panel) return;
-        primaryBtn.disabled = true;
-        primaryBtn.textContent = "正在深入评估…";
-        try {
-          await runAnalysis(panel);
-        } catch (err) {
-          showToast(friendlyError(err), true);
-        } finally {
-          primaryBtn.disabled = false;
-          primaryBtn.textContent = "深入评估";
-        }
+        optionalAnalysis.disabled = true;
+        try { await runAnalysis(panel); }
+        catch (error) { showToast(friendlyError(error), true); }
+        finally { optionalAnalysis.disabled = false; }
       });
-      primaryBtn.classList.add("detail-primary-cta");
+      optionalAnalysis.classList.add("detail-secondary-cta");
+      buttonsRow.appendChild(optionalAnalysis);
     }
-    buttonsRow.appendChild(primaryBtn);
 
     const candidateBtn = analysisAction(
       isDismissed ? "恢复推荐" : isShortlisted ? "★ 已在候选" : "☆ 加入候选",
@@ -1746,7 +1748,7 @@ function modelProviderLabel(provider) {
       const history = await requestJSON(analysisEndpoint(panel));
       if (panel.loadToken !== token) return;
       panel.loaded = true;
-      const versions = Array.isArray(history.versions) ? history.versions : [];
+      const versions = Array.isArray(history.versions) ? history.versions.filter(version => version.analyze_output_schema_version !== "snapshot-assessment-v1") : [];
       panel.versions = versions.slice().sort((left, right) => {
         const leftCurrent = cleanText(left.snapshot_id) === panel.snapshotId ? 0 : 1;
         const rightCurrent = cleanText(right.snapshot_id) === panel.snapshotId ? 0 : 1;
@@ -2833,7 +2835,7 @@ function modelProviderLabel(provider) {
     const summary = element("div", "execution-summary-grid");
     summary.append(
       analysisMetric("阶段", executionStageLabel(current.stage)),
-      analysisMetric("状态", executionStatusLabel(current.status)),
+      analysisMetric("状态", current.stage === "verify" && current.status === "succeeded" ? ({passed:"验证通过",failed:"验证未通过",environment_blocked:"环境未就绪"})[detail.verification?.status] || "验证已完成，等待核对结果" : executionStatusLabel(current.status)),
       analysisMetric("Attempt", `#${toFiniteNumber(detail.attempt_number, 1)}`),
       analysisMetric("仓库", cleanText(detail.repository_full_name) || "—"),
     );
@@ -2936,46 +2938,173 @@ function modelProviderLabel(provider) {
       root.appendChild(buildReviewCard(latestReview, refresh, automated));
     }
 
-    if (
-      ["failed", "cancelled", "timed_out"].includes(cleanText(current.status))
+    const isBlocked = !!detail.blocked;
+    const isFailed = (
+      isBlocked
+      || ["failed", "cancelled", "timed_out"].includes(cleanText(current.status))
       || ["failed", "cancelled", "timed_out"].includes(cleanText(latestJob.state))
-    ) {
-      const failure = element("div", "execution-alert");
-      failure.dataset.tone = cleanText(current.status);
-      failure.append(
+    );
+    const isRunning = (
+      !isBlocked
+      && (
+        ["running", "leased", "queued"].includes(cleanText(current.status))
+        || ["running", "leased", "queued"].includes(cleanText(latestJob.state))
+      )
+    );
+
+    if (isFailed) {
+      const failure = element("div", "execution-alert execution-failure-card");
+      failure.dataset.tone = isBlocked ? "failed" : cleanText(current.status || latestJob.state);
+      const titleRow = element("div", "execution-alert-title");
+      titleRow.append(
         element(
           "strong",
           "",
-          executionStatusLabel(current.status || latestJob.state),
+          isBlocked
+            ? "执行记录 · 步骤未通过"
+            : `步骤执行未通过 · ${executionStageLabel(current.stage || latestRun?.stage)}`,
         ),
         element(
           "span",
-          "",
-          cleanText(latestJob.error_message)
-            || `Reason: ${cleanText(current.reason_code) || "unknown"}`,
+          "execution-status-pill",
+          isBlocked ? "受阻" : executionStatusLabel(current.status || latestJob.state),
         ),
       );
+      const errorMsg = (
+        cleanText(detail.blocked?.payload?.reason)
+        || cleanText(latestJob.error_message)
+        || `原因: ${cleanText(current.reason_code) || "未知错误"}`
+      );
+      const msgRow = element("p", "execution-alert-msg", errorMsg);
+      const codeTag = element(
+        "small",
+        "execution-reason-tag",
+        `错误代码: ${cleanText(current.reason_code) || cleanText(latestJob.error_code) || (isBlocked ? "blocked" : "error")}`,
+      );
+      const actions = element("div", "execution-alert-actions");
+      const retryBtn = analysisAction("🔄 重新执行", async () => {
+        retryBtn.disabled = true;
+        retryBtn.textContent = "正在重新排队执行…";
+        try {
+          await ensureLocalAccessToken();
+          if (automated) {
+            await requestJSON(
+              `/api/v1/tasks/${encodeURIComponent(detail.task_id)}/workbench/stop`,
+              {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": randomKey("web-stop-retry"),
+                }),
+                body: JSON.stringify({}),
+              },
+            ).catch(() => {});
+            const wb = await requestJSON(
+              `/api/v1/tasks/${encodeURIComponent(detail.task_id)}/workbench`,
+            ).catch(() => null);
+            const targetPlan = wb?.plans?.at(-1);
+            await requestJSON(
+              `/api/v1/tasks/${encodeURIComponent(detail.task_id)}/workbench/execute`,
+              {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": randomKey("web-retry-execute"),
+                }),
+                body: JSON.stringify({
+                  plan_id: targetPlan?.id || plan?.id || detail.plan_version_id,
+                  plan_hash: targetPlan?.record_hash || plan?.record_hash || detail.plan_record_hash,
+                  approve_plan: true,
+                  start_execution: true,
+                  max_repairs: 2,
+                  model_binding_hash: wb?.model_binding_hash || null,
+                }),
+              },
+            );
+          } else {
+            await requestJSON(
+              `${API.planVersions}/${encodeURIComponent(detail.plan_version_id)}/executions`,
+              {
+                method: "POST",
+                headers: mutationHeaders({
+                  "Content-Type": "application/json",
+                  "Idempotency-Key": randomKey("web-execution"),
+                }),
+                body: JSON.stringify({
+                  schema_version: "1",
+                  approval_hash: detail.approval_hash,
+                  sandbox_policy_hash: detail.sandbox_policy_hash,
+                }),
+              },
+            );
+          }
+          showToast("已启动新一轮隔离执行。");
+          refresh();
+        } catch (err) {
+          showToast(`启动失败：${friendlyError(err)}`, true);
+          retryBtn.disabled = false;
+          retryBtn.textContent = "🔄 重新执行";
+        }
+      });
+      retryBtn.classList.add("is-primary", "is-compact");
+      if (!automated) actions.append(retryBtn);
+
+      if (automated) {
+        const backToPlan = analysisAction("返回修改方案", async () => {
+          if (typeof detail.returnToPlan === "function") await detail.returnToPlan();
+        });
+        backToPlan.classList.add("is-compact");
+        actions.append(backToPlan);
+
+        const refreshCode = analysisAction("重新读取代码并规划", async () => {
+          if (typeof detail.refreshPlan === "function") await detail.refreshPlan();
+        });
+        refreshCode.classList.add("is-compact");
+        actions.append(refreshCode);
+      }
+
+      failure.append(titleRow, msgRow, codeTag, actions);
       root.appendChild(failure);
     }
 
     const timeline = element("ol", "execution-stage-timeline");
-    ["explore", "implement", "verify"].forEach((stageName) => {
+    ["explore", "implement", "verify"].forEach((stageName, idx) => {
       const history = stages.filter(
         (item) => cleanText(item.stage) === stageName,
       );
       const latest = history.length ? history[history.length - 1] : null;
+      const isCurrentStage = cleanText(current.stage) === stageName;
       const item = element("li", "execution-stage-step");
-      item.dataset.status = cleanText(latest && latest.status) || "future";
-      item.append(
-        element("span", "execution-stage-index", String(timeline.childElementCount + 1)),
-        element("strong", "", executionStageLabel(stageName)),
-        element(
-          "span",
-          "",
-          latest ? executionStatusLabel(latest.status) : "尚未开始",
-        ),
-      );
+
+      let stepStatus = "future";
+      let statusText = "等待中";
+      let icon = String(idx + 1);
       if (latest) {
+        stepStatus = cleanText(latest.status);
+        if (stepStatus === "succeeded") {
+          statusText = "已完成";
+          icon = "✓";
+        } else if (["failed", "cancelled", "timed_out"].includes(stepStatus)) {
+          statusText = "失败";
+          icon = "✕";
+        } else if (["running", "pending"].includes(stepStatus)) {
+          statusText = "进行中";
+          icon = "●";
+        }
+      }
+      item.dataset.status = stepStatus;
+      if (isCurrentStage) item.classList.add("is-active-stage");
+
+      item.append(
+        element("span", "execution-stage-index", icon),
+        element("strong", "", executionStageLabel(stageName)),
+        element("span", "execution-stage-status", statusText),
+      );
+      if (latest && latestRun && latestRun.stage === stageName && latestRun.stage_run_number) {
+        item.appendChild(
+          element("small", "", `第 ${latestRun.stage_run_number}/${latestRun.max_stage_runs} 轮`),
+        );
+      } else if (latest?.reason_code) {
         item.appendChild(
           element("small", "", cleanText(latest.reason_code) || "—"),
         );
@@ -2984,20 +3113,20 @@ function modelProviderLabel(provider) {
     });
     root.appendChild(timeline);
 
-    if (latestRun) {
+    if (latestRun && isRunning) {
       const jobBar = element("div", "execution-job-bar");
       const jobCopy = element("div");
       jobCopy.append(
         element(
           "strong",
           "",
-          `${executionStageLabel(latestRun.stage)} · ${executionStatusLabel(latestJob.state)}`,
+          `${executionStageLabel(latestRun.stage)} · 正在隔离运行`,
         ),
         element(
           "span",
           "",
           cleanText(latestJob.progress_message)
-            || `Run ${latestRun.stage_run_number}/${latestRun.max_stage_runs}`,
+            || `正在执行沙箱任务（第 ${latestRun.stage_run_number}/${latestRun.max_stage_runs} 轮）`,
         ),
       );
       jobBar.appendChild(jobCopy);
@@ -3035,19 +3164,15 @@ function modelProviderLabel(provider) {
       root.appendChild(jobBar);
     }
 
-    const overview = element("div", "execution-detail-grid");
-    overview.append(
-      buildExecutionPolicy(detail),
-      buildExecutionCommands(plan),
-      buildExecutionRunResources(runs),
-    );
-    const advancedOverview = document.createElement("details");
-    advancedOverview.className = "technical-details execution-advanced";
-    advancedOverview.append(
-      element("summary", "", "高级执行信息"),
-      overview,
-    );
-    root.appendChild(advancedOverview);
+    if (!automated) {
+      let changeView = executionChangeViews.get(root);
+      if (!changeView) {
+        changeView = createExecutionChanges();
+        executionChangeViews.set(root, changeView);
+      }
+      changeView.update(detail);
+      root.appendChild(changeView.viewer);
+    }
 
     const artifacts = manifests.flatMap((manifest) => (
       Array.isArray(manifest.entries)
@@ -3061,69 +3186,66 @@ function modelProviderLabel(provider) {
     const evidence = artifacts.filter((item) => item.role === "stage-result");
     const inventory = artifacts.find((item) => item.role === "file-inventory");
     const tests = artifacts.find((item) => item.role === "normalized-test-results");
-    const artifactGrid = element("div", "execution-artifact-grid");
-    if (!automated) {
-      let changeView = executionChangeViews.get(root);
-      if (!changeView) {
-        changeView = createExecutionChanges();
-        executionChangeViews.set(root, changeView);
-      }
-      changeView.update(detail);
-      root.appendChild(changeView.viewer);
-    }
-    if (tests) {
-      artifactGrid.appendChild(
-        buildExecutionArtifactCard(
-          tests,
-          "测试结果",
-          "查看各项检查是否通过及耗时。",
-          renderExecutionTests,
-        ),
-      );
-    }
-    if (inventory && !automated) {
-      artifactGrid.appendChild(
-        buildExecutionArtifactCard(
-          inventory,
-          "文件变化",
-          "查看新增、修改和删除的文件。",
-          renderExecutionInventory,
-        ),
-      );
-    }
-    evidence.forEach((entry) => {
-      artifactGrid.appendChild(
-        buildExecutionArtifactCard(
-          entry,
-          `${executionStageLabel(entry.stage)} 运行记录`,
-          "查看详细命令、资源和已脱敏日志。",
-          renderExecutionEvidence,
-        ),
-      );
-    });
-    if (!artifactGrid.childElementCount) {
-      artifactGrid.appendChild(
-        analysisMessage(
-          "结果尚未生成",
-          cleanText(current.status) === "pending"
-            ? "任务仍在等待开始，完成后会在这里显示结果。"
-            : "当前步骤尚未产生可查看的结果。",
-        ),
-      );
-    }
-    const artifactSection = element("section", "execution-artifacts");
-    artifactSection.append(
-      planningCardHeading(
-        "执行结果",
-        `${artifacts.length} 项可查看内容`,
-      ),
-      artifactGrid,
-    );
-    root.appendChild(artifactSection);
+    const hasArtifacts = !!(tests || (inventory && !automated) || evidence.length);
 
-    const provenance = document.createElement("details");
-    provenance.className = "execution-provenance";
-    provenance.appendChild(element("summary", "", "执行溯源与哈希"));
+    if (hasArtifacts) {
+      const artifactGrid = element("div", "execution-artifact-grid");
+      if (tests) {
+        artifactGrid.appendChild(
+          buildExecutionArtifactCard(
+            tests,
+            "测试结果",
+            "查看各项检查是否通过及耗时。",
+            renderExecutionTests,
+          ),
+        );
+      }
+      if (inventory && !automated) {
+        artifactGrid.appendChild(
+          buildExecutionArtifactCard(
+            inventory,
+            "文件变化",
+            "查看新增、修改和删除的文件。",
+            renderExecutionInventory,
+          ),
+        );
+      }
+      evidence.forEach((entry) => {
+        artifactGrid.appendChild(
+          buildExecutionArtifactCard(
+            entry,
+            `${executionStageLabel(entry.stage)} 运行记录`,
+            "查看详细命令、资源和已脱敏日志。",
+            renderExecutionEvidence,
+          ),
+        );
+      });
+      const artifactSection = element("section", "execution-artifacts");
+      artifactSection.append(
+        planningCardHeading(
+          "执行结果",
+          `${artifacts.length} 项可查看内容`,
+        ),
+        artifactGrid,
+      );
+      root.appendChild(artifactSection);
+    } else if (isRunning) {
+      const pendingBox = element("div", "execution-pending-card");
+      pendingBox.append(
+        element("span", "execution-pulse-dot"),
+        element("span", "", "沙箱正在执行当前阶段，结果生成后将在此处呈现…"),
+      );
+      root.appendChild(pendingBox);
+    }
+
+    const overview = element("div", "execution-detail-grid");
+    overview.append(
+      buildExecutionPolicy(detail),
+      buildExecutionCommands(plan),
+      buildExecutionRunResources(runs),
+    );
+
+    const provenance = element("div", "execution-provenance-box");
     const list = element("dl", "");
     appendMetadata(list, "Execution", detail.id);
     appendMetadata(list, "Attempt hash", detail.record_hash);
@@ -3138,7 +3260,15 @@ function modelProviderLabel(provider) {
       `${detail.sandbox_policy_version} · ${detail.sandbox_policy_hash}`,
     );
     provenance.appendChild(list);
-    root.appendChild(provenance);
+
+    const advancedOverview = document.createElement("details");
+    advancedOverview.className = "technical-details execution-advanced";
+    advancedOverview.append(
+      element("summary", "", "⚙️ 详细技术诊断与溯源哈希 (高级)"),
+      overview,
+      provenance,
+    );
+    root.appendChild(advancedOverview);
   }
 
   function buildVibeCodingPanel(detail, refreshExecution) {
@@ -3803,7 +3933,7 @@ function modelProviderLabel(provider) {
       dom.funnelGrid.replaceChildren(
         analysisMessage(
           "还没有进行中的贡献",
-          "从候选机会运行深入评估并创建贡献任务后，这里会显示下一步和成果进度。",
+          "从候选机会直接开始对话、创建贡献任务后，这里会显示下一步和成果进度。深入评估可按需运行。",
         ),
       );
       dom.heatmapGrid.hidden = true;
@@ -4332,7 +4462,9 @@ function modelProviderLabel(provider) {
   }
 
   async function ensureLocalAccessToken() {
-    // Web operations rely on same-origin CSRF protection; no modal prompt required.
+    // A settings form may be submitted before the initial dashboard batch
+    // finishes. Obtain the same-origin CSRF grant before the first mutation.
+    if (!state.csrfToken) renderMeta(await requestJSON(API.meta));
   }
 
   function objectValue(value) {
@@ -4810,6 +4942,12 @@ function modelProviderLabel(provider) {
     }
     if (code.startsWith("analysis_budget_")) {
       return "已触发分析安全/预算上限。";
+    }
+    if (code.startsWith("codex_output_citation_alignment_") || code.startsWith("studio_analysis_pairs_")) {
+      return "模型报告的结论与证据引用没有正确对应，报告未保存。请重新发起深入评估；历史失败任务保留原有模型格式。";
+    }
+    if (code === "codex_output_top_level_fields_invalid" || code.startsWith("studio_analysis_fields_")) {
+      return "模型报告字段不完整或含有未定义字段，报告未保存。请重新发起深入评估。";
     }
     if (code === "provider_execution_timeout" || code === "execution_timeout") {
       return "模型调用执行超时，请稍后再试。";

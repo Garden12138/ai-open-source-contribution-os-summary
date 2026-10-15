@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import asyncio
+import errno
 import logging
 from contextlib import suppress
 from datetime import datetime
@@ -58,6 +59,12 @@ class WorkbenchJobWorker:
                         error_code=exc.code if isinstance(exc, ProviderRunError) else "model_connection_failed",
                         error_message=exc.safe_message if isinstance(exc, ProviderRunError) else "连接测试失败，请检查配置或手动填写模型 ID")
                 error_code, error_message = {
+                    "execution_prepare": ("environment_preparation_failed", "沙箱环境准备或修改前基线未完成；代码尚未修改，请查看环境诊断。"),
+                    "execution_dependencies": (
+                        "environment_preparation_failed",
+                        "依赖准备未通过：请检查锁定版本与哈希、wheel 可用性及包代理；未进入代码修复。",
+                    ),
+                    "execution_question": ("execution_question_failed", "执行问答未完成，当前执行不受影响，可以重新提问。"),
                     "planning_archive": (
                         "planning_archive_failed",
                         "下载仓库归档失败，请检查只读 GitHub 访问后重新读取仓库。",
@@ -74,12 +81,25 @@ class WorkbenchJobWorker:
                     "workbench_failed",
                     "任务执行或证据校验失败，请检查配置后重试",
                 ))
-                if isinstance(exc, ProviderRunError):
+                from app.sandbox_worker.dependencies import DependencyPreparationError
+                if isinstance(exc, DependencyPreparationError):
+                    error_code, error_message = exc.code, exc.safe_message
+                elif isinstance(exc, ProviderRunError):
                     error_code = "planning_provider_failed" if job.kind == "planning_turn" else error_code
-                    error_message = "模型服务未能完成请求，现有上下文已保留，可直接重试。"
+                    if "truncated" in exc.code:
+                        error_message = "模型回复长度达到输出上限（Token 超限），请在模型配置中调大 max_tokens 或缩小方案细节。"
+                    elif exc.safe_message:
+                        error_message = f"模型服务请求失败：{exc.safe_message}，现有上下文已保留，可重试。"
+                    else:
+                        error_message = "模型服务未能完成请求，现有上下文已保留，可直接重试。"
                 elif isinstance(exc, ValidationError) and job.kind == "planning_turn":
                     error_code = planning_validation_details(exc)["reason_code"]
                     error_message = MESSAGES[error_code]
+                elif isinstance(exc, OSError) and getattr(exc, "errno", None) == errno.ENOSPC:
+                    if job.kind == "planning_archive":
+                        error_message = "下载仓库归档失败，存储空间不足，请清理后重试。"
+                elif isinstance(exc, WorkbenchError) and job.kind in {"conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}:
+                    error_code = exc.code
                 # Never log exception text, model output, validation inputs or
                 # arbitrary field names. Error types suffice to diagnose schemas.
                 validation_types = (
@@ -87,8 +107,8 @@ class WorkbenchJobWorker:
                     if isinstance(exc, ValidationError) else []
                 )
                 logger.warning(
-                    "Workbench job failed: kind=%s job=%s code=%s exception=%s validation_types=%s",
-                    job.kind, job.id, error_code, type(exc).__name__, validation_types,
+                    "Workbench job failed: kind=%s job=%s code=%s exc_code=%s exception=%s validation_types=%s",
+                    job.kind, job.id, error_code, getattr(exc, "code", None), type(exc).__name__, validation_types,
                 )
                 return jobs.fail(
                     job.id,

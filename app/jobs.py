@@ -441,6 +441,7 @@ class JobService:
         *,
         run_after: datetime | None = None,
         now: datetime | None = None,
+        commit: bool = True,
     ) -> Job:
         now = self._aware(now)
         job = self._get(job_id)
@@ -478,10 +479,13 @@ class JobService:
         job.result_data = {}
         job.scan_run_id = None
         job.updated_at = now
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         return job
 
-    def recover_expired(self, *, now: datetime | None = None) -> tuple[str, ...]:
+    def recover_expired(self, *, now: datetime | None = None,
+                        kinds: tuple[str, ...] | None = None) -> tuple[str, ...]:
         now = self._aware(now)
         expired = list(
             self.session.scalars(
@@ -490,6 +494,7 @@ class JobService:
                         (JobState.LEASED.value, JobState.RUNNING.value)
                     ),
                     Job.lease_expires_at <= now,
+                    *([Job.kind.in_(kinds)] if kinds is not None else []),
                 )
             )
         )

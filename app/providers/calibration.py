@@ -160,6 +160,8 @@ class FinalScoreVersionService:
         analysis = self.session.get(AnalysisVersion, analysis_version_id)
         if analysis is None:
             raise FinalScoreNotFoundError("AnalysisVersion was not found")
+        if analysis.schema_version != "1":
+            raise ValueError("Snapshot facts do not authorize AI score calibration")
         unknown = set(calibration.cited_evidence_ids) - set(
             analysis.cited_evidence_ids
         )

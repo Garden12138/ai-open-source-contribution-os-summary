@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 COMPOSE_FILE="docs/deployment/compose.yaml"
 
 if [ -f .env ]; then
+  python3 scripts/ensure-publisher-key.py
   echo "==> Deploying with .env configuration..."
   docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build
 else

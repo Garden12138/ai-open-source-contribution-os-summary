@@ -363,6 +363,9 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
         "0030_model_settings",
         "0031_task_visibility",
         "0032_minimax_reviews",
+        "0033_snapshot_assessments",
+            "0034_execution_baselines",
+            "0035_workspace_scopes",
     )
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None
@@ -405,8 +408,8 @@ def test_malformed_nvidia_review_fails_closed_without_business_state(
     )
     assert completed.id == job.id
     assert completed.state == "failed"
-    assert completed.error_code == "nvidia_review_failed"
-    assert completed.error_message == "NVIDIA Review failed validation or execution"
+    assert completed.error_code == "review_output_invalid"
+    assert completed.error_message == "审查输出格式校验失败：NVIDIA Review response fields are invalid"
     with app.state.database.session() as session:
         assert session.scalar(
             select(AgentInvocation).where(AgentInvocation.job_id == job.id)

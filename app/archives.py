@@ -64,6 +64,7 @@ class RepositoryArchiveStore:
             suffix=".tmp",
             dir=self.root,
         )
+        os.fchmod(descriptor, 0o600)
         temporary = Path(temporary_name)
         hasher = hashlib.sha256()
         size = 0
@@ -118,6 +119,8 @@ class RepositoryArchiveStore:
         path = self.path_for(archive_hash)
         if not path.is_file():
             return None
+        if path.stat().st_mode & 0o077:
+            path.chmod(0o600)
         from app.sandbox_worker.explore import RepositoryArchive
 
         captured = RepositoryArchive.capture(

@@ -529,6 +529,7 @@ class ExecutionStageControlService:
         worker_id: str,
         status: ExecutionStageStatus | str,
         reason_code: str,
+        error_message: str | None = None,
         result_hash: str | None = None,
         workspace_inventory_hash: str | None = None,
         artifact_store: ArtifactStore | None = None,
@@ -657,7 +658,7 @@ class ExecutionStageControlService:
                     job.id,
                     worker_id=worker_id,
                     error_code=reason,
-                    error_message="Sandbox stage failed explicitly",
+                    error_message=error_message or "Sandbox stage failed explicitly",
                     now=now,
                     commit=False,
                 )

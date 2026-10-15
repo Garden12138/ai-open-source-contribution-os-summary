@@ -65,6 +65,7 @@ class ChangeSetStore:
             suffix=".tmp",
             dir=self.root,
         )
+        os.fchmod(descriptor, 0o644)
         temporary = Path(temporary_name)
         try:
             with os.fdopen(descriptor, "wb") as stream:
@@ -82,6 +83,11 @@ class ChangeSetStore:
         path = self.path_for(change_set_hash)
         if not path.is_file():
             raise ChangeSetError("ChangeSet was not found")
+        if (path.stat().st_mode & 0o444) != 0o444:
+            try:
+                path.chmod(0o644)
+            except OSError:
+                pass
         payload = json.loads(path.read_text(encoding="utf-8"))
         change_set = ImplementationChangeSet.from_wire(payload)
         if change_set.change_set_hash != change_set_hash:

@@ -35,8 +35,11 @@ def main():
                    expected_hash=plan.record_hash, key="browser-cancelled")
         stop_workflow(wb, task_id, key="browser-stop")
     _seed_candidates(db)
+    from tests.test_analysis_evidence import _scan
+    _scan(db, count=3)
     app = create_app(
-        replace(settings, model_gateway_management_key=bytes.fromhex("ef" * 32))
+        replace(settings, model_gateway_management_key=bytes.fromhex("ef" * 32),
+                publisher_management_key=bytes.fromhex("ab" * 32))
     )
     store = GatewaySecretStore(str(root / "private"))
 
@@ -48,7 +51,25 @@ def main():
         return {"configured": store.has(payload["credential_ref"])}
 
     app.state.gateway_manage = manage
-    # Only the local erasure worker runs in this offline browser fixture.
+    # Account probes use a deterministic read-only fake, never real GitHub.
+    import httpx
+    from fastapi import HTTPException
+    from app.provenance import canonical_json
+    from app.providers.model_secrets import management_auth
+    from app.publisher_service import create_publisher_app, AccountProbeWorker
+    publisher_vault = GatewaySecretStore(str(root / "publisher-private"))
+    publisher = create_publisher_app(replace(app.state.settings, publisher_mode="gh"), db, publisher_vault, run_workers=False)
+    async def publisher_manage(current, operation, payload):
+        body = canonical_json({"operation":operation, **payload}).encode()
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=publisher), base_url="http://publisher") as client:
+            response = await client.post("/internal/settings", content=body,
+                headers={"X-Publisher-Management":management_auth(current.publisher_management_key, body)})
+        if response.status_code != 200:
+            raise HTTPException(response.status_code, "配置未完成，请刷新后重试")
+        return response.json()
+    app.state.publisher_manage = publisher_manage
+    async def publisher_probe(_token):
+        return {"login":"browser-contributor", "user_id":123, "scopes":["public_repo"]}
     import asyncio
     from contextlib import asynccontextmanager, suppress
     from app.task_erasure import TaskErasureWorker
@@ -58,9 +79,11 @@ def main():
     async def fixture_lifespan(application):
         async with original_lifespan(application):
             eraser = TaskErasureWorker(application.state.database, settings.artifact_root, worker_id="fixture-eraser")
+            account_worker = AccountProbeWorker(db, publisher_vault, worker_id="fixture-account", probe=publisher_probe)
             async def run_erasure():
                 while True:
                     await eraser.run_once()
+                    await account_worker.run_once()
                     await asyncio.sleep(0.1)
             worker = asyncio.create_task(run_erasure())
             try:

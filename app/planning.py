@@ -42,6 +42,11 @@ class ContributionTaskService:
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    def create_from_snapshot(self, *, snapshot_id: str, idempotency_key: str) -> ContributionTask:
+        from app.providers.snapshot_assessment import SnapshotAssessmentService
+        analysis = SnapshotAssessmentService(self.session).get_or_create(snapshot_id)
+        return self.create(analysis_version_id=analysis.id, idempotency_key=idempotency_key)
+
     def create(
         self,
         *,
@@ -229,6 +234,12 @@ def _validate_analysis(
         raise ContributionTaskConflictError(
             "AnalysisVersion record hash does not match its immutable content"
         )
+    if analysis.schema_version == "2":
+        from app.providers.snapshot_assessment import verify_snapshot_assessment
+        try:
+            verify_snapshot_assessment(analysis, snapshot, score)
+        except ValueError:
+            raise ContributionTaskConflictError("Snapshot assessment provenance is invalid") from None
     return snapshot, score
 
 

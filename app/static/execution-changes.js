@@ -127,6 +127,7 @@ export function createExecutionChanges({openDetails = () => {}, onSummaryChange 
   const fileNodes = new Map();
   const cache = new Map();
   summary.hidden = true;
+  viewer.hidden = true;
 
   function showState(message, retry = false) {
     summary.replaceChildren(node("strong", "代码变更"), node("p", message));
@@ -148,6 +149,8 @@ export function createExecutionChanges({openDetails = () => {}, onSummaryChange 
   }
   function render(model) {
     fileNodes.clear();
+    summary.hidden = false;
+    viewer.hidden = false;
     summary.replaceChildren(node("strong", title(model)));
     viewer.replaceChildren(node("h5", title(model)), stateLabel);
     let visibleFiles = 0;
@@ -215,11 +218,12 @@ export function createExecutionChanges({openDetails = () => {}, onSummaryChange 
     currentDetail = detail;
     const verify = [...(detail?.stage_runs || [])].reverse().find(run => run.stage === "verify");
     const status = {succeeded: "已完成", failed: "失败", cancelled: "已取消", timed_out: "超时", running: "进行中", queued: "等待中", leased: "准备中"};
-    stateLabel.textContent = `测试验证：${status[verify?.job?.state] || "尚未完成"}；审查：${detail?.reviews?.length ? "请查看下方审查结果" : "尚未完成"}`;
+    const outcome = ({passed:"通过",failed:"失败",environment_blocked:"环境未就绪"})[detail?.verification?.status];
+    stateLabel.textContent = `测试验证：${outcome || status[verify?.job?.state] || "尚未完成"}；审查：${detail?.reviews?.length ? "请查看下方审查结果" : "尚未完成"}`;
     let artifacts;
     try { artifacts = implementationArtifacts(detail); }
     catch (error) {
-      request?.abort(); currentKey = null; summary.hidden = false;
+      request?.abort(); currentKey = null; summary.hidden = false; viewer.hidden = false;
       showState(error.message, true); return;
     }
     const key = artifacts?.key || `${detail?.id || "none"}:pending`;
@@ -227,6 +231,7 @@ export function createExecutionChanges({openDetails = () => {}, onSummaryChange 
     currentKey = key; request?.abort();
     fileNodes.clear();
     summary.hidden = !artifacts;
+    viewer.hidden = !artifacts;
     if (!artifacts) { showState("代码修改结果尚未生成。"); return; }
     if (cache.has(key) && !retry) { render(cache.get(key)); return; }
     showState("正在读取代码变更…");

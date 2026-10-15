@@ -486,9 +486,11 @@ def test_real_read_only_explore_on_exact_archive(tmp_path: Path) -> None:
 )
 @pytest.mark.sandbox_malicious
 @pytest.mark.parametrize("attack", ("path-traversal", "symlink-escape"))
+@pytest.mark.parametrize("scope", ((), ("src",)))
 def test_real_explore_rejects_malicious_archive_paths(
     tmp_path: Path,
     attack: str,
+    scope: tuple[str, ...],
 ) -> None:
     image = os.environ.get("CONTRIBOS_SANDBOX_RUNNER_IMAGE", "")
     if not image.startswith("sha256:"):
@@ -526,7 +528,7 @@ def test_real_explore_rejects_malicious_archive_paths(
                     docker_environment=docker_environment
                 ),
             ).run(
-                signer.sign(_spec(archive, policy, image=image)),
+                signer.sign(replace(_spec(archive, policy, image=image), workspace_paths=scope)),
                 archive,
             )
         )

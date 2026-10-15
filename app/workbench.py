@@ -21,7 +21,10 @@ from app.task_states import ContributionTaskStateService
 
 
 class WorkbenchError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, code: str = "workbench_conflict") -> None:
+        super().__init__(message)
+        self.code = code
+        self.job_id: str | None = None
 
 
 def event_payload(event: WorkbenchEvent) -> dict:
@@ -39,6 +42,20 @@ def event_payload(event: WorkbenchEvent) -> dict:
             "previous_hash",
         )
     }
+
+
+def verified_workbench_history(session: Session, task_id: str) -> list[WorkbenchEvent]:
+    ContributionTaskService(session).get_verified(task_id)
+    rows = list(session.scalars(select(WorkbenchEvent).where(
+        WorkbenchEvent.task_id == task_id).order_by(WorkbenchEvent.sequence)))
+    previous = None
+    for sequence, row in enumerate(rows, 1):
+        if (row.sequence != sequence or row.previous_hash != previous
+            or row.payload_hash != content_hash(row.payload)
+            or row.record_hash != content_hash(event_payload(row))):
+            raise WorkbenchError("工作台记录校验失败")
+        previous = row.record_hash
+    return rows
 
 
 class Workbench:
@@ -59,25 +76,7 @@ class Workbench:
         )
 
     def history(self, task_id: str) -> list[WorkbenchEvent]:
-        ContributionTaskService(self.session).get_verified(task_id)
-        rows = list(
-            self.session.scalars(
-                select(WorkbenchEvent)
-                .where(WorkbenchEvent.task_id == task_id)
-                .order_by(WorkbenchEvent.sequence)
-            )
-        )
-        previous = None
-        for sequence, row in enumerate(rows, 1):
-            if (
-                row.sequence != sequence
-                or row.previous_hash != previous
-                or row.payload_hash != content_hash(row.payload)
-                or row.record_hash != content_hash(event_payload(row))
-            ):
-                raise WorkbenchError("工作台记录校验失败")
-            previous = row.record_hash
-        return rows
+        return verified_workbench_history(self.session, task_id)
 
     def append(
         self,
@@ -136,6 +135,21 @@ class Workbench:
         return next(
             (r for r in reversed(self.history(task_id)) if r.kind == kind), None
         )
+
+    def active_blocker(self, task_id: str) -> WorkbenchEvent | None:
+        events = self.history(task_id)
+        start = next((e for e in reversed(events) if e.kind == "automation_started"), None)
+        if start is None:
+            return None
+        if any(e.kind == "stop_requested" and e.sequence > start.sequence for e in events):
+            return None
+        blocked = next((e for e in reversed(events) if e.kind == "automation_blocked"
+                        and e.sequence > start.sequence), None)
+        if blocked and any(e.kind == "automation_resumed" and e.sequence > blocked.sequence
+                           and e.payload.get("blocked_hash") == blocked.record_hash
+                           and e.payload.get("start_hash") == start.record_hash for e in events):
+            return None
+        return blocked
 
     def artifact(self, data: dict | list) -> str:
         return self.artifacts.store_bytes(
@@ -204,13 +218,15 @@ class Workbench:
         key: str,
         actor: str = "system",
         commit: bool = True,
+        timeout_seconds: int = 600,
+        max_attempts: int = 1,
     ) -> Job:
         job, _ = JobService(self.session).enqueue(
             kind=kind,
             idempotency_key=key,
             payload={"task_id": task_id, **payload},
-            max_attempts=1,
-            timeout_seconds=600,
+            max_attempts=max_attempts,
+            timeout_seconds=timeout_seconds,
             commit=False,
         )
         self.append(
@@ -227,8 +243,18 @@ class Workbench:
         return job
 
     def assert_idle(self, task_id: str) -> None:
-        if any(j.state not in TERMINAL_STATES for j in self.jobs(task_id)):
+        if any(j.state not in TERMINAL_STATES and j.kind not in {"execution_question", "conversation_intent"} for j in self.jobs(task_id)):
             raise WorkbenchError("任务正在运行，请等待完成或先停止")
+
+    def plan_rejection_active(self, task_id: str, plan_id: str | None) -> bool:
+        """A validated later save resolves a rejected draft without editing history."""
+        rows = self.history(task_id)
+        reply = next((e for e in reversed(rows) if e.kind == "assistant_message"), None)
+        if reply is None or not reply.payload.get("plan_error"):
+            return False
+        binding = next((e for e in reversed(rows)
+                        if e.kind == "plan_bound" and e.plan_version_id == plan_id), None)
+        return binding is None or reply.sequence > binding.sequence
 
     def binding(self, task_id: str, plan_id: str) -> WorkbenchEvent:
         binding = next(
@@ -243,5 +269,5 @@ class Workbench:
             raise WorkbenchError("这份历史方案没有代码阅读依据，请先让 AI 重新规划")
         context = self.latest(task_id, "context_ready")
         if context is None or binding.payload["context_hash"] != context.record_hash:
-            raise WorkbenchError("方案的代码依据已过期，请重新规划")
+            raise WorkbenchError("方案的代码依据已过期，请重新规划", code="plan_stale")
         return binding

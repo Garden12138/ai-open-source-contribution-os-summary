@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class RepositorySummary(BaseModel):
@@ -98,7 +98,15 @@ class TaskVisibilityResponse(BaseModel):
 
 
 class ContributionTaskCreateRequest(BaseModel):
-    analysis_version_id: str = Field(min_length=1, max_length=128)
+    model_config = ConfigDict(extra="forbid")
+    analysis_version_id: str | None = Field(default=None, min_length=1, max_length=128)
+    snapshot_id: str | None = Field(default=None, min_length=1, max_length=128)
+
+    @model_validator(mode="after")
+    def exactly_one_source(self):
+        if bool(self.analysis_version_id) == bool(self.snapshot_id):
+            raise ValueError("Provide exactly one analysis_version_id or snapshot_id")
+        return self
 
 
 class ContributionTaskResponse(BaseModel):
@@ -131,6 +139,20 @@ class PlanCommandRequest(BaseModel):
     argv: list[str] = Field(min_length=1, max_length=50)
     working_directory: str = Field(default=".", min_length=1, max_length=500)
 
+    @field_validator("argv", mode="before")
+    @classmethod
+    def _coerce_argv(cls, v: Any) -> Any:
+        if v is None or v == "":
+            return []
+        if isinstance(v, str):
+            import shlex
+            try:
+                parts = shlex.split(v)
+                return parts if parts else [v]
+            except Exception:
+                return [v]
+        return v
+
 
 class PlanVersionCreateRequest(BaseModel):
     parent_version_id: str | None = Field(
@@ -156,6 +178,25 @@ class PlanVersionCreateRequest(BaseModel):
         default_factory=list,
         max_length=100,
     )
+
+    @field_validator(
+        "acceptance_criteria",
+        "files_to_inspect",
+        "files_likely_to_change",
+        "implementation_steps",
+        "tests_to_add_or_run",
+        "commands_to_run",
+        "risks",
+        "questions_for_maintainer",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_plan_lists(cls, v: Any) -> Any:
+        if v is None or v == "":
+            return []
+        if isinstance(v, str):
+            return [v]
+        return v
 
 
 class PlanVersionResponse(BaseModel):
@@ -758,6 +799,7 @@ class ExecutionArtifactListResponse(BaseModel):
 
 
 class ExecutionDetailResponse(ExecutionAttemptResponse):
+    verification: dict[str, Any] = Field(default_factory=dict)
     stages: list[ExecutionStageResponse]
     stage_runs: list[ExecutionStageRunResponse]
     artifact_manifests: list[ExecutionArtifactManifestResponse]
@@ -1027,7 +1069,7 @@ class AnalysisVersionSummaryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    job_id: str
+    job_id: str | None
     opportunity_id: int
     snapshot_id: str
     score_version_id: str
@@ -1304,6 +1346,13 @@ class DispositionResponse(BaseModel):
         )
 
 
+class ChangeScopeResponse(BaseModel):
+    rule_version: str
+    classification: Literal["likely_small", "unknown", "excluded"]
+    reason_codes: list[str]
+    exclusion_codes: list[str]
+
+
 class RecommendationResponse(BaseModel):
     scan_run_id: str
     snapshot_id: str
@@ -1322,6 +1371,7 @@ class RecommendationResponse(BaseModel):
     competition_level: str
     impact_level: str
     effort: dict[str, Any] | None
+    change_scope: ChangeScopeResponse
     next_steps: list[str]
     maintainer_questions: list[str]
     analysis_version_id: str | None
@@ -1358,11 +1408,14 @@ class RecommendationFeedResponse(BaseModel):
     analyzed_total: int
     recommended_total: int
     pending_analysis_total: int
+    small_change_total: int
+    small_change_only: bool
     items: list[RecommendationResponse]
 
 
 class RecommendationAnalysisBatchRequest(BaseModel):
     limit: int = Field(default=5, ge=1, le=5)
+    small_change_only: bool = False
 
 
 class RecommendationAnalysisJobResponse(BaseModel):

@@ -31,7 +31,7 @@ class ContributionDashboardService:
     def snapshot(self) -> dict[str, object]:
         scanned = self.session.scalar(select(func.count(Opportunity.id))) or 0
         analyzed = (
-            self.session.scalar(select(func.count(AnalysisVersion.id))) or 0
+            self.session.scalar(select(func.count(AnalysisVersion.id)).where(AnalysisVersion.schema_version == "1")) or 0
         )
         planned = self.session.scalar(select(func.count(PlanVersion.id)).where(visibility_expression(PlanVersion.task_id) != "deleted")) or 0
         executed = (
@@ -119,6 +119,13 @@ class ContributionDashboardService:
                 opportunity.repository if opportunity is not None else None
             )
             friendly, progress, next_action = _friendly_task_state(visible_state)
+            from app.conversation import user_status
+            from app.workbench import Workbench
+            # This projection reads the journal only; it never opens artifacts.
+            if not mark and (visibility is None or visibility.state == "active"):
+                conversation_status = user_status(Workbench(self.session, "."), task.id)
+                friendly = conversation_status["label"]
+                next_action = conversation_status["next_step"]
             summaries.append(
                 {
                     "id": task.id,

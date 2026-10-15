@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 from app.archives import RepositoryArchiveStore
 from app.artifacts import ArtifactStore, ExecutionArtifactBundle
@@ -134,6 +137,7 @@ class ExecutionStageWorker:
                     run.id,
                     "repository_archive_unavailable",
                     started_at,
+                    error_message="仓库归档不可用或校验未通过，请检查代码仓库。",
                 )
             if runtime_missing:
                 return self._fail(
@@ -143,6 +147,7 @@ class ExecutionStageWorker:
                     if stage is SandboxStage.EXPLORE
                     else "stage_runtime_unavailable",
                     started_at,
+                    error_message="沙箱执行环境不可用，请检查沙箱容器配置。",
                 )
             try:
                 if stage is SandboxStage.EXPLORE:
@@ -214,11 +219,15 @@ class ExecutionStageWorker:
                     sandbox_policy_hash=attempt.sandbox_policy_hash,
                     inventory_hash=pending.workspace_inventory_hash,
                 )
+                from app.workbench import Workbench
+                from app.sandbox_worker.dependency_jobs import load_dependency
+                dependency = (load_dependency(Workbench(session, str(self.artifact_root)), attempt.id)
+                              if len(pending.input_hashes) > 1 else None)
                 result = await VerifyService(
                     signer=self.signer,
                     policy=policy,
                     runtime=self.verify_runtime,
-                ).run(signed, implement, verify_workspace)
+                ).run(signed, implement, verify_workspace, dependency=dependency)
                 return self._succeed(
                     session,
                     run.id,
@@ -227,11 +236,22 @@ class ExecutionStageWorker:
                     started_at,
                 )
             except Exception as exc:
+                if self._job(session, run.id).state == "succeeded":
+                    # The coordinator will retry scheduling from the durable completed
+                    # stage, or record an environment blocker without rewriting it.
+                    return self._job(session, run.id)
+                logger.warning("Sandbox stage failed: stage=%s exception=%s", stage.value, type(exc).__name__)
+                safe_msg = {
+                    "exploreerror": "沙箱探索仓库代码时失败，请检查沙箱容器配置后重试。",
+                    "implementationerror": "沙箱实施代码修改时失败，请检查修改方案后重试。",
+                    "verifyerror": "沙箱运行验证测试时失败，请检查测试命令后重试。",
+                }.get(type(exc).__name__.lower(), f"沙箱隔离执行失败：{type(exc).__name__}")
                 return self._fail(
                     session,
                     run.id,
                     _reason_code(exc),
                     started_at,
+                    error_message=safe_msg,
                 )
 
     def _succeed(
@@ -272,12 +292,15 @@ class ExecutionStageWorker:
         run_id: str,
         reason_code: str,
         now: datetime,
+        *,
+        error_message: str | None = None,
     ) -> Job:
         ExecutionStageControlService(session).complete(
             run_id,
             worker_id=self.worker_id,
             status=ExecutionStageStatus.FAILED,
             reason_code=reason_code,
+            error_message=error_message,
             now=now,
         )
         return self._job(session, run_id)
@@ -291,29 +314,9 @@ class ExecutionStageWorker:
     ) -> None:
         if not commands:
             return
-        attempts = ExecutionAttemptService(session)
-        current = attempts.current(attempt_id)
-        pending = attempts.advance_stage(
-            attempt_id,
-            expected_sequence=current.sequence,
-            expected_record_hash=current.record_hash,
-            input_hashes=(implement_result_hash,),
-            reason_code="implement_succeeded",
-            idempotency_key=f"advance:verify:{attempt_id}:{current.sequence}",
-        )
-        spec = attempts.build_current_job_spec(
-            attempt_id,
-            commands=commands,
-        )
-        ExecutionStageControlService(session).schedule_current(
-            attempt_id,
-            signed_job_spec=self.signer.sign(spec),
-            signer=self.signer,
-            sandbox_policy=SandboxPolicy(),
-            idempotency_key=(
-                f"schedule:{attempt_id}:{pending.stage}:{pending.sequence}"
-            ),
-        )
+        from app.workbench import Workbench
+        from app.execution_environment import schedule_verification
+        schedule_verification(Workbench(session, str(self.artifact_root)), attempt_id, self.signer)
 
     def _load_explore(self, session, result_hash: str):
         from app.sandbox_worker.explore import ExploreResult

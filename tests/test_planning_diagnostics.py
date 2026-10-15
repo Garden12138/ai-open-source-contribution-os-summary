@@ -18,14 +18,11 @@ CANARY = "ghp_diagnosticcanary123456789012345678"
     "case,expected",
     [
         ("missing", "planning_outcome_missing"),
-        ("conflict", "planning_outcome_conflict"),
         ("duplicates", "planning_question_ids_duplicate"),
         ("sensitive", "planning_sensitive_output"),
         ("extra", "planning_output_invalid"),
         ("json", "planning_output_invalid"),
         ("reply_object", "planning_output_invalid"),
-        ("step_object", "planning_output_invalid"),
-        ("test_object", "planning_output_invalid"),
     ],
 )
 def test_invalid_replies_emit_only_safe_diagnostics(tmp_path, caplog, case, expected):
@@ -33,6 +30,7 @@ def test_invalid_replies_emit_only_safe_diagnostics(tmp_path, caplog, case, expe
     value = json.loads(result(content))
     if case == "missing":
         value["plan"] = None
+        value["reply"] = ""
     elif case == "conflict":
         value["read_paths"] = ["app/planning.py"]
     elif case == "duplicates":
@@ -100,19 +98,10 @@ def test_custom_validation_type_and_field_are_not_copied():
     }
 
 
-def test_provider_schema_expresses_the_existing_exclusive_outcomes():
+def test_provider_schema_keeps_independent_actions_and_strict_plan_guidance():
     schema = PlanningReply.model_json_schema()
     projected = _nvidia_tool_schema(schema)
-    assert projected["oneOf"] == schema["oneOf"]
-    assert [branch["required"] for branch in schema["oneOf"]] == [
-        ["questions"],
-        ["read_paths"],
-        ["plan"],
-    ]
-    assert schema["oneOf"][0]["properties"]["plan"] == {"type": "null"}
-    assert schema["oneOf"][1]["properties"]["questions"] == {"maxItems": 0}
-    assert schema["oneOf"][2]["properties"]["questions"] == {"maxItems": 0}
-    assert schema["oneOf"][2]["properties"]["read_paths"] == {"maxItems": 0}
+    assert "oneOf" not in schema and "oneOf" not in projected
     assert "reply" not in schema.get("required", [])
     assert "Optional top-level" in schema["properties"]["reply"]["description"]
     plan = schema["$defs"]["PlanningPlan"]["properties"]
@@ -139,7 +128,10 @@ def test_valid_plan_without_narration_is_saved_without_execution(tmp_path, omit)
         wb = PlanningService(session, settings.artifact_root)
         plan = wb.latest_plan(task_id)
         assert plan.goal == content.goal
-        assert wb.latest(task_id, "assistant_message").payload["reply"] == ""
+        receipt = wb.latest(task_id, "assistant_message").payload
+        assert "方案已保存" in receipt["reply"]
+        assert receipt["plan_receipt"]["status"] == "saved"
+        assert receipt["plan_receipt"]["execution_started"] is False
         assert not wb.latest(task_id, "execution_authorized")
         assert not wb.latest(task_id, "model_output_rejected")
     database.close()
@@ -147,7 +139,6 @@ def test_valid_plan_without_narration_is_saved_without_execution(tmp_path, omit)
 
 @pytest.mark.parametrize("value,code", [
     ({}, "planning_outcome_missing"),
-    ({"read_paths": ["app.py"], "questions": [{"id": "choose", "prompt": "选择"}]}, "planning_outcome_conflict"),
     ({"plan": {"goal": "incomplete"}}, "planning_output_invalid"),
     ({"questions": [{"id": "choose", "prompt": CANARY}]}, "planning_sensitive_output"),
 ])

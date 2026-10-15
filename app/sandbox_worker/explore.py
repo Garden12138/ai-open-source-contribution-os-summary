@@ -5,10 +5,13 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import os
 import re
 import signal
 import tempfile
+
+logger = logging.getLogger(__name__)
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -304,6 +307,8 @@ class ExploreResult:
 
 
 class ExploreRuntime(Protocol):
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "ExploreRuntime": ...
+
     async def materialize(
         self,
         *,
@@ -357,13 +362,14 @@ class ExploreService:
                 "Repository archive does not match the signed JobSpec"
             )
         archive.verify()
+        runtime = self.runtime.for_workspace_scope(spec.workspace_paths) if spec.workspace_paths else self.runtime
         with tempfile.TemporaryDirectory(
             prefix="contribos-explore-"
         ) as temporary:
             root = Path(temporary)
             destination = root / "repository"
             destination.mkdir(mode=0o777)
-            await self.runtime.materialize(
+            await runtime.materialize(
                 archive=archive,
                 destination=destination,
                 image_digest=spec.runner_image_digest,
@@ -375,7 +381,7 @@ class ExploreService:
                 source=destination,
                 allowed_root=root,
             )
-            inspection = await self.runtime.inspect(
+            inspection = await runtime.inspect(
                 snapshot=snapshot,
                 image_digest=spec.runner_image_digest,
                 policy=self.policy,
@@ -417,6 +423,13 @@ class DockerExploreRuntime:
         self.docker_environment = dict(docker_environment)
         self.docker_executable = docker_executable
         self.max_output_bytes = max_output_bytes
+        self.workspace_paths: tuple[str, ...] = ()
+
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "DockerExploreRuntime":
+        from copy import copy
+        runtime = copy(self)
+        runtime.workspace_paths = paths
+        return runtime
 
     def build_materialize_argv(
         self,
@@ -448,12 +461,12 @@ class DockerExploreRuntime:
             "--mount",
             (
                 f"type=bind,src={archive.path},dst=/input/repository.tar,"
-                "readonly,bind-propagation=rprivate"
+                "readonly,bind-propagation=rslave"
             ),
             "--mount",
             (
                 f"type=bind,src={destination},dst=/output,"
-                "bind-propagation=rprivate"
+                "bind-propagation=rslave"
             ),
             "--entrypoint",
             "python3",
@@ -463,6 +476,7 @@ class DockerExploreRuntime:
             _MATERIALIZE_SCRIPT,
             archive.repository_full_name.rsplit("/", 1)[1],
             archive.base_commit_sha,
+            *((json.dumps(self.workspace_paths),) if self.workspace_paths else ()),
         )
 
     def build_inspect_argv(
@@ -490,7 +504,7 @@ class DockerExploreRuntime:
             "--mount",
             (
                 f"type=bind,src={snapshot.source},dst=/workspace,"
-                "readonly,bind-propagation=rprivate"
+                "readonly,bind-propagation=rslave"
             ),
             "--entrypoint",
             "python3",
@@ -509,17 +523,20 @@ class DockerExploreRuntime:
         policy: SandboxPolicy,
     ) -> None:
         name = f"contribos-explore-materialize-{uuid4().hex}"
-        stdout = await self._run(
-            self.build_materialize_argv(
-                archive=archive,
-                destination=destination,
-                image_digest=image_digest,
-                policy=policy,
+        from app.sandbox_worker.coding_context import DockerCodingContextRuntime
+        with tempfile.TemporaryDirectory(prefix="contribos-materialize-input-") as tmp:
+            staged = DockerCodingContextRuntime(docker_environment=self.docker_environment)._stage_archive(archive, Path(tmp))
+            stdout = await self._run(
+                self.build_materialize_argv(
+                    archive=staged,
+                    destination=destination,
+                    image_digest=image_digest,
+                    policy=policy,
+                    container_name=name,
+                ),
                 container_name=name,
-            ),
-            container_name=name,
-            timeout_seconds=policy.timeout_seconds,
-        )
+                timeout_seconds=policy.timeout_seconds,
+            )
         if stdout.strip() != b"sandbox-materialize-v1":
             raise ExploreError(
                 "Repository materializer returned an invalid response"
@@ -624,6 +641,8 @@ class DockerExploreRuntime:
             or stderr
             or len(stdout) > self.max_output_bytes
         ):
+            logger.error("Sandbox container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
+                         process.returncode, len(stderr), len(stdout))
             raise ExploreError(
                 "Explore container failed with a redacted error"
             )
@@ -714,6 +733,7 @@ def _container_inputs(
 
 _MATERIALIZE_SCRIPT = r"""
 import os
+import json
 import posixpath
 import sys
 import tarfile
@@ -724,6 +744,7 @@ output = "/output"
 repository_name = sys.argv[1]
 base_sha = sys.argv[2]
 expected_root = f"{repository_name}-{base_sha}"
+workspace_paths = json.loads(sys.argv[3]) if len(sys.argv) > 3 else []
 denied = {
     ".env", ".git", ".netrc", ".npmrc", ".pypirc", "auth.json",
     "credentials", "id_dsa", "id_ed25519", "id_rsa",
@@ -755,9 +776,11 @@ with tarfile.open(archive, mode="r:*") as bundle:
         relative = PurePosixPath(*path.parts[1:])
         if str(relative) == ".":
             continue
-        if any(part.lower() in denied for part in relative.parts):
-            raise SystemExit(23)
         normalized = str(relative)
+        selected = not workspace_paths or any(normalized == p or normalized.startswith(p + "/") for p in workspace_paths)
+        ancestor = member.isdir() and any(p.startswith(normalized + "/") for p in workspace_paths)
+        if (selected or ancestor) and any(part.lower() in denied for part in relative.parts):
+            raise SystemExit(23)
         if normalized in paths:
             raise SystemExit(24)
         paths.add(normalized)
@@ -784,7 +807,8 @@ with tarfile.open(archive, mode="r:*") as bundle:
                 raise SystemExit(27)
         else:
             raise SystemExit(28)
-        validated.append((relative, member, kind))
+        if selected or ancestor:
+            validated.append((relative, member, kind))
     if roots != {expected_root}:
         raise SystemExit(29)
     for relative, member, kind in sorted(

@@ -6,10 +6,13 @@ import asyncio
 import base64
 import hashlib
 import json
+import logging
 import os
 import re
 import signal
 import tempfile
+
+logger = logging.getLogger(__name__)
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -741,7 +744,7 @@ class VerifyService:
                 or dependency.result.execution_attempt_id
                 != implement.execution_attempt_id
                 or dependency.result.implement_result_hash
-                != implement.result_hash
+                != (implement.explore_result_hash if dependency.result.source_kind == "explore" else implement.result_hash)
                 or dependency.result.runner_image_digest
                 != implement.runner_image_digest
                 or dependency.result.sandbox_policy_hash
@@ -866,6 +869,10 @@ class DockerVerifyRuntime:
         with tempfile.TemporaryDirectory(
             prefix="contribos-verify-"
         ) as temporary:
+            try:
+                os.chmod(temporary, 0o755)
+            except OSError:
+                pass
             command_path = os.path.join(temporary, "commands.json")
             with open(command_path, "xb") as handle:
                 handle.write(encoded)
@@ -977,7 +984,7 @@ class DockerVerifyRuntime:
             (
                 f"type=bind,src={commands_path},"
                 "dst=/input/commands.json,readonly,"
-                "bind-propagation=rprivate"
+                "bind-propagation=rslave"
             ),
             "--entrypoint",
             "python3",
@@ -1020,6 +1027,8 @@ class DockerVerifyRuntime:
             or stderr
             or len(stdout) > MAX_VERIFY_OUTPUT_BYTES
         ):
+            logger.error("Verification container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
+                         process.returncode, len(stderr), len(stdout))
             raise VerificationError(
                 "Verify container failed with a redacted error"
             )
@@ -1121,6 +1130,7 @@ import glob
 import json
 import os
 import resource
+import shutil
 import stat
 import subprocess
 import time
@@ -1284,6 +1294,7 @@ if dependency_hash is not None:
         or dependency_inventory_hash() != dependency_hash
     ):
         raise SystemExit(88)
+    dependency_environment["PATH"] = "/dependencies/output/venv/bin:/dependencies/output/project/node_modules/.bin:/usr/local/bin:/usr/bin:/bin"
     dependency_environment["VIRTUAL_ENV"] = "/dependencies/output/venv"
     dependency_environment["NODE_PATH"] = (
         "/dependencies/output/project/node_modules"
@@ -1293,6 +1304,17 @@ if dependency_hash is not None:
     )
     if sites:
         dependency_environment["PYTHONPATH"] = os.pathsep.join(sites)
+    source_paths_file = "/dependencies/output/source-paths.json"
+    if os.path.isfile(source_paths_file):
+        with open(source_paths_file, encoding="utf-8") as handle:
+            source_paths = json.load(handle)
+        if not isinstance(source_paths, list) or len(source_paths) > 16 or any(
+            not isinstance(p, str) or not p.startswith("/workspace/") or ".." in p.split("/")
+            for p in source_paths
+        ):
+            raise SystemExit(88)
+        dependency_environment["PYTHONPATH"] = os.pathsep.join(source_paths + sites)
+        dependency_environment["MYPYPATH"] = os.pathsep.join(source_paths)
 evidence = []
 halt = False
 empty_hash = hashlib.sha256(b"").hexdigest()
@@ -1344,9 +1366,20 @@ for index, command in enumerate(commands):
         halt = True
     else:
         with open(stdout_path, "wb") as stdout, open(stderr_path, "wb") as stderr:
+            argv = list(command["argv"])
+            if argv:
+                # Resolve against the child environment, including the frozen
+                # venv. Supervisor PATH must not select the system interpreter.
+                path = dependency_environment.get("PATH", os.environ.get("PATH", ""))
+                if argv[0] in {"python", "python3", "pip", "pip3"}:
+                    resolved = shutil.which(argv[0], path=path)
+                    if resolved is None and argv[0] in {"python", "pip"}:
+                        resolved = shutil.which(argv[0] + "3", path=path)
+                    if resolved:
+                        argv[0] = resolved
             try:
                 completed = subprocess.run(
-                    command["argv"],
+                    argv,
                     cwd=directory,
                     stdin=subprocess.DEVNULL,
                     stdout=stdout,
@@ -1363,6 +1396,10 @@ for index, command in enumerate(commands):
                         "PYTHONDONTWRITEBYTECODE": "1",
                         "PYTHONUNBUFFERED": "1",
                         "CI": "1",
+                        # Each Verify is fresh. Keep SDK typing caches out of
+                        # the bounded log tmpfs without relaxing disk limits.
+                        "MYPY_CACHE_DIR": "/dev/null",
+                        "RUFF_CACHE_DIR": "/tmp/ruff-cache",
                         **git_environment,
                         **dependency_environment,
                     },
@@ -1375,6 +1412,10 @@ for index, command in enumerate(commands):
             except subprocess.TimeoutExpired:
                 status = "timed_out"
                 halt = True
+            except OSError as exc:
+                stderr.write(f"Command execution error: {exc}\n".encode("utf-8"))
+                exit_code = 127
+                status = "failed"
     if os.path.exists(stdout_path):
         stdout_hash, stdout_bytes = file_evidence(stdout_path)
     else:

@@ -42,6 +42,16 @@ def render_analysis_markdown(detail: AnalysisVersionDetail) -> str:
     """Build the stable, user-facing Markdown projection of an analysis."""
 
     analysis = _mapping(detail.content.get("analysis"))
+    if analysis.get("schema_version") == "snapshot-assessment-v1":
+        repository = _mapping(analysis.get("repository"))
+        requirement = _mapping(analysis.get("requirement"))
+        return "\n".join((
+            "# 贡献讨论依据", "",
+            "来源：已验证的发现快照。尚未进行 AI 深入评估；这份依据不代表推荐、工时估计或执行批准。", "",
+            "## 项目", "", _escape(_string(repository.get("value"))), "",
+            "## Issue 需求", "", _escape(_string(requirement.get("value"))), "",
+            "实现范围、工作量、验证环境、修改前基线和维护者接收意向均待确认。可以在对话中读取代码、讨论并制定方案。", "",
+        ))
     recommendation = _RECOMMENDATION_LABELS.get(
         _string(analysis.get("recommendation")),
         "历史分析未提供明确建议",

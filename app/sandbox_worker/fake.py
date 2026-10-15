@@ -26,6 +26,9 @@ from app.sandbox_worker.verification import (
 
 
 class FakeExploreRuntime:
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "FakeExploreRuntime":
+        return self
+
     async def materialize(
         self,
         *,
@@ -62,6 +65,9 @@ class FakeExploreRuntime:
 
 
 class FakeImplementRuntime:
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "FakeImplementRuntime":
+        return self
+
     def __init__(self) -> None:
         self.destroyed: list[str] = []
 

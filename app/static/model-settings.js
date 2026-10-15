@@ -26,6 +26,7 @@ export async function sealCredential(secret, grant) {
 export function mountModelSettings(root,options) {
   let data=null, connectionEdit=null, profileEdit=null, timer=null;
   let testJob=null, lastTestKey=null;
+  let taskSelection="", taskGeneration=0;
   const shell=el("div","","studio-model-settings");
   shell.append(el("h1","模型设置"),el("p","连接你信任的模型服务，为不同阶段选择合适的模型。"));
   const status=el("p","正在载入设置…","settings-status"); status.setAttribute("role","status"); shell.append(status);
@@ -106,8 +107,8 @@ export function mountModelSettings(root,options) {
     const catalog=el("datalist");catalog.id="studio-model-catalog"; for(const id of testJob?.result_data?.models || []) catalog.append(Object.assign(el("option"),{value:id}));pf.append(catalog);
     const structured=selectField(pf,"structured_output","结构化响应",[["tools","工具调用（默认）"],["json_schema","JSON Schema"]],p.structured_output || "tools");
     const advanced=el("details");advanced.append(el("summary","高级参数"));const af=el("div");advanced.append(af);pf.append(advanced);
-    const tokens=field(af,"max_tokens","输出 Token 上限","number",p.max_tokens || 8192);tokens.min=256;tokens.max=16384;
-    const timeout=field(af,"timeout_seconds","单次调用超时（秒）","number",p.timeout_seconds || 180);timeout.min=10;timeout.max=300;
+    const tokens=field(af,"max_tokens","输出 Token 上限","number",p.max_tokens || 8192);tokens.min=256;tokens.max=65536;
+    const timeout=field(af,"timeout_seconds","单次调用超时（秒）","number",p.timeout_seconds || 180);timeout.min=10;timeout.max=600;
     const temperature=field(af,"temperature","Temperature（留空由服务商决定）","number",p.temperature ?? "");temperature.min=0;temperature.max=1;temperature.step=.1;
     const reasoning=selectField(af,"reasoning_effort","推理强度（模型支持时）",[["","默认"],["low","低"],["medium","中"],["high","高"]],p.reasoning_effort || "");
     const syncCapabilities=()=>{
@@ -145,6 +146,48 @@ export function mountModelSettings(root,options) {
     const dsave=action("保存功能模型",()=>{});dsave.type="submit";dsave.disabled=!firstProfile;df.append(dsave);
     df.addEventListener("submit",event=>{event.preventDefault();run(dsave,()=>mutate("/api/v1/model-settings",{expected_hash:data.version?.record_hash || null,
       settings:{default:defaultId, ...Object.fromEntries([...new FormData(df)].map(([key,value])=>[key,value || defaultId]))}},"PUT"));});
+    renderTaskModels(section("单个任务的模型"));
+  }
+  async function renderTaskModels(target) {
+    const generation=++taskGeneration;
+    target.append(el("p","需要时为已有任务单独选择模型。修改后需重新生成方案并确认；运行中的任务不能修改。","muted"));
+    const message=el("p","正在读取任务…");message.setAttribute("role","status");target.append(message);
+    const detail=el("div");target.append(detail);
+    try {
+      const tasks=await requestJSON("/api/v1/tasks");
+      if(generation!==taskGeneration || !target.isConnected)return;
+      if(!tasks.length){message.textContent="还没有贡献任务。";return;}
+      const selector=selectField(target,"task_id","选择任务",[["","请选择任务"],...tasks.map(t=>[t.id,`${t.repository_full_name || "贡献任务"} · ${t.opportunity_title || "未命名任务"}`])],taskSelection);
+      async function selectTask() {
+        taskSelection=selector.value;detail.replaceChildren();
+        if(!taskSelection){message.textContent="选择任务后查看当前模型。";return;}
+        const selected=taskSelection;message.textContent="正在读取任务模型…";
+        try {
+          const task=await requestJSON(`/api/v1/tasks/${encodeURIComponent(selected)}/workbench`);
+          if(generation!==taskGeneration || selector.value!==selected || !target.isConnected)return;
+          const editable=task.state==="planning" && !task.busy && !task.conversation?.pending_count && !task.conversation?.paused;
+          message.textContent=editable ? "当前选择仅用于这个任务。" : "请先在对话中处理完补充信息，并回到空闲的方案讨论状态后修改。";
+          const form=el("form");detail.replaceChildren(form);
+          const profiles=task.model_profiles || {}, choices=[["","使用系统配置"],...data.profiles.map(p=>[p.id,p.payload.name])];
+          for(const id of Object.values(profiles))if(id && !choices.some(c=>c[0]===id))choices.push([id,"已绑定的历史模型版本"]);
+          const controls=[];
+          for(const [stage,title] of [["analysis","机会分析"],["planning","方案讨论"],["implementation","代码实现"],["review","独立审查"]]) {
+            const control=selectField(form,stage,title,choices,profiles[stage] || "");control.disabled=!editable;controls.push(control);
+          }
+          const save=action("应用到此任务",()=>{});save.type="submit";form.append(save);
+          const changed=()=>controls.some(c=>(profiles[c.name] || "")!==c.value);
+          const sync=()=>{save.disabled=!editable || !changed();};controls.forEach(c=>c.addEventListener("change",sync));sync();
+          form.addEventListener("submit",async event=>{
+            event.preventDefault();if(save.disabled)return;save.disabled=true;controls.forEach(c=>c.disabled=true);
+            try {
+              await mutate(`/api/v1/tasks/${encodeURIComponent(selected)}/workbench/models`,{expected_hash:task.model_binding_hash,profiles:Object.fromEntries(controls.map(c=>[c.name,c.value || null]))});
+              await selectTask();message.textContent="任务模型已更新。请返回对话，重新生成方案并确认后开始。";await options.onSaved?.();
+            } catch(error){message.textContent=error.message;controls.forEach(c=>c.disabled=!editable);sync();}
+          });
+        }catch(error){if(selector.value===selected)message.textContent=error.message;}
+      }
+      selector.addEventListener("change",selectTask);await selectTask();
+    }catch(error){if(generation===taskGeneration)message.textContent=error.message;}
   }
   async function probe(profile,operation) {
     if(testJob && !["succeeded","failed","cancelled","timed_out"].includes(testJob.state)) { status.textContent="请等待或取消当前连接测试。"; return; }

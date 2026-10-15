@@ -232,6 +232,11 @@ def test_plan_chat_edit_approve_restart_and_no_writes(tmp_path):
         )
         session.commit()
         assert child.parent_version_id == plan.id
+        receipt = wb.latest(task_id, "assistant_message")
+        assert receipt.plan_version_id == child.id
+        assert receipt.payload["plan_receipt"] == {"status": "saved", "plan_id": child.id, "execution_started": False}
+        assert wb.save(task_id, request, context_hash=context.record_hash, key="manual").id == child.id
+        assert wb.latest(task_id, "assistant_message").id == receipt.id
         job = authorize_execution(
             wb,
             task_id,
@@ -480,7 +485,7 @@ def automatic_fixture(tmp_path, configure_models=None):
         wb.append(
             task_id,
             "context_ready",
-            {**context.payload, "archive_hash": archive_hash},
+            {**wb.latest(task_id, "context_ready").payload, "archive_hash": archive_hash},
             key="real-archive",
         )
         wb.request(
@@ -543,6 +548,9 @@ def automatic_fixture(tmp_path, configure_models=None):
             worker_id="review",
         ),
     ]
+    from app.sandbox_worker.workspace_jobs import WorkspacePreparationWorker
+    workers.append(WorkspacePreparationWorker(db, settings, FakeImplementRuntime(), FakeVerifyRuntime(),
+        None, None, worker_id="prepare"))
     return db, settings, task_id, workers, code, review
 
 
@@ -592,7 +600,7 @@ def populate_round(code, review, *, verdict="pass"):
 def drive_round(db, settings, task_id, workers):
     from app.contribution_workflow import _advance
 
-    for _ in range(7):
+    for _ in range(10):
         for worker in workers:
             job = asyncio.run(worker.run_once())
             if job:
@@ -676,8 +684,13 @@ def test_automatic_repairs_are_limited_to_two(tmp_path):
     from app.models import ExecutionAttempt
 
     db, settings, task_id, workers, code, review = automatic_fixture(tmp_path)
-    for _ in range(3):
+    for round_number in range(3):
         populate_round(code, review, verdict="block")
+        if round_number:
+            proposal = json.loads(code.contents[-1])
+            proposal["operations"][0]["expected_prior_hash"] = hashlib.sha256(
+                b"def preserved_api():\n    return True\n").hexdigest()
+            code.contents[-1] = json.dumps(proposal)
     for _ in range(35):
         for worker in workers:
             job = asyncio.run(worker.run_once())
@@ -841,6 +854,9 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
         "0030_model_settings",
         "0031_task_visibility",
         "0032_minimax_reviews",
+        "0033_snapshot_assessments",
+        "0034_execution_baselines",
+        "0035_workspace_scopes",
     )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash
@@ -933,3 +949,50 @@ def test_unchanged_plan_gets_new_version_when_code_evidence_changes(tmp_path):
         )
         with pytest.raises(WorkbenchError, match="已过期"):
             wb.binding(task_id, parent.id)
+
+
+def test_authorize_execution_requires_new_consent_after_task_state_change(tmp_path):
+    from app.contribution_workflow import authorize_execution
+    from app.task_states import ContributionTaskStateService
+
+    db, settings, task_id, content, _ = seeded(tmp_path)
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        from app.schemas import PlanVersionCreateRequest
+        req = PlanVersionCreateRequest(
+            **{k: v for k, v in content.hash_payload().items() if k != "schema_version"}
+        )
+        plan = wb.save(
+            task_id,
+            req,
+            context_hash=wb.latest(task_id, "context_ready").record_hash,
+            key="init-plan",
+        )
+        session.commit()
+        states = ContributionTaskStateService(session)
+        current = states.current(task_id)
+        current = states.transition(
+            task_id,
+            expected_sequence=current.sequence,
+            expected_record_hash=current.record_hash,
+            to_state="plan_approved",
+            reason_code="workbench_execute",
+        )
+        states.transition(
+            task_id,
+            expected_sequence=current.sequence,
+            expected_record_hash=current.record_hash,
+            to_state="planning",
+            reason_code="user_replan",
+        )
+        session.commit()
+        assert plan.task_state_record_hash != states.current(task_id).record_hash
+        with pytest.raises(WorkbenchError, match="重新确认"):
+            authorize_execution(wb, task_id, plan_id=plan.id, plan_hash=plan.record_hash,
+                                key="rebind-exec", settings=settings)
+        assert wb.latest_plan(task_id).id == plan.id
+        new_plan = wb.save(task_id, req.model_copy(update={"parent_version_id": plan.id}),
+            context_hash=wb.latest(task_id, "context_ready").record_hash, key="explicit-new-plan")
+        job = authorize_execution(wb, task_id, plan_id=new_plan.id, plan_hash=new_plan.record_hash,
+                                  key="new-consent", settings=settings)
+        assert job.payload["plan_id"] == new_plan.id

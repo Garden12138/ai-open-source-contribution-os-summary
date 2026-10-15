@@ -23,6 +23,7 @@ from app.models import (
 )
 from app.provenance import content_hash
 from app.security import ensure_no_sensitive_data, redact_text
+from app.change_scope import assess_change_scope
 
 
 GOAL_WEIGHTS: dict[str, dict[str, float]] = {
@@ -249,6 +250,7 @@ class ProductExperienceService:
         default_languages: Iterable[str],
         goal: str | None = None,
         analysis_filter: str = "all",
+        small_change_only: bool = False,
         include_dismissed: bool = False,
         limit: int = 50,
         offset: int = 0,
@@ -276,6 +278,8 @@ class ProductExperienceService:
                 "analyzed_total": 0,
                 "recommended_total": 0,
                 "pending_analysis_total": 0,
+                "small_change_total": 0,
+                "small_change_only": small_change_only,
                 "items": [],
             }
         candidates = self._scan_candidates(scan.id)
@@ -299,6 +303,9 @@ class ProductExperienceService:
             items = [
                 item for item in items if item["disposition_state"] != "dismissed"
             ]
+        small_change_total = sum(item["change_scope"]["classification"] == "likely_small" for item in items)
+        if small_change_only:
+            items = [item for item in items if item["change_scope"]["classification"] == "likely_small"]
         analyzed_total = sum(
             item["analysis_status"] == "analyzed" for item in items
         )
@@ -333,6 +340,8 @@ class ProductExperienceService:
             "analyzed_total": analyzed_total,
             "recommended_total": recommended_total,
             "pending_analysis_total": pending_analysis_total,
+            "small_change_total": small_change_total,
+            "small_change_only": small_change_only,
             "items": items[offset : offset + limit],
         }
 
@@ -625,7 +634,7 @@ class ProductExperienceService:
             personalized -= 15
         analysis = self.session.scalar(
             select(AnalysisVersion)
-            .where(AnalysisVersion.snapshot_id == snapshot.id)
+            .where(AnalysisVersion.snapshot_id == snapshot.id, AnalysisVersion.schema_version == "1")
             .order_by(desc(AnalysisVersion.created_at))
             .limit(1)
         )
@@ -684,6 +693,12 @@ class ProductExperienceService:
             "competition_level": _level(components.get("competition", 0)),
             "impact_level": _level(components.get("project_impact", 0)),
             "effort": effort if isinstance(effort, dict) else None,
+            "change_scope": assess_change_scope(
+                title=str(snapshot.issue_data.get("title", "")),
+                body=str(snapshot.issue_data.get("body", "")),
+                labels=list(snapshot.issue_data.get("labels", [])),
+                effort=effort if isinstance(effort, dict) else None,
+            ),
             "next_steps": structured.get("next_steps", []),
             "maintainer_questions": structured.get("maintainer_questions", []),
             "analysis_version_id": analysis.id if analysis else None,

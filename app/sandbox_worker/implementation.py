@@ -5,14 +5,17 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import os
 import re
 import signal
 import tempfile
+
+logger = logging.getLogger(__name__)
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Protocol
 from uuid import uuid4
 
@@ -740,6 +743,8 @@ class ImplementExecution:
 
 
 class ImplementRuntime(Protocol):
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "ImplementRuntime": ...
+
     async def create_workspace(
         self,
         *,
@@ -840,8 +845,9 @@ class ImplementService:
                 "ChangeSet contains a path outside the approved plan"
             )
         archive.verify()
+        runtime = self.runtime.for_workspace_scope(spec.workspace_paths) if spec.workspace_paths else self.runtime
         if workspace is None:
-            workspace = await self.runtime.create_workspace(
+            workspace = await runtime.create_workspace(
                 image_digest=spec.runner_image_digest,
                 policy=self.policy,
             )
@@ -853,13 +859,13 @@ class ImplementService:
                 "Implementation workspace does not match the JobSpec"
             )
         try:
-            await self.runtime.materialize(
+            await runtime.materialize(
                 workspace=workspace,
                 archive=archive,
                 policy=self.policy,
             )
             archive.verify()
-            inspection = await self.runtime.apply(
+            inspection = await runtime.apply(
                 workspace=workspace,
                 change_set=change_set,
                 allowed_change_paths=spec.allowed_change_paths,
@@ -884,7 +890,7 @@ class ImplementService:
                 result=result,
             )
         except BaseException:
-            await self.runtime.destroy(workspace)
+            await runtime.destroy(workspace)
             raise
 
 
@@ -905,6 +911,13 @@ class DockerImplementRuntime:
             raise ValueError("Implementation Docker executable is invalid")
         self.docker_environment = dict(docker_environment)
         self.docker_executable = docker_executable
+        self.workspace_paths: tuple[str, ...] = ()
+
+    def for_workspace_scope(self, paths: tuple[str, ...]) -> "DockerImplementRuntime":
+        from copy import copy
+        runtime = copy(self)
+        runtime.workspace_paths = paths
+        return runtime
 
     async def create_workspace(
         self,
@@ -983,17 +996,20 @@ class DockerImplementRuntime:
     ) -> None:
         _workspace_matches(workspace, policy)
         name = f"contribos-implement-materialize-{uuid4().hex}"
-        argv = self.build_materialize_argv(
-            workspace=workspace,
-            archive=archive,
-            policy=policy,
-            container_name=name,
-        )
-        result = await self._container(
-            argv,
-            container_name=name,
-            timeout_seconds=policy.timeout_seconds,
-        )
+        from app.sandbox_worker.coding_context import DockerCodingContextRuntime
+        with tempfile.TemporaryDirectory(prefix="contribos-implement-input-") as tmp:
+            staged = DockerCodingContextRuntime(docker_environment=self.docker_environment)._stage_archive(archive, Path(tmp))
+            argv = self.build_materialize_argv(
+                workspace=workspace,
+                archive=staged,
+                policy=policy,
+                container_name=name,
+            )
+            result = await self._container(
+                argv,
+                container_name=name,
+                timeout_seconds=policy.timeout_seconds,
+            )
         if result.strip() != b"sandbox-materialize-v1":
             raise ImplementationError(
                 "Implementation materializer returned an invalid response"
@@ -1021,7 +1037,7 @@ class DockerImplementRuntime:
             "--mount",
             (
                 f"type=bind,src={archive.path},dst=/input/repository.tar,"
-                "readonly,bind-propagation=rprivate"
+                "readonly,bind-propagation=rslave"
             ),
             "--mount",
             f"type=volume,src={workspace.volume_name},dst=/output",
@@ -1033,6 +1049,7 @@ class DockerImplementRuntime:
             _MATERIALIZE_SCRIPT,
             archive.repository_full_name.rsplit("/", 1)[1],
             archive.base_commit_sha,
+            *((json.dumps(self.workspace_paths),) if self.workspace_paths else ()),
         )
 
     async def apply(
@@ -1066,6 +1083,10 @@ class DockerImplementRuntime:
         with tempfile.TemporaryDirectory(
             prefix="contribos-change-set-"
         ) as temporary:
+            try:
+                os.chmod(temporary, 0o755)
+            except OSError:
+                pass
             change_path = os.path.join(temporary, "change-set.json")
             with open(change_path, "xb") as handle:
                 handle.write(encoded)
@@ -1121,7 +1142,7 @@ class DockerImplementRuntime:
             (
                 f"type=bind,src={change_set_path},"
                 "dst=/input/change-set.json,readonly,"
-                "bind-propagation=rprivate"
+                "bind-propagation=rslave"
             ),
             "--entrypoint",
             "python3",
@@ -1274,6 +1295,8 @@ class DockerImplementRuntime:
             or stderr
             or len(stdout) > MAX_IMPLEMENT_OUTPUT_BYTES
         ):
+            logger.error("Sandbox container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
+                         process.returncode, len(stderr), len(stdout))
             raise ImplementationError(
                 "Implementation runtime failed with a redacted error"
             )

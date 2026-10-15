@@ -30,7 +30,7 @@ class AnalysisHistoryConflictError(AnalysisHistoryError):
 @dataclass(frozen=True, slots=True)
 class AnalysisVersionSummary:
     id: str
-    job_id: str
+    job_id: str | None
     opportunity_id: int
     snapshot_id: str
     score_version_id: str

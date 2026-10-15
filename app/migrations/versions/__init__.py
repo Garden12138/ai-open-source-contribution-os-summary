@@ -1,4 +1,6 @@
 from app.migrations.core import Migration
+from app.migrations.versions.v0034_execution_baselines import MIGRATION as EXECUTION_BASELINES
+from app.migrations.versions.v0035_workspace_scopes import MIGRATION as WORKSPACE_SCOPES
 from app.migrations.versions.v0001_phase1 import MIGRATION as PHASE1_BASELINE
 from app.migrations.versions.v0002_provenance import MIGRATION as PROVENANCE
 from app.migrations.versions.v0003_jobs import MIGRATION as JOBS
@@ -83,6 +85,8 @@ from app.migrations.versions.v0030_model_settings import MIGRATION as MODEL_SETT
 from app.migrations.versions.v0031_task_visibility import MIGRATION as TASK_VISIBILITY
 from app.migrations.versions.v0032_minimax_reviews import MIGRATION as MINIMAX_REVIEWS
 
+from app.migrations.versions.v0033_snapshot_assessments import MIGRATION as SNAPSHOT_ASSESSMENTS
+
 MIGRATIONS: tuple[Migration, ...] = (
     PHASE1_BASELINE,
     PROVENANCE,
@@ -116,6 +120,9 @@ MIGRATIONS: tuple[Migration, ...] = (
     MODEL_SETTINGS,
     TASK_VISIBILITY,
     MINIMAX_REVIEWS,
+    SNAPSHOT_ASSESSMENTS,
+    EXECUTION_BASELINES,
+    WORKSPACE_SCOPES,
 )
 
 __all__ = ["MIGRATIONS"]

@@ -170,7 +170,7 @@ class ContainerIsolationPolicy:
             "type=bind,"
             f"src={snapshot.source},"
             f"dst={CONTAINER_WORKSPACE},"
-            "readonly,bind-propagation=rprivate"
+            "readonly,bind-propagation=rslave"
         )
         argv: list[str] = [
             docker_executable,
@@ -228,7 +228,7 @@ class ContainerIsolationPolicy:
                         "type=bind,"
                         f"src={resolved_schema},"
                         f"dst={CONTAINER_SCHEMA_PATH},"
-                        "readonly,bind-propagation=rprivate"
+                        "readonly,bind-propagation=rslave"
                     ),
                 )
             )

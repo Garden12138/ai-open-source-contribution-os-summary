@@ -3,7 +3,7 @@
 from pydantic import ValidationError
 
 MESSAGES = {
-    "planning_outcome_missing": "规划模型只返回了说明，未提供问题、补读文件或可编辑方案。上下文已保留。",
+    "planning_outcome_missing": "规划模型返回了空回复，未提供说明、问题、补读文件或方案。上下文已保留。",
     "planning_outcome_conflict": "规划模型同时返回了多个处理分支，无法确定是提问、补读文件还是提交方案。上下文已保留。",
     "planning_question_ids_duplicate": "规划模型返回的问题编号重复，未保存该回复。上下文已保留。",
     "planning_sensitive_output": "规划模型回复含疑似凭证内容，已拒绝保存。上下文已保留。",
@@ -59,6 +59,25 @@ SAFE_FIELDS = frozenset(
         "questions_for_maintainer",
     }
 )
+
+
+def planning_domain_details(error: ValueError) -> dict:
+    """Map only our fixed validator messages; never echo rejected values."""
+    message = str(error)
+    names = {
+        "Plan goal": "goal", "Plan command ID": "commands_to_run.command_id",
+        "Plan command purpose": "commands_to_run.purpose",
+        "Plan command argv": "commands_to_run.argv",
+        "Plan command working directory": "commands_to_run.working_directory",
+        "Plan commands": "commands_to_run",
+        **{name.replace("_", " "): name for name in SAFE_FIELDS},
+    }
+    field = next((field for prefix, field in names.items()
+                  if message.startswith(prefix + " ")), "plan")
+    constraint = ("unsafe_path" if "repository" in message else
+                  "duplicate_or_count" if "unique" in message else "invalid_value")
+    return {"reason_code": "planning_output_invalid", "validation_types": ["value_error"],
+            "fields": [field], "constraint": constraint}
 
 
 def planning_validation_details(error: ValidationError) -> dict:

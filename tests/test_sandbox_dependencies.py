@@ -98,6 +98,20 @@ def test_dependency_plan_is_signed_and_proxy_allowlist_is_fixed() -> None:
     assert signer.verify(signed) == plan
     assert b"d" * 32 not in signed.to_bytes()
 
+    workspace = replace(plan, version="workspace-dependency-plan-v2", source_kind="explore",
+                        manifests=(DependencyManifest("pyproject.toml", "3"*64),))
+    dynamic = replace(workspace, version="workspace-dependency-plan-v3", metadata_strategy="wheel-metadata-v1")
+    assert "metadata_strategy" not in plan.to_wire() and "metadata_strategy" not in workspace.to_wire()
+    assert dynamic.to_wire()["metadata_strategy"] == "wheel-metadata-v1"
+    assert dynamic.plan_hash != workspace.plan_hash
+    assert signer.verify(signer.sign(dynamic)) == dynamic
+    with pytest.raises(ValueError, match="strategy"):
+        replace(dynamic, version="workspace-dependency-plan-v2")
+    with pytest.raises(ValueError, match="strategy"):
+        replace(workspace, metadata_strategy="wheel-metadata-v1")
+    with pytest.raises(ValueError, match="Python"):
+        replace(dynamic, ecosystem=DependencyEcosystem.NODE)
+
     with pytest.raises(ValueError, match="allowlist"):
         replace(
             python_proxy,

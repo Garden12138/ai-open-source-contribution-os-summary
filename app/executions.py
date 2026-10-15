@@ -697,6 +697,7 @@ class ExecutionAttemptService:
             raise ExecutionStageTransitionError(
                 "Only a pending execution stage can build a JobSpec"
             )
+        from app.workspace_scope import attempt_workspace_paths
         return JobSpec(
             spec_id=(
                 f"{attempt.id}:{stage.value}:{current.sequence}"
@@ -728,6 +729,7 @@ class ExecutionAttemptService:
             input_artifact_hashes=tuple(current.input_hashes),
             allowed_change_paths=tuple(allowed_change_paths),
             commands=tuple(commands),
+            workspace_paths=attempt_workspace_paths(self.session, attempt),
         )
 
     def mark_running(

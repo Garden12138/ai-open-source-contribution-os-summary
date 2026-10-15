@@ -6,6 +6,11 @@ from sqlalchemy import Connection
 
 def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -> None:
     execute = getattr(connection, "exec_driver_sql", connection.execute)
+    execute("DROP TRIGGER IF EXISTS workbench_workspace_scope")
+    execute("DELETE FROM _schema_migrations WHERE revision='0035_workspace_scopes'")
+    execute("DROP TRIGGER IF EXISTS workbench_baseline_reference")
+    execute("DELETE FROM _schema_migrations WHERE revision='0034_execution_baselines'")
+    execute("DELETE FROM _schema_migrations WHERE revision='0033_snapshot_assessments'")
     execute("DELETE FROM _schema_migrations WHERE revision='0032_minimax_reviews'")
     triggers = execute("SELECT name FROM sqlite_master WHERE type='trigger' AND sql LIKE '%task_visibility_versions%'").fetchall()
     for (name,) in triggers:

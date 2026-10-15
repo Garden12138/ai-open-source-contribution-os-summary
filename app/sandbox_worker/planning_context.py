@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import json
+import hashlib
 import tempfile
 from pathlib import Path
 from uuid import uuid4
@@ -15,6 +16,11 @@ from app.sandbox_worker.coding_context import (
     _safe_path,
     MAX_CONTEXT_BYTES,
 )
+
+# Planning reads data only. An explicitly selected file can use the existing
+# 700 KB aggregate read budget; implementation's separate file cap is unchanged.
+MAX_PLANNING_READ_BYTES = 700_000
+MAX_AUTOMATIC_PLANNING_FILE_BYTES = 256_000
 
 
 class DockerPlanningContextRuntime(DockerCodingContextRuntime):
@@ -69,8 +75,23 @@ class DockerPlanningContextRuntime(DockerCodingContextRuntime):
             raise CodingContextError("Planning context exceeds limits")
         for path in value["inventory"]:
             _safe_path(path)
+        total_bytes = 0
         for entry in value["entries"]:
-            CodingContextEntry(**entry)
+            if set(entry) != {"path", "prior_hash", "content", "executable"}:
+                raise CodingContextError("Invalid planning entry")
+            content = entry["content"]
+            data = content.encode("utf-8") if isinstance(content, str) else b""
+            total_bytes += len(data)
+            if len(data) > MAX_AUTOMATIC_PLANNING_FILE_BYTES:
+                _safe_path(entry["path"])
+                if (entry["path"] not in paths or len(data) > MAX_PLANNING_READ_BYTES
+                        or entry["prior_hash"] != hashlib.sha256(data).hexdigest()
+                        or not isinstance(entry["executable"], bool)):
+                    raise CodingContextError("Invalid explicit planning file")
+            else:
+                CodingContextEntry(**entry)
+            if total_bytes > MAX_PLANNING_READ_BYTES:
+                raise CodingContextError("Planning read exceeds aggregate budget")
             if entry["content"] is not None and contains_sensitive_text(entry["content"]):
                 # Keep the path in the inventory: this is an existing but
                 # unavailable file, never evidence for a new/replaced file.
@@ -103,24 +124,43 @@ with tarfile.open("/input/repository.tar", "r:*") as bundle:
             raise SystemExit(12)
         if not member.isfile() or member.issym() or member.islnk():
             continue
+        ext = PurePosixPath(relative).suffix.lower()
+        if ext in {
+            ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico",
+            ".mp3", ".mp4", ".wav", ".ogg",
+            ".woff", ".woff2", ".ttf", ".eot", ".otf",
+            ".zip", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".7z",
+            ".pdf", ".exe", ".dll", ".so", ".dylib", ".bin",
+            ".pyc", ".pyo", ".pyd", ".class",
+        } and (not request.get("paths") or relative not in request["paths"]):
+            continue
         files[relative] = member
     inventory = sorted(files)
     def rank(path):
         lower = path.lower()
         name = PurePosixPath(lower).name
-        docs = name.startswith(("readme", "contributing", "agents.md")) or name in {
+        localized = any(part in {"i18n", "locales", "translations"} for part in PurePosixPath(lower).parts)
+        docs = (name.startswith(("readme", "contributing", "agents.md")) and not localized) or name in {
             "pyproject.toml", "package.json", "pytest.ini", "tsconfig.json", "setup.cfg"}
         hits = sum(term in lower for term in terms)
-        return (-int(docs), -hits, len(PurePosixPath(path).parts), path)
-    paths = request.get("paths") or sorted(files, key=rank)[:48]
+        return (int(localized), -hits, -int(docs), len(PurePosixPath(path).parts), path)
+    explicit = bool(request.get("paths"))
+    # Learn project conventions before filling the rest with Issue-related code.
+    foundations = sorted(p for p in files if "/" not in p and (
+        PurePosixPath(p).name.lower().startswith(("readme", "contributing", "agents.md"))
+        or p in {"pyproject.toml", "package.json", "setup.cfg", "setup.py", "pytest.ini", "tox.ini"}
+    ))[:12]
+    paths = request.get("paths") or list(dict.fromkeys(foundations + sorted(files, key=rank)))[:48]
     entries = []
     size = 0
-    for path in sorted(set(paths)):
+    for path in dict.fromkeys(paths):
         member = files.get(path)
         if member is None:
             entries.append(dict(path=path, prior_hash=None, content=None, executable=None))
             continue
-        if member.size > 256000:
+        if member.size > (700000 if explicit else 256000):
+            if explicit:
+                entries.append(dict(path=path, prior_hash=None, content=None, executable=None))
             continue
         data = bundle.extractfile(member).read(member.size + 1)
         if len(data) != member.size:

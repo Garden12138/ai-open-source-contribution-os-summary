@@ -17,6 +17,7 @@ from app.security import contains_sensitive_text, ensure_no_sensitive_data
 
 SANDBOX_POLICY_VERSION = "sandbox-policy-v1"
 JOB_SPEC_VERSION = "sandbox-job-spec-v1"
+SCOPED_JOB_SPEC_VERSION = "sandbox-job-spec-v2"
 JOB_SPEC_SIGNATURE_VERSION = "sandbox-job-spec-hmac-sha256-v1"
 # Leaves headroom inside the 64 KiB sandbox-worker-v1 request envelope.
 MAX_JOB_SPEC_BYTES = 60_000
@@ -336,10 +337,17 @@ class JobSpec:
     allowed_change_paths: tuple[str, ...]
     commands: tuple[SandboxCommand, ...]
     version: str = JOB_SPEC_VERSION
+    workspace_paths: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if self.version != JOB_SPEC_VERSION:
+        if self.workspace_paths and self.version == JOB_SPEC_VERSION:
+            object.__setattr__(self, "version", SCOPED_JOB_SPEC_VERSION)
+        if self.version not in {JOB_SPEC_VERSION, SCOPED_JOB_SPEC_VERSION}:
             raise SandboxSpecError("JobSpec version is unsupported")
+        scope = tuple(_relative_path(p, name="workspace path") for p in self.workspace_paths)
+        if len(scope) > 64 or len(set(scope)) != len(scope) or (self.version == SCOPED_JOB_SPEC_VERSION and not scope):
+            raise SandboxSpecError("JobSpec workspace scope is invalid")
+        object.__setattr__(self, "workspace_paths", scope)
         try:
             stage = SandboxStage(self.stage)
         except (TypeError, ValueError) as exc:
@@ -404,6 +412,8 @@ class JobSpec:
             raise SandboxSpecError(
                 "JobSpec allowed change paths are invalid"
             )
+        if scope and any(not any(p == root or p.startswith(root + "/") for root in scope) for p in paths):
+            raise SandboxSpecError("Allowed changes escape the workspace scope")
         commands = tuple(self.commands)
         if (
             len(commands) > 100
@@ -438,7 +448,7 @@ class JobSpec:
         return content_hash(self.to_wire())
 
     def to_wire(self) -> dict[str, object]:
-        return {
+        value = {
             "version": self.version,
             "spec_id": self.spec_id,
             "execution_attempt_id": self.execution_attempt_id,
@@ -469,6 +479,9 @@ class JobSpec:
             "allowed_change_paths": list(self.allowed_change_paths),
             "commands": [command.to_wire() for command in self.commands],
         }
+        if self.workspace_paths:
+            value["workspace_paths"] = list(self.workspace_paths)
+        return value
 
     @classmethod
     def from_wire(cls, value: object) -> "JobSpec":
@@ -503,10 +516,13 @@ class JobSpec:
             "allowed_change_paths",
             "commands",
         }
+        if isinstance(value, dict) and value.get("version") == SCOPED_JOB_SPEC_VERSION:
+            fields.add("workspace_paths")
         raw = _exact_object(value, fields=fields, name="JobSpec")
         try:
             return cls(
                 version=raw["version"],
+                workspace_paths=tuple(raw.get("workspace_paths", ())),
                 spec_id=raw["spec_id"],
                 execution_attempt_id=raw["execution_attempt_id"],
                 correlation_id=raw["correlation_id"],

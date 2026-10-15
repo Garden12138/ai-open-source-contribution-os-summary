@@ -1,0 +1,92 @@
+{
+  "version": "sandbox-readonly-acceptance-v1",
+  "standalone_acceptance": true,
+  "business_execution_started": false,
+  "task_id": "82c0ec73-3be6-4499-b806-45cd31430722",
+  "plan_id": "fd7f4bfa-c672-4e39-9459-a7f1a0406704",
+  "plan_hash": "5281458eba39970badf14cee07de6ec57f2583b084ef1d45bd474d6090b8505d",
+  "base_sha": "c364180e5be52f0cdc00fbc88f9462603569f4e2",
+  "archive_hash": "62d81c44ac98dfdc2578add379cb77fcdabf11dc6210c5807e28b794ff0a2cab",
+  "workspace_paths": [
+    "LICENSE",
+    "README.md",
+    "python"
+  ],
+  "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+  "platform": "macOS arm64 / OrbStack",
+  "dependency_spec_hash": "b91a2fe440ba1013103ec791bbe941c280f87c4d100a6b86e31cc46357cd55a9",
+  "dependency_result_hash": "421a7803b3556c2d6e8236d735314203688cad3774aa4464b6cd7edab2691533",
+  "inventory_unchanged": true,
+  "commands": [
+    {
+      "command_id": "pytest-baseline-public-suite",
+      "command_hash": "402d302c4093eec4083738436e1cc401d783ffae401c153bf735921ecea68b6a",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-10T09:21:00.426360Z",
+      "completed_at": "2026-10-10T09:21:01.147270Z",
+      "duration_ms": 720,
+      "stdout_hash": "b4dc75bc23d337934d4e0071e1099112cf4c845e79017dd003b1f8c755590eb6",
+      "stdout_bytes": 110,
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "summary": "5 passed, 27 skipped in 0.27s"
+    },
+    {
+      "command_id": "pytest-full-package-after-change",
+      "command_hash": "6c5d729b05a581ed5e9155905de6d61fd1c660d9d7abd777b79f016e19633465",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-10T09:21:01.147391Z",
+      "completed_at": "2026-10-10T09:21:10.061611Z",
+      "duration_ms": 8914,
+      "stdout_hash": "ddb2e54d529f33425f526198e003c787fac5d90b13130be2e8f9008dedb6be50",
+      "stdout_bytes": 672,
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "summary": "531 passed, 27 skipped in 8.36s"
+    },
+    {
+      "command_id": "ruff-openai-src-tests",
+      "command_hash": "3cb6023cc2a4af766ec024f4bc6c5ff3f58b4ee5f17944b2c4de0c2000b11c59",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-10T09:21:10.061731Z",
+      "completed_at": "2026-10-10T09:21:10.082137Z",
+      "duration_ms": 20,
+      "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stdout_bytes": 19,
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "summary": "All checks passed!"
+    },
+    {
+      "command_id": "mypy-openai-src",
+      "command_hash": "c0f767cde211d5e46d07e3095e4e1a579d5ef90e8cbe7e74b22148db445929cb",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-10T09:21:10.082245Z",
+      "completed_at": "2026-10-10T09:21:32.343810Z",
+      "duration_ms": 22261,
+      "stdout_hash": "fe22d95914d7fdd98483ace256b7f2708db4be1255737e5d7cca4d16703ca242",
+      "stdout_bytes": 44,
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "summary": "Success: no issues found in 14 source files"
+    }
+  ],
+  "system_regression": {
+    "passed": 546,
+    "skipped": 14
+  },
+  "real_container_regression": {
+    "passed": 7
+  },
+  "business_attempts": 0,
+  "business_authorizations": 0,
+  "database_revision": "0035_workspace_scopes",
+  "historical_hashes_preserved": true,
+  "credential_findings": 0,
+  "linux_acceptance": "pending",
+  "typescript_workspace_acceptance": "pending"
+}

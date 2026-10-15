@@ -1049,26 +1049,23 @@ def _completion(
             retryable=False,
         )
     choice = choices[0]
+    message = choice.get("message") if isinstance(choice, Mapping) else None
+    content = _tool_call_arguments(message)
+    if not isinstance(content, str) or not content.strip():
+        content = message.get("content") if isinstance(message, Mapping) else None
     if isinstance(choice, Mapping) and choice.get("finish_reason") == "length":
         raise ProviderRunError(
             f"{error_prefix}_completion_truncated",
             f"{provider_label} completion exhausted its output-token budget",
             retryable=False,
         )
-    message = choice.get("message") if isinstance(choice, Mapping) else None
-    # Hosted models can include a natural-language explanation alongside the
-    # required structured-output tool call.  The tool arguments are the
-    # authoritative output: using the explanation would send non-JSON text to
-    # the strict local schema and citation validators.
-    content = _tool_call_arguments(message)
-    if not isinstance(content, str) or not content.strip():
-        content = message.get("content") if isinstance(message, Mapping) else None
     if not isinstance(content, str) or not content.strip():
         raise ProviderRunError(
             f"{error_prefix}_completion_invalid",
             f"{provider_label} completion response has no final content",
             retryable=False,
         )
+    content = normalize_completion_content(content)
     raw_usage = value.get("usage")
     usage = raw_usage if isinstance(raw_usage, Mapping) else {}
     return content, {
@@ -1082,6 +1079,174 @@ def _completion(
             usage.get("completion_tokens", usage.get("output_tokens", 0))
         ),
     }
+
+
+def unwrap_item_arrays(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        if set(value.keys()) in ({"item"}, {"items"}):
+            inner = next(iter(value.values()))
+            if isinstance(inner, list):
+                return [unwrap_item_arrays(x) for x in inner]
+            return [unwrap_item_arrays(inner)]
+        result = {}
+        for k, v in value.items():
+            unwrapped_v = unwrap_item_arrays(v)
+            if k in (
+                "questions_for_maintainer",
+                "risks",
+                "questions",
+                "read_paths",
+                "files_to_inspect",
+                "files_likely_to_change",
+                "implementation_steps",
+                "tests_to_add_or_run",
+                "acceptance_criteria",
+                "options",
+            ):
+                if unwrapped_v == "" or unwrapped_v is None:
+                    unwrapped_v = []
+                elif isinstance(unwrapped_v, str):
+                    unwrapped_v = [unwrapped_v]
+            elif k == "plan" and (unwrapped_v == "" or unwrapped_v == {}):
+                unwrapped_v = None
+            elif k in ("commands_to_run", "operations"):
+                if unwrapped_v == "" or unwrapped_v is None:
+                    unwrapped_v = []
+                elif isinstance(unwrapped_v, Mapping):
+                    unwrapped_v = [unwrapped_v]
+            elif k == "argv" and (unwrapped_v == "" or unwrapped_v is None):
+                unwrapped_v = []
+            result[k] = unwrapped_v
+        return result
+    if isinstance(value, list):
+        return [unwrap_item_arrays(x) for x in value]
+    return value
+
+
+def try_repair_truncated_json(text: str) -> str:
+    text = text.strip()
+    try:
+        json.loads(text, strict=False)
+        return text
+    except Exception:
+        pass
+
+    for attempt in range(min(len(text), 200)):
+        candidate = text if attempt == 0 else text[:-attempt].rstrip()
+        if not candidate:
+            break
+        while candidate and candidate[-1] in (",", ":"):
+            candidate = candidate[:-1].rstrip()
+        in_string = False
+        escape = False
+        stack = []
+        for ch in candidate:
+            if escape:
+                escape = False
+                continue
+            if ch == "\\":
+                escape = True
+                continue
+            if ch == '"':
+                in_string = not in_string
+                continue
+            if not in_string:
+                if ch in "{[":
+                    stack.append("}" if ch == "{" else "]")
+                elif ch in "}]":
+                    if stack and stack[-1] == ch:
+                        stack.pop()
+        repaired = candidate
+        if in_string:
+            repaired += '"'
+        while stack:
+            repaired += stack.pop()
+        try:
+            json.loads(repaired, strict=False)
+            return repaired
+        except Exception:
+            continue
+    return text
+
+
+def repair_unescaped_quotes(text: str) -> str:
+    current = text
+    for _ in range(50):
+        try:
+            json.loads(current, strict=False)
+            return current
+        except json.JSONDecodeError as exc:
+            msg = str(exc)
+            if any(k in msg for k in ("Expecting ','", "Expecting ':'", "Expecting property name")):
+                pos = exc.pos
+                q_idx = current.rfind('"', 0, pos)
+                if q_idx != -1 and (q_idx == 0 or current[q_idx - 1] != "\\"):
+                    current = current[:q_idx] + '\\"' + current[q_idx + 1:]
+                    continue
+            break
+        except Exception:
+            break
+    return current
+
+
+def normalize_completion_content(content: str) -> str:
+    if not isinstance(content, str) or not content.strip():
+        return content
+    stripped = content.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        if len(lines) >= 2 and lines[0].startswith("```") and lines[-1].strip() == "```":
+            stripped = "\n".join(lines[1:-1]).strip()
+    try:
+        parsed = json.loads(stripped, strict=False)
+        return canonical_json(unwrap_item_arrays(parsed))
+    except Exception:
+        pass
+
+    # Extract markdown code block if surrounded by conversational text
+    if "```" in stripped:
+        import re
+        match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", stripped)
+        if match:
+            candidate = match.group(1).strip()
+            try:
+                parsed = json.loads(candidate, strict=False)
+                return canonical_json(unwrap_item_arrays(parsed))
+            except Exception:
+                pass
+
+    # Extract JSON object if surrounded by preamble/postscript
+    if not stripped.startswith("{") and "{" in stripped and "}" in stripped:
+        start = stripped.find("{")
+        end = stripped.rfind("}")
+        candidate = stripped[start : end + 1]
+        try:
+            parsed = json.loads(candidate, strict=False)
+            return canonical_json(unwrap_item_arrays(parsed))
+        except Exception:
+            pass
+
+    # Try unescaped quotes repair
+    quote_repaired = repair_unescaped_quotes(stripped)
+    try:
+        parsed = json.loads(quote_repaired, strict=False)
+        return canonical_json(unwrap_item_arrays(parsed))
+    except Exception:
+        pass
+
+    # Try truncated repair on quote_repaired
+    trunc_repaired = try_repair_truncated_json(quote_repaired)
+    try:
+        parsed = json.loads(trunc_repaired, strict=False)
+        return canonical_json(unwrap_item_arrays(parsed))
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning(
+            "normalize_completion_content failed: %r; stripped_len=%d",
+            exc,
+            len(stripped),
+        )
+        return stripped
 
 
 def _tool_call_arguments(message: Mapping[str, Any] | None) -> str | None:

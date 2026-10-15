@@ -9,10 +9,10 @@
       content="每天从 GitHub 开源议题中筛选更值得投入的贡献机会。"
     >
     <title>开源机会雷达</title>
-    <link rel="stylesheet" href="/static/styles.css?v=workbench-v1">
-    <link rel="stylesheet" href="/static/studio.css?v=studio-detail-v1">
+    <link rel="stylesheet" href="/static/styles.css?v=pr-lifecycle-v13">
+    <link rel="stylesheet" href="/static/studio.css?v=conversation-agent-v1">
     <link rel="stylesheet" href="/static/execution-changes.css?v=execution-changes-v1">
-    <script src="/static/app.js?v=studio-detail-v1" type="module"></script>
+    <script src="/static/app.js?v=conversation-agent-v1" type="module"></script>
   </head>
   <body class="studio-app">
     <a class="skip-link" href="#main-content">跳到主要内容</a>
@@ -43,7 +43,7 @@
         </section>
 
         <div class="header-actions">
-          <a class="settings-link" href="#/settings" data-view-link="settings">模型设置</a>
+          <a class="settings-link" href="#/settings" data-view-link="settings">设置</a>
           <button id="theme-toggle" type="button" aria-label="切换深色模式">切换深色</button>
           <button class="preference-button" id="preference-button" type="button" hidden aria-expanded="false">
             调整偏好
@@ -180,6 +180,9 @@
                 <button class="dismissed-toggle" id="ai-filter-button" type="button" aria-pressed="false" disabled>
                   只看 AI 推荐
                 </button>
+                <button class="dismissed-toggle" id="small-change-toggle" type="button" aria-pressed="false" aria-describedby="small-change-hint">
+                  只看小改动
+                </button>
                 <button class="dismissed-toggle" id="dismissed-toggle" type="button" aria-pressed="false">
                   查看已忽略
                 </button>
@@ -209,6 +212,7 @@
             </button>
           </div>
 
+          <p class="small-change-hint" id="small-change-hint" hidden>依据本次扫描的 Issue 范围和已有分析初筛小改动；每次扫描会更新候选和数量。排除明显迁移、重写及复杂验证任务。实际改动量和执行环境仍需读代码确认。</p>
           <div class="state-panel" id="state-panel" role="status" aria-live="polite">
             <div class="loading-state" id="loading-state">
               <div class="skeleton-card" aria-hidden="true"></div>
@@ -264,6 +268,7 @@
           <div id="studio-task-root"></div>
         </section>
         <section class="product-view" id="settings-view" data-product-view="settings" hidden>
+          <div id="publisher-settings-root"></div>
           <div id="model-settings-root"></div>
         </section>
       </div>

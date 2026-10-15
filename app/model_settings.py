@@ -118,8 +118,8 @@ class ProfileInput(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     connection_id: str
     model: str = Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_.:@/-]+$")
-    max_tokens: int = Field(default=8192, ge=256, le=16384)
-    timeout_seconds: int = Field(default=180, ge=10, le=300)
+    max_tokens: int = Field(default=8192, ge=256, le=65536)
+    timeout_seconds: int = Field(default=180, ge=10, le=600)
     temperature: float | None = Field(default=None, ge=0, le=1)
     reasoning_effort: Literal["low", "medium", "high"] | None = None
     structured_output: Literal["tools", "json_schema"] = "tools"
@@ -337,6 +337,10 @@ def bind_job_model(session: Session, job: Job) -> None:
     stage = {
         "provider_analysis": "analysis",
         "planning_turn": "planning",
+        "execution_question": "planning",
+        "conversation_intent": "planning",
+        "publication_document": "planning",
+        "pr_update_document": "planning",
         "coding_turn": "implementation",
         "change_set_proposal": "implementation",
         "provider_review": "review",
@@ -348,7 +352,8 @@ def bind_job_model(session: Session, job: Job) -> None:
     service = ModelSettingsService(session)
     profile_id = job.payload.get("model_profile_id")
     expected = job.payload.get("expected_provider", {})
-    if not profile_id and expected.get("adapter_version") == "studio-model-v1":
+    from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
+    if not profile_id and expected.get("adapter_version") in {"studio-model-v1", PAIRED_ANALYSIS_ADAPTER_VERSION}:
         row = session.scalar(
             select(ModelConfigVersion).where(
                 ModelConfigVersion.record_hash == expected.get("model_version")
@@ -391,10 +396,11 @@ def analysis_runtime(request, session):
     if not identifier:
         return request.app.state.analysis_provider, request.app.state.analysis_budget
     profile = service.profile(identifier)
+    paired = profile["connection"]["provider"] != "nvidia_nim"
     return (
         CodexCLIAdapter(
-            runner_for_profile(request.app.state.settings, profile),
-            identity=profile_identity(profile),
+            runner_for_profile(request.app.state.settings, profile, paired_analysis=paired),
+            identity=profile_identity(profile, paired_analysis=paired),
         ),
         AnalysisBudget(max_duration_ms=840 * 5000),
     )
@@ -446,10 +452,14 @@ def configure_bound_worker(
         worker.runner, worker.identity = worker._legacy_model_runtime
     with worker.database.session() as session:
         profile = job_profile(session, job_id)
+        job = session.get(Job, job_id)
+        expected_adapter = (job.payload.get("expected_provider") or {}).get("adapter_version") if job else None
     if not profile:
         return
-    runner = runner_for_profile(settings, profile)
-    identity = profile_identity(profile)
+    from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
+    paired = analysis and expected_adapter == PAIRED_ANALYSIS_ADAPTER_VERSION
+    runner = runner_for_profile(settings, profile, paired_analysis=paired)
+    identity = profile_identity(profile, paired_analysis=paired)
     if analysis:
         worker.provider = CodexCLIAdapter(runner, identity=identity)
     elif planning:

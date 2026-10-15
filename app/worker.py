@@ -301,6 +301,8 @@ class ContribOSWorker:
         self._sync_product_experience(now=now)
         from app.contribution_workflow import advance_workflows
         advance_workflows(self.database, self.settings)
+        from app.conversation import advance_conversations
+        advance_conversations(self.database, self.settings)
         for worker in (self.planning_archive, self.contribution_start):
             completed = await worker.run_once(now=now)
             if completed is not None:
@@ -396,6 +398,9 @@ class ContribOSProviderWorker:
                 )
             )
         self.planning = None
+        self.execution_chat = None
+        self.conversation_intent = None
+        self.publication_document = None
         self.coding = None
         if settings.implementation_provider == "nvidia_nim" or settings.model_gateway_signing_key:
             broker = resolve_model_gateway_broker(settings)
@@ -449,6 +454,18 @@ class ContribOSProviderWorker:
                 worker.model_settings = settings
         if self.planning is not None:
             self.planning.resolve_profiles = True
+            from app.execution_chat import ExecutionQuestionWorker
+            self.execution_chat = ExecutionQuestionWorker(database, settings,
+                self.planning.provider, self.planning.identity, worker_id=worker_id)
+            self.execution_chat.resolve_profiles = True
+            from app.conversation import ConversationIntentWorker
+            self.conversation_intent = ConversationIntentWorker(database, settings,
+                self.planning.provider, self.planning.identity, worker_id=worker_id)
+            self.conversation_intent.resolve_profiles = True
+            from app.publication_documents import PublicationDocumentWorker
+            self.publication_document = PublicationDocumentWorker(database, settings,
+                self.planning.provider, self.planning.identity, worker_id=worker_id)
+            self.publication_document.resolve_profiles = True
         from app.model_test_worker import ModelTestWorker
         self.model_test = ModelTestWorker(database, settings, worker_id=worker_id)
 
@@ -456,6 +473,18 @@ class ContribOSProviderWorker:
         completed = await self.model_test.run_once(now=now)
         if completed is not None:
             return completed
+        if self.conversation_intent is not None:
+            completed = await self.conversation_intent.run_once(now=now)
+            if completed is not None:
+                return completed
+        if self.execution_chat is not None:
+            completed = await self.execution_chat.run_once(now=now)
+            if completed is not None:
+                return completed
+        if self.publication_document is not None:
+            completed = await self.publication_document.run_once(now=now)
+            if completed is not None:
+                return completed
         if self.planning is not None:
             completed = await self.planning.run_once(now=now)
             if completed is not None:
@@ -513,6 +542,14 @@ class ContribOSSandboxWorker:
             ),
             worker_id=worker_id,
         )
+        from app.sandbox_worker.dependency_jobs import DependencyJobWorker
+        from app.sandbox_worker.dependencies import DockerDependencyRuntime, DockerDependencyProxyRuntime
+        self.dependencies = DependencyJobWorker(database, settings,
+            DockerDependencyRuntime(docker_environment=docker_environment),
+            DockerDependencyProxyRuntime(docker_environment=docker_environment), worker_id=worker_id)
+        from app.sandbox_worker.workspace_jobs import WorkspacePreparationWorker
+        self.preparation = WorkspacePreparationWorker(database, settings, runtimes.implement, runtimes.verify,
+            self.dependencies.runtime, self.dependencies.proxy, worker_id=worker_id)
         self.execution = ExecutionStageWorker(
             database,
             signer,
@@ -533,6 +570,14 @@ class ContribOSSandboxWorker:
         completed = await self.context.run_once(now=now)
         if completed is not None:
             return completed
+        completed = await self.dependencies.run_once(now=now)
+        if completed is not None:
+            return completed
+        completed = await self.preparation.run_once(now=now)
+        if completed is not None:
+            return completed
+        await self.dependencies.cleanup()
+        await self.preparation.cleanup()
         return await self.execution.run_once(now=now)
 
     async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:

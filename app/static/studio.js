@@ -36,6 +36,20 @@ export function initStudioChrome() {
   });
 }
 
+const CHANGE_SCOPE_REASONS = {
+  text_or_link_fix: "文案、拼写或链接修复",
+  localized_fix: "局部参数、提示或边界修复",
+  bounded_scope: "描述限定了修改范围",
+  small_size_label: "维护者标注了小规模",
+  localized_documentation: "限定的文档链接或截图补充",
+  package_metadata_links: "项目元数据链接补充",
+  beginner_friendly: "标注适合首次贡献",
+  small_effort_estimate: "已有分析估计规模较小",
+};
+export function changeScopeSummary(scope) {
+  return (scope?.reason_codes || []).map(code => CHANGE_SCOPE_REASONS[code]).filter(Boolean).join("、") || "有局部改动线索";
+}
+
 export function compactOpportunity(pick, {open, save, dismiss}) {
   const opportunity = pick.opportunity || {};
   const product = pick.product_recommendation || {};
@@ -52,6 +66,9 @@ export function compactOpportunity(pick, {open, save, dismiss}) {
   bottom.append(el("span", repo.language || "开源"), el("span", product.analysis_status === "analyzed" ? "已完成 AI 分析" : "待 AI 分析"));
   if (opportunity.has_bounty) bottom.append(el("span", opportunity.bounty_amount_usd ? `$${opportunity.bounty_amount_usd} 赏金` : "含赏金"));
   main.append(meta, title, summary, bottom);
+  if (product.change_scope?.classification === "likely_small") {
+    main.append(el("p", `小改动线索：${changeScopeSummary(product.change_scope)}`, "small-change-evidence"));
+  }
   const score = Number(pick.score_snapshot ?? opportunity.score_total);
   const aside = el("div", Number.isFinite(score) ? score.toFixed(0) : "—", "studio-card-score");
   aside.append(el("small", product.analysis_status === "analyzed" ? "推荐分" : "匹配分"));

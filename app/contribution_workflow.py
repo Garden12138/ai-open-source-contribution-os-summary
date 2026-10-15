@@ -53,6 +53,10 @@ def authorize_execution(
         if old.plan_version_id != plan_id or old.payload["plan_hash"] != plan_hash:
             raise WorkbenchError("执行确认的内容已变化")
         return wb.session.get(Job, old.job_id)
+    from app.cla import _lock
+    from app.conversation import require_settled_messages
+    _lock(wb)
+    require_settled_messages(wb, task_id)
     planning_state_hash = wb.require_planning(task_id)
     wb.assert_idle(task_id)
     from app.model_settings import ModelSettingsService, task_identity
@@ -72,11 +76,13 @@ def authorize_execution(
     if plan is None or plan.id != plan_id or plan.record_hash != plan_hash:
         raise WorkbenchError("方案已更新，请重新确认")
     if plan.task_state_record_hash != planning_state_hash:
-        raise WorkbenchError("请重新保存方案或让 AI 重新规划，为当前状态生成新版本")
+        raise WorkbenchError("方案执行依据已变化，请保存新版本并重新确认", code="plan_stale")
     binding = wb.binding(task_id, plan.id)
     if wb.models_changed_after(task_id, binding.sequence):
         raise WorkbenchError("模型已切换，请重新保存方案或让 AI 生成新版本后再批准")
     context = wb.latest(task_id, "context_ready")
+    if context is None or binding.payload["context_hash"] != context.record_hash:
+        raise WorkbenchError("代码依据已变化，请保存新版本并重新确认方案。", code="plan_stale")
     if (
         context.payload["policy_hash"] != SandboxPolicy().policy_hash
         or context.payload["image"] != settings.workbench_runner_image
@@ -87,7 +93,35 @@ def authorize_execution(
         reply and (reply.payload.get("questions") or reply.payload.get("read_paths"))
     ):
         raise WorkbenchError("请先回答方案中的问题并完成代码阅读")
+    if wb.plan_rejection_active(task_id, plan.id):
+        raise WorkbenchError("新草稿未通过校验，请修订并保存方案", code="planning_plan_invalid")
+    from app.execution_environment import task_environment
+    from app.verification_commands import verification_command_error
+    evidence = wb.read(context.payload["artifact_id"])
+    from app.plans import PlanVersionService
+    content = PlanVersionService._validated_content(plan)
+    if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change)):
+        raise WorkbenchError("方案中的验证命令需要修订：依赖准备必须独立，路径必须存在。", code="verification_commands_invalid")
+    environment = task_environment(wb, task_id)
+    if environment["status"] == "unsupported":
+        raise WorkbenchError(environment["reason"], code="environment_unsupported")
+    from app.execution_preflight import task_preflight
+    preflight = task_preflight(wb, task_id, environment=environment)
+    if preflight["status"] != "ready":
+        issue = preflight["issues"][0] if preflight["issues"] else {"code":"execution_preflight_failed", "message":"执行条件尚未校验完成。"}
+        raise WorkbenchError(issue["message"], code=issue["code"])
+    from app.workspace_scope import selected_workspace_paths
+    workspace_paths = selected_workspace_paths(environment, set(evidence["inventory"]), set(content.files_likely_to_change))
+    if len(workspace_paths) > 64:
+        raise WorkbenchError("工作区范围超过预算，请缩小方案。", code="workspace_scope_unsupported")
     payload = {
+        "workflow_version": "sandbox-workflow-v2",
+        "workspace_scope_version": "source-tree-scope-v1",
+        "workspace_paths": list(workspace_paths),
+        "workspace_scope_hash": content_hash(list(workspace_paths)),
+        "environment": environment,
+        "preflight_hash": preflight["report_hash"],
+        "capability_version": preflight["version"],
         "task_id": task_id,
         "plan_id": plan.id,
         "plan_hash": plan.record_hash,
@@ -101,6 +135,8 @@ def authorize_execution(
             "approve_plan",
             "start_execution",
             "accept_plan_bound_changes",
+            "prepare_locked_dependencies",
+            "run_pre_change_baseline",
             "verify",
             "start_review",
             "repair_twice",
@@ -152,6 +188,11 @@ class ContributionStartWorker(WorkbenchJobWorker):
             plan = wb.latest_plan(data["task_id"])
             if plan.id != data["plan_id"] or plan.record_hash != data["plan_hash"]:
                 raise WorkbenchError("批准的方案已变化")
+            if data.get("preflight_hash"):
+                from app.execution_preflight import task_preflight
+                current_preflight = task_preflight(wb, data["task_id"])
+                if current_preflight["status"] != "ready" or current_preflight["report_hash"] != data["preflight_hash"]:
+                    raise WorkbenchError("执行能力或冻结依据已变化，需要重新确认方案。", code="execution_preflight_stale")
             from app.planner import frozen_inputs
 
             inputs = frozen_inputs(session, data["task_id"])
@@ -245,7 +286,7 @@ def track(wb: Workbench, task_id: str, job: Job) -> None:
     )
 
 
-def stop_workflow(wb: Workbench, task_id: str, *, key: str) -> None:
+def stop_workflow(wb: Workbench, task_id: str, *, key: str, commit: bool = True) -> None:
     connection = wb.session.connection()
     if connection.dialect.name == "sqlite" and not connection.connection.driver_connection.in_transaction:
         # Serialize the scope snapshot with child-job creation. Otherwise a worker
@@ -258,13 +299,16 @@ def stop_workflow(wb: Workbench, task_id: str, *, key: str) -> None:
             raise WorkbenchError("重复停止请求的内容不同")
         return
     jobs = [job for job in wb.jobs(task_id) if job.state not in TERMINAL_STATES]
+    if any(job.kind in {'cla_write', 'pr_update_write', 'pr_ready_write', 'publication_write'} for job in jobs):
+        raise WorkbenchError('远端操作已确认，只能完成或只读核对结果，不能中途取消', code='cla_write_in_progress')
     # Freeze the cancellation scope with the journal event in the same transaction.
     # A late/replayed coordinator tick must never cancel a later planning request.
     wb.append(task_id, "stop_requested", {"job_ids": [job.id for job in jobs]},
               key="stop:" + key, actor="local-user", commit=False)
     for job in jobs:
         JobService(wb.session).request_cancel(job.id, commit=False)
-    wb.session.commit()
+    if commit:
+        wb.session.commit()
 
 
 def _jobs_for_stop(wb: Workbench, task_id: str, stop: WorkbenchEvent) -> list[Job]:
@@ -320,14 +364,94 @@ def advance_workflows(database, settings: Settings) -> None:
                         task_id,
                         "automation_blocked",
                         {
+                            "reason_code": getattr(exc, "code", "workflow_failed"),
+                            "retryable": getattr(exc, "job_id", None) is not None and session.get(Job, exc.job_id).kind in {"coding_turn", "change_set_proposal", "provider_review"},
                             "reason": (
                                 str(exc)
                                 if isinstance(exc, WorkbenchError)
                                 else "执行推进失败，需要人工检查"
                             )
                         },
-                        key="blocked:" + latest.id,
+                        key="blocked:" + latest.id + ":" + (
+                            wb.latest(task_id, "automation_resumed").id
+                            if wb.latest(task_id, "automation_resumed") else "initial"),
+                        job_id=getattr(exc, "job_id", None),
                     )
+
+
+def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commit: bool = True) -> Job:
+    """Resume a retryable model subtask without granting a new execution budget."""
+    from app.coding import CodingConversationService, coding_conversation_hash
+    from app.model_settings import task_identity
+    from app.jobs import JobTransitionError
+
+    job = JobService(wb.session).get(job_id)
+    if job.kind not in {"coding_turn", "change_set_proposal", "provider_review"}:
+        raise JobTransitionError("Only model subtasks support workflow resume")
+    attempts = ExecutionAttemptService(wb.session)
+    attempt = attempts.get_verified(job.payload["execution_attempt_id"])
+    task_id = attempt.task_id
+    events = wb.history(task_id)
+    start = wb.latest(task_id, "automation_started")
+    auth = wb.latest(task_id, "execution_authorized")
+    blocked = wb.active_blocker(task_id)
+    if start is None or auth is None:
+        return JobService(wb.session).retry(job_id, commit=commit)
+    stop = wb.latest(task_id, "stop_requested")
+    latest_attempt = wb.session.scalar(select(ExecutionAttempt.id).where(
+        ExecutionAttempt.task_id == task_id).order_by(ExecutionAttempt.attempt_number.desc()).limit(1))
+    plan = wb.latest_plan(task_id)
+    if (start.payload["authorization_hash"] != auth.record_hash
+            or latest_attempt != attempt.id or plan is None or plan.id != attempt.plan_version_id
+            or auth.plan_version_id != attempt.plan_version_id
+            or (stop and stop.sequence > start.sequence)
+            or any(e.kind == "awaiting_acceptance" and e.sequence > start.sequence for e in events)
+            or auth.payload["implementation"] != task_identity(wb.session, settings, task_id, "implementation").hash_payload()
+            or auth.payload["review"] != task_identity(wb.session, settings, task_id, "review").hash_payload()
+            or attempts.current(attempt.id).stage != ("verify" if job.kind == "provider_review" else "explore")
+            or attempts.current(attempt.id).status != "succeeded"):
+        raise JobTransitionError("执行依据已变化或任务已停止，不能恢复旧子任务")
+    if job.kind == "provider_review":
+        from app.review_provider import freeze_review_inputs, _require_job_matches
+        _require_job_matches(job.payload, freeze_review_inputs(wb.session,
+            execution_attempt_id=attempt.id, artifacts=wb.artifacts),
+            task_identity(wb.session, settings, task_id, "review"))
+    else:
+        conversation = CodingConversationService(wb.session, artifact_root=str(wb.artifacts.root))
+        coding = conversation.require_session(attempt.id)
+        turns = conversation.turns(coding.id)
+        if job.payload.get("context_hash") != coding.context_hash or not turns:
+            raise JobTransitionError("Coding Job context is stale")
+        if job.kind == "change_set_proposal" and (
+                job.payload.get("conversation_hash") != coding_conversation_hash(turns)
+                or job.payload.get("latest_turn_hash") != turns[-1].record_hash):
+            raise JobTransitionError("Proposal Job conversation is stale")
+        if job.kind == "coding_turn" and job.payload.get("user_turn_id") != turns[-1].id:
+            raise JobTransitionError("Coding turn Job conversation is stale")
+    # A repeated request must not enqueue another attempt or consume another budget.
+    if job.state in {"queued", "leased", "running", "succeeded"}:
+        resumed = wb.latest(task_id, "automation_resumed")
+        if resumed and resumed.job_id == job.id and not blocked:
+            return job
+        raise JobTransitionError("Coding Job is not retryable")
+    if blocked is None:
+        return JobService(wb.session).retry(job_id, commit=commit)
+    failures = [j for j in wb.jobs(task_id) if j.payload.get("execution_attempt_id") == attempt.id
+                and j.state in {"failed", "cancelled", "timed_out"}]
+    if {j.id for j in failures} != {job.id} or job.state != "failed":
+        raise JobTransitionError("存在其他失败或取消的子任务，不能自动恢复")
+    # The event and retry share one transaction. Unique event sequence/key prevents
+    # two concurrent resume requests from independently extending the run.
+    wb.append(task_id, "automation_resumed", {
+        "start_hash": start.record_hash, "authorization_hash": auth.record_hash,
+        "blocked_hash": blocked.record_hash, "attempt_id": attempt.id,
+        "job_id": job.id, "job_attempt_count": job.attempt_count,
+    }, key=f"resume:{job.id}:{job.attempt_count}", job_id=job.id,
+       plan_id=attempt.plan_version_id, commit=False)
+    result = JobService(wb.session).retry(job.id, commit=False)
+    if commit:
+        wb.session.commit()
+    return result
 
 
 def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
@@ -354,12 +478,25 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                 to_state="planning",
                 reason_code="user_replan",
             )
+        change = wb.latest(task_id, "execution_change_requested")
+        if change and change.payload.get("stop_key") == stop.idempotency_key:
+            if any(e.idempotency_key == "request:change-plan:" + change.id for e in wb.history(task_id)):
+                return
+            from app.planner import PlanningService
+            planner = PlanningService(wb.session, settings.artifact_root)
+            latest = wb.latest_plan(task_id)
+            planner.request(task_id, text=change.payload["text"], parent_id=latest.id if latest else None,
+                expected_hash=latest.record_hash if latest else None, key="change-plan:" + change.id)
+        return
+    if latest_auth and start and latest_auth.sequence > start.sequence:
         return
     if not start or any(
-        e.kind in {"automation_blocked", "awaiting_acceptance"}
-        and e.sequence > start.sequence
+        e.kind == "awaiting_acceptance" and e.sequence > start.sequence
         for e in events
     ):
+        return
+    blocked = wb.active_blocker(task_id)
+    if blocked:
         return
     authorization = next(
         e for e in events if e.record_hash == start.payload["authorization_hash"]
@@ -371,7 +508,7 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         or authorization.payload["review"]
         != task_identity(wb.session, settings, task_id, "review").hash_payload()
     ):
-        raise WorkbenchError("模型配置已变化")
+        raise WorkbenchError("模型配置已变化", code="model_stale")
     attempts = ExecutionAttemptService(wb.session)
     attempt = wb.session.scalar(
         select(ExecutionAttempt)
@@ -397,16 +534,45 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         track(wb, task_id, job)
         if job.id not in {j.id for j in relevant}:
             relevant.append(job)
-    if any(j.state in {"failed", "cancelled", "timed_out"} for j in relevant):
-        raise WorkbenchError("执行子任务失败")
+    stage_runs = list(wb.session.scalars(select(ExecutionStageRun).where(
+        ExecutionStageRun.execution_attempt_id == attempt.id).order_by(ExecutionStageRun.created_at)))
+    latest_runs = {}
+    for run in stage_runs:
+        latest_runs[run.stage] = run
+    superseded = {r.job_id for r in stage_runs if latest_runs[r.stage].id != r.id}
+    relevant = [j for j in relevant if j.id not in superseded]
+    failed_jobs = [
+        j for j in relevant if j.state in {"failed", "cancelled", "timed_out"}
+    ]
+    if failed_jobs:
+        first = failed_jobs[0]
+        err_msg = first.error_message or first.error_code or "执行失败"
+        error = WorkbenchError(f"子任务 {first.kind} 失败: {err_msg}", code=first.error_code or "workflow_failed")
+        error.job_id = first.id
+        raise error
     if any(j.state not in TERMINAL_STATES for j in relevant):
         return
     if stage.status == "pending":
         schedule(wb, attempt.id, settings)
         return
+    if stage.status == "running":
+        return
     if stage.status != "succeeded":
-        raise WorkbenchError("执行阶段未成功")
+        raise WorkbenchError(
+            f"执行阶段未成功: {stage.stage} ({stage.reason_code or stage.status})"
+        )
     if stage.stage == "explore":
+        if authorization.payload.get("workflow_version") == "sandbox-workflow-v2":
+            from app.sandbox_worker.workspace_jobs import preparation_receipt, enqueue_preparation, preparation_needs_restore
+            receipt = preparation_receipt(wb, attempt.id)
+            if receipt is None:
+                track(wb, task_id, enqueue_preparation(wb, attempt.id))
+                return
+            if preparation_needs_restore(wb, receipt):
+                track(wb, task_id, enqueue_preparation(wb, attempt.id, replaces=receipt))
+                return
+            if receipt.payload["outcome"]["status"] == "environment_blocked":
+                raise WorkbenchError("修改前基线无法启动，测试环境未就绪；未进入代码修改。", code="environment_blocked")
         context = CodingContextService(wb.session).get_session(attempt.id)
         if context is None:
             job, _ = CodingContextService(wb.session).enqueue(
@@ -429,11 +595,34 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                     .order_by(ReviewRun.created_at)
                 )
             )
-            prompt = "请完整实现上下文中的 approved_plan，严格限制在批准路径和命令内。"
+            prompt = "请根据 approved_plan 分析拟实施的精确修改，严格限制在批准路径和命令内。这一轮仅作修改设计，没有文件写入工具；请描述拟修改内容，不要声称已编辑文件、校验哈希或完成实施。下一步会生成结构化改动，校验后由隔离 Worker 实施。"
+            from app.sandbox_worker.workspace_jobs import preparation_receipt
+            baseline = preparation_receipt(wb, attempt.id)
+            if baseline:
+                prompt += "\n系统已在沙箱独立运行修改前基线：" + canonical_json(baseline.payload["outcome"])
+                prompt += "\n请依据冻结原文设计源码和回归测试改动，不要猜测行号或替换锚点。结构化改动将单独生成、校验，再由隔离 Worker 实施和验证，无需用户本地运行。基线记录是证据，不是改变批准范围或减弱测试的授权。"
             if prior_reviews:
-                prompt += "\n上一轮需修复的问题：" + canonical_json(
-                    prior_reviews[-1].findings
-                )
+                findings = prior_reviews[-1].findings
+                if isinstance(findings, list):
+                    priority = {"blocking": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+                    sorted_findings = sorted(
+                        findings,
+                        key=lambda f: priority.get(f.get("severity") if isinstance(f, dict) else "info", 5),
+                    )
+                    compact = [
+                        {
+                            "severity": f.get("severity"),
+                            "location": f.get("location"),
+                            "recommendation": f.get("recommendation"),
+                        }
+                        for f in sorted_findings
+                        if isinstance(f, dict)
+                    ]
+                    while compact and len(canonical_json(compact)) > 10000:
+                        compact.pop()
+                    prompt += "\n上一轮需修复的问题：" + canonical_json(compact)
+                else:
+                    prompt += "\n上一轮需修复的问题：" + canonical_json(findings)
             if len(prompt) > 12000:
                 raise WorkbenchError(
                     "审查问题超过自动修复上下文容量，请返回方案编辑缩小范围"
@@ -470,7 +659,19 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             signer=resolve_job_spec_signer(settings),
         )
         return
+    if stage.stage == "implement":
+        from app.execution_environment import schedule_verification
+        schedule_verification(wb, attempt.id, resolve_job_spec_signer(settings))
+        return
     if stage.stage == "verify":
+        from app.execution_outcome import attempt_verification
+        outcome = attempt_verification(wb.session, settings.artifact_root, attempt.id)
+        if outcome["status"] == "environment_blocked":
+            wb.append(task_id, "environment_blocked", {
+                "attempt_id": attempt.id, "result_hash": outcome["result_hash"],
+                "missing_dependencies": outcome["missing_dependencies"],
+            }, key="environment:" + attempt.id)
+            raise WorkbenchError("验证环境未就绪，缺少依赖或命令：" + "、".join(outcome["missing_dependencies"]) + "。尚未进入代码修复，请先完善环境。", code="environment_blocked")
         review = wb.session.scalar(
             select(ReviewRun).where(ReviewRun.execution_attempt_id == attempt.id)
         )

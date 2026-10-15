@@ -18,15 +18,16 @@ from app.provenance import canonical_json, content_hash
 from app.sandbox_worker.git_safety import docker_git_safety_argv
 from app.sandbox_worker.specs import SandboxPolicy
 from app.security import ensure_no_sensitive_data
+from app.context_limits import MAX_CODING_FILE_BYTES, MAX_CODING_CONTEXT_BYTES
 
 if TYPE_CHECKING:
     from app.sandbox_worker.explore import RepositoryArchive
 
 
-CODING_CONTEXT_VERSION = "coding-context-v1"
+CODING_CONTEXT_VERSION = "coding-context-v2"
 MAX_CONTEXT_PATHS = 64
-MAX_CONTEXT_FILE_BYTES = 256_000
-MAX_CONTEXT_BYTES = 1_500_000
+MAX_CONTEXT_FILE_BYTES = MAX_CODING_FILE_BYTES
+MAX_CONTEXT_BYTES = MAX_CODING_CONTEXT_BYTES
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _ALLOWED_DOCKER_ENV = frozenset(
     {
@@ -91,8 +92,12 @@ class CodingContext:
     version: str = CODING_CONTEXT_VERSION
 
     def __post_init__(self) -> None:
-        if self.version != CODING_CONTEXT_VERSION:
+        if self.version not in {"coding-context-v1", CODING_CONTEXT_VERSION}:
             raise ValueError("Coding context version is unsupported")
+        if self.version == "coding-context-v1" and any(
+            entry.content is not None and len(entry.content.encode()) > 256_000 for entry in self.entries
+        ):
+            raise ValueError("Legacy coding context exceeds its file limit")
         entries = tuple(self.entries)
         if (
             not entries
@@ -469,4 +474,4 @@ encoded = json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(","
 if len(encoded.encode("utf-8")) > 1500000:
     raise SystemExit(18)
 print(encoded)
-'''.strip()
+'''.strip().replace("member.size > 256000", "member.size > " + str(MAX_CONTEXT_FILE_BYTES))

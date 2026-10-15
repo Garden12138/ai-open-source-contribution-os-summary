@@ -270,6 +270,22 @@ def freeze_candidate_input(
     score: ScoreVersion,
     rule_rank: int,
 ) -> FrozenCandidateInput:
+    evidence = snapshot_evidence(snapshot, score)
+    return FrozenCandidateInput.create(
+        rule_rank=rule_rank,
+        scan_run_id=snapshot.scan_run_id,
+        snapshot_id=snapshot.id,
+        snapshot_inputs_hash=snapshot.inputs_hash,
+        score_version_id=score.id,
+        score_output_hash=score.output_hash,
+        evidence=evidence,
+    )
+
+
+def snapshot_evidence(
+    snapshot: OpportunitySnapshot, score: ScoreVersion,
+) -> tuple[FrozenEvidence, ...]:
+    """Verify immutable facts without imposing the paid-analysis Top 30 budget."""
     _verify_snapshot(snapshot)
     _verify_score(snapshot, score)
     issue = _safe_issue_evidence(snapshot.issue_data)
@@ -297,15 +313,8 @@ def freeze_candidate_input(
             content=canonical_json(score_data),
         ),
     )
-    return FrozenCandidateInput.create(
-        rule_rank=rule_rank,
-        scan_run_id=snapshot.scan_run_id,
-        snapshot_id=snapshot.id,
-        snapshot_inputs_hash=snapshot.inputs_hash,
-        score_version_id=score.id,
-        score_output_hash=score.output_hash,
-        evidence=evidence,
-    )
+    _ensure_evidence_safe(evidence)
+    return evidence
 
 
 def _verify_snapshot(snapshot: OpportunitySnapshot) -> None:

@@ -45,6 +45,9 @@ class FakeCheckout:
         self.calls += 1
         assert patch
         assert inventory["changed_paths"]
+        assert intent["workspace_paths"] == inventory["workspace_paths"]
+        from app.provenance import content_hash
+        assert intent["workspace_scope_hash"] == content_hash(intent["workspace_paths"])
         yield "/unused-test-checkout", "d" * 40, "e" * 40
 
 
@@ -58,9 +61,25 @@ class FakeTransport:
         self.timeout_after_pr = False
         self.unknown_without_pr = False
         self.base = "a" * 40
+        self.documents = {}
 
     async def api(self, method, path, body=None, *, missing=False):
         self.calls.append((method, path, body))
+        if "/contents/" in path:
+            import base64, hashlib
+            from urllib.parse import unquote
+            filename = unquote(path.split("/contents/", 1)[1].split("?", 1)[0])
+            if filename in self.documents:
+                raw = self.documents[filename].encode()
+                return {"type":"file", "path":filename, "encoding":"base64", "size":len(raw),
+                        "sha":hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest(),
+                        "content":base64.b64encode(raw).decode()}
+            prefix = filename + "/"
+            entries = [{"name":name[len(prefix):], "type":"file"} for name in self.documents
+                       if name.startswith(prefix) and "/" not in name[len(prefix):]]
+            return entries or None
+        if path == "repos/" + self.repository.split("/")[0] + "/.github":
+            return None
         if path == "user":
             return {"login": "contributor", "id": 123}
         if "/commits/" in path:
@@ -250,8 +269,136 @@ def test_base_movement_after_confirmation_produces_zero_writes(tmp_path):
     assert all(method == "GET" for method, _, _ in transport.calls)
 
 
+class AdvancedUpstreamTransport(FakeTransport):
+    """Full scope tree evidence; Compare's file list is deliberately absent."""
+    failure = None
+
+    async def api(self, method, path, body=None, *, missing=False):
+        if "/compare/" in path:
+            self.calls.append((method, path, body))
+            return {"status": "diverged" if self.failure == "diverged" else "ahead",
+                    "base_commit": {"sha": "a" * 40},
+                    "merge_base_commit": {"sha": "b" * 40 if self.failure == "not_ancestor" else "a" * 40}}
+        if "/git/commits/" in path:
+            self.calls.append((method, path, body))
+            commit = path.rsplit("/", 1)[1]
+            return {"sha": commit, "tree": {"sha": ("1" if commit == "a" * 40 else "2") * 40}}
+        if "/git/trees/" in path:
+            self.calls.append((method, path, body))
+            oid = path.rsplit("/", 1)[1]
+            entries = [
+                {"path":"LICENSE", "mode":"100644", "type":"blob", "sha":"3" * 40},
+                {"path":"README.md", "mode":"100644", "type":"blob", "sha":"4" * 40},
+                {"path":"python", "mode":"040000", "type":"tree", "sha":"5" * 40},
+                {"path":".github", "mode":"040000", "type":"tree", "sha":("6" if oid == "1" * 40 else "7") * 40},
+            ]
+            if oid == "2" * 40:
+                if self.failure == "workspace_change": entries[2]["sha"] = "8" * 40
+                if self.failure == "mode_change": entries[0]["mode"] = "100755"
+                if self.failure == "missing": entries = entries[1:]
+                if self.failure == "malformed_sha": entries[2]["sha"] = "invalid"
+                if self.failure == "duplicate": entries.append(dict(entries[0]))
+            return {"sha": oid, "tree": entries, "truncated": self.failure == "truncated"}
+        return await super().api(method, path, body, missing=missing)
+
+
+def test_unrelated_advance_keeps_reviewed_base_and_binds_exact_target(tmp_path, monkeypatch):
+    import app.workspace_scope as scopes
+    db, settings, task_id, _, worker = ready(tmp_path)
+    monkeypatch.setattr(scopes, "attempt_workspace_paths", lambda *_: ("LICENSE", "README.md", "python"))
+    transport = AdvancedUpstreamTransport(worker.transport.repository)
+    transport.base = "f" * 40
+    worker.transport = transport
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    assert all(method == "GET" for method, _, _ in transport.calls)
+    with db.session() as session:
+        wb = Workbench(session, settings.artifact_root)
+        event = wb.latest(task_id, "publication_prepared")
+        assert event.payload["base_sha"] == "a" * 40
+        assert event.payload["target_base_sha"] == "f" * 40
+        assert event.payload["upstream_check"]["status"] == "unchanged_workspace"
+        assert len(event.payload["upstream_check"]["workspace_roots_hash"]) == 64
+        confirm_publication(wb, task_id, intent_hash=event.record_hash, nonce=event.payload["nonce"])
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    assert len(transport.prs) == 1
+
+
+@pytest.mark.parametrize("failure", ["workspace_change", "mode_change", "missing", "diverged",
+                                    "not_ancestor", "truncated", "malformed_sha", "duplicate", "unscoped"])
+def test_upstream_compatibility_fails_closed(failure):
+    worker = object.__new__(PublicationWorker)
+    worker.transport = AdvancedUpstreamTransport("fixture/repo")
+    worker.transport.failure = failure
+    with pytest.raises(WorkbenchError):
+        asyncio.run(worker.upstream_binding("fixture/repo", "a" * 40, "f" * 40,
+                    [] if failure == "unscoped" else ["LICENSE", "README.md", "python"]))
+    assert all(method == "GET" for method, _, _ in worker.transport.calls)
+
+
+def test_new_target_moves_after_confirmation_still_produces_zero_writes(tmp_path, monkeypatch):
+    import app.workspace_scope as scopes
+    db, settings, task_id, _, worker = ready(tmp_path)
+    monkeypatch.setattr(scopes, "attempt_workspace_paths", lambda *_: ("python",))
+    transport = AdvancedUpstreamTransport(worker.transport.repository)
+    transport.base = "f" * 40
+    worker.transport = transport
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    with db.session() as session:
+        wb = Workbench(session, settings.artifact_root)
+        event = wb.latest(task_id, "publication_prepared")
+        confirm_publication(wb, task_id, intent_hash=event.record_hash, nonce=event.payload["nonce"])
+    transport.base = "b" * 40
+    assert asyncio.run(worker.run_once()).state == "failed"
+    assert all(method == "GET" for method, _, _ in transport.calls)
+
+
+def test_expired_preview_cannot_authorize_write(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    db, settings, task_id, _, worker = ready(tmp_path)
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    with db.session() as session:
+        wb = Workbench(session, settings.artifact_root)
+        original = wb.latest(task_id, "publication_prepared")
+        expired = wb.append(task_id, "publication_prepared", {
+            **original.payload, "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
+        }, key="expired-preview")
+        with pytest.raises(WorkbenchError, match="预览已过期") as caught:
+            confirm_publication(wb, task_id, intent_hash=expired.record_hash, nonce=expired.payload["nonce"])
+        assert caught.value.code == "publication_preview_expired"
+        assert wb.latest(task_id, "publication_confirmed") is None
+        assert session.scalar(select(PublishIntent)) is None
+        assert not any(j.kind == "publication_write" for j in wb.jobs(task_id))
+
+
+def test_expired_preview_renews_with_new_nonce_and_preserved_review(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    db, settings, task_id, _, worker = ready(tmp_path)
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    with db.session() as session:
+        wb = Workbench(session, settings.artifact_root)
+        original = wb.latest(task_id, "publication_prepared")
+        expired = wb.append(task_id, "publication_prepared", {
+            **original.payload, "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
+        }, key="expired-preview")
+        request_publication(wb, task_id, title="Edited title", body="Edited body", key="renew-preview")
+    assert asyncio.run(worker.run_once()).state == "succeeded"
+    with db.session() as session:
+        wb = Workbench(session, settings.artifact_root)
+        renewed = wb.latest(task_id, "publication_prepared")
+        assert renewed.payload["nonce"] != expired.payload["nonce"]
+        assert renewed.payload["review_hash"] == original.payload["review_hash"]
+        assert renewed.payload["tests_hash"] == original.payload["tests_hash"]
+        assert renewed.payload["title"] == "Edited title"
+        assert renewed.payload["body"].startswith("Edited body\n")
+        with pytest.raises(WorkbenchError):
+            confirm_publication(wb, task_id, intent_hash=expired.record_hash, nonce=expired.payload["nonce"])
+        assert session.scalar(select(PublishIntent)) is None
+        assert not any(j.kind == "publication_write" for j in wb.jobs(task_id))
+
+
+@pytest.mark.parametrize("scoped", [False, True])
 def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, scoped
 ):
     import difflib
     import hashlib
@@ -261,7 +408,15 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
     seed.mkdir()
     original = b"def value():\n    return 1\n"
     updated = b"def value():\n    return 2\n"
-    (seed / "main.py").write_bytes(original)
+    main_path = "python/main.py" if scoped else "main.py"
+    (seed / main_path).parent.mkdir(parents=True, exist_ok=True)
+    (seed / main_path).write_bytes(original)
+    if scoped:
+        (seed / "python/unchanged.txt").write_bytes(b"unchanged\n")
+        (seed / "python/CLAUDE.md").symlink_to("unchanged.txt")
+        (seed / "javascript").mkdir()
+        (seed / "javascript/unrelated.js").write_bytes(b"unchanged outside scope\n")
+        (seed / "unrelated-link").symlink_to("javascript/unrelated.js")
     env = publication.git_environment(str(tmp_path))
     env.update(
         GIT_AUTHOR_NAME="Fixture",
@@ -282,7 +437,7 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
 
     async def setup():
         await git("init", "--quiet", "--template=")
-        await git("add", "main.py")
+        await git("add", "--all")
         tree = await git("write-tree")
         return await git("commit-tree", tree, data=b"Trusted fixture\n")
 
@@ -296,7 +451,7 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
                 "fetch",
                 "--no-tags",
                 str(seed),
-                base,
+                argv[-1],
             ]
         return await actual_process(argv, **kwargs)
 
@@ -305,15 +460,15 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
         difflib.unified_diff(
             original.decode().splitlines(True),
             updated.decode().splitlines(True),
-            fromfile="a/main.py",
-            tofile="b/main.py",
+            fromfile="a/" + main_path,
+            tofile="b/" + main_path,
         )
     ).encode()
 
-    def entry(data):
+    def entry(data, path=main_path):
         return {
-            "path": "main.py",
-            "kind": "file",
+            "path": path,
+            "type": "file",
             "size": len(data),
             "sha256": hashlib.sha256(data).hexdigest(),
             "executable": False,
@@ -322,7 +477,7 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
     inventory = {
         "baseline_inventory": [entry(original)],
         "result_inventory": [entry(updated)],
-        "changed_paths": ["main.py"],
+        "changed_paths": [main_path],
     }
     intent = {
         "repository": "fixture/repo",
@@ -335,6 +490,14 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
             "message": "Approved change\n",
         },
     }
+    if scoped:
+        from app.provenance import content_hash
+        inventory["workspace_paths"] = ["python"]
+        for key in ("baseline_inventory", "result_inventory"):
+            inventory[key].append(entry(b"unchanged\n", "python/unchanged.txt"))
+            inventory[key].append({"path":"python/CLAUDE.md", "type":"symlink", "target":"unchanged.txt"})
+        intent.update(workspace_paths=["python"], workspace_scope_version="source-tree-scope-v1",
+                      workspace_scope_hash=content_hash(["python"]))
 
     async def exercise():
         checkout = publication.TrustedCheckout()
@@ -343,8 +506,21 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
             head,
             tree,
         ):
-            assert (Path(directory) / "main.py").read_bytes() == updated
+            assert (Path(directory) / main_path).read_bytes() == updated
             assert len(head) == 40 and head != base
+            if scoped:
+                assert not (Path(directory) / "javascript").exists()
+                assert not (Path(directory) / "unrelated-link").is_symlink()
+                assert not (Path(directory) / "python/CLAUDE.md").is_symlink()
+                async def inspect(*args):
+                    code, output = await actual_process(publication.git_argv() + list(args),
+                                                        cwd=directory, env=env)
+                    assert code == 0
+                    return output
+                assert await inspect("rev-parse", f"{base}:javascript") == await inspect("rev-parse", f"{head}:javascript")
+                assert await inspect("ls-tree", base, "unrelated-link") == await inspect("ls-tree", head, "unrelated-link")
+                assert await inspect("ls-tree", base, "python/CLAUDE.md") == await inspect("ls-tree", head, "python/CLAUDE.md")
+                assert (await inspect("diff-tree", "--no-commit-id", "--name-only", "-r", base, head)).decode().strip() == main_path
         async with checkout.prepare({**intent, "head_sha": head}, patch, inventory) as (
             _,
             same_head,
@@ -356,6 +532,36 @@ def test_trusted_checkout_reconstructs_real_commit_and_rejects_drift(
                 intent, patch, {**inventory, "result_inventory": [entry(original)]}
             ):
                 pass
+        if scoped:
+            # Omitted or altered scoped files must still fail, as must attempts
+            # to widen the frozen scope or introduce unrelated changes.
+            for broken_intent, broken_inventory in (
+                (intent, {**inventory, "baseline_inventory": [entry(original)]}),
+                (intent, {**inventory, "baseline_inventory": [entry(b"tampered"), inventory["baseline_inventory"][1]]}),
+                ({**intent, "workspace_paths": ["javascript"]}, inventory),
+                ({**intent, "workspace_scope_hash": "0" * 64}, inventory),
+                (intent, {**inventory, "changed_paths": ["javascript/unrelated.js"]}),
+                (intent, {**inventory, "result_inventory": inventory["result_inventory"][:-1]}),
+                (intent, {**inventory, "result_inventory": [*inventory["result_inventory"][:-1], {"path":"python/CLAUDE.md", "type":"symlink", "target":"main.py"}]}),
+                (intent, {**inventory, "changed_paths": [main_path, "python/CLAUDE.md"]}),
+                ({**intent, "workspace_paths": ["../python"]}, {**inventory, "workspace_paths": ["../python"]}),
+            ):
+                with pytest.raises(WorkbenchError):
+                    async with checkout.prepare(broken_intent, patch, broken_inventory):
+                        pass
+            # The patch itself cannot touch an unmaterialized path even if the
+            # claimed changed-path list hides it.
+            malicious_patch = patch + b"--- a/javascript/unrelated.js\n+++ b/javascript/unrelated.js\n@@ -1 +1 @@\n-unchanged outside scope\n+tampered\n"
+            with pytest.raises(WorkbenchError):
+                async with checkout.prepare({**intent, "diff_hash": hashlib.sha256(malicious_patch).hexdigest()}, malicious_patch, inventory):
+                    pass
+            (seed / "python/link").symlink_to("unchanged.txt")
+            await git("add", "python/link")
+            link_tree = await git("write-tree")
+            link_base = await git("commit-tree", link_tree, "-p", base, data=b"Symlink fixture\n")
+            with pytest.raises(WorkbenchError, match="符号链接"):
+                async with checkout.prepare({**intent, "base_sha": link_base}, patch, inventory):
+                    pass
 
     from pathlib import Path
 

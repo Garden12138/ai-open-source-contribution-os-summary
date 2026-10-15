@@ -6,10 +6,14 @@ import asyncio
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 import signal
 import tempfile
+import time
+
+logger = logging.getLogger(__name__)
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -26,6 +30,9 @@ from app.security import contains_sensitive_text, ensure_no_sensitive_data
 
 
 DEPENDENCY_PLAN_VERSION = "dependency-preparation-plan-v1"
+WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v2"
+DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v3"
+SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v4"
 DEPENDENCY_SIGNATURE_VERSION = "dependency-plan-hmac-sha256-v1"
 DEPENDENCY_PROXY_POLICY_VERSION = "dependency-proxy-policy-v1"
 DEPENDENCY_RESULT_VERSION = "dependency-preparation-result-v1"
@@ -60,7 +67,16 @@ class DependencyEcosystem(StrEnum):
 
 
 class DependencyPreparationError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, code: str = "environment_preparation_failed", safe_message: str = "沙箱依赖准备未完成；尚未进入代码修改。", diagnostic: dict | None = None) -> None:
+        super().__init__(message)
+        self.code, self.safe_message = code, safe_message
+        self.diagnostic = diagnostic
+
+
+class SourceBuildRequired(DependencyPreparationError):
+    def __init__(self, request: dict) -> None:
+        super().__init__("Source build required")
+        self.request = request
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,10 +175,36 @@ class DependencyPreparationPlan:
     proxy_policy_hash: str
     disk_bytes: int
     version: str = DEPENDENCY_PLAN_VERSION
+    source_kind: str = "implement"
+    project_directory: str = "."
+    local_projects: tuple[str, ...] = ()
+    metadata_strategy: str = "declarative-v1"
+    distribution_strategy: str = "wheel-only-v1"
+    builder_image_digest: str | None = None
 
     def __post_init__(self) -> None:
-        if self.version != DEPENDENCY_PLAN_VERSION:
+        if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
             raise ValueError("Dependency plan version is unsupported")
+        workspace = self.version != DEPENDENCY_PLAN_VERSION
+        source_build = self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION
+        if source_build:
+            if self.distribution_strategy != "source-wheel-v1" or not isinstance(self.builder_image_digest,str) or not _IMAGE.fullmatch(self.builder_image_digest):
+                raise ValueError("Source builds require a signed strategy and builder image")
+        elif self.distribution_strategy != "wheel-only-v1" or self.builder_image_digest is not None:
+            raise ValueError("Legacy dependency strategies remain wheel-only")
+        if (source_build and self.metadata_strategy not in {"wheel-metadata-v1","declarative-v1"}) or (not source_build and self.metadata_strategy != ("wheel-metadata-v1" if self.version == DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION else "declarative-v1")):
+            raise ValueError("Dependency metadata strategy does not match its version")
+        if workspace:
+            if self.source_kind != "explore":
+                raise ValueError("Workspace dependencies require an Explore source")
+            if self.project_directory != ".":
+                _relative_path(self.project_directory, name="project directory")
+            if len(self.local_projects) > 6 or len(set(self.local_projects)) != len(self.local_projects):
+                raise ValueError("Workspace local project count is invalid")
+            for project in self.local_projects:
+                _relative_path(project, name="local project directory")
+        elif self.source_kind != "implement" or self.project_directory != "." or self.local_projects:
+            raise ValueError("Legacy dependency plan cannot contain workspace fields")
         for value, name in (
             (self.plan_id, "plan ID"),
             (self.execution_attempt_id, "execution attempt ID"),
@@ -188,15 +230,27 @@ class DependencyPreparationPlan:
             raise ValueError("Dependency ecosystem is invalid") from exc
         object.__setattr__(self, "ecosystem", ecosystem)
         manifests = tuple(self.manifests)
+        if self.version in {DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION,SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION} and ecosystem is not DependencyEcosystem.PYTHON:
+            raise ValueError("Dynamic metadata preparation requires Python")
         if (
             not manifests
-            or len(manifests) > 2
+            or len(manifests) > (16 if workspace else 2)
             or any(not isinstance(item, DependencyManifest) for item in manifests)
             or len({item.path for item in manifests}) != len(manifests)
         ):
             raise ValueError("Dependency manifests are invalid")
         paths = tuple(sorted(item.path for item in manifests))
-        if ecosystem is DependencyEcosystem.PYTHON:
+        if workspace:
+            prefix = "" if self.project_directory == "." else self.project_directory + "/"
+            if ecosystem is DependencyEcosystem.PYTHON:
+                if ((prefix + "pyproject.toml" not in paths and not (len(paths) == 1 and paths[0].endswith((".txt", ".lock"))))
+                        or any(not p.endswith((".toml", ".txt", ".lock")) for p in paths)):
+                    raise ValueError("Workspace Python dependencies require a pyproject manifest")
+                if any(p + "/pyproject.toml" not in paths for p in self.local_projects):
+                    raise ValueError("Local workspace projects require frozen manifests")
+            elif paths != tuple(sorted((prefix + "package-lock.json", prefix + "package.json"))):
+                raise ValueError("Workspace Node dependencies require package.json and package-lock.json")
+        elif ecosystem is DependencyEcosystem.PYTHON:
             if len(paths) != 1 or not paths[0].endswith((".txt", ".lock")):
                 raise ValueError(
                     "Python dependency preparation requires one hash lockfile"
@@ -220,7 +274,7 @@ class DependencyPreparationPlan:
         return content_hash(self.to_wire())
 
     def to_wire(self) -> dict[str, object]:
-        return {
+        value = {
             "version": self.version,
             "plan_id": self.plan_id,
             "execution_attempt_id": self.execution_attempt_id,
@@ -233,6 +287,15 @@ class DependencyPreparationPlan:
             "proxy_policy_hash": self.proxy_policy_hash,
             "disk_bytes": self.disk_bytes,
         }
+        if self.version != DEPENDENCY_PLAN_VERSION:
+            value["source_result_hash"] = value.pop("implement_result_hash")
+            value.update(source_kind=self.source_kind, project_directory=self.project_directory,
+                         local_projects=list(self.local_projects))
+        if self.version in {DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION,SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
+            value["metadata_strategy"] = self.metadata_strategy
+        if self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION:
+            value.update(distribution_strategy=self.distribution_strategy,builder_image_digest=self.builder_image_digest)
+        return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -380,12 +443,15 @@ class DependencyPreparationResult:
     total_bytes: int
     result_hash: str
     version: str = DEPENDENCY_RESULT_VERSION
+    source_kind: str = "implement"
 
     def __post_init__(self) -> None:
-        if self.version != DEPENDENCY_RESULT_VERSION:
+        if self.version not in {DEPENDENCY_RESULT_VERSION, "workspace-dependency-result-v2"}:
             raise DependencyPreparationError(
                 "Dependency result version is unsupported"
             )
+        if self.source_kind != ("explore" if self.version == "workspace-dependency-result-v2" else "implement"):
+            raise DependencyPreparationError("Dependency result source kind is invalid")
         for value in (
             self.implement_result_hash,
             self.plan_hash,
@@ -434,7 +500,7 @@ class DependencyPreparationResult:
         total_bytes: int,
     ) -> "DependencyPreparationResult":
         payload = {
-            "version": DEPENDENCY_RESULT_VERSION,
+            "version": "workspace-dependency-result-v2" if plan.source_kind == "explore" else DEPENDENCY_RESULT_VERSION,
             "execution_attempt_id": plan.execution_attempt_id,
             "implement_result_hash": plan.implement_result_hash,
             "plan_hash": plan.plan_hash,
@@ -446,6 +512,9 @@ class DependencyPreparationResult:
             "file_count": file_count,
             "total_bytes": total_bytes,
         }
+        if plan.source_kind == "explore":
+            payload["source_result_hash"] = payload.pop("implement_result_hash")
+            payload["source_kind"] = "explore"
         return cls(
             execution_attempt_id=plan.execution_attempt_id,
             implement_result_hash=plan.implement_result_hash,
@@ -458,6 +527,7 @@ class DependencyPreparationResult:
             file_count=file_count,
             total_bytes=total_bytes,
             result_hash=content_hash(payload),
+            version=payload["version"], source_kind=plan.source_kind,
         )
 
     def hash_payload(self) -> dict[str, object]:
@@ -466,7 +536,7 @@ class DependencyPreparationResult:
         return value
 
     def to_wire(self) -> dict[str, object]:
-        return {
+        value = {
             "version": self.version,
             "execution_attempt_id": self.execution_attempt_id,
             "implement_result_hash": self.implement_result_hash,
@@ -480,6 +550,17 @@ class DependencyPreparationResult:
             "total_bytes": self.total_bytes,
             "result_hash": self.result_hash,
         }
+        if self.source_kind == "explore":
+            value["source_result_hash"] = value.pop("implement_result_hash")
+            value["source_kind"] = self.source_kind
+        return value
+
+    @classmethod
+    def from_payload(cls, value: dict) -> "DependencyPreparationResult":
+        values = dict(value)
+        if values.get("version") == "workspace-dependency-result-v2":
+            values["implement_result_hash"] = values.pop("source_result_hash")
+        return cls(**values)
 
 
 @dataclass(frozen=True, slots=True)
@@ -515,6 +596,7 @@ class DockerDependencyRuntime:
         proxy_policy: DependencyProxyPolicy,
         proxy_lease: DependencyProxyLease,
         sandbox_policy: SandboxPolicy,
+        on_workspace=None,
     ) -> DependencyExecution:
         try:
             plan = signer.verify(signed_plan)
@@ -537,26 +619,55 @@ class DockerDependencyRuntime:
             plan_hash=plan.plan_hash,
         )
         try:
+            if on_workspace is not None:
+                on_workspace(workspace)
             with tempfile.TemporaryDirectory(
                 prefix="contribos-dependency-plan-"
             ) as temporary:
+                os.chmod(temporary, 0o755)
                 plan_path = os.path.join(temporary, "dependency-plan.json")
                 with open(plan_path, "xb") as handle:
                     handle.write(signed_plan.to_bytes())
                 os.chmod(plan_path, 0o444)
-                name = f"contribos-dependency-worker-{uuid4().hex}"
-                output = await self._run(
-                    self.build_prepare_argv(
+                deadline=time.monotonic()+sandbox_policy.timeout_seconds
+                for build_round in range(9):
+                    name = f"contribos-dependency-worker-{uuid4().hex}"
+                    argv=self.build_prepare_argv(
                         repository_volume=repository_volume,
                         dependency_workspace=workspace,
                         signed_plan_path=plan_path,
                         proxy_lease=proxy_lease,
                         policy=sandbox_policy,
                         container_name=name,
-                    ),
-                    container_name=name,
-                    timeout_seconds=sandbox_policy.timeout_seconds,
-                )
+                        scratch_bytes=min(536870912,sandbox_policy.memory_bytes//2,sandbox_policy.disk_bytes//4)
+                            if plan.version==SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION else 134217728)
+                    remaining=int(deadline-time.monotonic())
+                    if remaining<=0: raise DependencyPreparationError('Dependency preparation timed out')
+                    try:
+                        output=await self._run(argv,container_name=name,timeout_seconds=remaining)
+                        break
+                    except SourceBuildRequired as request:
+                        if plan.version!=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or build_round>=8:
+                            raise DependencyPreparationError('Source build not authorized or budget exhausted') from None
+                        from app.sandbox_worker.source_wheels import validate_source_build_request
+                        value=validate_source_build_request(request.request)
+                        builder=f"contribos-dependency-worker-{uuid4().hex}"
+                        offline=self.build_source_argv(argv,workspace=workspace,plan=plan,request=value,container_name=builder)
+                        remaining=int(deadline-time.monotonic())
+                        if remaining<=0: raise DependencyPreparationError('Dependency preparation timed out')
+                        built=await self._run(offline,container_name=builder,timeout_seconds=remaining,max_output_bytes=44_000_000)
+                        built_value=json.loads(built)
+                        if set(built_value)!={'receipt','wheel_data'} or built_value['receipt'].get('request')!=value:
+                            raise DependencyPreparationError('Invalid source build result')
+                        wheel_path=os.path.join(temporary,'wheel.json')
+                        with open(wheel_path,'wb') as handle: handle.write(built)
+                        os.chmod(wheel_path,0o444)
+                        from app.sandbox_worker.source_wheels import IMPORT_SOURCE_WHEEL_SCRIPT
+                        importer=f'contribos-dependency-worker-{uuid4().hex}'
+                        export=self.build_source_import_argv(argv,workspace=workspace,wheel_path=wheel_path,container_name=importer)
+                        result=await self._run(export,container_name=importer,timeout_seconds=max(1,int(deadline-time.monotonic())))
+                        if json.loads(result)!={'version':'source-wheel-built-v1','package':value['package']}:
+                            raise DependencyPreparationError('Invalid source import result')
             try:
                 raw = json.loads(output)
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -606,8 +717,8 @@ class DockerDependencyRuntime:
                 result=result,
                 workspace=completed_workspace,
             )
-        except Exception:
-            await self.destroy(workspace)
+        except BaseException:
+            await self.destroy(workspace, ignore_missing=True)
             raise
 
     async def create_workspace(
@@ -680,6 +791,55 @@ class DockerDependencyRuntime:
             ) from None
         return workspace
 
+    def build_source_argv(self, argv: tuple[str,...], *, workspace: DependencyWorkspace,
+                          plan: DependencyPreparationPlan, request: dict, container_name: str) -> tuple[str,...]:
+        """Offline compiler gets only the bounded dependency volume, no repository."""
+        from inspect import getsource
+        from app.sandbox_worker.source_wheels import OFFLINE_SOURCE_BUILD_SCRIPT, validate_source_build_request
+        from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
+        validate_source_build_request(request)
+        if plan.version!=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or not _WORKER_CONTAINER.fullmatch(container_name):
+            raise ValueError('Source build is not authorized')
+        result=[]
+        index=0
+        while index<len(argv):
+            item=argv[index]
+            if item in {'--network','--name','--env','--mount'}:
+                value=argv[index+1]; index+=2
+                if item=='--network': value='none'
+                elif item=='--name': value=container_name
+                elif item=='--env' and value.split('=',1)[0] in {'HTTP_PROXY','HTTPS_PROXY','NO_PROXY'}: continue
+                elif item=='--mount': continue
+                result.extend((item,value)); continue
+            result.append(plan.builder_image_digest if item==workspace.runner_image_digest else item)
+            index+=1
+        script=getsource(summarize_dependency_failure)+OFFLINE_SOURCE_BUILD_SCRIPT.replace('__GIT_ENVIRONMENT_NAMES__',repr(GIT_SAFETY_ENVIRONMENT_NAMES))
+        image_index=result.index(plan.builder_image_digest)
+        result[image_index:image_index]=['--mount',f'type=volume,src={workspace.volume_name},dst=/source-inputs,readonly,volume-subpath=output/{request["build_root"]}',
+            ]
+        result[-1]=script
+        result.append(canonical_json(request))
+        return tuple(result)
+
+    def build_source_import_argv(self, argv: tuple[str,...], *, workspace: DependencyWorkspace,
+                                 wheel_path: str, container_name: str) -> tuple[str,...]:
+        from app.sandbox_worker.source_wheels import IMPORT_SOURCE_WHEEL_SCRIPT
+        result=[]; index=0
+        while index<len(argv):
+            item=argv[index]
+            if item in {'--network','--name','--env','--mount'}:
+                value=argv[index+1]; index+=2
+                if item=='--network': value='none'
+                elif item=='--name': value=container_name
+                elif item=='--env' and value.split('=',1)[0] in {'HTTP_PROXY','HTTPS_PROXY','NO_PROXY'}: continue
+                elif item=='--mount' and ('dst=/workspace,' in value or 'dst=/input/' in value): continue
+                result.extend((item,value)); continue
+            result.append(item); index+=1
+        image_index=result.index(workspace.runner_image_digest)
+        result[image_index:image_index]=['--mount',f'type=bind,src={wheel_path},dst=/input/wheel.json,readonly']
+        result[-1]=IMPORT_SOURCE_WHEEL_SCRIPT
+        return tuple(result)
+
     async def destroy(
         self,
         workspace: DependencyWorkspace,
@@ -714,6 +874,7 @@ class DockerDependencyRuntime:
         proxy_lease: DependencyProxyLease,
         policy: SandboxPolicy,
         container_name: str,
+        scratch_bytes: int = 134217728,
     ) -> tuple[str, ...]:
         if (
             not re.fullmatch(r"^contribos-workspace-[0-9a-f]{32}$", repository_volume)
@@ -725,6 +886,8 @@ class DockerDependencyRuntime:
             != policy.policy_hash
         ):
             raise ValueError("Dependency runtime input is invalid")
+        if type(scratch_bytes) is not int or not 16*1024*1024<=scratch_bytes<=min(policy.disk_bytes,policy.memory_bytes//2):
+            raise ValueError('Dependency scratch budget is invalid')
         return (
             self.docker_executable,
             "run",
@@ -751,7 +914,7 @@ class DockerDependencyRuntime:
             "--user",
             f"{policy.run_as_uid}:{policy.run_as_gid}",
             "--tmpfs",
-            "/tmp:rw,noexec,nosuid,nodev,size=134217728,mode=1777",
+            f"/tmp:rw,noexec,nosuid,nodev,size={scratch_bytes},mode=1777",
             "--env",
             "HOME=/tmp",
             "--env",
@@ -781,7 +944,7 @@ class DockerDependencyRuntime:
             (
                 f"type=bind,src={signed_plan_path},"
                 "dst=/input/dependency-plan.json,readonly,"
-                "bind-propagation=rprivate"
+                "bind-propagation=rslave"
             ),
             "--entrypoint",
             "python3",
@@ -797,6 +960,7 @@ class DockerDependencyRuntime:
         *,
         container_name: str,
         timeout_seconds: int,
+        max_output_bytes: int = MAX_DEPENDENCY_OUTPUT_BYTES,
     ) -> bytes:
         try:
             process = await asyncio.create_subprocess_exec(
@@ -812,20 +976,65 @@ class DockerDependencyRuntime:
                 "Dependency container could not start"
             ) from exc
         try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout_seconds,
-            )
+            async def bounded(stream,limit):
+                output=bytearray()
+                while chunk:=await stream.read(8192):
+                    output.extend(chunk)
+                    if len(output)>limit: raise ValueError('Dependency output budget exceeded')
+                return bytes(output)
+            if hasattr(process,'stdout'):
+                stdout,stderr=await asyncio.wait_for(asyncio.gather(bounded(process.stdout,max_output_bytes),bounded(process.stderr,4096)),timeout=timeout_seconds)
+                await process.wait()
+            else:
+                stdout,stderr=await asyncio.wait_for(process.communicate(),timeout=timeout_seconds)
+        except asyncio.CancelledError:
+            await self._terminate(process, container_name)
+            raise
         except TimeoutError:
             await self._terminate(process, container_name)
             raise DependencyPreparationError(
                 "Dependency preparation timed out"
             ) from None
+        except ValueError:
+            await self._terminate(process,container_name)
+            raise DependencyPreparationError('Dependency output budget exceeded') from None
         if (
             process.returncode != 0
             or stderr
-            or len(stdout) > MAX_DEPENDENCY_OUTPUT_BYTES
+            or len(stdout) > max_output_bytes
         ):
+            logger.error("Sandbox container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
+                         process.returncode, len(stderr), len(stdout))
+            phase = {
+                94: ("environment_preparation_failed", "隔离 Python 环境创建未完成；尚未修改代码。"),
+                91: ("environment_manifest_unsupported", "所选包使用动态依赖声明，需要独立适配；尚未修改代码。"),
+                92: ("environment_manifest_unsupported", "依赖数量超出准备预算，请缩小工作区范围。"),
+                93: ("environment_manifest_unsupported", "依赖声明包含尚未支持的路径、URL 或安装选项；未执行这些声明。"),
+                95: ("environment_dependency_resolution_failed", "受限包代理中的 wheel 解析未完成，请检查版本约束和可用性；尚未修改代码。"),
+                97: ("environment_dependency_install_failed", "冻结的 wheel 安装未完成；尚未修改代码。"),
+                98: ("environment_build_failed", "所选包的隔离离线构建未完成，需要检查构建后端和包配置；尚未修改代码。"),
+                99: ("environment_build_failed", "本地包 wheel 安装未完成；尚未修改代码。"),
+                100: ("environment_metadata_invalid", "隔离构建返回的包元数据或依赖声明未通过校验；尚未修改代码。"),
+                103: ("environment_source_invalid", "依赖源码、版本约束或构建声明未通过校验；尚未修改代码。"),
+                104: ("environment_source_build_failed", "依赖的离线源码编译未完成；尚未修改代码。"),
+            }.get(process.returncode)
+            if process.returncode==102 and not stderr and len(stdout)<=4096:
+                from app.sandbox_worker.source_wheels import validate_source_build_request
+                try: request=validate_source_build_request(json.loads(stdout))
+                except (ValueError,TypeError,KeyError): pass
+                else: raise SourceBuildRequired(request)
+            if phase:
+                from app.sandbox_worker.dependency_diagnostics import validate_dependency_diagnostic, dependency_diagnostic_message
+                diagnostic = None
+                if not stderr and len(stdout) <= 4096:
+                    try:
+                        diagnostic = validate_dependency_diagnostic(json.loads(stdout))
+                    except (ValueError, TypeError, KeyError):
+                        pass
+                if diagnostic:
+                    raise DependencyPreparationError("Dependency preparation stopped", code=phase[0],
+                        safe_message=dependency_diagnostic_message(diagnostic), diagnostic=diagnostic)
+                raise DependencyPreparationError("Dependency preparation stopped", code=phase[0], safe_message=phase[1])
             raise DependencyPreparationError(
                 "Dependency preparation failed"
             )
@@ -1009,6 +1218,9 @@ class DockerDependencyProxyRuntime:
                 )
             )
             await self._wait_until_ready(container)
+        except asyncio.CancelledError:
+            await self.stop(lease, ignore_missing=True)
+            raise
         except Exception:
             await self.stop(lease, ignore_missing=True)
             raise DependencyPreparationError(
@@ -1154,7 +1366,9 @@ environment = {
     "NO_PROXY": "",
     **git_environment,
 }
-if plan["ecosystem"] == "python":
+if plan["ecosystem"] == "python" and plan["version"] in {"workspace-dependency-plan-v2", "workspace-dependency-plan-v3", "workspace-dependency-plan-v4"} and any(m["path"].endswith("pyproject.toml") for m in plan["manifests"]):
+    __WORKSPACE_PYTHON_PREPARATION__
+elif plan["ecosystem"] == "python":
     dependency_root = "/dependencies/output"
     lockfile = os.path.join(
         "/workspace", *plan["manifests"][0]["path"].split("/")
@@ -1163,6 +1377,7 @@ if plan["ecosystem"] == "python":
         ["python3", "-m", "venv", f"{dependency_root}/venv"],
         check=True,
         stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         env=environment,
     )
     subprocess.run(
@@ -1175,6 +1390,7 @@ if plan["ecosystem"] == "python":
         ],
         check=True,
         stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         env=environment,
     )
 else:
@@ -1195,6 +1411,7 @@ else:
         ],
         check=True,
         stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         env=environment,
     )
 
@@ -1234,6 +1451,9 @@ print(json.dumps({
     "__GIT_ENVIRONMENT_NAMES__",
     repr(GIT_SAFETY_ENVIRONMENT_NAMES),
 )
+
+from app.sandbox_worker.workspace_dependencies import WORKSPACE_PYTHON_SCRIPT
+_PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __WORKSPACE_PYTHON_PREPARATION__", "\n".join("    " + line for line in WORKSPACE_PYTHON_SCRIPT.splitlines()))
 
 _PROXY_SCRIPT = r"""
 import ipaddress

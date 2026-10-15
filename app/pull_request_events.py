@@ -70,6 +70,7 @@ class PullRequestEventService:
         actor_id: str,
         occurred_at: datetime | None = None,
         now: datetime | None = None,
+        commit: bool = True,
     ) -> PullRequestEvent:
         try:
             require_user_action(action, expected=UserAction.INGEST_PR_EVENT)
@@ -190,6 +191,9 @@ class PullRequestEventService:
             raise PullRequestEventConflictError(
                 "Pull request event audit evidence could not be prepared"
             ) from exc
+        if not commit:
+            self.session.flush()
+            return event
         try:
             self.session.commit()
         except IntegrityError as exc:

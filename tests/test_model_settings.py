@@ -554,9 +554,11 @@ def test_is_allowed_public_ip_checks_global_and_fake_ip():
 
     # Global public IPs
     assert is_allowed_public_ip(ipaddress.ip_address("104.18.25.1")) is True
-    # Fake-IP subnet (RFC 2544, 198.18.0.0/15) used by Clash/Surge/Mihomo TUN mode
+    # Fake-IP subnets (RFC 2544 IPv4 198.18.0.0/15, RFC 5180 IPv6 2001:2::/48) used by Clash/Surge/Mihomo TUN mode
     assert is_allowed_public_ip(ipaddress.ip_address("198.18.0.116")) is True
     assert is_allowed_public_ip(ipaddress.ip_address("198.19.255.254")) is True
+    assert is_allowed_public_ip(ipaddress.ip_address("2001:2::7")) is True
+    assert is_allowed_public_ip(ipaddress.ip_address("2001:2:0:ffff::1")) is True
     # Private and loopback IPs must remain forbidden
     assert is_allowed_public_ip(ipaddress.ip_address("127.0.0.1")) is False
     assert is_allowed_public_ip(ipaddress.ip_address("10.0.0.1")) is False
@@ -564,6 +566,7 @@ def test_is_allowed_public_ip_checks_global_and_fake_ip():
     assert is_allowed_public_ip(ipaddress.ip_address("172.17.0.1")) is False
     assert is_allowed_public_ip(ipaddress.ip_address("169.254.169.254")) is False
     assert is_allowed_public_ip(ipaddress.ip_address("fe80::1")) is False
+    assert is_allowed_public_ip(ipaddress.ip_address("fd00::1")) is False
 
 
 def test_ssrf_allows_fake_ip_and_connects(monkeypatch):

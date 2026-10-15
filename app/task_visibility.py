@@ -124,9 +124,21 @@ class TaskVisibilityService:
                 raise ContributionTaskConflictError("任务正在运行，请先停止并等待结束后归档")
             events = list(self.session.scalars(select(WorkbenchEvent).where(
                 WorkbenchEvent.task_id == task_id).order_by(WorkbenchEvent.sequence)))
+            finished = {e.payload['message_id'] for e in events if e.kind == 'conversation_finished'}
+            if any(e.kind == 'conversation_received' and e.id not in finished for e in events):
+                raise ContributionTaskConflictError('还有补充信息尚未处理，请继续处理后归档')
             confirmed = next((e for e in reversed(events) if e.kind == "publication_confirmed"), None)
             if confirmed and not any(e.kind == "publication_completed" and e.sequence > confirmed.sequence for e in events):
                 raise ContributionTaskConflictError("发布结果尚未核对完成，请先核对后归档")
+            receipts = {e.payload['authorization_hash'] for e in events if e.kind == 'cla_submitted'}
+            if any(e.kind == 'cla_write_started' and e.payload['authorization_hash'] not in receipts for e in events):
+                raise ContributionTaskConflictError('CLA 签署结果尚未核对完成，请先核对后归档')
+            resolved_updates = {e.payload['authorization_hash'] for e in events if e.kind in {'pr_update_completed', 'pr_update_rejected'}}
+            if any(e.kind == 'pr_update_write_started' and e.payload['authorization_hash'] not in resolved_updates for e in events):
+                raise ContributionTaskConflictError('PR 文案更新结果尚未核对完成，请先核对后归档')
+            resolved_ready = {e.payload['authorization_hash'] for e in events if e.kind in {'pr_ready_completed', 'pr_ready_rejected'}}
+            if any(e.kind == 'pr_ready_write_started' and e.payload['authorization_hash'] not in resolved_ready for e in events):
+                raise ContributionTaskConflictError('Ready for review 结果尚未明确，请先跟进核对后归档')
         created_at = datetime.now(timezone.utc)
         payload = {"task_id": task_id, "task_record_hash": task.record_hash,
                    "sequence": sequence + 1, "state": target,

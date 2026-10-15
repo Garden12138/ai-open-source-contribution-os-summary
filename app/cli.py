@@ -91,6 +91,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=f"sandbox-{socket.gethostname()}-{uuid4()}",
     )
 
+    publisher_service = subparsers.add_parser("publisher-service", help="Run isolated Publisher settings and durable workers")
+    publisher_service.add_argument("--host", default="127.0.0.1")
+    publisher_service.add_argument("--port", type=int, default=8002)
     publisher_worker = subparsers.add_parser("publisher-worker", help="Run exact user-confirmed publication using host gh authentication")
     publisher_worker.add_argument("--once", action="store_true")
     publisher_worker.add_argument("--poll-interval", type=float, default=2)
@@ -149,6 +152,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.command != "doctor":
+        import logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        )
+
     if args.command in {None, "serve"}:
         settings = Settings.from_env()
         uvicorn.run(
@@ -174,6 +184,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0 if report.ok else 1
     settings = Settings.from_env()
+    if args.command == "publisher-service":
+        from app.publisher_service import create_publisher_app
+        from app.providers.model_secrets import GatewaySecretStore
+        assert_publisher_environment()
+        database = Database(settings.database_url)
+        database.create_schema()
+        application = create_publisher_app(settings, database, GatewaySecretStore(settings.publisher_secret_root))
+        uvicorn.run(application, host=args.host, port=args.port, access_log=False)
+        return 0
     if args.command == "scan":
         return asyncio.run(run_scan(settings, args.queries, args.top))
     if args.command == "publisher-worker":
@@ -264,6 +283,8 @@ async def run_sandbox_worker(
     settings: Settings,
     args: argparse.Namespace,
 ) -> int:
+    if "TMPDIR" in os.environ:
+        Path(os.environ["TMPDIR"]).mkdir(mode=0o700, parents=True, exist_ok=True)
     database = Database(settings.database_url)
     database.create_schema()
     try:
@@ -299,14 +320,19 @@ def _gateway_secret(
     if not value or len(value) > 8_192 or any(char.isspace() for char in value):
         raise ValueError(f"{environment_name} is not configured safely")
     return value
-async def run_publisher_worker(settings: Settings, args: argparse.Namespace) -> int:
-    from app.publication import PublicationWorker
+def assert_publisher_environment() -> None:
     from app.workbench import WorkbenchError
     if any(os.environ.get(name) for name in (
         "GITHUB_TOKEN", "GH_TOKEN", "NVIDIA_API_KEY", "OPENAI_API_KEY",
-        "MODEL_GATEWAY_SIGNING_KEY", "SANDBOX_JOB_SPEC_SIGNING_KEY", "DOCKER_HOST",
+        "MODEL_GATEWAY_SIGNING_KEY", "MODEL_GATEWAY_MANAGEMENT_KEY",
+        "SANDBOX_JOB_SPEC_SIGNING_KEY", "DOCKER_HOST",
     )) or Path("/var/run/docker.sock").exists() and os.access("/var/run/docker.sock", os.W_OK):
         raise WorkbenchError("Publisher 必须使用独立环境：仅 gh 登录、数据库和产物；不能访问 Docker 或模型凭证")
+
+
+async def run_publisher_worker(settings: Settings, args: argparse.Namespace) -> int:
+    from app.publication import PublicationWorker
+    assert_publisher_environment()
     database = Database(settings.database_url)
     database.create_schema()
     try:

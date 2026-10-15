@@ -865,6 +865,7 @@ class ArtifactStore:
             suffix=".tmp",
             dir=target.parent,
         )
+        os.fchmod(descriptor, 0o644)
         temporary = Path(temporary_name)
         try:
             with os.fdopen(descriptor, "wb") as stream:

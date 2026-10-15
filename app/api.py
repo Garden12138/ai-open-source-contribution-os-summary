@@ -743,6 +743,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current: Settings = request.app.state.settings
         from dataclasses import replace
         from app.model_settings import ModelSettingsService
+        from app.publisher_accounts import account_status
         model_service = ModelSettingsService(session)
         overrides = {}
         for stage, identifier in model_service.defaults().items():
@@ -770,7 +771,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             review_provider=current.review_provider,
             review_model=current.review_model,
             sandbox_stage_runtime=current.sandbox_stage_runtime,
-            draft_pr_publisher=settings.publisher_mode,
+            draft_pr_publisher=(("gh" if account_status(session)["connected"] else "none")
+                if settings.publisher_management_key else settings.publisher_mode),
         )
 
     @app.get(
@@ -839,6 +841,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             pattern=r"^(all|analyzed|recommended)$",
         ),
         include_dismissed: bool = Query(default=False),
+        small_change_only: bool = Query(default=False),
         limit: int = Query(default=50, ge=1, le=100),
         offset: int = Query(default=0, ge=0),
         session: Session = Depends(get_session),
@@ -851,6 +854,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 goal=goal,
                 analysis_filter=analysis_filter,
                 include_dismissed=include_dismissed,
+                small_change_only=small_change_only,
                 limit=limit,
                 offset=offset,
             )
@@ -891,6 +895,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
         result = ProductExperienceService(session).recommendations(
             default_languages=request.app.state.settings.preferred_languages,
+            small_change_only=payload.small_change_only,
             limit=100,
         )
         scan_run_id = result.get("scan_run_id")
@@ -1315,10 +1320,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> ContributionTaskResponse:
         try:
-            task = ContributionTaskService(session).create(
-                analysis_version_id=payload.analysis_version_id,
-                idempotency_key=idempotency_key or str(uuid4()),
-            )
+            service = ContributionTaskService(session)
+            key = idempotency_key or str(uuid4())
+            if payload.snapshot_id is not None:
+                task = service.create_from_snapshot(snapshot_id=payload.snapshot_id, idempotency_key=key)
+            else:
+                task = service.create(analysis_version_id=payload.analysis_version_id, idempotency_key=key)
         except ContributionTaskNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ContributionTaskConflictError as exc:
@@ -2244,7 +2251,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             attempt,
             stages[-1],
         ).model_dump()
+        from app.execution_outcome import attempt_verification
         return ExecutionDetailResponse(
+            verification=attempt_verification(session, settings.artifact_root, attempt.id),
             **base,
             stages=[
                 ExecutionStageResponse.model_validate(stage)
@@ -2634,7 +2643,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _: None = Depends(require_mutation_access),
     ) -> JobResponse:
         try:
-            if JobService(session).get(job_id).kind == "publication_write":
+            if JobService(session).get(job_id).kind in {"publication_write", "cla_write", "pr_update_write", "pr_ready_write"}:
                 raise HTTPException(status_code=409, detail="发布已确认；远端操作只能完成或重试核对，不能中途取消")
             job = JobService(session).request_cancel(job_id)
         except JobNotFoundError as exc:
@@ -2653,6 +2662,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> JobResponse:
         try:
             current = JobService(session).get(job_id)
+            if current.kind in {"coding_turn", "change_set_proposal", "provider_review"}:
+                from app.contribution_workflow import retry_execution_job
+                from app.workbench import Workbench, WorkbenchError
+                try:
+                    return JobResponse.model_validate(retry_execution_job(
+                        Workbench(session, settings.artifact_root), job_id, settings))
+                except (CodingConflictError, ExecutionAttemptConflictError,
+                        PlanVersionConflictError, ReviewConflictError, WorkbenchError) as exc:
+                    raise HTTPException(status_code=409, detail=str(exc)) from exc
             job = (
                 ManualAnalysisService(session).retry(job_id)
                 if current.kind == PROVIDER_ANALYSIS_JOB_KIND
@@ -3007,6 +3025,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_workbench_routes(app, get_session, require_mutation_access)
     from app.model_settings_api import register_model_settings_routes
     register_model_settings_routes(app, get_session, require_mutation_access)
+    from app.publisher_settings_api import register_publisher_settings_routes
+    register_publisher_settings_routes(app, require_mutation_access)
     return app
 
 

@@ -1561,6 +1561,1309 @@ Explicitly requested after ST-G01/G02 implementation acceptance:
 
 ---
 
+
+## User-directed conversation execution repair (2026-10-09)
+
+This slice advances existing WB-T01/WB-T03 and P5 execution behavior while
+**Phase 5 remains current**. Reference: `docs/conversation-execution.md`.
+
+- [x] **CX-T01** Inline plan editing/approval, attempt selection, Diff, test
+  evidence and review; execution questions never implicitly stop work. Explicit
+  goal changes cancel the frozen old job scope before creating a new plan.
+- [x] **CX-T02** Separate Job completion from verified test success; missing
+  dependencies block code repair. Preserve exact plan consent, authorization
+  replay and cumulative repair evidence. Reject truncated model completions and
+  unknown review severities; remove raw exception/container logging.
+- [x] **CX-T03** Wire persistent dependency preparation through the existing
+  credential-free proxy runtime, hash-bound Verify inputs and journal-based
+  cleanup. Unsupported mixed environments fail explicitly. Offline dependency
+  scheduling/restart/cleanup and real proxy/isolation tests pass.
+- [x] **CX-T04** Recover truthful progress for stopped/blocked tasks: readiness
+  disables execution consistently, planning receives actual execution evidence,
+  and idle tasks with execution history default to explicit progress questions.
+  Preserve plans and surface historical attempts even when the newest cancelled
+  authorization produced no Attempt. Regression: Oppia task
+  `9727c1c6-04d4-4422-a8b0-e47b61517816`; see `docs/oppia-task-recovery.md`.
+- [x] **CX-G01** Deployment health, deployed read-only browser inspection and
+  post-deployment redaction checks. All five Compose services are running;
+  API/gateway healthy and `/health` reports database OK. Chromium inspects the
+  real Oppia history at 1440/390 px, switches execution attempts and displays
+  missing dependencies without mutations, page errors or overflow.
+- [ ] **CX-G02** Full real-model Python and TypeScript non-production repository
+  acceptance. Dedicated repository prerequisites are not yet supplied. Existing
+  real Oppia execution had six failed commands (filetype/yaml/packaging missing)
+  and blocked review; it is not a passing acceptance.
+- [ ] **CX-G03** Same-command pre-change baseline verification and full crash
+  injection for dependency allocation/event/cleanup boundaries.
+- [ ] **CX-G04** Oppia-specific execution environment and unchanged-base
+  acceptance of the original verification commands. Requires Python/Node/Yarn,
+  repository-local dependencies, browsers, Redis and app services with reviewed
+  dependency provenance. Do not unblock by broadening network or dropping tests.
+
+Initial slice evidence: offline regression **477 passed, 11 skipped**; five Node Diff tests;
+Chromium desktop 1440 px/mobile 390 px verifies inline approval, failed test
+output, execution questions, explicit target-change consent, Diff and no page
+errors/overflow. Real macOS arm64/OrbStack fixed Runner
+`sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b`
+passes dependency proxy/hash-lock preparation and fresh-container offline
+verification (2 tests). Later targeted regression covers the final cancellation
+cleanup and replan replay fixes. No real model request or GitHub write is claimed.
+
+2026-10-09 task recovery follow-up: regression **478 passed, 11 skipped**;
+targeted API/question tests and Chromium blocked-task/default-message-mode
+checks pass. A real `execution_question` Job
+`f06c89ca-8ace-4279-ad2f-e3247019d88b` succeeded and reports the unsupported
+environment and historical 0/6 verification; the plan remains
+`95056cfa-4af9-40e8-96fc-5a7331eee9e4` and attempt count remains 19.
+This proves progress-question integration only, not real implementation or
+Oppia acceptance. Follow-up backup:
+`/data/backups/task-recovery-20261009T061713Z/contribos.db`.
+Database integrity/foreign keys pass, and configured API secret checks find no
+matches in the database, response or 110 inspected artifacts under 8 MB.
+Final follow-up deployment: five services running, API/gateway healthy,
+`/health` reports database OK; recent logs contain zero configured-secret
+matches and zero Python tracebacks. Original CX-G01 was reopened during the
+recovery regression and is closed again after deployed inspection.
+
+Deployment evidence: pre-deployment SQLite backup at
+`/data/backups/pre-conversation-20261008T234741Z/contribos.db`; integrity check
+`ok`, zero foreign-key errors. Known configured API/worker credentials do not
+appear in the database, 109 inspected artifacts (under 8 MB) or the workbench
+response. Recent deployment logs checked against five configured secret values
+contain zero matches and zero Python tracebacks. Browser entry points:
+`tests/conversation_browser.mjs` (disposable fixture including round switching)
+and `tests/conversation_deployed.mjs` (read-only existing Oppia regression).
+
+Persistent model/schema remains 0032: use existing authorization IDs, immutable
+PlanApproval grouping, append-only Workbench events and durable Jobs. Unprovable
+historical run associations remain `legacy_unverified`. Recovery and unsupported
+environment details are documented; no phase or real-model gate is closed by
+these fixture runs. **P5-G06 remains the next roadmap gate.**
+
+---
+
+## User-directed small-change discovery filter (2026-10-09)
+
+Phase 5 remains current. This user-requested discovery improvement helps choose
+bounded contributions while existing execution/platform gates remain open.
+
+- [x] **SC-T01** Conservative, versioned scope classification from immutable
+  Issue snapshots and existing effort estimates; do not alter rule scores or
+  invoke a model. Generic beginner labels alone do not qualify; explicit large
+  scope, complex verification and high effort take precedence.
+- [x] **SC-T02** Filter the full eligible recommendation pool before pagination;
+  compose with AI/disposition filters. Native UI toggle, matching explanations,
+  empty/error/loading states and filtered batch analysis preserve existing
+  authorization, Top-30 evidence and budget constraints.
+- [x] **SC-G01** Rebuild/redeploy, health, deployed read-only browser and
+  configured-secret checks.
+
+Evidence: **495 passed, 11 skipped** offline regression; Chromium desktop
+1440 px/mobile 390 px verifies server query parameters, matching explanations,
+combined filters, empty results, failed-request rollback and no writes/errors/
+overflow. `tests/test_change_scope.py` covers full-pool pagination, snapshot vs
+mutable-record classification, immutable scores, filtered authorized batch jobs
+and conservative rule boundaries. `tests/small_change_browser.mjs` uses controlled
+read-only UI fixtures. No DB schema or stored score changes; schema remains 0032.
+README documents API fields, heuristics and rollback. Actual environment readiness
+and real-model end-to-end acceptance are separate; P5-G06 and CX gates remain open.
+
+Deployment evidence: all five Compose services running, API/gateway healthy,
+`/health` database OK, SQLite integrity `ok` and zero foreign-key errors.
+`tests/small_change_deployed.mjs` inspects real data using GET only: **79 candidates,
+6 small-change matches**, exact card counts, synchronized pending-analysis count,
+desktop/mobile without overflow or browser errors. Configured-secret checks:
+five values against deployment logs/filtered response and two API values against
+database/filtered response; zero matches and no Python tracebacks in inspected logs.
+
+Rescan regression (2026-10-09): reopened SC-T01/SC-G01 after the user reported
+zero small changes. Latest completed scan `9c95e030-58ce-49fc-8aac-c2954f148b42`
+replaced the previous pool with 66 eligible candidates; v1 actually returned zero,
+rather than a navigation/count rendering failure. It missed compact `size:S`
+labels and narrow documentation/project metadata edits. `change-scope-v2`
+normalizes colon/slash size labels for both inclusion and exclusion, and recognizes
+specific documentation link/screenshot and `[project.urls]` changes with concrete
+target evidence. Beginner/documentation labels alone remain insufficient; broad
+scope and complex verification still exclude. Default queries now additionally
+target Python/TypeScript typo titles within existing per-query bounds; explicit
+custom queries remain authoritative. No historical snapshots or scores changed.
+
+Reclosed after **508 passed, 11 skipped**, compileall, JS syntax and diff checks;
+API rescan regression verifies the new snapshot pool rather than stale matches.
+Compose rebuilt/redeployed, all five services running, API/gateway healthy,
+`/health` OK. The same real scan now returns **66 candidates / 3 small changes**.
+Deployed Chromium verifies exact API/card/button counts, keeping the selected
+filter when leaving and returning to discovery, desktop/mobile layout, zero
+mutations and zero browser errors. Fixture UI checks also pass. SQLite integrity
+OK / zero FK errors; three configured API secret values checked against DB and
+responses, six deployment values against recent logs, zero matches; credential
+canary checks zero and no inspected log tracebacks. P5-G06 remains the next
+roadmap gate; native Linux and real execution readiness are not closed here.
+
+---
+
+## User-directed analysis reliability repair (2026-10-09)
+
+Phase 5 remains current. Candidate 329 (`Arize-ai/openinference#3785`, snapshot
+`15fe98c5-4302-4918-9370-95451f37d0b4`) has four failed attempts across three
+Jobs: Inspect succeeded each time, then Analyze failed strict citation alignment
+for `fit_reasons` or `acceptance_criteria`. Provider/model was MiniMax-M3, not
+Codex despite the inherited `codex_output_*` error prefix. No report was saved;
+the failure is structured generation rather than sandbox/repository execution.
+
+- [x] **AR-T01** Generate each list statement together with its frozen evidence
+  IDs; lossless conversion into the unchanged durable analysis schema, retain
+  strict allowlist/shape/alignment checks and bounded two-stage invocation.
+- [x] **AR-T02** Version and freeze the new adapter only for new MiniMax/
+  OpenAI-compatible analyses; keep legacy job retries, planning and NVIDIA
+  behavior intact. Display an actionable redacted citation-alignment error.
+- [x] **AR-G01** Offline regression, redeployment/health, configured-secret
+  checks, and one real bounded evaluation of candidate 329 with immutable report
+  persistence and readable UI. No GitHub writes or platform gate closure.
+
+Evidence: `studio-analysis-paired-v1` projects the frozen model-facing schema
+into `{value, evidence_ids}` list items, then losslessly splits them into the
+original `analysis-schema-v4`. No citation padding or reassignment: missing,
+conflicting and invented references still fail. Exactly identical redundant
+citation rows are accepted without changing their contents. Explicit top-level
+required-key instructions prevent the model from silently reverting to an older
+report shape; redacted error codes distinguish missing fields, conflicting rows
+and malformed pairs. New Jobs freeze the new adapter and the exact existing
+Profile; legacy retries retain `studio-model-v1`. No database migration, provider
+credential movement, model switch or business API shape change.
+
+**523 passed, 11 skipped** offline; focused tests cover both tools/JSON-schema
+transports, legacy and new bindings, immutable source schemas, preserved enums,
+optional empty lists, ambiguous pairs, exact redundant rows and unknown citations.
+Compileall, JS syntax and diff checks pass. Compose rebuilt/redeployed with all
+five services running, API/gateway healthy, `/health` OK, DB integrity OK and
+zero FK errors.
+
+Real candidate 329 acceptance: Job `0abaca53-381c-40d6-bf46-f52a76fa25ba`
+needed three bounded attempts during this repair. Attempt 1 exposed redundant
+wire citation-map fields; attempt 2 reached durable validation but failed its
+top-level field contract. With final required-key instructions, attempt 3
+succeeded in 39,968 ms, with 13,971 input / 3,473 output tokens reported for that
+successful attempt. This is not a claim of first-attempt or fleet-wide reliability.
+Immutable AnalysisVersion `61d0b807-b80c-49d8-8de2-19841cb60cda` references the
+original candidate Snapshot and ScoreVersion; record hash
+`a4f8a939742721d5af938fbc04a5b11ebfaf011b376b8cdcc32bf1424eed1394`.
+AnalysisHistory and the unchanged strict structured/citation validator both pass.
+`tests/analysis_deployed.mjs` verifies the real report/Markdown and
+“制定贡献方案” entry at desktop/mobile widths, with zero writes, browser errors or
+overflow. Three configured API secret values against DB/responses and six
+deployment values against recent logs: zero matches/canaries/tracebacks.
+No contribution task, execution, GitHub write or Draft PR was created. Other
+models/candidates and end-to-end execution remain separate acceptance; P5-G06 is
+still the next roadmap gate.
+
+Architecture review requested after AR acceptance: the recent-100-Job sample
+contains 19 analysis Jobs, with 16 historical final failures in report/citation
+contracts. This includes earlier adapters and is not the final adapter's failure
+rate. AR-G01 proves one candidate evaluation and UI, not a complete contribution
+workflow or general reliability. The user-directed review and proposed boundary
+changes are recorded in [workflow-architecture-review.md](workflow-architecture-review.md).
+Minimal trusted analysis vs optional report, smaller conversation/tool contracts,
+early environment/baseline verification and repeatable real end-to-end acceptance
+are proposals; no schema, permission, safety policy or workflow change is claimed
+implemented by this review. Phase 5 and its open gates remain unchanged.
+
+## User-directed workflow boundary adjustment (2026-10-09)
+
+Phase 5 stays current; P5-G06 remains the next roadmap gate. User authorizes the
+structural slice described in `workflow-architecture-review.md`.
+
+- [x] **WD-T01** Verified snapshot facts create a minimal, explicitly unassessed
+  AnalysisVersion and discussion task, independently of optional AI reports.
+  No synthetic provider jobs/invocations, scores, effort or approval; migration
+  0033 preserves old IDs/hashes and documents recovery.
+- [x] **WD-T02** Separate conversation envelope/tool intent from strict plan
+  acceptance. Allow combined outcomes and substantive narration; deterministic
+  clarification/read/plan ordering, bounded reads and no silent plan truncation.
+  Invalid drafts preserve safe narration while blocking execution.
+- [x] **WD-G01** Focused/regression/migration tests, native browser entry and
+  deployed health/data-integrity/secret checks pass.
+- [x] **WD-G02** Real unassessed opportunity creates a task and progresses through
+  read-only repository context and a real-model conversation without rich report.
+- [ ] **WD-G03** Repeat real Python/TypeScript small-task execution with before/
+  after baseline, exact diff, real tests and independent review; track failure
+  stage, model calls and manual interventions. No mock evidence closes this gate.
+
+Verified implementation and live evidence (2026-10-09–10):
+
+- Migration **0033_snapshot_assessments** was applied after stopping writers and
+  backing up SQLite plus all 119 Artifact files (1,637,548,322 bytes) at
+  `/data/backups/workflow-0032-20261009T154920Z`. All 10 previous AnalysisVersion
+  IDs/record hashes survived unchanged; integrity `ok`, zero foreign-key errors.
+  Upgrade tests also retain old task, plan and publication references/hashes.
+- `tests/test_snapshot_assessment.py` checks an eligible snapshot explicitly
+  outside the paid-analysis Top 30, zero model jobs/invocations/tokens, API
+  exclusive input, replay, no AI-statistic inflation, invalid origin/input
+  rejection, independent narration/clarification/read/draft outcomes and bounded
+  recovery. Rejected drafts cannot authorize the old plan; a strictly validated
+  manual revision resolves the error without changing history or approving it.
+- Chromium against a disposable real API fixture proves the unassessed entry
+  creates only a task, with zero model/execution jobs. Existing inline execution
+  and failure/recovery UI contracts also pass at 1440/390 px. Deployed read-only
+  Chromium retains candidate 329's rich report and Oppia's environment/test
+  evidence, and displays the new discussion without writes/errors/overflow.
+- Real candidate **325** (`prakhar1605/Opencollab-mcp#137`) creates task
+  `e380cc10-fb6c-49f8-810a-11233e7929ad` from snapshot
+  `7eaf1d5e-8313-4e07-8a4f-02151b4a4faf`, without a rich report. Its schema 2
+  AnalysisVersion is `cd0d0ed0-bfeb-4c87-a531-bd49aefcab04`, record hash
+  `8a0dae84aeb8f1582e398957d83c29949e92851e8a02ecb71aca87219aa674ea`;
+  provider `snapshot_facts`, no provider Job or invocation, zero model usage.
+  Planning freezes upstream base `42c49b1ffa257e68043abba5b5389ab53ef44226`,
+  archive hash `5ec83344067b9a5d96cdadde5be2f84a6aa0ecebe1397a226a05aaddd903d7ab`.
+  Archive/context Jobs and two MiniMax-M3 turns all succeed (two model calls,
+  no repair/retry). First reply clarifies; second is a standalone `message`.
+  The cached source already contains both requested links, so no no-op plan,
+  execution, authorization or GitHub mutation is manufactured. PyPI publication
+  status was not verified. The two real calls used 44,085/45,208 input and
+  905/787 output tokens, with 7,409/11,018 ms reported duration.
+- Static environment diagnosis truthfully marks that project's missing supported
+  hash lock as unsupported; discussion still succeeds. This does not establish
+  package installation, a successful test run, or a complete contribution.
+- Pre-recovery regression: **530 passed, 11 skipped**; real pinned macOS/OrbStack
+  planning-context, Explore, Implement, offline Verify/dependency acceptance:
+  **8 passed**. Final recovery regression/deployment evidence follows below.
+  Configured API credentials against DB/responses: 2 checked, zero matches;
+  deployment credentials against recent logs: 5 checked, zero matches/tracebacks.
+
+Final recovery acceptance (2026-10-10): **531 passed, 11 skipped**, plus the
+explicit outside-Top-30 snapshot/recovery module **12 passed**. Python compile,
+JavaScript module checks and `git diff --check` pass. All five Compose services
+were rebuilt/redeployed; API/Gateway healthy and `/health` returns database OK.
+Final deployed read-only browser verifies the live two-turn conversation on
+desktop/mobile with zero errors, overflow or writes. Source changes after the
+8-test real sandbox run only affect draft-rejection recovery and browser cache
+versions; sandbox execution/policy/image behavior is unchanged.
+
+**WD-G03 remains open**: modification-before baseline, expanded supported
+verification environments, and repeated real model implementation/test/review
+acceptance still require work. No fixture or conversation success closes those
+requirements. Historical AR evaluation is not WD-G03 evidence. Phase 5 remains
+current, **P5-G06** is the next roadmap gate; Oppia remains a complex-environment
+recovery case.
+
+### Live task sandbox audit and remaining workflow work (2026-10-10)
+
+User reports task `82c0ec73-3be6-4499-b806-45cd31430722` repeatedly asks them to
+implement/test locally. Read-only inspection confirms no saved PlanVersion,
+execution authorization or ExecutionAttempt; two rejected drafts and nine
+succeeded planning/archive/context Jobs. Sandbox code reading succeeded, but
+root-only environment detection missed the selected nested Python package.
+`can_execute=false` is plan/action readiness, not proof of absent sandbox runtime.
+Dependency preparation currently follows Implement; no actual pre-change test
+baseline exists. Exact final draft rejection causes cannot be recovered from
+the persisted generic diagnostics. Full evidence and design are recorded in
+[task-82c0ec73-sandbox-audit.md](task-82c0ec73-sandbox-audit.md).
+
+- [x] **WD-T03** Separate runtime capability, selected-package environment
+  preparation and plan/authorization readiness; service-owned action receipts
+  prevent rejected/deferred plans being represented as saved. Add safe field/
+  domain diagnostics and bounded targeted recovery with aggregate budgets.
+- [ ] **WD-T04** Versioned, hash-bound workspace environment for selected Python/
+  TypeScript packages, test and local workspace dependencies; isolated restricted
+  dependency resolution/build/preparation before implementation. Preserve
+  credential isolation and network-free verification; migration/recovery for
+  any new persistent contracts.
+- [ ] **WD-T05** Authorized real pre-change baseline/reproduction and post-change
+  verification with frozen environment/commands, distinct environment/code
+  failures, bounded repair and restart/cancellation recovery; all in conversation.
+
+Initial inspection above was read-only. The subsequent user-requested repair
+implements WD-T03 and the Python portion of WD-T04/05: selected nested package,
+recursive local packages, restricted proxy resolution and frozen lock/wheels,
+source precedence, a persistent `execution_prepare` job before coding, immutable
+baseline evidence, and independent review consuming the actual baseline hash.
+Verification cannot contain pip/tox installation commands or invented explicit
+pytest paths. Tests for newly approved files run after implementation; baseline
+uses the unchanged approved commands targeting existing files.
+
+Real OpenInference acceptance exposed an additional whole-archive failure:
+unrelated `js/.npmrc` caused materializer exit 23. New authorizations freeze
+`source-tree-scope-v1` roots and their hash; scoped `sandbox-job-spec-v2` signs
+the exact same roots for Explore/Implement. Preparation uses the same authorized
+roots. The original archive/base hashes remain intact. No credential path guard
+is removed: protected files inside scope still fail; malformed archive paths and
+escaping symlinks fail even outside scope. Legacy unscoped v1 remains unchanged.
+Additive migrations 0034/0035 guard baseline references and scope authorization;
+upgrade tests preserve historical hashes, and recovery requires matching code,
+SQLite and artifacts. Pre-0035 live backup:
+`/data/backups/sandbox-0034-20261010T072906Z` (124 files, 1,643,460,817 bytes;
+11 AnalysisVersions, 3 Tasks, 22 PlanVersions).
+
+Verification: `546 passed, 14 skipped`; separate real macOS/OrbStack suite
+`7 passed`, including frozen Python/local-package baseline failure then fix/pass,
+scope exclusion, legacy sensitive-path refusal, fresh network-free verification,
+restricted package proxy, and both scoped/unscoped malicious archive paths.
+Real OpenInference read-only acceptance ran the full selected package suite:
+`531 passed, 27 skipped`, with unchanged inventory. Ruff uses the frozen venv;
+source-aware mypy checks disable cache writes in fresh Verify so typing caches
+cannot fill the bounded log tmpfs. Runtime interpreter lookup uses the child
+PATH, not the supervisor PATH. No resource or network ceiling was relaxed.
+Upstream moved from `50b133804a868b83590fbd8999fb047dd765c321` to
+`c364180e5be52f0cdc00fbc88f9462603569f4e2`; persistent model-free context
+refresh read only the approved existing paths/manifests, invalidated the old
+plan, and saved child `fd7f4bfa-c672-4e39-9459-a7f1a0406704` against the new
+context (record hash `5281458eba39970badf14cee07de6ec57f2583b084ef1d45bd474d6090b8505d`).
+The missing accumulator fields remain missing upstream, so the task goal is
+still applicable. Plan save receipts, desktop/mobile inline confirmation and
+zero browser mutations were verified. Task authorizations/attempts remain zero;
+these acceptance results do not represent a completed contribution.
+Final deployed read-only acceptance against the new base passed all four existing
+approved commands: selected tests, complete package `531 passed, 27 skipped`,
+Ruff, and mypy on 14 source files, with unchanged inventory. Evidence summary:
+[task-82c0ec73-sandbox-acceptance.json](task-82c0ec73-sandbox-acceptance.json).
+Five services are running, API/Gateway healthy; SQLite integrity/FKs and all
+pre-0035 historical hashes pass. Database/response/artifact/log secret checks
+found zero. Current task is the exact plan confirmation followed by real sandbox
+implementation/test/review; native Linux P5-G06 remains the roadmap platform gate.
+Compile and diff checks passed. WD-T04 remains open for general TypeScript
+workspace layouts and unsupported dynamic/local dependency layouts; WD-T05 and
+WD-G03 remain open until actual authorized task implementation/review and real
+TypeScript acceptance. **P5-G06** remains the next roadmap platform gate.
+
+Execution composer polish requested on 2026-10-10:
+
+- [x] **WD-UI01** Give progress questions one primary send button; use a quiet
+  stop control and move goal changes/return-to-planning into the secondary menu.
+  Preserve the explicit stop-and-replan confirmation, question mode and approval
+  behavior. Existing API/conversation/workbench regression: **41 passed**;
+  browser fixture covers execution controls at 1440/390px, questions, goal-change
+  confirmation and blocked-task recovery. Deployed read-only desktop/mobile
+  checks pass with zero browser errors/API mutations. API-only Compose rebuild
+  (`up -d --build --no-deps api`) preserves the active task's workers; API and
+  Gateway are healthy and all five services remain running. Static cache keys
+  were advanced. This UI acceptance does not close execution or platform gates.
+
+- [x] **WD-T06** Reopened and reverified 2026-10-11: repair rounds previously read
+  the original base instead of implemented files, causing
+  `Text edit requires an exact readable context path` on a newly added test.
+  Verified repair overlays, cumulative changes and bounded resume now pass the
+  actual authorized task. Previous verified scope and evidence follow. Repair failure diagnostics and editing/refresh boundaries after
+  the task's second authorized run (2026-10-11). Expose redacted, bounded stdout
+  alongside stderr; pytest/Ruff failures no longer appear empty. Model proposals
+  can use exact text edits against readable frozen files, requiring matching
+  prior hashes and unique matches; materialize existing signed write operations
+  without changing persistent schemas or Runner permissions. Repair evidence
+  identifies passing commands and preserves existing test behavior. Browser
+  refresh rereads selected plan paths/manifests instead of losing them to generic
+  repository search. Invalid clarification option types receive at most two
+  targeted corrections; schema and sensitive-output rejection remain intact.
+  Regression: **559 passed, 14 skipped**; 13 targeted tests include CRLF/history
+  preservation, ambiguous/missing/stale/unreadable/escape/secret rejection,
+  worker/proposal integration, bounded planning repair and fresh-snapshot reads.
+  Fixture and deployed desktop/mobile browser checks pass. Compose rebuilt all
+  five services; API/Gateway healthy, SQLite integrity OK/FK errors zero, checked
+  API credential values and recent log canaries zero. Existing six task attempts
+  remain unchanged. Model-free scoped refresh and child PlanVersion **5**
+  `bd908f3e-c040-45ed-b153-a24d75ef5563` are saved; exact confirmation is enabled,
+  with no new execution approval/attempt. Real task rerun/review, general
+  TypeScript and native Linux acceptance remain open (WD-G03/P5-G06).
+
+  Reopened-scope evidence (2026-10-11): repair identity now follows the verified
+  `repair_started` state, not the persisted `start_execution` action. The actual
+  predecessor Implement/Review/ChangeSet supplies an ephemeral editing view;
+  edits use current view hashes, retain omitted prior operations and materialize
+  against the original approved base. Failed coding/review subtasks resume
+  atomically under the same authorization and job/repair limits. Disposed
+  dependencies require fresh preparation and a new bound baseline before
+  Implement; resolved historical blockers no longer trigger environment cleanup.
+  Full regression **578 passed, 14 skipped**, plus focused review-format checks;
+  compile, JS syntax and diff checks pass. Actual Attempt **9** resumed without
+  a new approval/attempt; four fresh baseline commands and all five post-change
+  sandbox commands pass (533 passed/27 skipped, two new tests, Ruff, mypy).
+  Independent review initially rejected malformed severity; fixed output rules
+  and the third/final existing Review Job attempt completed with verdict **pass**,
+  ReviewRun `3115bba2-23f9-4b52-9837-46dab7e04e8e`, hash
+  `51bb1391bec4cd74be0754a7fbbdd72f7268c2af9986572265a026fbb19cc53f`.
+  Task is **ready / awaiting_acceptance**, idle, no active blocker, all nine
+  attempts verified; old failures/authorizations remain intact. Deployed
+  desktop/mobile browser checks pass with zero API writes; five services run,
+  API/Gateway healthy, health/database OK, integrity OK/FK errors zero;
+  inspected business records/artifacts/log credential canaries zero and recent
+  log tracebacks zero. No GitHub writes or publication. Evidence and recovery
+  interventions: [task-82c0ec73-sandbox-audit.md](task-82c0ec73-sandbox-audit.md).
+  Python execution evidence advances WD-T05/WD-G03 but does not close general
+  TypeScript, restart/cancellation or native Linux acceptance; P5-G06 stays current.
+
+
+- [x] **WD-T07** User-directed Phase 5 continuation (2026-10-11): independent
+  local acceptance in conversation after successful verification and review.
+  Add an explicit confirmation message mode, immutable hash-bound receipt,
+  stale-result rejection and idempotent retries without requiring a model or
+  Publisher. Show editable/downloadable PR text after acceptance, identify
+  missing Publisher configuration and retain exact separate publication
+  confirmation. No schema migration or GitHub write. Focused service/API checks
+  pass, including unauthorized/CSRF, stale/replanned, failed review, sensitive
+  message rejection and no new Jobs. Full regression **583 passed, 14 skipped**;
+  desktop/mobile fixture browser checks pass; compile/JS/diff checks pass.
+  All five Compose services rebuilt and running; API/Gateway healthy,
+  `/health` database OK, SQLite integrity OK/FK errors zero. User's explicit
+  acceptance of task `82c0ec73-3be6-4499-b806-45cd31430722` is recorded against
+  existing Attempt 9/Plan 5/Review pass, event sequence **234**, receipt hash
+  `ce75dbd3a3e2408c3530809560ea251eb733c8e37cbfa37565c67fe087e10e61`.
+  No new execution, publication Job or GitHub write; nine attempts preserved.
+  Deployed read-only desktop/mobile checks confirm the receipt, five passing
+  commands, PR draft and usable composer with zero API mutations or browser
+  errors. Inspected business records/artifacts credential canaries zero.
+  Publisher is still `none`; dedicated GitHub Publisher configuration and exact
+  publication preview/confirmation remain prerequisites to Draft PR creation.
+  General TypeScript/restart/cancellation and native Linux gates remain open;
+  **P5-G06** remains the next roadmap gate.
+
+- [x] **WD-T08** User-directed Phase 5 continuation (2026-10-11): add native
+  Settings → GitHub publishing account connection, read-only persistent probe,
+  account/scope/error status, retest, replacement and explicit disconnect.
+  Browser seals credentials directly to Publisher's public key; API forwards
+  ciphertext only. Separate Publisher service/private credential volume and
+  management network retain existing trust domains. Reuse open AuditEvent/Job
+  contracts and existing encrypted vault schema; no business migration.
+  Account hashes bind previews and confirmed jobs; stale accounts fail closed,
+  active/unreconciled publication prevents account replacement. No login,
+  deployment or connection action grants GitHub publication authorization.
+  Full regression **595 passed, 14 skipped**; twelve new service/API/security
+  tests cover encryption/reopen, authentication/CSRF, replay/CAS, failed/cancelled
+  probes, late results, scopes, disconnect, scoped lease recovery, exact
+  settings-backed publication with fakes and local key bootstrap. Fixture
+  desktop/mobile browser passes real browser encryption and APIs with fake
+  read-only GitHub detection, including delayed initial CSRF, retest,
+  disconnect and service-unavailable states; conversation regression passes.
+  All six Compose services rebuilt/running; API/Gateway/Publisher healthy and
+  health/database OK. Real Publisher isolation/private empty vault/audit chain
+  checks pass. Deployed read-only desktop/mobile smoke passes task-to-settings,
+  service availability and empty credential form, with zero browser errors or
+  API writes. Original task preserves nine verified attempts, five passing
+  sandbox commands and accepted receipt; database integrity OK/FK errors zero.
+  Inspected records/artifacts/log credential canaries zero, recent tracebacks
+  zero; compile, JS syntax and diff checks pass. No GitHub calls or writes
+  from deployed service acceptance. Live credentials and real Draft PR
+  acceptance remain separate user prerequisites. P5-G06 stays current.
+  Reopened and reverified after real preview regression: full Git checkout
+  incorrectly added 828 paths outside the frozen `LICENSE/README.md/python`
+  scope to the comparison; Publisher also used `kind` instead of the actual
+  inventory `type` field and rejected an unchanged `python/CLAUDE.md` symlink.
+  Publisher now consumes the shared FileInventoryEntry schema and verified
+  execution scope, binds scope/version/hash into preview, keeps the complete
+  base index, and materializes only scoped regular files. Existing reviewed
+  links are compared as exact Git blobs and preserved without materialization
+  or dereference; changed links/submodules remain prohibited. Both inventories
+  and the final staged diff are still checked. Offline real-Git tests prove
+  deterministic commit reconstruction, preservation of unrelated trees/links,
+  and rejection of missing/changed scoped files, widened/tampered scope,
+  undeclared outside-scope patches and changed/unreviewed links. Full regression
+  **596 passed, 14 skipped**; compile/diff checks pass; all six services rebuilt
+  and healthy/running. Real read-only prepare Job
+  `1ee27753-8164-44bf-ad11-07a718468b2b` succeeded with preview hash
+  `d11a8d93a10b29b25ad4b2bfd2a24ce657d2130491aa11cef63c6e979511451c`,
+  head `283a5850f1e65eb02618edd49a26eb017d006d12`, tree
+  `f1fbdd55b6381ac7a10d5e521cfc40253fb8bfb6`. Original nine attempts,
+  five passing sandbox commands, ReviewRun and accepted receipt are unchanged.
+  Deployed desktop/mobile read-only smoke passes preview display and disabled
+  publication confirmation with zero browser errors/API mutations. Forty-five
+  business tables and six task artifacts have zero credential/canary hits;
+  recent logs have zero tracebacks/credential patterns; integrity OK/FKs zero.
+  Failed preview jobs remain historical; no retry budget was widened. No
+  publication confirmation, PublishIntent or write Job exists; no Fork/Push/PR
+  was performed. Real Draft PR and native Linux P5-G06 acceptance remain open.
+  Reopened and reverified 2026-10-12: preview expiry now proactively disables
+  consent/confirmation, preserves edited PR text and offers explicit renewal;
+  new previews use a fresh nonce and reset consent. Legacy upstream-moved and
+  new related-change errors both offer code refresh/replanning. Publication
+  retains its frozen reviewed base and uses read-only Compare ancestry plus
+  exact complete/nontruncated scope Git tree identities to permit unrelated
+  upstream advances. No execution, test, review or acceptance hash changes.
+  Separate `target_base_sha` and versioned compatibility proof enter the full
+  preview hash/confirmation; both pre-write and pre-PR checks still require
+  that exact target. Scoped changes, history divergence, malformed/incomplete
+  trees and legacy full-repository tasks fail closed. Thirteen new cases cover
+  related/mode/missing changes, divergence/ancestry, truncated/malformed/duplicate
+  trees, unscoped inputs, stale targets, expiry and fresh nonce renewal. Full
+  regression **609 passed, 14 skipped** (`623` collected); compile, JS syntax
+  and diff checks pass. Fixture desktop/mobile browser verifies timer expiry,
+  disabled consent, edited-title/body preservation, explicit renewal, fresh
+  nonce confirmation and upstream recovery; conversation regression passes.
+  All six services rebuilt and healthy/running; database integrity OK/FKs zero.
+  Real upstream advanced one commit to
+  `c19fb3bc634796070b85a7630e7d0069377ea711`, changing only
+  `.github/actions/wait-for-pypi-version/action.yml` outside the approved scope.
+  Real prepare Job `2f16b6b4-3838-437b-8dec-0e676d47e83e` succeeded;
+  preview `c4175495b33ba8dedb1ffef312512198fe9a8db98755e207c93f58eb838a312c`,
+  head `65b2bb52c13219f334fbfb8cd3bb4b503d63c8f2`, unchanged tree
+  `f1fbdd55b6381ac7a10d5e521cfc40253fb8bfb6`, scope proof
+  `f10cf2d0c709961fda500cba6cd420e6f2352034f390cf836d17b1960f44ea23`.
+  Nine attempts, all five passing sandbox commands, ReviewRun and acceptance
+  are preserved. Deployed read-only desktop/mobile smoke verifies current
+  compatibility explanation, fresh preview, unchecked consent and zero API
+  mutations/browser errors. Forty-five business tables/six task artifacts and
+  recent logs have zero credential/canary hits or tracebacks. No confirmation,
+  PublishIntent, write Job, Fork/Push/PR was created. Real Draft PR acceptance
+  and native Linux P5-G06 remain open; P5-G06 is still the next roadmap gate.
+
+
+- [x] **WD-T09** User-directed publication workflow correction (2026-10-12):
+  generate all new public contribution material in English and follow actual
+  repository contribution conventions before publication. Read pinned root,
+  package and organization-default guides/templates/workflows through isolated
+  Publisher; a separate Provider writes PR text from reviewed diff and actual
+  sandbox command evidence. Preserve templates and validate English prose,
+  semantic title types/scopes, explicit first-line original-Issue reference and
+  placeholders. Bind document/template/requirements to preview and confirmation;
+  recheck requirements before writes. Display source-linked maintainer invitation
+  and conditional trace screenshot requirements; never invent legal signatures,
+  remote CI success or human checklist approval. Internal discussion stays
+  Chinese; existing text and intentional multilingual fixtures are preserved.
+  Reuse existing open Job/Event/Artifact contracts without a schema migration;
+  document recovery/rollback and retain the current trust domains and exact
+  external-write authorization.
+  Verification: **637 passed, 14 skipped**; focused publication/account suite
+  **60 passed** before the final additional Issue-first-line case. Fixture
+  desktop/mobile browser passes English generation/loading/editing, exact
+  template/document binding, pinned source links and fresh consent; existing
+  expiry/recovery browser regression passes. All six services rebuilt and
+  running, API/Gateway/Publisher healthy, health/database OK; deployed desktop/
+  mobile read-only smoke confirms v9 assets and original Draft PR preserved.
+  Real GET-only OpenInference inspection found 26 initial source documents,
+  including extensionless `CONTRIBUTING`, semantic title workflow and CLA;
+  it exposed first-line Issue, maintainer-confirmation and conditional span
+  screenshot rules. No model-generated claim of remote CI success or legal
+  signature is accepted. Forty-five business tables and six original task
+  artifacts contain zero inspected credential/canary hits; integrity OK,
+  foreign-key errors zero, recent log tracebacks/credential patterns zero.
+  Compile, JS syntax and diff checks pass. Original task is now `draft_pr`,
+  with one completed user-confirmed publication to upstream PR #4025; this
+  is an observation of the user's prior publication, not a new test write or
+  Phase 7 dedicated-test-repository acceptance. No document/execution/write
+  Job or GitHub mutation was submitted for that live task during this fix.
+  Real model-generated publication text was verified with deterministic fakes,
+  not a new paid live call. Native Linux **P5-G06** remains the next roadmap gate.
+
+- [x] **WD-T10** User-approved narrow post-Draft-PR CLA Assistant signature
+  (2026-10-12): read and display the pinned agreement, account, PR/head and fixed
+  signature comment; accept fresh explicit legal consent only through a separate
+  conversation purpose. Independent Publisher submits the fixed comment once,
+  reconciles uncertain writes and reads the frozen-head CLA check separately.
+  Development approval is not legal consent. Reuse open Job/Event/Artifact
+  contracts, preserve audit/provenance and restrict the exception to an existing
+  verified Draft PR. Generic comments and other third-party writes remain barred.
+  Verification: full regression **660 passed, 14 skipped** (674 collected),
+  final focused API/publication/CLA suite **58 passed** and the additional
+  consent-history API assertion passed. Twenty-three CLA cases cover strict
+  consent, stale document/workflow/account/head/author, expired preview,
+  content-addressed artifact corruption, remote blob tampering, bounded comment
+  scans, generic comment denial, CSRF/auth, consumed consent, unknown-response
+  reconciliation, cancellation and archive/account-rotation protection.
+  A separate GET-only check can recover a verified comment even if the PR has
+  moved/closed or the checks service is unavailable. Fixture desktop/mobile CLA,
+  English-document and publication expiry/recovery browsers pass; deployed v10
+  smoke verifies real pinned protocol text, account/PR, unchecked consent,
+  zero API writes and zero browser errors. All six services rebuilt and running;
+  API/Gateway/Publisher healthy and health/database OK. Forty-five business
+  tables plus the actual CLA artifact contain zero inspected credential/canary
+  hits; database integrity OK, foreign-key errors zero, audit chain valid,
+  recent log tracebacks/credential patterns/CLA-worker failures zero. Compile,
+  JS syntax and diff checks pass. Reuses existing durable contracts without
+  schema changes; documented rollback requires draining confirmed jobs and
+  reconciling unknown writes before downgrade.
+  Real task `82c0ec73-3be6-4499-b806-45cd31430722` completed one **read-only**
+  `cla_prepare` job for Garden12138 / upstream PR #4025. Its 6,386-byte agreement
+  is pinned at `c19fb3bc634796070b85a7630e7d0069377ea711`, SHA-256
+  `0e86fa989abf508c16d0351df3857c8e8dac5644673403e2547bcad4096f4da0`.
+  CLA check observed failed; legal-consent, send-marker and submitted-comment
+  counts remain zero. Real signing awaits the user's separate legal consent;
+  write/recovery behavior was verified with deterministic fakes, not a live
+  signature or Phase 7 acceptance. Phase 5 and native Linux **P5-G06** remain open.
+
+  Reopened 2026-10-12: the user's CLA signature succeeded and three local check
+  jobs recorded `passed`, but completion was only displayed above the expanded
+  long agreement. The conversation/timeline omitted `cla_status_observed`, so
+  clicking check lacked a visible conversational receipt. Repair verified:
+  local-job loading/error feedback, result/time near the check button, persisted
+  conversation receipt and real asynchronous polling browser coverage. No new
+  signature or GitHub write is authorized by this repair.
+  Regression evidence: **664 passed, 14 skipped** (678 collected); focused
+  CLA/API **31 passed**, plus three repository-bound check-link cases passed.
+  Real queued/running/timeline-revision fixture browser covers persistent
+  conversation receipts with timestamps/links, passed/pending/not-run/unavailable/
+  failed results, job failure/retry and desktop/mobile. Original legal-consent
+  browser regression passes. Completion automatically brings the requested
+  receipt into view; completed agreements default collapsed. Both workbench and
+  incremental timeline expose the actual job-bound status event. Deployed v11
+  read-only browser confirms real successful CLA receipts and result near the
+  button without new API writes/errors. All six services redeployed/running;
+  API/Gateway/Publisher healthy, health/database OK; 45-table/CLA-artifact
+  credential-canary hits zero, integrity OK, foreign-key errors zero, audit
+  valid, deployment log tracebacks/credential patterns/CLA-worker failures zero.
+  Compile/JS syntax/diff checks pass. Actual GitHub check
+  `114688587481` (run `38194246091`) concluded `success` for published head
+  `65b2bb52c13219f334fbfb8cd3bb4b503d63c8f2`. One new read-only `cla_check`
+  succeeded during this repair; the user's one consent, one send marker and
+  one submitted signature comment `6118912289` are preserved. No GitHub write
+  occurred during the repair. Native Linux **P5-G06** remains the next gate.
+
+- [x] **WD-T11** User-directed conversation updates to an existing verified
+  Draft PR (2026-10-12): natural-language request reads current remote text and
+  repository conventions, generates an English revision preview, and requires
+  separate exact human confirmation before Publisher updates only title/body.
+  Preserve original publication, execution/review provenance and signature;
+  bind account/target/base/head, old/new text and rules. Durable send marker,
+  read-only reconciliation and no blind retry for uncertain updates. Provide
+  a conversation example for live user acceptance; no live update during
+  development. Reuse Job/Event/Artifact without schema changes. Phase 5 and
+  native Linux P5-G06 remain current.
+  Evidence: `tests/test_pr_updates.py` has 31 deterministic boundary cases covering
+  natural request routing, provider-only generation, exact model-free consent,
+  immutable original publication, title/body-only transport, stale remote/rules/
+  account/head/base, expiry, canary rejection, malformed model output, remote edit
+  during final read, definitive rejection and unknown-result reconciliation with
+  no second PATCH. Full suite: **695 passed, 14 skipped** (709 collected).
+  `tests/pr_update_browser.mjs` passes queued read/model polling, English full
+  preview/old-text comparison, escaped untrusted prose, separate confirmation,
+  unknown-result read-only reconciliation, durable receipt, new-preview consent
+  reset, expiry and desktop/mobile. Existing publication-documents, CLA consent
+  and CLA result browser suites also pass. Compile/JS syntax/diff checks pass.
+  All six Compose services rebuilt/redeployed; API/Publisher/Gateway healthy,
+  `/health` reports database OK. Deployed v12 browser verified the existing task's
+  enabled update entry and preserved successful CLA state with zero mutations.
+  Publisher GET-only smoke verified the original published head/review/artifacts,
+  27 live requirement sources (no PR template; Issue-first-line required), and
+  268,567 bytes of bounded, credential-free model evidence. No new update job or
+  live model call was submitted; real GitHub metadata update awaits the user's
+  preview and exact confirmation. Security audit: 45 tables, one CLA artifact,
+  zero credential/canary hits, SQLite integrity OK, zero FK errors, audit chain
+  valid; deployment log tracebacks/credential patterns/update-worker failures zero.
+  No schema change. Drain confirmed writes and resolve unknown outcomes before
+  application rollback; preserve Event/Audit/Artifact. GitHub has no documented
+  atomic conditional PATCH for PR metadata: the final GET-to-PATCH concurrent
+  manual-edit window remains a documented limitation, not a claimed remote CAS.
+  Native Linux **P5-G06** is still the next roadmap gate.
+
+- [x] **WD-T12** User-directed conversation post-publication lifecycle (2026-10-12):
+  model-free Ready for review preview/exact one-time consent through isolated
+  Publisher; immutable target/account/base/head/text/rules/test/review bindings,
+  durable send marker and read-only unknown-result reconciliation. Read-only
+  conversation follow-up of remote draft/ready/merged/closed, current-head CI,
+  workflow approval, effective review feedback and actionable next actor. Keep
+  metadata editing available after ready; distinguish original publication
+  milestone from current remote lifecycle. No merge, comments, workflow approval
+  or code-push automation. Preserve provenance and reuse existing persistence;
+  no actual ready mutation during development. Phase 5/P5-G06 stay current.
+  Evidence: 43 deterministic lifecycle cases cover exact one-time consent,
+  stale target/account/head/base/text/rules/expiry, no duplicate mutation after
+  lost responses, definitive rejection, source-bound fixed GraphQL, malformed
+  result rejection, all remote stage/CI/next-actor states, effective reviews,
+  partial reads, redacted/injected feedback, failed steps/annotations, metadata
+  after ready, merged event/state ingestion, cross-operation guards, and rollback
+  of the observation/Artifact/PullRequestEvent/Job transaction. Full suite:
+  **738 passed, 14 skipped** (752 collected). Five browser suites pass: lifecycle,
+  PR metadata update, CLA consent/result and publication documents. Lifecycle
+  browser covers natural/model-free preview, fresh unchecked consent, unknown
+  result reconciliation, durable ready state, existing metadata flow, CI approval/
+  changes/failed steps/merged, preview reset/expiry/account, escaped feedback and
+  bounded source links on desktop/mobile. Compile/JS syntax/diff checks pass.
+  All six services rebuilt/redeployed; API/Publisher/Gateway healthy, health
+  database OK. Actual task `82c0ec73-3be6-4499-b806-45cd31430722` read-only
+  `pr_ready_prepare` job `e7dc68b8-9519-456c-987a-f096aee57f4b` succeeded:
+  original head verified, Draft, one check/eight workflows, CI awaiting approval,
+  zero formal reviews, two comments and no incomplete-read warning. Fresh Ready
+  preview prepared; zero ready confirmations/send markers or GitHub mutations.
+  Deployed v13 real-task browser verified the preview, unchecked consent,
+  model-free modes, feedback/time, preserved successful CLA and desktop/mobile
+  with zero writes/errors. Security audit: 45 tables/four publication artifacts,
+  zero credential/canary hits, integrity OK, no FK errors, valid audit chain;
+  log tracebacks/credential patterns/lifecycle worker failures zero.
+  Uses existing Job/Event/Artifact/PullRequestEvent; the event service's optional
+  transaction participation defaults to its prior API behavior. No schema change.
+  Drain confirmed writes and resolve unknown results before rollback. Fixed
+  GraphQL clientMutationId is correlation, not a claimed idempotency/conditional
+  head guarantee; the final read-to-mutation race is documented. No automatic
+  comments, merge, workflow approval or feedback-driven code push added. Real
+  ready mutation awaits user's fresh exact consent; native Linux **P5-G06**
+  remains the next roadmap gate.
+
+### Conversation-agent product review and proposed redesign (2026-10-12)
+
+User-requested review, with no implementation in this slice. Read-only inspection
+of task `82c0ec73-3be6-4499-b806-45cd31430722` confirms the interaction still
+requires message modes and embedded plan/execution/publication panels. Historical
+events 232–234 demonstrate that “prepare publication” was answered as a progress
+question, leaving the user unable to find the next confirmation. Current browser
+inspection also finds inconsistent list/in-task Draft versus ready-for-review
+labels. Real desktop/mobile Chromium: zero mutations, page errors or horizontal
+overflow. Existing execution/publication history is preserved; no model call,
+execution, approval or GitHub mutation was performed for this review.
+
+The [conversation-agent redesign](conversation-agent-redesign.md) specifies one
+message composer, durable follow-up handling, service-owned result/next-step
+messages, plain product language and contextual exact confirmations. It reuses
+the existing isolated services and requires independent product acceptance
+without external Codex, terminal or database intervention. Implementation and
+independent acceptance are tracked separately:
+
+- [x] **UXR-T01** Unified conversation routing, pending action and consistent
+  user-facing state across task lists and the conversation.
+- [x] **UXR-T02** One composer for send/follow-up/stop; chronological result
+  messages and one detail view instead of nested workbench panels.
+- [x] **UXR-T03** Durable follow-up queue, safe stop and bounded recovery;
+  changed frozen inputs require a child plan and fresh confirmation.
+- [x] **UXR-T04** Automatic factual result/next-step messages and plain language
+  in default UI, with original history and diagnostics preserved.
+- [x] **UXR-T05** Contextual exact confirmations and connected acceptance,
+  PR-document, preview and post-publication flows; separate legal consent.
+- [ ] **UXR-G01** Real supported Python/TypeScript tasks completed through the
+  product alone, with authorization, interruption/restart and failure recovery
+  checks; controlled Draft publication requires fresh exact human consent.
+
+Implementation evidence (2026-10-13):
+
+- `conversation-v1` reuses append-only workbench events and persistent Jobs.
+  Unified authenticated intake, idempotent bounded FIFO follow-ups, read-only
+  progress bypass, stop/resume and classifier recovery preserve original model
+  budgets. Changed goals stop safely and require a child plan and fresh approval.
+  Source-bound result messages are generated by the coordinator without a browser;
+  old tasks are not rewritten on upgrade or query. Pending text blocks fresh
+  confirmations. Planning, execution, review and Publisher remain isolated.
+- The native UI has one send/follow-up/stop composer and one accessible detail
+  drawer, with IME-safe Enter, refresh-preserved tab drafts, failed-send retry,
+  chronological receipts and preserved reading position. Model selection lives
+  in Settings, including explicit idle-task overrides. Exact execution, result,
+  publication, document update and ready confirmations are contextual; CLA keeps
+  a separate human legal-consent checkbox. Result acceptance automatically starts
+  read-only requirements, English document and exact preview preparation.
+- Full Python regression: **761 passed, 14 skipped**, two deprecation warnings.
+  Final focused conversation/model-settings regression: **52 passed**. Compileall,
+  JavaScript syntax and diff checks pass. Offline browser contracts in
+  `tests/conversation_agent_browser.mjs` and `tests/conversation_settings_browser.mjs`
+  pass, covering desktop/mobile/short viewport, focus, scrolling, clarification,
+  all contextual confirmations, expiry and task model selection. These use fakes
+  and do not constitute real model, Runner or GitHub acceptance.
+- Six configured Compose services rebuilt/redeployed, API/model gateway/Publisher
+  health checks pass and `/health` reports application/database OK. Verified
+  `conversation-v1` inside the running API. Deployment logs contain no tracebacks
+  or tested credential canaries. Read-only database/artifact scan: 247 files,
+  zero tested canary matches, SQLite integrity OK and zero active Jobs. Before
+  deployment an online database/artifact backup verified 215 content-addressed
+  artifact rows at `/data/backups/conversation-agent-20261012T160347Z`.
+- `tests/conversation_agent_deployed.mjs` reads existing task 82 on 1440/390px
+  Chromium: list/header both show saved CI awaiting maintainer approval and the
+  observation time; zero page errors, overflow or mutations; event/job/message
+  projection unchanged before/after. Its 73 visible historical events include
+  the formerly omitted CLA preview; no historical event was added or rewritten.
+  Existing execution, PR 4025 and remote state were not changed.
+- API/event compatibility, upgrade/recovery procedure and product usage are
+  documented in [conversation-agent-contract.md](conversation-agent-contract.md).
+
+**UXR-G01 remains open:** new supported Python/TypeScript tasks must still be
+completed through the product alone, including interruption/restart and recovery;
+any dedicated test Draft publication requires fresh exact human consent. This
+implementation evidence does not pass that real acceptance gate. Phase 5 remains
+current; native Linux amd64/Docker Engine **P5-G06** is still the first roadmap
+gate. Existing completed task evidence and unrelated changes remain unchanged.
+
+Initial repository-read recovery (2026-10-13, UXR-T01/T04 regression):
+
+- Task `86b6be40-2022-4975-ab04-2d56f1cc0f17` had no workbench events or Jobs;
+  its generic “等待读取仓库” blocker incorrectly suggested queued work. New tasks
+  now explain that reading has not started and offer “读取仓库并准备方案” through
+  the existing authenticated, idempotent conversation intake. This exact message
+  selects planning without an intent-classification model call. GET stays read-only;
+  execution and publication still require their separate confirmations.
+- Missing-context messages distinguish idle, queued, running, failed, timed-out
+  and cancelled reads. Regression covers one read after replay/restart, protected
+  intake, retry with historical events preserved, and no execution authorization.
+  Focused Python suite: **49 passed**; full regression: **767 passed, 14 skipped**
+  (two existing deprecation warnings). Native browser contracts pass, including
+  explicit initial start and the existing desktop/mobile conversation checks.
+- The user-requested task recovery completed real read-only GitHub archive and
+  isolated context Jobs, freezing an inventory of **5,615 files**. The first model
+  turn failed closed on an unknown path; a subsequent turn finished with a
+  file-scope clarification and rejected test-path diagnostics. No plan approval,
+  implementation or remote write occurred. The task now awaits clarification;
+  its Python dependency environment remains unsupported, not verified ready.
+- All six Compose services rebuilt/redeployed; API, gateway and Publisher healthy,
+  `/health` reports application/database OK. SQLite integrity is OK; database
+  and 248 artifact files contain zero tested credential-canary matches. Compile,
+  JavaScript syntax and diff checks pass. UXR-G01 and native Linux P5-G06 remain open.
+
+Source-reading / environment order correction (2026-10-13, UXR-T01/T04 regression):
+
+- The task's subsequent model answer incorrectly attributed missing source text
+  to dependency preparation. Actual archive/context Jobs had succeeded; the
+  357,046-byte `salt/states/file.py` was silently omitted by the 256 KB automatic
+  file limit, while the 82-byte documentation entry had already been read.
+  Execution orchestration already prepares dependencies/baseline after confirmed
+  planning and Explore, before coding; the defect was in reading coverage,
+  deferred-read handoff, premature environment assessment and model explanations.
+- Before a saved plan, environment selection now stays `pending_scope` instead
+  of rejecting an ecosystem from filenames. Execution readiness explicitly does
+  not block source reading or planning. Question/planner evidence records the
+  real workflow order, archive acquisition, inventory and per-file read status.
+  Narrow source-availability questions use deterministic frozen facts rather
+  than generated causal explanations. Unsupported execution remains fail-closed.
+- Initial inspection prioritizes project README/contribution/config files before
+  related code consumes the budget. Explicit planning reads may use the existing
+  700 KB aggregate budget for one file, preserving its full SHA-256; automatic
+  per-file and implementation limits remain unchanged. Explicit focus text stays
+  complete in model prompts. Clarification answers resume deferred valid reads
+  before the next model turn. Credential filtering, read-only networkless Runner,
+  path validation, total output limits and stale bindings remain enforced.
+- Real isolated recovery reused the same frozen archive and read eight selected
+  project/target files without dependencies or project-code execution. The new
+  immutable context contains the full target source and typo at line 4270;
+  the documentation entry contains `automodule:: salt.states.file`. Correction
+  receipts were appended to the conversation; old records were preserved.
+  The task remains in planning with no execution authorization or external write.
+- Full offline regression: **775 passed, 14 skipped**, two existing deprecation
+  warnings. Focused regression: **99 passed, 1 skipped**. Final reading/question
+  regression with the real macOS/OrbStack Runner: **36 passed**, including a
+  large file, project-foundation priority under budget pressure, no project-code
+  execution and archive path-escape rejection. Offline browser contracts and
+  real-task read-only desktop/mobile checks pass with no overflow/errors/writes.
+  Six Compose services rebuilt/redeployed; application/database health OK;
+  SQLite integrity OK, database plus 250 artifact files have zero tested canary
+  matches. No database schema change. UXR-G01 and native Linux P5-G06 stay open.
+
+Execution-capability root-cause repair (2026-10-14), user-directed for Salt task
+`86b6be40-2022-4975-ab04-2d56f1cc0f17`:
+
+- The approved plan failed at `execution_prepare`
+  (`22a03f7b-cf82-4379-b5f6-e3ff6ca7afd1`), exit 91: the preparation adapter
+  rejected dynamic dependencies. No baseline, coding or review had run. The
+  filename-based environment selector had wrongly advertised support. A second
+  deterministic failure was waiting behind it: implementation's 256 KB limit
+  could not accept the 357,046-byte source already readable by planning.
+- `execution-capabilities-v2` now uses frozen manifest content/hashes and the
+  preparer's shared Python validator. Missing manifests are read before saving
+  a generated plan; known incompatibility blocks UI/direct API authorization
+  without creating approvals, attempts or jobs. Report hash and capability
+  version are frozen into new authorization and checked again before network
+  access/attempt creation. Dashboard status reads the plan-bound receipt, not
+  artifact paths unavailable to its read-only projection. Nonretryable dependency
+  failures retain their real job/reason and cannot be restarted by generic chat
+  “continue”. Historical failures and approvals remain immutable.
+- Added `workspace-dependency-plan-v3` / `wheel-metadata-v1`: declared build-tool
+  wheels are proxy-resolved, hash-locked and installed offline; local backend
+  execution occurs only in the existing credential-free bounded sandbox. Bounded
+  wheel METADATA yields validated conditional runtime/test dependencies and a
+  retained metadata receipt. Upstream packages remain wheel-only, proxy restricted
+  and hash-locked; no host execution, source-build fallback or sandbox relaxation.
+  Existing v1/v2 wire payloads and hashes remain unchanged.
+- Added `coding-context-v2`: 700,000-byte full-file limit with complete original
+  SHA-256 and exact edits, retaining the 1,500,000-byte aggregate budget. Legacy v1
+  retains its 256,000-byte limit; automatic planning remains 256,000 bytes and
+  explicit planning shares the existing 700,000-byte total budget.
+- Used the normal stop/read-only archive/context/save interfaces to refresh the
+  task and its `requirements/pytest.txt`. Typo still exists at frozen base
+  `f37cdcd1c93f778a84f83b3cc9933cac92d0456b`. Saved unapproved child plan v2
+  `e12f94bd-913c-4db9-9586-e8c52cacd6cc`, hash
+  `380d37ac7758b20fb516a8ed111b95be3a2d390ae862e6a0b70276542b2dc128`.
+  Original plan hash is unchanged. Corrected the old claim of “regenerated RST”:
+  the RST is an automodule entry; docstring is authoritative. Original two pytest
+  file targets remain required. Task is planning, preflight ready, no active jobs,
+  one historical approval/attempt and zero approval of the new plan. Fresh exact
+  user confirmation is required before actual Salt installation/tests.
+- Full offline regression: **791 passed, 15 skipped**. Final focused capability,
+  dependency, recovery, planning and workflow regression: **77 passed, 4 skipped**.
+  Real macOS/OrbStack Runner acceptance: **3 passed**, covering complete large-file
+  planning/coding capture and static/dynamic packages through frozen preparation,
+  failing original-code baseline and passing modified-source offline Verify.
+  Dynamic acceptance additionally checks discovered conditional dependencies and
+  retained metadata hashes. These fixtures do not prove Salt execution success.
+  Offline browser contracts and deployed task desktop/mobile read-only checks
+  passed with no overflow, page errors or mutations. Six Compose services rebuilt
+  and started; configured health checks and API/database health pass. Compile and
+  diff checks pass; SQLite integrity OK, 221 registered artifacts verified by size
+  and SHA-256, database/artifact canary matches zero. No SQL schema change or
+  third-party write. **UXR-G01 and native Linux P5-G06 remain open.**
+
+Upstream source-wheel capability and failure evidence (2026-10-14, follow-up
+for the same Salt task; Phase 5 remains current):
+
+- User confirmed the new plan and execution attempt
+  `5b141cce-4f43-4ec6-8545-351ee5e707a4` failed at preparation job
+  `7c983f3f-cf60-40a5-90a2-2da2443ebdf6`, exit 95. The previous implementation
+  discarded pip output and conflated build-tool/runtime resolution. Reproducing
+  the exact signed input hash
+  `f1e4ccee3041ba53b93c5fc0c6f1cc4e274c709cd206c3c928d1298e5b3ab0cc`
+  proved a runtime dependency failure: `timelib>=0.3.0` has no compatible
+  Linux/Python 3.11 wheel. This affects any project with required source-only
+  dependencies, rather than just Salt. [PyPI files](https://pypi.org/project/timelib/#files)
+  confirm its only published wheel is CPython 3.9/macOS arm64.
+- Added bounded structured dependency diagnostics: phase, safe package names,
+  reason code and child exit status. Raw package output is drained with a bounded
+  tail and never persisted. Failures retain an immutable preparation spec/receipt
+  bound to the exact plan, attempt and Explore result. Deterministic failures
+  reject the same frozen environment even after plan rewording; transient failures
+  are not mislabeled as permanent missing packages. Worker admission also rechecks
+  authorization against the exact attempt, archive, image and current capabilities.
+- User authorized the reviewed [source-build extension](dependency-source-build-proposal.md).
+  Optional `DEPENDENCY_BUILDER_IMAGE` selects `execution-capabilities-v3` and signed
+  `workspace-dependency-plan-v4` / `source-wheel-v1`. Legacy v1/v2/v3 inputs and
+  hashes remain unchanged and wheel-only. Build-tool wheels and bounded tar source
+  archives are acquired through the existing proxy and verified by SHA-256; unsafe
+  paths, symlinks/hardlinks, duplicates, excessive entries/expanded bytes and unknown
+  requests fail closed. Source version selection respects actual requirements.
+- The independent compiler uses `network=none`, one read-only input subpath,
+  UID 65532, the existing CPU/memory/PID/Git safety limits and bounded noexec tmpfs.
+  It has no repository, host bind mount, writable volume, model or credentials.
+  Validated wheel bytes cross bounded IPC (32 MB binary maximum) to a separate
+  trusted offline importer. Receipts retain source/build-lock/wheel hashes; the
+  signed recipe retains compiler digest. At most eight source builds share one
+  aggregate Runner timeout. New scratch is bounded by the minimum of 512 MiB,
+  half the memory ceiling and a quarter of the disk budget, fixing the separate
+  128 MiB temporary-space failure found while resolving the full Salt environment.
+  The normal Verify image/network policy and original pytest targets are unchanged.
+- Real diagnostic against Salt's original frozen archive succeeded with compiler
+  `sha256:6f457f9e824cb5c8ec1b4aff686bfb58221aec35879efbacc9f4a754f12bc6f5`:
+  dependencies prepared including offline-built native `timelib`; both originally
+  required pytest files passed **7 tests** in a fresh networkless Runner. Original
+  command evidence is stored at artifact
+  `03f3d34e7721cf06181df96ddd4b58397b99717cae626c3a8339a1a9c8f7164f`
+  and explicitly labeled standalone environment diagnostic, not a new approved
+  execution or implementation/review result. No execution provenance was fabricated.
+- Refreshed code evidence through normal read-only jobs and saved unapproved
+  child plan v3 `320efe45-e219-4013-a9dc-fd27405e2a57`, hash
+  `4e3f4738c31a185e407198363956928948801ba4edf195ed3a7d245ae5cb333e`.
+  Same archive/base, same scope and pytest requirements; preparation strategy and
+  compiler are now explicit. Both prior approved plan hashes remain unchanged;
+  two historical approvals/attempts remain, no new approval or execution and no
+  active task jobs. New plan requires fresh exact confirmation before implementation.
+- Final full offline regression: **822 passed, 16 skipped**, two existing
+  deprecation warnings. Focused source/security/diagnostics/dependency/workflow
+  regression: **66 passed, 4 skipped**. Real macOS/OrbStack fixture acceptance:
+  **3 passed**, covering legacy static/dynamic preparation and native source
+  compilation through failing original-code baseline, passing modified-source
+  Verify, actual compiled import and retained source/wheel receipts. The final
+  extraction hardening was rechecked by the native fixture (**1 passed**).
+  Offline browser contract and deployed task v3 desktop/mobile read-only checks
+  pass with zero page errors, overflow or mutations. All six Compose services
+  rebuilt/redeployed; configured health checks and application/database health
+  pass. Compile/diff checks pass; SQLite integrity OK, **224** registered artifacts
+  verified by size/SHA-256, database/artifact/log canary counts and log tracebacks
+  zero. No SQL schema change or third-party write. Source-build cancellation/crash
+  failure injection and native Linux platform acceptance remain separate open
+  evidence; **UXR-G01 and P5-G06 remain open**.
+
+Proposal validation recovery and completed Salt execution (2026-10-14;
+Phase 5 remains current, same task as above):
+
+- User approved plan v3 and execution attempt
+  `9ab1d879-070b-4c37-9e1b-9389b82a7564`. Dependency preparation, the seven-test
+  original-code baseline, context extraction and the reasoning turn succeeded.
+  Change-set job `3a43aa80-4a45-4dd0-a59c-3ae6239119af` then failed exact text
+  matching. The prior implementation discarded invalid drafts/usage, surfaced a
+  raw parser error and provided no bounded correction feedback. A reasoning
+  reply also claimed files had already been edited despite having no mutation
+  tool. The original failed response was not retained: its exact bad anchor
+  cannot be reconstructed and is not asserted as fact.
+- Added whole-draft validation before any application: canonical approved paths,
+  frozen hashes, operation structure, sensitive output and byte limits; one bad
+  operation rejects all operations. Missing/ambiguous anchors retain locations,
+  match counts, anchor hashes and bounded source excerpts. Replacement remains
+  exact and unique; excerpts never permit fuzzy edits. Unknown operation fields
+  are rejected, while schema-supported nullable executable values remain valid.
+- Rejected drafts retain content-addressed `proposal-rejection-v1` receipts,
+  `proposal-validation-v1` diagnostics and AgentInvocation usage. Sensitive or
+  oversized responses retain hashes only, never raw text. Logs/UI no longer
+  echo raw coding exceptions. Matching same-job/context/conversation feedback is
+  bounded; only recoverable draft errors requeue the same Job within its existing
+  maximum three attempts. Cancellation, stop, lease, plan and conversation checks
+  serialize rejection/requeue; model calls now renew the existing lease. No new
+  execution approval, attempt, job budget or relaxed file/sandbox policy is used.
+- Resumed the existing approved job. Its second model call used an unknown
+  `editable` operation field, so the entire draft was rejected and receipt
+  `e2c5d54aaa1d7980a35cbb69a6fa20feeb5b797022904c5a9ede9d0f8004372c`
+  retained. The third and final call corrected it, producing change set
+  `deea55535704a2f1395ce5833b8408a7b72e5a0aa4b355c52fdd14e9c2862d0f`.
+  The disposed environment was re-prepared through the existing sandbox flow;
+  implementation result
+  `8b2104d2c17bef9c7467ed5b3003b1cbed3b6d68a6848416d1dfc95244c0e2db`
+  contains only the docstring typo, changelog and focused regression test.
+- Actual networkless Verify result
+  `0f6564147bc86b181a5c9107f4c08275a4c2048a37eac9b9e4f36c458686df61`
+  passed **8 tests** using the two original pytest targets. Test artifact
+  `3c0bbd94370bc316901aa62c310ded2a3b7370078bd7e1c2d92949d8a3696ab1`
+  records exit zero and unchanged before/after verification inventories.
+  Independent review `c5d509f3-0254-4039-9c24-aedb396b7ff9` passed, hash
+  `90a2c4a95e20b4a641bc46837d2216b87a0b24cd301ce6240808ebbf030891fe`.
+  The task is **ready / awaiting human result acceptance**, not awaiting plan
+  confirmation. Its three historical approvals and three execution attempts are
+  unchanged by recovery; original plan hashes remain verified. No result was
+  automatically accepted and no publication/third-party write occurred.
+- Full offline regression: **831 passed, 16 skipped**, two existing deprecation
+  warnings. Focused proposal/workflow/retry/conversation regression: **67 passed**,
+  including whole-draft atomicity, retained invalid-output usage, budget exhaustion,
+  cancellation/stale conversation, sensitive output and safe explicit recovery.
+  Offline conversation browser contracts and deployed desktop/mobile read-only
+  checks pass; the actual result confirmation is enabled, with zero page errors,
+  overflow or write requests. Six Compose services rebuilt/redeployed; configured
+  health checks and API/database health pass. Compile/diff checks pass; SQLite
+  integrity OK, **239** registered artifacts verified, database/artifact/log canary
+  matches and log tracebacks zero. No SQL schema change. This agent-assisted
+  recovery does not demonstrate independent product-only acceptance;
+  **UXR-G01 and native Linux P5-G06 remain open**.
+
+Publisher account routing and complete convention reading (2026-10-14,
+follow-up after the Salt result was accepted; Phase 5 remains current):
+
+- The settings API and shared audit journal both correctly reported the user's
+  publisher account connected, with a successful read-only account probe and
+  `public_repo` permission. The user's result acceptance is event hash
+  `d671614c05a18c15868faef0006843365c8d26b1481a1bf827a3de3cd0b161ea`.
+  Their subsequent "准备发布" message failed before dispatch: the conversation
+  coordinator incorrectly required its own Publisher management key, which is
+  intentionally absent in the Compose Worker. Existing tests had supplied the
+  key to both services and concealed this deployment-boundary regression.
+- Conversation account binding now consumes `require_account` over the verified
+  shared audit chain, independent of local management secrets or publisher mode.
+  The same binding helper covers initial preparation, PR text updates, follow-up,
+  ready previews and CLA preparation. Management credentials remain only in API
+  and isolated Publisher; none were copied to Worker/Provider/Sandbox. Missing,
+  pending, failed and disconnected accounts still reject dispatch. Exact account
+  hashes, stale-input checks and separately confirmed writes remain enforced.
+- The regression now exercises acceptance → repository conventions → model
+  document → exact preview with coordinator/Provider settings lacking both a
+  management key and publishing mode, while Publisher retains its own settings.
+  Both isolated and combined configurations pass; negative states preserve result
+  acceptance without jobs or writes. Related account/conversation/PR/CLA regression
+  passed **169 tests**; after the convention-budget change, focused document,
+  conversation and account regression passed **72 tests**.
+- Actual recovery successfully dispatched read-only requirements job
+  `80d724e7-df37-43ae-8905-3e2a181c605f`, then exposed an independent aggregate
+  convention-reading limit. Read-only diagnosis verified **261,437 bytes** across
+  25 valid, distinct guide/template/workflow files before the old 256 KB cap;
+  this was neither a lost credential nor duplicate reading. Requirement version
+  `repository-publication-requirements-v2` aligns the aggregate with the existing
+  **700 KB** repository-reading allowance. A complete directory inventory then
+  verified 29 workflows totaling **349,809 bytes**, including a **64,417-byte**
+  generated workflow that exceeded the separate old 48 KB file limit. The file
+  budget is now the existing static-reading **256 KB** allowance; oversized
+  files are correctly classified as budget failures, not malformed content.
+  The 48-file, 96-content-request, directory, blob hash, redaction and GET-only
+  checks remain enforced;
+  no tail file is silently dropped. Version/hash changes invalidate old convention
+  evidence for new preparations. Tests cover a title rule in the last workflow,
+  successful complete input above 256 KB, a 65 KB workflow, and rejection above
+  both new hard caps.
+- Both one-attempt failed jobs (`80d724e7-df37-43ae-8905-3e2a181c605f` and
+  `81a584cb-7b21-4488-a81f-889aeb3c786f`) retain their original budgets and
+  evidence. Normal preparation is bound to the same account, accepted result
+  and independent review. No execution plan, approval or attempt changed.
+  Final requirements job `f7cac511-c8e7-4081-962a-b4eced113c18` succeeded,
+  retaining all **31 sources / 376,376 bytes**, requirements hash
+  `d438af3eaf4f9cb7de636d0b09ac22472f4283dbf94960bded975c26d2d31a55`.
+  Document job `6b2e1942-9d62-4462-a380-4d726bf6f9c0` and preview job
+  `2d8a45ee-2f5f-42b7-bcc7-7a41fa6f93b0` both succeeded; document hash
+  `3204b1114cfe148095bd257b0898f394d56f79fa6ab2e36b1a8e460bc2c945f4`,
+  preview hash `d7122df9331165895e79827737fe3bacc17c18f325cd577a6db31d3ff3ea46e5`.
+  The preview remains subject to expiry and fresh exact human confirmation;
+  it is not permission to publish. No Fork, Push, PR creation or publication
+  confirmation occurred. Original result acceptance and three historical
+  approvals/execution attempts remain unchanged.
+- Final full regression: **840 passed, 16 skipped**, two existing deprecation
+  warnings. Deployed settings and task preview agree on the connected account
+  on desktop/mobile; credential input empty, zero page errors, overflow or write
+  requests. Six Compose services rebuilt/redeployed and healthy where health
+  checks are configured; API/database health passes. Compile/diff checks pass;
+  SQLite integrity OK, **240** registered artifacts verified by size/SHA-256,
+  database/artifact/log canary matches and service-log tracebacks zero. No SQL
+  schema change. **UXR-G01 and native Linux P5-G06 remain open.**
+
+Conversational reasoning regression and root repair (2026-10-15; same Salt task,
+Phase 5 remains current):
+
+- Reopened **UXR-T01** after inspecting the actual two latest user turns:
+  "发给我看下，我检查一下发布预览" and "把你准备好的发我看下". Classifier jobs
+  `4ab93d55-2415-42ae-bfcd-2cdb6580e6f9` and
+  `b288d0e3-8110-4e56-b4e4-e56b6f6d53d4` both returned `ready`, which meant
+  preparing an existing PR for review. The dispatcher instead replied with the
+  same no-PR/result-acceptance template despite a verified accepted result and
+  existing publication preview. This was a classification-only architecture
+  failure: no natural-language reply, no artifact reading, no assistant-result
+  context and an ambiguous intent standing in for an actual tool capability.
+- New non-control messages use `conversation-reasoning-v2`: actual user and
+  assistant turns, immutable current state and deliverables, a task-local evidence
+  toolbox, free-form replies and one explicitly named available workflow proposal.
+  The current prepared document/preview is read into context, not represented by
+  a boolean. Optional reads feed verified results back to the model. Showing an
+  existing artifact never regenerates it or prepares a PR for review. The server
+  checks legal state/basis and dispatches original user text through existing
+  services; no implementation/acceptance/remote-confirmation tools are exposed.
+- Evidence tools are limited to this task's plan, changes, tests, review, public
+  text/preview, account and already-read frozen source. Exact stored paths,
+  bounded literal search/line ranges, per-tool/prompt bytes, three reads and the
+  existing two-call/shared model budgets remain enforced. Tool receipts are
+  content-addressed; restart reuses their remaining call budget. Stop/cancellation,
+  stale actions, unavailable/unknown tools, unproven references and malformed or
+  truncated JSON fail closed. Old queued classifier jobs keep their original
+  protocol. New replies cite exact source events; the UI opens the full original
+  preview inline and preserves expiry/confirmation checks.
+- A first real-model probe of the new layer rejected both invalid outputs without
+  dispatching an action. That initial probe did not retain raw outputs, so the
+  precise rejected content cannot be reconstructed (`legacy_unverified` response
+  evidence only; no response hash was reconstructed). Added required four-field
+  wire schemas and bounded `conversation-decision-rejection-v1` receipts with
+  safe raw output, field diagnostics, hashes and usage; sensitive output is hashed
+  only. Specific correction feedback shares the original two calls. Internal
+  contract failures no longer ask users to rephrase their valid questions.
+  Also removed analysis-only citation/language instructions from Studio's other
+  stages, matching NVIDIA's existing stage-specific behavior. Both structured
+  transport modes and all non-analysis stages have contract coverage.
+- A subsequent real second-turn probe incorrectly chose preparation because the
+  old preview had expired; three read-only preparation jobs completed before a
+  stop could apply. The first stop receipt was inaccurate and was corrected by
+  an appended factual event, retaining both records. This generated one additional
+  local document/preview, not a remote write: document
+  `1906599b3300464807cfa633f11e30bb3656ccc34448235d862aa84b4b90ca51`, preview
+  `32071ab120c58c068f1817ec7aba1a7aab3b4b8a84a4ba23c62f5d194aa88807`.
+  The original document/preview remain in immutable history; code, tests, review,
+  acceptance, plan approvals and execution attempts were unchanged.
+- Fixed the separate tool-effect boundary: preparing an existing preview reuses
+  it, including when expired; preparing with an existing document does not invoke
+  another writing model. Explicit renewal uses `renew_publication_preview` and
+  preserves public text; wording changes use `revise_document`. Proposed changes
+  to existing deliverables spend the remaining original call checking the user's
+  actual requested effect. Even if the model still chooses preparation for an
+  inspection, the service returns the existing source instead of regenerating it.
+  Tests force both correct and mistaken tool choices against expired evidence;
+  explicit renewal runs only preview preparation, never a writing job or write.
+- Final live MiniMax-M3 replays of both original messages succeeded through Jobs
+  `02d23fc2-c59c-43fe-8922-26a81228bffc` and
+  `21576033-7a99-4d46-be8f-b39928dffb29`. Both selected `respond`, referenced the
+  same existing preview and produced question-specific answers. During these
+  final replays, document/preview hashes stayed unchanged; only conversation Jobs
+  were added. The task used 18 of its original 32 shared model-call slots, without
+  changing any limit. **UXR-T01 is rechecked** for this verified functional repair;
+  it does not complete the independent end-to-end acceptance gate.
+- Final focused reasoning/conversation/document/account/transport regression:
+  **146 passed**, including rejection of unknown reasoning versions rather than
+  fallback to the legacy classifier. The preceding full regression passed
+  **867 tests, 16 skipped**, two existing deprecation
+  warnings. Offline browser checks cover exact inline sources, full title/body,
+  safe Markdown, phone/desktop layout and no writes from viewing. Deployed browser
+  checks show both actual replies and full original text, with confirmation
+  availability matching expiry, zero page errors/overflow/write requests. Six
+  Compose services rebuilt/redeployed and configured health checks pass; API and
+  database health pass. Compile/diff checks pass. SQLite integrity OK, **243**
+  registered artifacts verified by size/SHA-256; database/artifact/log canary
+  matches and service-log tracebacks zero. No active task jobs, no publication
+  confirmation and no third-party write. No SQL schema
+  change; rollback must drain/stop v2 decisions and restore matching application
+  code while preserving all old events/receipts. **UXR-G01 and native Linux P5-G06
+  remain open.**
+
+Expired publication preview recovery (2026-10-15, UXR-T01 regression):
+
+- Reopened UXR-T01: the Salt preview expired at `2026-10-15T02:28:27Z`.
+  The native drawer disabled publication without a direct recovery control.
+  Actual chat Job `445bb93e-85f0-4e55-8762-45bde1b6bfa7` failed because the model
+  referenced `publisher_account` without reading it in that turn; the retained
+  rejection also showed the assistant treating earlier optional wording suggestions
+  as prerequisites to the user's explicit draft creation request.
+- Added a native exact-preview renewal endpoint and matching conversation tool
+  service. Renewal preserves public title/body and evidence, rechecks upstream and
+  repository rules, and issues a new expiring preview/nonce; no publication
+  authorization or write is created. The UI explains expiry/pending/paused/busy/
+  replaced/account states and offers renewal even when expiry happens while open.
+  Explicit creation requests may prepare a fresh preview without a second special
+  renewal phrase; inspection still reuses existing content. Reference validation
+  remains strict, with explicit available evidence names in context/correction.
+- Full regression: **871 passed, 16 skipped**, two existing deprecation warnings.
+  Final focused reasoning/renewal API regression: **26 passed**, including the
+  subsequently added pending/paused/account-change cases. Compile/diff checks pass.
+  Native browser contracts cover expiry while open, direct renewal, busy-state
+  disabling, preserved text and renewed confirmation; deployed desktop/mobile
+  checks pass both before and after recovery with no errors, overflow or mutation.
+- Linked replay of the user's failed message `fbef0bd2-c59f-4e22-beb4-2e00c625ad4b`
+  succeeded through real MiniMax-M3 Job `29a9319b-010d-440b-a926-7440940655e4`,
+  decision `2b61a9bf-4615-46f2-b37d-77049244c8b3`, action
+  `renew_publication_preview`, and read-only prepare Job
+  `8a72e777-36b1-485e-bd2c-64ae8997aa25`. New preview
+  `9dd4a26db7647294c445b88547c63f157afdc95f77d4f645f1cbfc9bbf278fe1`
+  expires `2026-10-15T03:33:05Z`; document
+  `1906599b3300464807cfa633f11e30bb3656ccc34448235d862aa84b4b90ca51`,
+  exact title/body, plan, diff, tests, review, account and user acceptance stayed
+  unchanged. Old previews/nonces remain immutable and cannot authorize the new
+  preview. Real browser confirmation is enabled; it was not clicked. Model calls
+  are 24/32, with no budget reset. No active jobs or publication authorization/write.
+- All six Compose services rebuilt/redeployed; configured health checks and API/
+  database health pass. SQLite integrity OK; **246 artifacts** rechecked by size/
+  SHA-256; database/artifact/log canary matches and service tracebacks zero.
+  **UXR-T01 rechecked** for this recovery. No SQL schema change; rollback restores
+  matching application code and preserves append-only jobs and preview history.
+  UXR-G01 and native Linux P5-G06 remain open.
+
+Publication success link (2026-10-15, UXR-T01 regression):
+
+- Reopened UXR-T01 for the missing URL in the success receipt. The actual verified
+  publication event `ea3367d2-ac52-46b5-a505-4227ca787fc3` already contains
+  `https://github.com/saltstack/salt/pull/70411`; the receipt used fixed text that
+  discarded it. New success receipts include a Markdown link from that exact
+  publication result. Existing receipts gain the link in the read-only projection
+  by their original source event, without rewriting immutable history or invoking
+  any provider/Publisher operation. GitHub PR URL shape and number must agree.
+- Focused conversation/reasoning/publication/lifecycle regression: **122 passed**,
+  two existing deprecation warnings; compile/diff checks pass. Offline browser
+  contracts and the deployed actual receipt show the exact PR link in desktop
+  and mobile layouts with a safe new-tab target and zero mutation/error/overflow.
+  All six Compose services rebuilt/redeployed; configured health checks and API/
+  database health pass. Read-only audit confirms the original receipt unchanged,
+  model calls still 24, only the already existing publication-write job, SQLite
+  integrity OK, 246 artifact canary checks and zero database/artifact/log canary
+  matches or log tracebacks. **UXR-T01 rechecked**. No SQL schema change; rollback
+  restores application code without changing publication or conversation records.
+  UXR-G01 and native Linux P5-G06 remain open.
+
+Ready preview vs historical publication preview (2026-10-15, UXR-T01 regression):
+
+- Reopened UXR-T01 after the exact latest request selected
+  `prepare_ready_for_review` correctly (Job `23ba4764-bc2f-4f41-befc-b9dc6ecca74a`)
+  and real read-only Job `44990990-3546-4f8f-808f-62eae07816e0` generated event
+  `900e6d7c-e010-4c73-953e-668c17124fb0`. The assistant still cited an old creation
+  preview because automatic conversational context always preferred that artifact;
+  both it and the actual ready preview had indistinguishable generic UI buttons.
+- Added saved PR/current readiness evidence tools and post-publication context
+  selection. Existing creation references become explicitly read-only historical
+  previews, with no create/renew controls. Ready references bind to the correct
+  immutable event/hash and use “查看审核预览” / “提交正式审核”. Actual readiness
+  confirmation remains separate; no model response grants authorization.
+- Focused reasoning/conversation/lifecycle/renewal/transport regression:
+  **131 passed**, two existing deprecation warnings. Browser regression caught
+  mixed title/body fields between preview types; fixed the explicit type mapping
+  and reran successfully. Contracts cover historical creation references alongside
+  current ready previews, new ready evidence references, distinct action labels,
+  exact confirmations, expiry, no mutation from viewing, desktop/mobile. Compile/
+  diff checks pass. All six Compose services rebuilt/redeployed, configured health
+  checks and API/database health pass.
+- Existing ready preview `290cac28aca813db7e76458801c98372127300d87e3a0ddd3f2e5dd12535f16f`
+  had expired. Linked read-only recovery of the original user's request through
+  Job `7f5f9edb-117f-4b6b-a1c0-907ef18f03a1` prepared preview
+  `f52caa57c1b3cd351026b2e568799009f40650adf57e31a8f28f44f6f6d1918f`,
+  expiry `2026-10-15T06:39:55.647129Z`, for the same PR #70411. Real desktop/mobile
+  checks confirm “查看审核预览” opens an enabled “提交正式审核” confirmation and
+  the correct PR link; old publication previews expose no create/renew controls.
+  The confirmation was not clicked. Model calls stay 25, no ready authorization
+  or ready-write job, only the existing publication-write job. SQLite integrity
+  OK; 250 artifacts checked by size/SHA-256; database/artifact/log canary matches
+  and log tracebacks zero. **UXR-T01 rechecked**. No SQL schema change; rollback
+  must restore matching conversation schema/UI code after draining new evidence
+  decisions and preserve immutable history. UXR-G01 and native Linux P5-G06 remain
+  open.
+
+Pre-commit verification (2026-10-15, user-requested commit/push):
+
+- Full current regression: **885 passed, 16 skipped**, two existing deprecation
+  warnings; Python compilation passes. The complete 163-file code/test/doc change
+  set excludes ignored `.env`, databases and runtime directories. Checked every
+  changed file against six actual local secret values; zero matches. Eighteen
+  credential-shaped strings are explicit canaries in tests, not real credentials.
+  Staging exposed whitespace in three previously untracked tests; removed only
+  blank-line whitespace/extra EOF blanks and reran those focused fixtures before
+  committing. Roadmap/independent acceptance gates remain truthfully unchanged:
+  UXR-G01 and native Linux P5-G06 stay open.
+
 ## Phase 6 — Independent review and bounded repair
 
 Status: **FUNCTIONAL SLICE IMPLEMENTED (acceptance not done)**
@@ -1932,6 +3235,7 @@ phase retains it as a regression gate.
 | D-007 | Draft PR is the first third-party write and needs exact user approval. | Accepted |
 | D-008 | Do not fabricate provenance for Phase 1 history; use `legacy_unverified`. | Accepted |
 | D-009 | Use polling for local MVP PR sync; reserve webhooks for deployable v1 modes. | Accepted |
+| D-010 | User-approved 2026-10-12 exception: isolated Publisher may submit only the supported fixed CLA Assistant signature on an existing verified Draft PR after fresh exact human legal consent; generic comments remain excluded. | Accepted |
 
 ## Known prerequisites and blockers
 

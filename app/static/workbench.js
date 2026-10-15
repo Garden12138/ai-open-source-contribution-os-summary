@@ -1,517 +1,424 @@
 import { requestJSON } from "./api.js?v=workbench-v1";
 import { renderMarkdown } from "./studio.js?v=studio-v1";
-import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
+import { createExecutionChanges } from "./execution-changes.js?v=conversation-v2";
 
-const drafts = new Map();
-
-const terminal = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
-function jobErrorMessage(job) {
-  return job?.state === "cancelled" ? "本次请求已取消，未继续处理。你可以重新发送消息。"
-    : job?.error_message || "任务失败，请检查后重试。";
-}
-const fields = [
-  ["goal", "目标与改造说明", false],
-  ["acceptance_criteria", "验收标准", true],
-  ["files_to_inspect", "已阅读的相关文件", true],
-  ["files_likely_to_change", "计划修改的文件", true],
-  ["implementation_steps", "实施步骤", true],
-  ["tests_to_add_or_run", "测试与验证", true],
-  ["risks", "风险与取舍", true],
-  ["questions_for_maintainer", "待确认问题", true],
-];
+const receiptLabels = {queued:"已收到，等待处理", processing:"正在处理", paused:"已保存，等待继续", completed:"已处理", failed:"暂未完成，内容已保留"};
+const planFields = [["goal","要完成的工作"],["files_likely_to_change","修改范围"],
+  ["implementation_steps","实施步骤"],["tests_to_add_or_run","测试安排"],
+  ["acceptance_criteria","完成标准"],["risks","需要留意"],["questions_for_maintainer","待确认的问题"]];
 function node(tag, text = "", className = "") {
-  const el = document.createElement(tag);
-  el.textContent = text;
-  el.className = className;
-  return el;
+  const el = document.createElement(tag); el.textContent = text; el.className = className; return el;
 }
-function button(text, handler) {
-  const el = node("button", text, "analysis-action");
-  el.type = "button";
-  el.addEventListener("click", handler);
-  return el;
+function button(text, handler, primary = false) {
+  const el = node("button", text, primary ? "analysis-action" : "conversation-link");
+  el.type = "button"; el.addEventListener("click", handler); return el;
+}
+function friendly(text) {
+  return String(text || "").replace(/\b(?:sha256:)?[a-f0-9]{40,64}\b/g, "（内部校验信息）")
+    .replace(/\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/g, "（内部记录）")
+    .replaceAll("哈希", "校验信息").replaceAll("修改前基线", "修改前测试").replaceAll("基线", "修改前测试")
+    .replaceAll("沙箱 Worker", "隔离执行服务").replaceAll("Publisher", "发布服务");
+}
+function list(root, values) {
+  if (!values?.length) return;
+  const ul = node("ul"); for (const value of values) ul.append(node("li", friendly(value))); root.append(ul);
+}
+function safeLink(text, url) {
+  const link = node("a", text);
+  if (/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\//.test(url || "")) {
+    link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+  }
+  return link;
 }
 
 export function mountContributionWorkbench(root, taskId, options) {
   const endpoint = `/api/v1/tasks/${encodeURIComponent(taskId)}/workbench`;
-  let data = null;
-  let plan = null;
-  let dirty = false;
-  let editing = false;
-  let sending = false;
-  let timer = null;
-  let clockTimer = null;
-  let disposed = false;
-  let seenEvents = "";
-  let editorPlanId = null;
-  let executionFingerprint = "";
-  let executionReadError = "";
-  let executionId = null;
-  let panelOpener = null;
-  let lastError = "";
-  let modelData = {profiles:[]};
-  let modelFieldsDirty = false;
-  let modelSelectionHash = null;
-  const versionDiffs = new Map();
-  const shell = node("section", "", "ai-workbench");
-  const headline = node("div", "", "ai-workbench-heading");
-  headline.append(node("h3", "贡献方案"));
-  const progress = node("p", "正在读取任务…", "ai-workbench-progress");
-  progress.setAttribute("role", "status");
-  progress.setAttribute("aria-live", "polite");
-  const progressLabel = node("span", "正在读取任务…");
-  const elapsed = node("span");
-  elapsed.setAttribute("aria-hidden", "true");
-  progress.replaceChildren(progressLabel, elapsed);
-  const error = node("p", "", "ai-workbench-error");
-  error.setAttribute("role", "alert");
-  const layout = node("div", "", "ai-workbench-layout");
-  const chat = node("section", "", "ai-workbench-chat");
-  const documentPane = node("section", "", "ai-workbench-document");
-  const paneHeader = node("div", "", "studio-pane-header");
-  const paneTitle = node("h4", "贡献方案");
-  paneTitle.tabIndex = -1;
-  paneHeader.append(paneTitle, button("返回对话", () => showPane("chat")));
-  documentPane.append(paneHeader);
-  function showPane(target, focus = true) {
-    if(target !== "chat") panelOpener = document.activeElement;
-    shell.dataset.mobilePane = target; shell.dataset.panel = target;
-    paneTitle.textContent = target === "results" ? "代码、测试与审查" : "贡献方案";
-    if(focus) {
-      if(target !== "chat") paneTitle.focus();
-      else if(panelOpener?.isConnected && panelOpener.getClientRects().length) panelOpener.focus();
-      else input.focus();
-    }
+  const draftKey = `contribos:conversation-draft:${taskId}`;
+  let data, timer, disposed = false, sending = false, loading = null, composing = false;
+  let requestAttempt, returnFocus, drawerGeneration = 0, changes;
+  const entries = new Map();
+  const shell = node("section", "", "conversation-agent");
+  const header = node("header", "", "conversation-agent-header");
+  const status = node("div", "正在读取任务…", "conversation-agent-status");
+  status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
+  const history = button("历史记录", () => showHistory());
+  header.append(status, history);
+  const error = node("p", "", "conversation-agent-error"); error.setAttribute("role", "alert");
+  const messages = node("div", "", "conversation-agent-messages");
+  messages.setAttribute("role", "region"); messages.setAttribute("aria-label", "贡献对话记录"); messages.tabIndex = 0;
+  const fresh = button("有新消息 ↓", () => { messages.scrollTop = messages.scrollHeight; fresh.hidden = true; });
+  fresh.classList.add("conversation-new-messages"); fresh.hidden = true;
+  const form = node("form", "", "conversation-agent-composer");
+  const input = node("textarea"); input.rows = 2; input.maxLength = 8000; input.required = true;
+  input.placeholder = "说明你的要求，也可以随时补充信息…";
+  input.setAttribute("aria-label", "发送给贡献助手的消息");
+  try { input.value = sessionStorage.getItem(draftKey) || ""; } catch { /* Storage may be unavailable. */ }
+  const toolbar = node("div", "", "conversation-agent-toolbar");
+  const hint = node("span", "Enter 发送 · Shift+Enter 换行", "conversation-agent-hint");
+  const stop = button("停止", () => act(() => post("/conversation/messages", {text:"停止"}))); stop.hidden = true;
+  const send = button("发送 ↑", () => {}, true); send.type = "submit"; send.setAttribute("aria-label", "发送");
+  toolbar.append(hint, stop, send); form.append(input, toolbar);
+  shell.append(header, error, messages, fresh, form); root.replaceChildren(shell);
+  const viewport = window.visualViewport;
+  function fitKeyboard() {
+    if (!viewport || viewport.scale !== 1) return;
+    shell.style.height = document.activeElement === input
+      ? `${Math.max(180, Math.min(root.clientHeight, viewport.height + viewport.offsetTop - shell.getBoundingClientRect().top))}px` : "";
   }
-  showPane("chat", false);
-  chat.append(node("h4", "与 AI 讨论改造方案"));
-  const messages = node("div", "", "ai-workbench-messages");
-  messages.setAttribute("aria-label", "规划对话记录");
-  messages.append(progress);
-  const chatForm = node("form", "", "ai-workbench-chat-form");
-  const input = node("textarea");
-  input.rows = 4;
-  input.maxLength = 8000;
-  input.required = true;
-  input.placeholder = "说明目标、回答问题，或直接告诉 AI 怎么修改方案…";
-  input.setAttribute("aria-label", "发送给规划助手的消息");
-  input.value = drafts.get(taskId)?.text || "";
-  const modelSelect = node("select"); modelSelect.setAttribute("aria-label","方案讨论模型");
-  modelSelect.append(Object.assign(node("option","当前任务模型"),{value:""}));
-  modelSelect.addEventListener("change",()=>{ checkbox.checked=false; error.textContent="新模型将在下一条消息生效；之后需要重新确认方案。"; });
-  input.addEventListener("input",()=>drafts.set(taskId,{...drafts.get(taskId),text:input.value}));
-  input.addEventListener("keydown",event=>{if(event.key==="Enter" && (event.metaKey || event.ctrlKey) && !event.isComposing){event.preventDefault();chatForm.requestSubmit();}});
-  const send = button("发送", () => {});
-  send.type = "submit";
-  const regenerate = button("重新读取上游代码", () => act(async () => {
-    more.open = false;
-    if (dirty) throw new Error("请先保存或撤销方案编辑。");
-    await post("/messages", {text: "请重新读取最新代码，根据当前方案重新规划。", ...parent(), refresh: true});
-  }));
-  const stopAction = () => act(async () => { more.open=false; await post("/stop", {}); });
-  const stop = button("停止", stopAction);
-  stop.title = "停止当前处理，保留已有方案和上下文";
-  const paneStop = button("停止", stopAction);
-  paneStop.hidden = stop.hidden = true;
-  paneHeader.append(paneStop);
-  const more = node("details", "", "studio-composer-more");
-  const moreToggle = node("summary", "更多");
-  moreToggle.setAttribute("aria-label", "更多任务操作");
-  const resumePlanning = button("返回方案讨论", stopAction);
-  resumePlanning.hidden = true;
-  const moreActions = node("div", "", "studio-more-actions");
-  const modelSettings = button("任务模型设置", () => {
-    more.open=false; showPane("document"); taskModels.open=true;
-    taskModels.querySelector("summary").focus();
-  });
-  const archive = button("归档任务", () => act(async () => {
-    if (dirty || input.value.trim()) throw new Error("请先保存方案编辑，并发送或清空未发送的消息。");
-    more.open = false;
-    await options.onArchive();
-  }));
-  archive.hidden = !options.onArchive;
-  moreActions.append(regenerate, modelSettings, resumePlanning, archive);
-  more.append(moreToggle, moreActions);
-  more.addEventListener("keydown", event => { if(event.key === "Escape") { more.open=false; moreToggle.focus(); event.stopPropagation(); } });
-  const composerTools=node("div","","studio-composer-tools"); composerTools.append(more,modelSelect,send,stop);
-  chatForm.append(input, composerTools);
-  chatForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    act(async () => {
-      if (dirty) throw new Error("请先保存方案编辑，再让 AI 修订。");
-      const text = input.value.trim();
-      if (!text) return;
-      await post("/messages", {text, ...parent(), model_profile_id:modelSelect.value || null});
-      input.value = "";
-      drafts.delete(taskId);
-    });
-  });
-  chat.append(messages, chatForm);
-  const documentHeading = node("div", "", "ai-plan-heading");
-  const version = node("span");
-  const edit = button("编辑方案", () => { editing = true; renderDocument(); });
-  documentHeading.append(node("h4", "改造方案"), version, edit);
-  const editor = node("div", "", "ai-plan-content");
-  const changes = node("details", "", "technical-details");
-  changes.append(node("summary", "版本与差异"));
-  changes.classList.add("studio-plan-versions");
-  const versionList = node("div");
-  changes.append(versionList);
-  const confirm = node("label", "", "ai-plan-consent");
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  confirm.append(checkbox, document.createTextNode("我批准当前方案，并启动修改、测试和独立审查；范围内最多自动修复两轮。"));
-  const execute = button("确认方案并执行", () => act(async () => {
-    if (!checkbox.checked || dirty || !plan || editorPlanId !== plan.id) throw new Error("请保存并确认当前方案。");
-    await post("/execute", {plan_id: plan.id, plan_hash: plan.record_hash,
-      approve_plan: true, start_execution: true, max_repairs: 2, model_binding_hash:data.model_binding_hash});
-    showPane("results");
-    checkbox.checked = false;
-  }));
-  checkbox.addEventListener("change", controls);
-  execute.classList.add("studio-plan-execute");
-  const modelSummary=node("p","","muted");
-  const taskModels=node("details","","studio-task-models");taskModels.append(node("summary","本任务的模型选择"));
-  const taskModelFields=node("div"); taskModels.append(taskModelFields);
-  const modelSelectors={};
-  const applyModels=button("应用到此任务",()=>act(async()=>{
-    if(dirty)throw new Error("请先保存当前方案编辑。");
-    const result = await post("/models",{expected_hash:modelSelectionHash,profiles:Object.fromEntries(Object.entries(modelSelectors).map(([stage,select])=>[stage,select.value || null]))});
-    modelFieldsDirty=false;
-    if(result.changed) { checkbox.checked=false;error.textContent="模型已更新，请重新保存方案或发送消息生成新版本后再执行。"; }
-    else error.textContent="模型选择未变化，无需重新保存方案。";
-  }));taskModels.append(applyModels);
-  documentPane.append(documentHeading, editor, changes, confirm, execute);
-  documentPane.insertBefore(modelSummary,confirm);
-  documentPane.insertBefore(taskModels,confirm);
-  layout.append(chat, documentPane);
-  const execution = node("section", "", "ai-workbench-execution");
-  const codeChanges = createExecutionChanges({
-    openDetails: () => showPane("results"),
-    onSummaryChange: () => {
-      if (disposed) return;
-      const atBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 100;
-      if (atBottom) messages.scrollTop = messages.scrollHeight;
-    },
-  });
-  const codeChangesPane = node("section", "", "ai-workbench-execution");
-  codeChangesPane.append(codeChanges.viewer);
-  const publication = node("section", "", "ai-workbench-publication");
-  documentPane.append(codeChangesPane,execution,publication);
-  shell.append(headline, error, layout);
-  root.replaceChildren(shell);
-  const observer = new MutationObserver(() => {
-    if (!shell.isConnected) {
-      dispose();
-      observer.disconnect();
-    }
-  });
-  observer.observe(document.body, {childList: true, subtree: true});
-  function persistDraft() {
-    const values={};
-    if(editing) for(const field of editor.querySelectorAll("textarea")) values[field.name]=field.value;
-    drafts.set(taskId,{text:input.value,values,dirty,editing,editorPlanId});
-  }
-  function dispose() { if(disposed)return;persistDraft();disposed=true;codeChanges.dispose();clearTimeout(timer);clearInterval(clockTimer);observer.disconnect();window.removeEventListener("beforeunload",warnUnload); }
-  function warnUnload(event) { if(dirty || input.value.trim()) { event.preventDefault();event.returnValue=""; } }
-  window.addEventListener("beforeunload",warnUnload);
+  viewport?.addEventListener("resize", fitKeyboard);
+  input.addEventListener("focus", fitKeyboard); input.addEventListener("blur", fitKeyboard);
 
-  function parent() { return {parent_id: plan?.id || null, expected_hash: plan?.record_hash || null}; }
-  async function post(path, payload) {
+  // One detail surface: native dialog provides Escape, focus trapping and an
+  // inert background. Closing preserves the conversation position and focus.
+  const drawer = node("dialog", "", "conversation-agent-drawer");
+  const drawerHeader = node("header"); const drawerTitle = node("h2", "详情");
+  drawerTitle.id = `conversation-detail-${taskId}`; drawer.setAttribute("aria-labelledby", drawerTitle.id);
+  const close = button("返回对话", () => drawer.close()); drawerHeader.append(drawerTitle, close);
+  const drawerBody = node("div", "", "conversation-agent-drawer-body");
+  const drawerError = node("p", "", "conversation-agent-error"); drawerError.setAttribute("role", "alert");
+  drawer.append(drawerHeader, drawerError, drawerBody); shell.append(drawer);
+  drawer.addEventListener("close", () => { drawerGeneration++; changes?.dispose(); changes = null; (returnFocus?.isConnected ? returnFocus : input).focus({preventScroll:true}); });
+  function openDrawer(title) {
+    drawerGeneration++; changes?.dispose(); changes = null;
+    if (!drawer.open) returnFocus = document.activeElement;
+    drawerTitle.textContent = title; drawerError.textContent = ""; drawerBody.replaceChildren();
+    if (!drawer.open) drawer.showModal(); drawerBody.scrollTop = 0; close.focus();
+    return drawerGeneration;
+  }
+  function persistDraft() {
+    try { input.value ? sessionStorage.setItem(draftKey, input.value) : sessionStorage.removeItem(draftKey); } catch { /* Input remains in memory. */ }
+  }
+  input.addEventListener("input", () => { persistDraft(); controls(); });
+  input.addEventListener("compositionstart", () => { composing = true; });
+  input.addEventListener("compositionend", () => { composing = false; });
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing && !composing && event.keyCode !== 229) {
+      event.preventDefault(); if (!send.disabled) form.requestSubmit();
+    }
+  });
+  messages.addEventListener("scroll", () => { if (atBottom()) fresh.hidden = true; });
+  function atBottom() { return messages.scrollHeight - messages.clientHeight - messages.scrollTop < 80; }
+  function controls() {
+    send.disabled = sending || !input.value.trim() || !data;
+    stop.hidden = !data?.conversation?.user_state?.can_stop; stop.disabled = sending;
+    for (const el of shell.querySelectorAll("[data-start-planning]")) el.disabled = sending || !!data?.busy;
+    for (const el of shell.querySelectorAll("[data-confirmation]")) {
+      el.disabled = sending || !!data?.conversation?.pending_count || !!data?.conversation?.paused || !!data?.busy || el.dataset.valid !== "true" || (el.validate && !el.validate());
+    }
+    for (const el of drawerBody.querySelectorAll("[data-preview-status]")) el.update();
+  }
+  async function post(path, body, key = crypto.randomUUID()) {
     await options.ensureAccess();
-    return requestJSON(endpoint + path, {method: "POST",
-      headers: options.headers({"Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID()}),
-      body: JSON.stringify(payload)});
+    return requestJSON(endpoint + path, {method:"POST", headers:{...options.headers(), "Content-Type":"application/json", "Idempotency-Key":key}, body:JSON.stringify(body)});
   }
   async function act(action) {
     if (sending) return;
-    sending = true; error.textContent = ""; controls();
-    try { await action(); await load(false); }
-    catch (err) { error.textContent = err.message; }
+    sending = true; error.textContent = ""; drawerError.textContent = ""; controls();
+    try { await action(); await load(true); }
+    catch (problem) { error.textContent = friendly(problem.message); if (drawer.open) drawerError.textContent = error.textContent; await load(true); }
     finally { sending = false; controls(); }
   }
-  function controls() {
-    archive.disabled = sending || !data || data.busy;
-    const planning = data?.state === "planning";
-    send.disabled = sending || !planning || data?.busy || dirty || !data?.planner_available;
-    send.hidden = !!data?.busy;
-    modelSelect.disabled = sending || data?.busy || !planning || dirty;
-    const modelsChanged = Object.entries(modelSelectors).some(([stage,select]) =>
-      (select.value || null) !== (data?.model_profiles?.[stage] || null));
-    applyModels.disabled = sending || data?.busy || !planning || dirty || Object.keys(modelSelectors).length !== 4 || !modelsChanged;
-    regenerate.disabled = send.disabled;
-    edit.disabled = !planning || data?.busy || sending || !plan;
-    const assistant = data?.events.filter(e => e.kind === "assistant_message").at(-1);
-    const questions = assistant?.payload.questions?.length || assistant?.payload.read_paths?.length;
-    execute.disabled = sending || !planning || data?.busy || dirty || modelsChanged || !plan || editorPlanId !== plan.id || !data?.context || questions || plan.questions_for_maintainer.length || !checkbox.checked;
-    confirm.hidden = !planning;
-    execute.hidden = !planning;
-    const publishing = !!data?.events.find(e => e.kind === "publication_confirmed");
-    stop.hidden = paneStop.hidden = !data?.busy || publishing;
-    stop.disabled = paneStop.disabled = sending;
-    resumePlanning.hidden = !data || planning || data.busy || publishing;
-    resumePlanning.disabled = sending;
+  form.addEventListener("submit", event => {
+    event.preventDefault(); const text = input.value.trim(); if (!text || sending) return;
+    if (!requestAttempt || requestAttempt.text !== text) requestAttempt = {text, key:crypto.randomUUID()};
+    const attempt = requestAttempt;
+    act(async () => {
+      await post("/conversation/messages", {text}, attempt.key);
+      if (input.value.trim() === text) { input.value = ""; persistDraft(); }
+      requestAttempt = null;
+    });
+  });
+  function latest(kind) { return data?.events?.filter(e => e.kind === kind).at(-1); }
+  function previewValid(p, kind) {
+    if (!p || p.consumed || Date.now() >= Date.parse(p.expires_at) || !Number.isFinite(Date.parse(p.expires_at))) return false;
+    if (p.publisher_account_hash && p.publisher_account_hash !== data.execution?.publisher_account_hash) return false;
+    if (kind === "publication") return !latest("publication_confirmed") && latest("publication_prepared")?.record_hash === p.record_hash;
+    if (kind === "cla") return data.cla?.preview?.record_hash === p.record_hash && !p.existing_comment && !data.cla?.status?.existing_comment && !data.cla?.submitted && !data.cla?.unresolved && (data.cla?.status?.status || p.status) !== "passed";
+    if (kind === "update") return data.pr_update?.preview?.record_hash === p.record_hash && !data.pr_update?.unresolved && !data.pr_lifecycle?.unresolved;
+    return data.pr_lifecycle?.preview?.record_hash === p.record_hash && !data.pr_lifecycle?.unresolved && !data.pr_update?.unresolved;
   }
-  function renderDocument() {
-    editor.replaceChildren();
-    version.textContent = plan ? `v${plan.version_number}` : "等待 AI 生成";
-    edit.hidden = editing;
-    if (!plan) {
-      editor.append(node("p", "发送目标后，AI 会阅读代码、提出问题并生成可编辑的方案。"));
-      return;
-    }
-    editorPlanId = plan.id;
-    const form = node("form", "", "ai-plan-editor");
-    for (const [name, title, list] of fields) {
-      const block = node("section");
-      block.append(node("h5", title));
-      if (editing) {
-        const label = node("label");
-        label.append(node("span", title, "sr-only"));
-        const field = node("textarea");
-        field.name = name;
-        field.rows = name === "implementation_steps" ? 7 : 3;
-        field.value = list ? (plan[name] || []).join("\n") : (plan[name] || "");
-        field.setAttribute("aria-label", title);
-        field.addEventListener("input", () => { dirty = true; checkbox.checked = false; controls(); });
-        label.append(field); block.append(label);
-      } else if (list) {
-        const ul = node(name === "implementation_steps" ? "ol" : "ul");
-        for (const text of plan[name] || []) ul.append(node("li", text));
-        block.append(ul.childElementCount ? ul : node("p", "无"));
-      } else block.append(node("p", plan[name] || ""));
-      form.append(block);
-    }
-    const advanced = node("details", "", "technical-details");
-    advanced.append(node("summary", "验证命令与执行依据"));
-    const commands = node(editing ? "textarea" : "pre");
-    if (editing) {
-      commands.name = "commands_to_run"; commands.rows = 8;
-      commands.value = JSON.stringify(plan.commands_to_run, null, 2);
-      commands.setAttribute("aria-label", "验证命令 JSON");
-      commands.addEventListener("input", () => { dirty = true; checkbox.checked = false; controls(); });
-    } else commands.textContent = plan.commands_to_run.map(c => `${c.working_directory}: ${c.argv.join(" ")}`).join("\n");
-    advanced.append(commands);
-    if (data?.context) advanced.append(node("p", `Base ${data.context.base_sha}\nArchive ${data.context.archive_hash}`));
-    form.append(advanced);
-    if (editing) {
-      const save = button("保存新版本", () => {}); save.type = "submit";
-      const cancel = button("撤销编辑", () => { dirty = false; editing = false; drafts.delete(taskId); renderDocument(); controls(); });
-      form.append(save, cancel);
-      form.addEventListener("submit", event => {
-        event.preventDefault();
-        act(async () => {
-          const payload = {parent_version_id: editorPlanId};
-          for (const [name, , list] of fields) {
-            const value = form.elements.namedItem(name).value.trim();
-            payload[name] = list ? value.split("\n").map(v => v.trim()).filter(Boolean) : value;
-          }
-          payload.commands_to_run = JSON.parse(form.elements.namedItem("commands_to_run").value);
-          await post("/plans", {context_hash: data.context.record_hash, plan: payload});
-          dirty = false; editing = false; editorPlanId = null;
-        });
-      });
-    }
-    editor.append(form);
+  function publicationBlocker(p) {
+    if (p.consumed || latest("publication_confirmed")) return "发布已确认，请返回对话查看处理结果。";
+    if (latest("publication_prepared")?.record_hash !== p.record_hash) return "这份预览已被更新，请返回对话查看最新预览。";
+    if (p.publisher_account_hash && p.publisher_account_hash !== data.execution?.publisher_account_hash) return "发布账号已变化，请重新准备发布预览。";
+    if (sending) return "正在提交请求，请稍候。";
+    if (data.conversation?.pending_count) return "正在处理你的消息，完成后可继续确认。";
+    if (data.conversation?.paused) return "任务已暂停，请返回对话继续任务后确认。";
+    if (data.busy) return "正在处理任务，完成后可继续确认。";
+    if (!Number.isFinite(Date.parse(p.expires_at)) || Date.now() >= Date.parse(p.expires_at)) return "预览已过期。请沿用当前标题和正文更新预览，重新核对后再创建草稿 PR。";
+    return "";
   }
-  function renderMessages() {
-    const signature = data.events.map(e => e.id).join(":") + ":" + (plan?.id || "") + ":" + (executionId || "") + ":" + data.state;
-    if (signature === seenEvents) return;
-    seenEvents = signature;
-    const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<100;
-    const previousScroll=messages.scrollTop;
-    messages.replaceChildren();
-    if(!data.events.length) { const welcome=node("article","","ai-message");welcome.append(node("h2","从这个贡献开始"),node("p","告诉 AI 你想解决什么，它会阅读项目代码，和你一起完善方案。"));welcome.append(button("阅读代码并制定方案",()=>{input.value="请阅读相关代码，为这个 Issue 制定具体改造方案。";chatForm.requestSubmit();}));messages.append(welcome); }
-    for (const entry of data.events) {
-      if (!["user_message", "assistant_message"].includes(entry.kind)) continue;
-      const item = node("article", "", `ai-message ${entry.kind}`);
-      if (entry.kind === "assistant_message") item.append(node("strong", "规划助手"));
-      const displayText = entry.payload.text || entry.payload.reply || (entry.payload.plan_id ? "方案已生成，可展开查看。" : "");
-      const content=node("div");renderMarkdown(content,displayText);item.append(content);
-      if(displayText) item.append(button("复制",async()=>{try{await navigator.clipboard.writeText(displayText);}catch{error.textContent="浏览器未允许复制，请手动选择文本。";}}));
-      for (const question of entry.payload.questions || []) {
-        item.append(node("p", question.prompt));
-        for (const option of question.options || []) {
-          item.append(button(option, () => { input.value += `${input.value ? "\n" : ""}${question.prompt}：${option}`; input.focus(); }));
-        }
-      }
-      if (entry.payload.read_paths?.length) item.append(node("p", "继续阅读：" + entry.payload.read_paths.join("、")));
-      messages.append(item);
-    }
-    if(plan) { const card=button(`贡献方案 · v${plan.version_number}\n${plan.goal.slice(0,160)}\n查看、编辑并确认执行 →`,()=>showPane("document"));card.className="studio-plan-card";messages.append(card); }
-    if(executionId || data.events.some(e => ["automation_started", "awaiting_acceptance", "automation_blocked", "publication_completed"].includes(e.kind))) {
-      const card = button("执行记录\n查看代码变更、测试与审查 →", () => showPane("results"));
-      card.className = "studio-plan-card studio-results-card";
-      messages.append(card);
-    }
-    messages.append(codeChanges.summary, progress);
-    messages.scrollTop=atBottom ? messages.scrollHeight : previousScroll;
+  function confirmation(label, valid, handler) {
+    const el = button(label, () => act(handler), true); el.dataset.confirmation = "true"; el.dataset.valid = String(valid); return el;
   }
-  function renderProgress() {
-    if (disposed || !data) return;
-    const active = data.jobs.find(j => !terminal.has(j.state));
-    const names = {planning_archive: "正在获取仓库版本", planning_context: "正在阅读代码", planning_turn: "AI 正在制定方案",
-      contribution_start: "正在检查并启动执行", coding_context: "正在读取实施上下文", coding_turn: "正在分析实施步骤",
-      change_set_proposal: "正在生成代码修改", sandbox_stage: "正在隔离执行与测试", provider_review: "正在独立审查",
-      publication_prepare: "正在准备发布预览", publication_write: "正在发布并核对远端状态"};
-    const blocked = data.events.filter(e => e.kind === "automation_blocked").at(-1);
-    const label = active ? names[active.kind] || "任务正在运行"
-      : data.state === "ready" ? "验证与审查已完成，等待验收并确认发布。"
-      : data.jobs.at(-1)?.state === "cancelled" ? "本次请求已取消 · 可重新发送消息"
-      : data.state === "planning" ? "讨论并完善方案，确认后即可执行。"
-      : blocked ? blocked.payload.reason : "正在推进贡献流程…";
-    if(progressLabel.textContent !== label) progressLabel.textContent = label;
-    const started = active && Date.parse(active.started_at || active.created_at);
-    elapsed.textContent = active && Number.isFinite(started) ? ` · ${Math.max(0, Math.floor((Date.now()-started)/1000))} 秒` : "";
+  function showPlan(plan) {
+    openDrawer("贡献方案");
+    for (const [key,label] of planFields) {
+      const value = plan[key]; if (!value?.length) continue;
+      drawerBody.append(node("h3", label));
+      if (Array.isArray(value)) list(drawerBody, value);
+      else { const body = node("div"); renderMarkdown(body, friendly(value)); drawerBody.append(body); }
+    }
+    if (plan.commands_to_run?.length) {
+      drawerBody.append(node("h3", "验证命令"));
+      for (const command of plan.commands_to_run) drawerBody.append(node("pre", JSON.stringify(command, null, 2)));
+    }
+    drawerBody.append(node("p", "需要修改时，返回对话直接告诉我即可。"));
   }
-  clockTimer = setInterval(renderProgress, 1000);
-  async function load(first = false) {
-    clearTimeout(timer);
-    if (disposed) return;
+  function verificationText() {
+    const v = data.execution?.verification;
+    return v?.status === "passed" ? `${v.passed}/${v.total} 条验证命令通过；项目测试中的跳过情况请查看详细结果。`
+      : v?.status === "environment_blocked" ? "测试环境尚未就绪，当前不能确认测试通过。"
+      : v?.status === "failed" ? "验证尚未通过，已有修改保留。" : "尚无完整的测试结果。";
+  }
+  async function showExecution(id = data.execution?.latest_attempt_id || data.execution?.last_attempt_id) {
+    const generation = openDrawer("改动、测试与代码审查");
+    drawerBody.append(node("p", "正在读取结果…"));
     try {
-      const nextData = await requestJSON(endpoint);
-      if(data?.model_binding_hash !== nextData.model_binding_hash) checkbox.checked=false;
-      data=nextData;
-      if (disposed) return;
-      const nextPlan = data.plans.at(-1) || null;
-      if (plan?.id !== nextPlan?.id) {
-        checkbox.checked = false;
-        if (editing || dirty) error.textContent = "方案已有新版本。当前编辑已保留，请撤销编辑以载入最新版本。";
+      if (!id) { drawerBody.replaceChildren(node("p", "尚无执行结果。")); return; }
+      const detail = await requestJSON(`/api/v1/executions/${encodeURIComponent(id)}`);
+      if (disposed || generation !== drawerGeneration) return;
+      const outcome = data.execution?.attempts?.find(a => a.id === id)?.verification || data.execution?.verification;
+      drawerBody.replaceChildren(node("h3", "代码改动"));
+      changes = createExecutionChanges(); drawerBody.append(changes.summary, changes.viewer);
+      await changes.update({...detail, verification:outcome});
+      if (generation !== drawerGeneration) return;
+      drawerBody.append(node("h3", "测试结果"));
+      if (outcome) {
+        drawerBody.append(node("p", `${outcome.passed || 0}/${outcome.total || 0} 条验证命令通过。`));
+        for (const failure of outcome.failures || []) drawerBody.append(node("pre", `${failure.command_id || "验证命令"}\n${failure.output || failure.stderr || "未通过"}`));
       }
-      plan = nextPlan;
-      if(first && drafts.get(taskId)?.editing && drafts.get(taskId)?.editorPlanId === plan?.id) {
-        const draft=drafts.get(taskId);editing=true;dirty=draft.dirty;renderDocument();
-        for(const field of editor.querySelectorAll("textarea")) if(draft.values[field.name]!==undefined) field.value=draft.values[field.name];
+      drawerBody.append(node("h3", "独立代码审查"));
+      for (const review of detail.reviews || []) {
+        drawerBody.append(node("p", ({pass:"审查通过",block:"审查未通过",fail:"审查未通过"})[review.verdict] || "审查结果尚未确定"));
+        for (const finding of review.findings || []) drawerBody.append(node("p", friendly(finding.message || finding.description || JSON.stringify(finding))));
       }
-      if ((!editing && !dirty && editorPlanId !== plan?.id) || (first && !editing)) renderDocument();
-      const modelName=stage=>data.model_labels?.[stage] || modelData.profiles.find(p=>p.id===data.model_profiles?.[stage])?.payload.model || "部署默认模型";
-      for(const [stage,id] of Object.entries(data.model_profiles || {})) {
-        for(const select of [modelSelectors[stage],stage==="planning" ? modelSelect : null].filter(Boolean)) {
-          if(id && ![...select.options].some(option=>option.value===id))select.append(Object.assign(node("option",`${modelName(stage)} · 已绑定版本`),{value:id}));
+      if (!detail.reviews?.length) drawerBody.append(node("p", "尚无独立审查结果。"));
+      drawerBody.append(node("h3", "完整测试与执行记录"));
+      for (const manifest of detail.artifact_manifests || []) {
+        for (const artifact of manifest.entries || []) {
+          if (["unified-diff", "file-inventory"].includes(artifact.role)) continue;
+          const expected = `/api/v1/executions/${encodeURIComponent(id)}/artifacts/${artifact.artifact_id}`;
+          if (artifact.content_url !== expected || !/^[a-f0-9]{64}$/.test(artifact.artifact_id)) continue;
+          const link = node("a", `${({explore:"代码阅读", implement:"实现", verify:"测试"})[manifest.stage] || "执行"} · ${artifact.role}`);
+          link.href = expected; link.target = "_blank"; link.rel = "noopener noreferrer"; drawerBody.append(link, node("br"));
         }
-        if(!modelFieldsDirty && modelSelectors[stage]) modelSelectors[stage].value = id || "";
       }
-      if(!modelFieldsDirty) modelSelectionHash = data.model_binding_hash;
-      modelSummary.textContent=`实现：${modelName("implementation")} · 审查：${modelName("review")}`;
-      if(!modelSelect.value && data.model_profiles?.planning)modelSelect.value=data.model_profiles.planning;
-      renderMessages();
-      versionList.replaceChildren();
-      for (const versionPlan of data.plans) {
-        const row = node("p", `v${versionPlan.version_number} · ${versionPlan.goal.slice(0, 100)}`);
-        if (versionPlan.parent_version_id) row.append(button("查看与上一版差异", () => act(async () => {
-          const query = new URLSearchParams({left_version_id: versionPlan.parent_version_id, right_version_id: versionPlan.id});
-          const diff = await requestJSON(`/api/v1/tasks/${encodeURIComponent(taskId)}/plan-versions/compare?${query}`);
-          versionDiffs.set(versionPlan.id, diff.unified_diff);
-        })));
-        if (versionDiffs.has(versionPlan.id)) row.append(node("pre", versionDiffs.get(versionPlan.id), "ai-plan-diff"));
-        versionList.append(row);
-      }
-      const active = data.jobs.filter(j => !terminal.has(j.state));
-      const latestJob = data.jobs.at(-1);
-      renderProgress();
-      const failed = !active.length && ["failed", "timed_out", "cancelled"].includes(latestJob?.state) ? latestJob : null;
-      if (failed && failed.id !== lastError) { lastError = failed.id; error.textContent = jobErrorMessage(failed); }
-      if (!failed && lastError) {
-        const previousError = data.jobs.find(j => j.id === lastError);
-        if (error.textContent === jobErrorMessage(previousError)) error.textContent = "";
-        lastError = "";
-      }
-      if (!data.planner_available) error.textContent = data.planner_unavailable_reason || "尚未配置规划模型服务。";
-      const task = await requestJSON(`/api/v1/tasks/${encodeURIComponent(taskId)}`);
-      if(disposed) return;
-      executionId = task.latest_execution_attempt_id || null;
-      renderMessages();
-      if (task.latest_execution_attempt_id) {
-        const detail = await requestJSON(`/api/v1/executions/${encodeURIComponent(task.latest_execution_attempt_id)}`)
-          .catch(error => { executionReadError = error.message; codeChanges.fail(); throw error; });
-        if (disposed) return;
-        if (executionReadError && error.textContent === executionReadError) error.textContent = "";
-        executionReadError = "";
-        codeChanges.update(detail);
-        const signature = JSON.stringify(detail);
-        if (!disposed && signature !== executionFingerprint) {
-          executionFingerprint = signature;
-          options.renderExecution(execution, detail, plan, () => load(false));
-        }
-      } else {
-        codeChanges.update(null);
-        execution.replaceChildren(node("p", "执行尚未产生代码、测试或审查记录。"));
-      }
-      renderPublication();
-      controls();
-    } catch (err) { if (!disposed) error.textContent = err.message; }
-    finally { clearTimeout(timer); if (!disposed) timer = setTimeout(() => load(false), 3000); }
+    } catch { if (generation === drawerGeneration) drawerBody.replaceChildren(node("p", "结果暂时无法读取，已有成果保留。"), button("重新读取", () => showExecution(id))); }
   }
-
-  let publicationVersion = "";
-  function renderPublication() {
-    const prepared = data.events.filter(e => e.kind === "publication_prepared").at(-1);
-    const completed = data.events.filter(e => e.kind === "publication_completed").at(-1);
-    const confirmed = data.events.find(e => e.kind === "publication_confirmed");
-    const write = data.jobs.find(j => j.kind === "publication_write");
-    const signature = `${data.state}:${prepared?.id}:${completed?.id}:${confirmed?.id}:${write?.state}:${write?.attempt_count}`;
-    if (signature === publicationVersion) return;
-    publicationVersion = signature;
-    publication.replaceChildren();
-    if (completed) {
-      const link = node("a", "查看 Draft PR");
-      if (/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/pull\/\d+$/.test(completed.payload.html_url)) {
-        link.href = completed.payload.html_url; link.target = "_blank"; link.rel = "noopener noreferrer";
-      }
-      publication.append(node("h4", "Draft PR 已创建"), link); return;
+  function showFollowup(snapshot) {
+    openDrawer("项目检查与维护者反馈");
+    drawerBody.append(safeLink("在 GitHub 查看 PR", snapshot.target?.pr_url));
+    drawerBody.append(node("p", `上次核对：${new Date(snapshot.observed_at).toLocaleString("zh-CN")}`));
+    drawerBody.append(node("p", friendly(snapshot.next_action)));
+    drawerBody.append(node("h3", "项目自动检查"));
+    const labels={success:"通过",failure:"未通过",action_required:"等待维护者批准",completed:"已结束",in_progress:"进行中",queued:"排队中",pending:"等待中",skipped:"已跳过",cancelled:"已取消",timed_out:"超时",neutral:"无检查结论"};
+    for (const check of [...(snapshot.checks || []), ...(snapshot.workflows || []), ...(snapshot.statuses || [])]) {
+      const value=check.conclusion || check.state || check.status;
+      drawerBody.append(node("p", `${check.name || check.context || "项目检查"}：${labels[value] || "结果尚未确定"}`));
     }
-    if (data.state !== "ready") return;
-    if (confirmed) {
-      publication.append(node("h4", "发布已确认"), node("p", "Publisher 将核对已确认的远端分支与 Draft PR。"));
-      if (write && ["failed", "timed_out"].includes(write.state)) {
-        publication.append(button("重试核对发布结果", () => act(async () => {
-          await options.ensureAccess();
-          await requestJSON(`/api/v1/jobs/${encodeURIComponent(write.id)}/retry`, {method: "POST", headers: options.headers()});
-        })));
-      }
+    for (const failure of snapshot.failures || []) {
+      drawerBody.append(node("h3", friendly(failure.name)));
+      for (const step of failure.steps || []) drawerBody.append(node("p", friendly(step.name)));
+    }
+    for (const annotation of snapshot.annotations || []) drawerBody.append(node("p", friendly(`${annotation.path}:${annotation.line} ${annotation.message}`)));
+    drawerBody.append(node("h3", "审核意见与讨论"));
+    for (const comment of [...(snapshot.reviews || []), ...(snapshot.comments || [])]) {
+      drawerBody.append(node("p", `${comment.login || "维护者"}：${friendly(comment.body)}`));
+      if (comment.url) drawerBody.append(safeLink("查看原文", comment.url));
+    }
+    if (!snapshot.reviews?.length && !snapshot.comments?.length) drawerBody.append(node("p", "上次核对时暂无可读取的意见。"));
+    if (snapshot.warnings?.length) drawerBody.append(node("p", "部分记录尚不能完整读取，不能据此判定所有项目检查通过。"));
+  }
+  function showHistory() {
+    openDrawer("历史记录与诊断");
+    drawerBody.append(node("p", "以下保留原始内容和记录，用于追溯当时的结果。旧确认不会再次执行。"));
+    for (const plan of data.plans || []) drawerBody.append(button(`查看第 ${plan.version_number} 版方案`, () => showPlan(plan)));
+    for (const attempt of data.execution?.attempts || []) drawerBody.append(button(`查看第 ${attempt.number} 次尝试`, () => showExecution(attempt.id)));
+    for (const entry of data.events || []) {
+      drawerBody.append(node("h3", `${entry.sequence || ""} · ${entry.kind}`));
+      drawerBody.append(node("pre", JSON.stringify(entry.payload, null, 2)));
+    }
+  }
+  function showPreview(kind, p, historical = false) {
+    openDrawer(historical ? "历史发布预览" : ({publication:"创建草稿 PR", update:"更新 PR 文案", ready:"提交正式审核", cla:"签署贡献者协议"})[kind]);
+    const target = p.target || {};
+    drawerBody.append(node("p", `发布账号：${p.login || p.fork?.split("/")[0] || "当前发布账号"}`));
+    drawerBody.append(target.pr_url ? safeLink("查看目标 PR", target.pr_url) : node("p", `目标仓库：${p.repository} · ${p.base_branch}`));
+    if (kind === "publication" && !historical) {
+      drawerBody.append(node("p", "将使用上述账号上传这些改动，并创建一个草稿 PR。发布范围仅限本次预览；后续提交正式审核需要另外确认。"));
+      drawerBody.append(button("查看本次代码、测试与审查", () => showExecution()));
+    }
+    if (kind === "update") {
+      drawerBody.append(node("h3", "修改前"), node("pre", `${p.before.title}\n\n${p.before.body}`), node("h3", "修改后"));
+      drawerBody.append(node("p", "本次仅更新下方标题与正文。"));
+    }
+    if (kind === "ready") {
+      drawerBody.append(node("p", "将把这个草稿 PR 提交正式审核并通知维护者；项目检查是否通过，以项目显示的结果为准。"));
+      drawerBody.append(node("h3", p.before.title), node("pre", p.before.body));
+    } else if (kind === "cla") {
+      drawerBody.append(node("p", "请阅读本次固定版本的完整协议。签署属于你的法律决定，需要你亲自同意。"));
+      drawerBody.append(safeLink("协议来源", p.agreement_url), node("pre", p.agreement_text, "conversation-agreement"), node("h3", "将提交的签署声明"), node("pre", p.comment));
+    } else {
+      // Show exact public text, including the marker, without rewriting evidence.
+      drawerBody.append(node("h3", p.title), node("pre", p.body)); list(drawerBody, p.notes);
+    }
+    for (const source of p.requirements?.sources || []) drawerBody.append(node("p", `仓库规范：${source.path}`));
+    if (historical) {
+      drawerBody.append(node("p", "这是创建草稿 PR 时的历史预览，仅供查看。当前操作请使用对话中的最新预览入口。"));
       return;
     }
-    publication.append(node("h4", "人工验收与发布"), node("p", "请检查上方 diff、测试和审查结果。最终确认后才会 Fork、Push 并创建 Draft PR。"));
-    if (data.publisher_mode !== "gh") {
-      publication.append(node("p", "真实发布尚未配置。请按部署文档配置独立 Publisher；当前结果和方案会保留。")); return;
+    drawerBody.append(node("p", `本次预览有效至 ${new Date(p.expires_at).toLocaleString("zh-CN")}。`));
+    let consent;
+    if (kind === "cla") {
+      const label = node("label", "", "conversation-legal-consent"); consent = node("input"); consent.type = "checkbox";
+      consent.addEventListener("change", controls);
+      label.append(consent, document.createTextNode("我已阅读并同意上述协议，并有权以所展示账号签署。")); drawerBody.append(label);
     }
-    const title = node("input"); title.setAttribute("aria-label", "PR 标题"); title.maxLength = 200;
-    title.value = prepared?.payload.title || (plan?.goal || "Contribution").split("\n")[0].slice(0, 200);
-    const body = node("textarea"); body.rows = 8; body.setAttribute("aria-label", "PR 正文");
-    body.value = prepared?.payload.body || `## Changes\n${(plan?.implementation_steps || []).map(v => "- " + v).join("\n")}\n\n## Validation\n${(plan?.tests_to_add_or_run || []).map(v => "- " + v).join("\n")}`;
-    publication.append(title, body, button("准备发布预览", () => act(() => post("/publication", {title: title.value, body: body.value}))));
-    if (prepared) {
-      const preview = node("pre", JSON.stringify(prepared.payload, null, 2));
-      const technical = node("details", "", "technical-details"); technical.append(node("summary", "完整发布内容与校验信息"), preview);
-      publication.append(node("p", `${prepared.payload.repository} ← ${prepared.payload.fork}:${prepared.payload.branch}`), technical);
-      const consent = node("label"); const checked = document.createElement("input"); checked.type = "checkbox";
-      consent.append(checked, document.createTextNode("我已验收代码和测试，确认发布上述精确内容。"));
-      const publish = button("确认 Fork、Push 并创建 Draft PR", () => act(async () => {
-        if (!checked.checked || title.value !== prepared.payload.title || body.value !== prepared.payload.body) throw new Error("内容已编辑，请重新准备预览并确认。");
-        await post("/publication/confirm", {intent_hash: prepared.record_hash, nonce: prepared.payload.nonce});
+    const action = confirmation(({publication:"创建草稿 PR", update:"确认更新文案", ready:"提交正式审核", cla:"同意并确认签署"})[kind], previewValid(p, kind), async () => {
+      if (!previewValid(p, kind)) throw new Error("这次预览已经变化或过期，请在对话中重新准备。");
+      if (consent && !consent.checked) { consent.focus(); throw new Error("请亲自阅读并勾选同意当前协议。"); }
+      const common = {preview_hash:p.record_hash, nonce:p.nonce};
+      if (kind === "publication") await post("/publication/confirm", {intent_hash:p.record_hash, nonce:p.nonce});
+      else if (kind === "cla") await post("/cla/confirm", {...common, agreement_hash:p.agreement_hash, acknowledgement:p.acknowledgement, read_and_agree:true});
+      else await post(kind === "ready" ? "/pr-ready/confirm" : "/pr-update/confirm", {...common, text:p.acknowledgement, approved:true});
+      drawer.close();
+    });
+    action.validate = () => previewValid(p, kind) && (!consent || consent.checked);
+    drawerBody.append(action);
+    if (kind === "publication") {
+      const reason = node("p"); reason.setAttribute("role", "status"); reason.dataset.previewStatus = "true";
+      const renew = button("沿用文案更新预览", () => act(async () => {
+        await post("/publication/renew", {preview_hash:p.record_hash});
+        drawer.close();
       }));
-      publish.disabled = true;
-      checked.addEventListener("change", () => { publish.disabled = !checked.checked; });
-      publication.append(consent, publish);
-    }
-  }
-  requestJSON("/api/v1/model-settings").then(result=>{
-    if(disposed)return;modelData=result;
-    for(const profile of result.profiles)modelSelect.append(Object.assign(node("option",profile.payload.name),{value:profile.id}));
-    for(const [stage,title] of [["analysis","分析"],["planning","讨论"],["implementation","实现"],["review","审查"]]) {
-      const label=node("label",title),select=node("select");select.setAttribute("aria-label",`本任务${title}模型`);
-      select.append(Object.assign(node("option","部署默认"),{value:""}));
-      for(const profile of result.profiles)select.append(Object.assign(node("option",profile.payload.name),{value:profile.id}));
-      const selected=data ? data.model_profiles?.[stage] || "" : result.effective[stage] || "";
-      if(selected && ![...select.options].some(option=>option.value===selected))select.append(Object.assign(node("option",`${data?.model_labels?.[stage] || "历史模型"} · 已绑定版本`),{value:selected}));
-      select.value=selected;
-      select.addEventListener("change",()=>{modelFieldsDirty=true;controls();});
-      label.append(select);taskModelFields.append(label);modelSelectors[stage]=select;
-    }
-    if(data?.model_profiles?.planning)modelSelect.value=data.model_profiles.planning;
-    if(data) modelSelectionHash=data.model_binding_hash;
+      reason.update = () => {
+        reason.textContent = publicationBlocker(p);
+        renew.hidden = previewValid(p, kind) || p.consumed || !!latest("publication_confirmed") || latest("publication_prepared")?.record_hash !== p.record_hash || !!(p.publisher_account_hash && p.publisher_account_hash !== data.execution?.publisher_account_hash);
+        renew.disabled = sending || !!data.busy || !!data.conversation?.pending_count || !!data.conversation?.paused;
+      };
+      drawerBody.append(reason, renew);
+    } else if (!previewValid(p, kind)) drawerBody.append(node("p", "这条记录已处理、已变化或已过期。需要继续时，在对话中说明即可。"));
     controls();
-  }).catch(()=>{});
-  load(true);
-  return {dispose};
+  }
+  function addEntry(item) {
+    let entry = entries.get(item.id);
+    if (!entry) {
+      const el = node("article", "", `conversation-agent-message ${item.user ? "is-user" : "is-assistant"}`);
+      const role = node("span", item.user ? "你" : "贡献助手", "conversation-message-role");
+      const body = node("div", "", "conversation-message-body"); const actions = node("div", "", "conversation-message-actions");
+      const receipt = node("small", "", "conversation-message-receipt"); receipt.setAttribute("role", "status");
+      el.append(role, body, actions, receipt); entry = {el, body, actions, receipt}; entries.set(item.id, entry);
+    }
+    const signature = JSON.stringify([item.text, item.questions, item.plan?.record_hash, item.action, item.valid, item.preview?.record_hash, item.receipt, item.references, latest("publication_completed")?.id, latest("publication_prepared")?.record_hash]);
+    if (entry.signature !== signature) {
+      entry.signature = signature; entry.body.replaceChildren(); entry.actions.replaceChildren();
+      renderMarkdown(entry.body, item.user ? item.text : friendly(item.text));
+      for (const reference of item.references || []) {
+        if (!["publication_preview", "ready_preview"].includes(reference.name)) continue;
+        const kind = reference.name === "ready_preview" ? "ready" : "publication";
+        const source = data.events.find(e => e.id === reference.source_id && e.record_hash === reference.source_hash && e.kind === (kind === "ready" ? "pr_ready_prepared" : "publication_prepared"));
+        if (!source) continue;
+        const historical = kind === "publication" && (!!latest("publication_completed") || !!latest("publication_confirmed") || latest("publication_prepared")?.record_hash !== source.record_hash);
+        const details = node("details"), summary = node("summary", kind === "ready" ? "审核预览 · 完整标题与正文" : historical ? "历史发布预览 · 完整标题与正文" : "发布预览 · 完整标题与正文");
+        details.open = true; details.append(summary, node("h4", kind === "ready" ? source.payload.before?.title : source.payload.title));
+        const content = node("div"); renderMarkdown(content, kind === "ready" ? source.payload.before?.body : source.payload.body); details.append(content); entry.body.append(details);
+        const p = kind === "ready" ? data.pr_lifecycle?.preview : {...source.payload, record_hash:source.record_hash};
+        if (p?.record_hash === source.record_hash) entry.actions.append(button(kind === "ready" ? "查看审核预览" : historical ? "查看历史发布预览" : "查看完整预览", () => showPreview(kind, p, historical)));
+      }
+      for (const question of item.questions || []) {
+        entry.body.append(node("p", friendly(question.prompt)));
+        list(entry.body, question.options || []);
+      }
+      if (item.plan) {
+        const plan = item.plan; list(entry.body, plan.files_likely_to_change?.slice(0, 6));
+        entry.actions.append(button("查看方案", () => showPlan(plan)));
+        if (item.action === "execute") {
+          entry.body.append(node("p", "确认后，我会在隔离环境实现、测试和独立审查；范围内最多自动修复两轮。"));
+          entry.actions.append(confirmation("按此方案开始", item.valid, () => post("/execute", {
+            plan_id:plan.id, plan_hash:plan.record_hash, approve_plan:true, start_execution:true, max_repairs:2,
+            model_binding_hash:data.model_binding_hash || null, conversation:true,
+          })));
+        }
+      }
+      if (item.action === "accept") {
+        const binding = data.execution.acceptance.binding_hash;
+        entry.actions.append(button("查看改动与测试", () => showExecution()));
+        entry.actions.append(confirmation("确认结果", item.valid, () => post("/acceptance", {
+          binding_hash:binding, text:"我已查看并确认本次代码、测试和独立审查结果。", prepare_pr:true,
+        })));
+      }
+      if (item.preview) entry.actions.append(button(item.action === "ready" ? "查看审核预览" : "查看完整预览", () => showPreview(item.action, item.preview)));
+      if (item.action === "followup_result") entry.actions.append(button("查看项目检查与反馈", () => showFollowup(item.snapshot)));
+      if (item.action === "settings") { const link = node("a", "前往设置"); link.href = "#/settings"; entry.actions.append(link); }
+      if (item.action === "start_planning") {
+        const start = button("读取仓库并准备方案", () => act(() => post("/conversation/messages", {text:"读取仓库并准备方案"})), true);
+        start.dataset.startPlanning = "true"; entry.actions.append(start);
+      }
+      entry.receipt.textContent = item.receipt ? receiptLabels[item.receipt] || "已收到" : "";
+    }
+    return entry.el;
+  }
+  function render() {
+    const bottom = atBottom(), before = entries.size;
+    const c = data.conversation || {}, state = c.user_state || {};
+    status.textContent = state.label || "等待下一步";
+    if (state.observed_at) status.append(node("small", `上次核对：${new Date(state.observed_at).toLocaleString("zh-CN")}`));
+    const items = [], newStart = c.messages?.[0]?.sequence ?? Infinity;
+    if (newStart === Infinity && !latest("pr_followup_observed")) items.push({id:"welcome", sequence:0, text:state.next_step || "直接告诉我你希望完成什么，我会接着处理。",
+      action:data.state === "planning" && !data.plans?.length && !data.jobs?.length && !state.busy && !c.paused && data.planner_available ? "start_planning" : undefined});
+    for (const message of c.messages || []) items.push({...message, user:true, receipt:message.receipt?.status});
+    for (const result of c.results || []) items.push({...result, action:result.source_kind === "awaiting_acceptance" && data.execution?.actions?.can_accept ? "accept" : undefined, valid:!!data.execution?.actions?.can_accept});
+    const observed = latest("pr_followup_observed");
+    if (observed) {
+      const existing = items.find(i => i.source_id === observed.id);
+      if (existing) Object.assign(existing, {action:"followup_result", snapshot:observed.payload});
+      else items.push({id:"followup:" + observed.id, sequence:observed.sequence,
+        text:state.label + "。\n\n" + state.next_step, action:"followup_result", snapshot:observed.payload});
+    }
+    const plan = data.plans?.at(-1), planReply = data.events?.filter(e => e.kind === "assistant_message" && e.payload.plan_id === plan?.id).at(-1);
+    const lastReply = latest("assistant_message");
+    for (const event of data.events || []) {
+      if (event.kind === "assistant_message" && (event.sequence >= newStart || (newStart === Infinity && event.id === lastReply?.id && (!plan || event.payload.questions?.length)))) items.push({id:event.id, sequence:event.sequence,
+        text:event.payload.reply || (event.payload.questions?.length ? "需要先确认下面的问题，直接回复即可。" : "正在继续阅读代码。"), questions:event.payload.questions,
+        plan:event.payload.plan_id ? data.plans.find(p => p.id === event.payload.plan_id) : undefined});
+    }
+    if (plan && (data.state === "planning" || !latest("publication_completed"))) {
+      const id = planReply?.sequence >= newStart ? planReply.id : "plan:" + plan.id;
+      const current = {id, sequence:planReply?.sequence || 0.1, text:"方案已准备好。" + plan.goal + "\n\n" + (plan.tests_to_add_or_run?.slice(0, 3).join("\n") || "具体测试安排见方案。"), plan,
+        action:data.state === "planning" && data.execution?.actions?.can_execute ? "execute" : undefined, valid:!!data.execution?.actions?.can_execute};
+      const existing = items.find(i => i.id === id); existing ? Object.assign(existing, current) : items.push(current);
+    }
+    if (data.execution?.actions?.can_accept && !items.some(i => i.action === "accept")) items.push({id:"result:" + data.execution.acceptance.binding_hash,
+      sequence:latest("awaiting_acceptance")?.sequence || 0.2, text:"修改结果已准备好。" + verificationText() + "\n\n确认结果后，我会准备英文 PR 文案与完整发布预览。", action:"accept", valid:true});
+    const published = latest("publication_completed"), preview = latest("publication_prepared");
+    const candidates = [
+      {kind:"publication", event:preview, p:preview && {...preview.payload, record_hash:preview.record_hash}, eligible:!published && !latest("publication_confirmed")},
+      {kind:"update", event:latest("pr_update_prepared"), p:data.pr_update?.preview, eligible:!data.pr_update?.preview?.consumed},
+      {kind:"ready", event:latest("pr_ready_prepared"), p:data.pr_lifecycle?.preview, eligible:!data.pr_lifecycle?.preview?.consumed},
+      {kind:"cla", event:latest("cla_prepared"), p:data.cla?.preview, eligible:!data.cla?.preview?.consumed && !data.cla?.submitted && data.cla?.status?.status !== "passed"},
+    ].filter(x => x.p && x.eligible).sort((a,b) => (b.event?.sequence || 0) - (a.event?.sequence || 0)).slice(0, 1);
+    for (const candidate of candidates) items.push({id:`preview:${candidate.p.record_hash}`, sequence:candidate.event?.sequence || (data.events?.at(-1)?.sequence || 0) + 0.1,
+      text:({publication:"发布预览已准备好。请查看账号、目标仓库、完整标题与正文，再决定是否创建草稿 PR。", update:"文案修订已准备好。请查看修改前后内容，再确认更新。", ready:"提交正式审核的预览已准备好，请核对后单独确认。", cla:"贡献者协议已读取。请阅读完整协议，是否同意由你决定。"})[candidate.kind], action:candidate.kind, preview:candidate.p});
+    if (!data.planner_available && !published && !state.busy) items.push({id:"setup", sequence:0.05, text:"讨论或执行服务尚未准备好。消息可以保存；请在设置中检查模型与服务配置。", action:"settings"});
+    const blockers = data.execution?.readiness?.blockers || [];
+    if (blockers.length && !state.busy && !published) items.push({id:"readiness:" + JSON.stringify(blockers), sequence:(data.events?.at(-1)?.sequence || 0) + 0.2, text:blockers.map(b => b.message).join("\n")});
+    items.sort((a,b) => a.sequence - b.sequence);
+    const currentIds = new Set(items.map(i => i.id));
+    for (const [id,entry] of entries) if (!currentIds.has(id)) { entry.el.remove(); entries.delete(id); }
+    let cursor = messages.firstElementChild;
+    for (const item of items) { const el = addEntry(item); if (el === cursor) cursor = cursor.nextElementSibling; else messages.insertBefore(el, cursor); }
+    if (bottom) messages.scrollTop = messages.scrollHeight; else if (entries.size > before) fresh.hidden = false;
+    controls();
+  }
+  async function load(force = false) {
+    clearTimeout(timer); if (disposed) return;
+    if (loading) { if (force) { await loading; return load(); } return loading; }
+    loading = requestJSON(endpoint);
+    try { const next = await loading; if (!disposed) { data = next; render(); } }
+    catch { if (!disposed) error.textContent = "任务暂时无法读取，消息和已有成果会保留。"; }
+    finally { loading = null; if (!disposed) timer = setTimeout(() => load(), 2000); }
+  }
+  load();
+  return {dispose() { disposed = true; clearTimeout(timer); viewport?.removeEventListener("resize", fitKeyboard); persistDraft(); changes?.dispose(); if (drawer.open) drawer.close(); }};
 }

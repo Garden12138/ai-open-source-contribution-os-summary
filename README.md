@@ -7,7 +7,7 @@
 ```text
 GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
               → 七维评分 → 个性化推荐 → 批量 AI 筛选 → 候选比较
-              → Vibe Coding 工作台 → Review → Draft PR 意图 → 贡献进度
+              → 直接对话规划（AI 报告可选）→ Vibe Coding 工作台 → Review → Draft PR 意图 → 贡献进度
 ```
 
 ## 已实现
@@ -20,16 +20,17 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 - 保存每个维度的分数、风险扣分和原因，结果可审计。
 - 每日榜单优先组合 3 个赏金、3 个高影响力、2 个技术匹配和 2 个战略机会；不足时按总分补位。
 - 首次使用可设置贡献目标、偏好语言、每周投入与最低赏金；推荐会对完整合格候选池重新排序，但不会覆盖原始规则分。
+- 发现列表提供“只看小改动”：从完整候选池初筛文案/链接、局部参数与边界修复等机会，显示匹配依据，可与 AI 推荐条件组合。明显迁移、重写、复杂验证和已有分析认定工作量较大的任务会排除；实际改动量和环境可运行性仍需读代码确认。
 - 原生 Studio 工作台：侧栏导航／任务历史、卡片机会列表、点击展开详情、独立任务对话和可编辑方案，支持候选比较、浅色／深色和窄屏布局。
 - 模型设置支持 MiniMax 国内官方 API、NVIDIA 与 OpenAI 兼容服务、自定义模型、默认及四阶段覆盖；API Key 由浏览器加密并仅保存到独立 Gateway，任务冻结模型版本。
 - 支持每日自动扫描、候选提醒，以及新增高匹配机会和候选内容/评分变化的站内通知；需持续运行 Worker。
 - 默认发现结果明确使用条件查询、硬筛选和规则/偏好排序，不会暗中调用模型；Provider 就绪时可对当前规则 Top 30 中最匹配的 5 个候选批量运行有预算上限的 AI 筛选。
 - AI 结论只调整独立的决策排序，不覆盖原始规则分；旧 Snapshot 的分析不会用于新扫描候选，也不能启动新的贡献任务。
 - 分析先从冻结仓库快照生成中文项目介绍，再从冻结 Issue 生成中文需求概括，后续匹配度、工作量、竞争、风险和结论都基于这两部分；详情以精简 Markdown 报告展示并可直接下载，结构化 JSON 仅保留给内部校验、评分和不可变溯源。
-- “我的候选”可直接进入 AI 评估与 Vibe Coding 工作台；“贡献进度”可继续已有任务，完成计划、批准、执行、Review 和发布意图流程。
+- “我的候选”及机会详情可直接“开始对话制定方案”，不必等待 AI 深入评估报告；“贡献进度”可继续已有任务，完成计划、批准、执行、Review 和发布意图流程。
 - FastAPI、SQLite、原生 Web 产品和可供 cron 调用的 CLI。
 
-默认禁止 GitHub 写入。“制定贡献方案”支持 AI 阅读代码、提问、可编辑方案和批准后的自动执行；验证与审查通过后停在人工验收。配置独立 Publisher 并再次确认精确发布内容后，才允许 Fork、Push 和 Draft PR。使用、隔离配置及当前验收边界见 [贡献方案工作台](docs/contribution-workbench.md)。
+贡献任务使用一个对话输入框：发送要求、运行中补充信息或停止工作。方案、测试结果和下一步确认出现在对话中，长内容按需打开详情。修改要求直接回复，模型在设置中配置。确认结果后会接着准备英文 PR 文案与发布预览；创建草稿 PR、更新文案、提交正式审核和签署贡献者协议均需独立确认。使用方法见 [贡献方案工作台](docs/contribution-workbench.md)，队列与升级契约见 [会话协议](docs/conversation-agent-contract.md)。真实独立任务和 Linux 平台验收仍单独记录。
 
 ## 库完成 vs 生产可点
 
@@ -37,7 +38,7 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 | --- | --- | --- |
 | GitHub 扫描与 3/3/2/2 榜单 | 已完成 | **可点** |
 | AI 深析与批量筛选 | 已完成 | MiniMax-M3 可通过国内官方 API 直连并作为四阶段默认；其他 Profile 可手动切换 |
-| AI 规划、编辑版本、批准 | 已实现 | 需 AnalysisVersion、实现模型、固定 Runner 摘要和独立 Sandbox Worker；对话与方案同屏 |
+| AI 规划、编辑版本、批准 | 已实现 | 发现快照可生成最小 AnalysisVersion，无需完整报告；规划需实现模型与隔离读取，执行仍需精确计划批准 |
 | 隔离执行 Explore/Implement/Verify | 引擎与状态机已完成 | 采集归档后，`SANDBOX_STAGE_RUNTIME=fake` 可离线跑通 Explore → ChangeSet → Implement → Verify |
 | 从计划生成代码 / ChangeSet | 已接线 | DeepSeek V4 Pro 支持冻结上下文、多轮对话、结构化提案和精确哈希确认 |
 | 独立 Review / 有界修复 | 已完成 | Fake 可离线演示；MiniMax M3 可审查精确 diff 与测试 Artifact |
@@ -200,6 +201,14 @@ Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
 
 这是不会被 AI 或个人偏好覆盖的基础规则分。产品推荐会按用户目标调整七个维度的权重，并应用语言、时间和最低赏金偏好；AI 对当前 Snapshot 的 `pursue / consider / skip / insufficient_evidence` 结论只形成独立、可解释的决策排序调整。`GET /api/v1/recommendations?analysis_filter=recommended` 可只读取 AI 建议投入或继续确认的机会。所有评分都只是决策辅助，不承诺 PR 一定合并或赏金一定兑现。
 
+`GET /api/v1/recommendations?small_change_only=true` 在分页前筛选小改动线索，可组合 `analysis_filter`、`include_dismissed`、`limit`、`offset`。每项返回 `change_scope`（规则版本、分类、匹配/排除原因码），响应包含 `small_change_only` 和 `small_change_total`；后者统计忽略状态过滤后、AI 条件过滤前的小改动数。规则读取该条目的不可变 Snapshot，并参考同 Snapshot 的已有工作量分析，不修改基础分、不追加评分版本、不调用模型。`good first issue` 单独不足以入选；已有分析估计 xs/s 且不超过 4 小时可提供线索，m/l/xl 或超过 8 小时会排除。筛选未知范围和过长描述时保持保守，不承诺文件数、工时或运行环境已就绪。
+
+`change-scope-v2` 兼容 `size:S`、`size / XS` 等大小写和分隔符，且统一处理大规模排除标签；补充有明确文件/元数据依据的文档链接、截图和 PyPI 项目链接改动。默认发现查询增加 Python/TypeScript 标题含 typo 的定向搜索（每类沿用 25 条上限）；显式配置 `GITHUB_QUERIES` 时仍遵循自定义查询。列表只使用最近完成的扫描，重新扫描可能改变数量；不会拿旧扫描机会或范围未知任务填充结果。
+
+MiniMax/OpenAI-compatible 的新深入评估使用 `studio-analysis-paired-v1`：每条数组结论连同自己的 `evidence_ids` 一起生成，再无损转换为原分析结构并执行完整校验，避免结论与引用的独立数组长度错位。缺失、伪造或不明确的引用仍会失败，不会复制引用补齐。历史失败任务重试保留原适配器格式；重新发起评估使用新格式。NVIDIA、规划与执行格式不变；无需数据库迁移，回退时先停止新格式任务并保留现有不可变历史。
+
+批量分析接口 `POST /api/v1/recommendations/analyses` 同样支持 `small_change_only`，仅在匹配项中排队，保留现有 Top-30 证据、预算、授权和幂等边界。此功能不新增持久字段或迁移；回退应用版本即可移除筛选，已有数据保持原样。
+
 ## 配置
 
 常用环境变量见 [.env.example](.env.example)：
@@ -237,3 +246,16 @@ python -m compileall -q app
 2. 在用户提供的 Linux 环境完成同一 Runner 与恶意套件验收。
 3. 为 NVIDIA 分析、编码和 Review 运行受控的真实账户验收并记录预算证据。
 4. 在精确用户确认后接通真实 Draft PR，并同步远端 PR 状态。
+
+讨论入口与可选报告已解耦：`POST /api/v1/tasks` 接受 `snapshot_id` 或
+`analysis_version_id`，必须且只能提供一个。Snapshot 入口创建明确标为
+`unassessed` 的 `snapshot-assessment-v1` 依据，保留原始快照、规则分、来源及哈希；
+没有模型 Job、调用、工时、推荐或执行批准。它不计入 AI 评估统计，也不改写已有报告。
+普通说明、澄清问题、文件读取和方案草稿可以同轮出现；协调器先等待澄清，随后补读，
+最后独立验证并保存方案。草稿校验失败可保留安全对话说明，执行仍被阻断。
+未读文件会请求补读；不再通过删掉目标文件、截断命令或把未决问题改成风险来保存方案。
+
+数据库前向升级 `0033_snapshot_assessments` 会保留旧 AnalysisVersion、任务、计划和哈希。
+升级前停止写入并备份 SQLite 与 Artifact 数据；失败时恢复完整备份。旧版本程序不能
+读取新修订链，回退应用时也必须恢复升级前数据库，不能删除新任务来源或将事实依据
+改标为 AI 报告。真实任务和平台验收见 [架构调整记录](docs/workflow-architecture-review.md)。

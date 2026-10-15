@@ -174,7 +174,7 @@ def test_archived_workflow_is_skipped_and_unknown_publication_blocks_archive(tmp
 def test_upgrade_from_0030_preserves_tasks_and_backup_recovery(tmp_path, monkeypatch):
     from app.migrations import versions
     with monkeypatch.context() as patch:
-        patch.setattr(versions, "MIGRATIONS", versions.MIGRATIONS[:-2])
+        patch.setattr(versions, "MIGRATIONS", tuple(item for item in versions.MIGRATIONS if item.revision < "0031_task_visibility"))
         # Create a populated pre-upgrade DB without calling new visibility code.
         from tests.test_planning import _seed_analysis
         import app.task_visibility as visibility
@@ -186,7 +186,7 @@ def test_upgrade_from_0030_preserves_tasks_and_backup_recovery(tmp_path, monkeyp
     with sqlite3.connect(tmp_path / "old.db") as source, sqlite3.connect(tmp_path / "backup.db") as backup:
         source.backup(backup)
     report = db.create_schema()
-    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews")
+    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews", "0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes")
     with db.session() as session:
         assert ContributionTaskService(session).get_verified(task.id).record_hash == task.record_hash
         TaskVisibilityService(session).change(task.id, target="archived", expected_sequence=0)
