@@ -141,7 +141,8 @@ def test_planning_reads_missing_environment_evidence_before_saving(tmp_path):
         assert not wb.latest(task,"execution_authorized")
 
 
-def test_supported_authorization_binds_preflight_and_worker_rejects_changed_capability(tmp_path, monkeypatch):
+@pytest.mark.parametrize("change",["report", "preparation_recipe"])
+def test_supported_authorization_binds_preflight_and_worker_rejects_changed_capability(tmp_path, monkeypatch,change):
     import app.execution_preflight
     db, settings, task, content, context = seeded(tmp_path)
     with db.session() as session:
@@ -154,7 +155,10 @@ def test_supported_authorization_binds_preflight_and_worker_rejects_changed_capa
         job = authorize_execution(wb,task,plan_id=plan.id,plan_hash=plan.record_hash,key="execute",settings=settings)
         assert job.payload["preflight_hash"] == report["report_hash"]
     original = app.execution_preflight.task_preflight
-    monkeypatch.setattr(app.execution_preflight,"task_preflight",lambda *args,**kwargs:{**original(*args,**kwargs),"report_hash":"0"*64})
+    if change == "report":
+        monkeypatch.setattr(app.execution_preflight,"task_preflight",lambda *args,**kwargs:{**original(*args,**kwargs),"report_hash":"0"*64})
+    else:
+        monkeypatch.setattr(app.execution_preflight,"PYTHON_PREPARATION_VERSION","python-workspace-preparation-v3")
     def no_network():
         pytest.fail("Stale capability must fail before contacting GitHub or executing")
     failed = asyncio.run(ContributionStartWorker(db,settings,no_network,worker_id="preflight").run_once())

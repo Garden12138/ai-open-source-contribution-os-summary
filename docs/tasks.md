@@ -2316,6 +2316,114 @@ independent acceptance are tracked separately:
   product alone, with authorization, interruption/restart and failure recovery
   checks; controlled Draft publication requires fresh exact human consent.
 
+Reopened **2026-10-17** after the accepted hflow task's automatic publication
+preparation died in conversational validation. The saved model requested reads
+while pre-populating future references; the advertised JSON schema omitted that
+cross-field restriction and the correction reported only `value_error` at the
+root. A second identical failure exhausted both calls before reading anything.
+The accepted button also emitted untyped text instead of a durable workflow
+command; generic Job and message receipts duplicated the error. Root-cause and
+protocol/continuation design are recorded in
+[conversation workflow reliability](conversation-workflow-reliability.md).
+Reverified **2026-10-17**: `conversation-reasoning-v3` uses phase-aware read/final
+schemas, safe read-only presentation separation, concrete semantic feedback and
+restart-restored rejection evidence. V2 queued work retains its original parser
+and counters. The existing two-call/three-read/task budgets are unchanged. Exact
+acceptance and an `accepted-publication-v1` continuation commit together; no
+conversation model is needed for requirements→document→preview. Internal commands
+belong to the orchestrator and are not presented as new user speech. A current
+binding-checked `/publication/continue` action handles interrupted preparation;
+missing accounts show settings, and network retries reuse their request key.
+One coordinator owns the conversation's final failure receipt. Old events remain
+unchanged. The obsolete resource reconfirmation card is absent after execution.
+
+Full final regression **1044 passed, 18 skipped** (two existing deprecations),
+focused conversation/API regression **84 passed**, workflow/protocol contract
+suite **16 passed**; compileall, JS module syntax, diff and actual local-secret
+checks pass. The journey covers **15 user turns + one internal continuation**,
+three plan revisions, explicit execution approval, fake isolated implementation/
+verification/review, acceptance, publication text/preview and a separately
+confirmed **fake** Draft publication. It proves GET-only preparation and no
+PublishIntent before confirmation. Further contracts cover the actual rejected
+read/reference shape, v2 upgrade, restart after rejection, rollback, stop, stale
+binding, missing account, exhausted conversation budget, idempotency, origin and
+sensitive-output rejection. These fakes are not real publication acceptance.
+
+The real hflow conversation was backed up at
+`/data/backups/conversation-framework-20261017T135350Z`. All **269 prior event
+hashes**, execution authorization and human acceptance
+`e479728665648ef3e8ab82281f8f2893952430537ce9f11c39b6bb4581ac61f4`
+remain unchanged. The original failed reasoning Job remains failed with its
+original attempt/input and two model calls. Recovery
+`66ca970584ef69a1024fa7cca5ccefab99da7a0029002eec6e94605c0ad9d257`
+added **zero conversation model calls** and automatically completed real
+`publication_requirements`, `publication_document`, `publication_prepare` Jobs.
+English document
+`353e456e59faeb403ba16590a000c979ef335406b3c2bd387dfef9ad6324ec7c`
+and exact preview
+`21fb0ba114720dc190050bf1a1bcdb6b98977f7ec0af85ed0772d88cac24d557`
+bind the existing passing review/204-test result. No publication confirmation,
+PublishIntent, Draft PR or external-write Job was added. The preview's normal
+expiry (`2026-10-17T14:29:16Z`) is preserved, not extended during verification;
+the existing same-document renewal control is enabled and tested read-only.
+
+All six services rebuilt/redeployed and healthy/running. Conversation,
+plan-confirmation and new continuation desktop/mobile browser contracts pass.
+Deployed desktop/mobile browser checks read the **complete actual title/body**,
+verify expired preview cannot publish and renewal is available, and preserve
+history with **zero mutations and zero page errors**. SQLite integrity and
+**335 artifacts** pass size/SHA-256 checks; database/artifact/log canaries, actual
+local-secret matches across **67 changed files**, and post-recovery tracebacks
+are zero. No SQL model change or credential/trust-domain expansion. These
+implementation tasks are rechecked; **UXR-G01 remains open** for independent
+Python/TypeScript product-only acceptance. Native Linux **P5-G06** remains the
+next roadmap task and is not satisfied by this maintenance recovery.
+
+PR freshness regression (2026-10-18; verification continued 2026-10-19):
+
+- Reopened UXR-T01/T04 after user message **“根据下现在pr情况”** received a
+  present-tense answer from the saved `2026-10-17T14:55:20Z` snapshot. Its model
+  decision was `respond`; no `pr_followup` Job was dispatched. The actual PR had
+  subsequently merged. Both the cached decision and its original result remain
+  preserved, not rewritten as if they had performed a live read.
+- Current-status queries now queue the existing credential-separated Publisher
+  GET workflow directly, including Chinese text without spaces around “pr”. A
+  second coordinator guard intercepts responses citing an earlier PR observation
+  and replaces the stale answer with a persistent refresh. An answer may use a
+  saved snapshot only when the user explicitly asks for historical/cached state
+  or no refresh; the evidence marks `live=false`, its source/time and the refresh
+  action. Network
+  failures retain the old observation and fail the current query explicitly.
+- Only the latest preview of each kind can be pending. Confirmed/published or
+  merged/closed state invalidates historical publication/readiness actions;
+  terminal PR capabilities and native UI cards agree. Optional merge/close times
+  and merge commit are retained from validated GitHub responses. No SQL model
+  change, external write or budget increase.
+- Final full regression **1065 passed, 18 skipped**, focused PR/conversation/API
+  regression **131 passed**, final freshness contracts **21 passed** (including
+  explicit no-refresh requests). Existing
+  desktop/mobile conversation browser contracts, compileall, JS module syntax,
+  diff and actual local-secret checks pass. All six services rebuilt/redeployed;
+  configured health checks and `/health` pass. Deployed 1440/390 browser checks
+  confirm merged state, no pending old confirmations, no overflow/page errors or
+  mutations, and unchanged history. SQLite integrity is OK; **342 artifacts**
+  verified by size/SHA-256, zero database/artifact/log canary matches, zero local
+  secret matches across **71 changed files**, zero post-deployment tracebacks.
+- Real read-only follow-up `206e0afd-6098-4de5-ad8f-de8413acd542` already succeeded
+  through the normal Publisher: PR #725 is `merged=true`, `state=closed`; the
+  contribution state and source-bound message now say **PR 已合并**. Backup
+  `/data/backups/pr-freshness-20261018T085250Z` records all **322 prior event
+  hashes** and the publication receipt. No model/confirmation/remote-write retry
+  was required. Final deployed GET-only Job
+  `69004bdf-3a28-4072-a372-3e16541273c1` confirmed `base_ref=main`, merged/closed
+  at `2026-10-17T17:04:34Z`, merge commit
+  `4bf307ee038ddb40dca77af8119c802ee3427eec`. Observation
+  `355fb9e0c8e78731895080a4e6297c7ae3f70b4948d559987689e3b85551dc55`
+  was read at `2026-10-19T01:18:38Z`. All 322 original event IDs/hashes and the
+  publication receipt remain unchanged; zero new remote-write jobs or write
+  confirmations. **UXR-T01/T04 are rechecked** for this verified repair;
+  independent product-only UXR-G01 and native Linux P5-G06 remain open.
+
 Implementation evidence (2026-10-13):
 
 - `conversation-v1` reuses append-only workbench events and persistent Jobs.
@@ -2863,6 +2971,347 @@ Pre-commit verification (2026-10-15, user-requested commit/push):
   blank-line whitespace/extra EOF blanks and reran those focused fixtures before
   committing. Roadmap/independent acceptance gates remain truthfully unchanged:
   UXR-G01 and native Linux P5-G06 stay open.
+
+### User-directed clickable clarification answers (2026-10-15)
+
+- [x] **UXR-T06** For task `ac50e857-e176-434e-94ef-677fbc00f4cf` and other
+  planning conversations, render the current structured question batch as native
+  radio choices with a custom answer per question. Require all answers, then
+  send one combined user message through the existing authenticated/CSRF and
+  idempotent conversation intake. No default selection or request on selection;
+  retain task/source-bound choices and retry key across refresh, preserve the
+  separate composer draft, enforce the existing 8000-character message limit,
+  and remove interactive controls once answered, superseded, paused or busy.
+- Offline `tests/conversation_agent_browser.mjs` passes: three-question batching,
+  keyboard selection, changes before submission, blank/custom answers, length
+  limit, refresh/poll retention, failed-send retry with the same key after reload,
+  exactly one accepted message, inactive history, new-batch isolation, escaped
+  markup, desktop/mobile layout and existing contextual confirmation regression.
+  Focused conversation/workbench regression **97 passed**; broader API/security
+  regression **14 passed** with two existing deprecation warnings. The asset
+  cache-version assertion was updated with the new URL. JavaScript syntax,
+  Python compilation and diff checks pass.
+- All six Compose services rebuilt/redeployed; API, Publisher and model gateway
+  health checks pass, other workers are running; `/health` reports application
+  and database OK. `tests/conversation_questions_deployed.mjs` verifies the real
+  task's three questions at 1440/390px, refresh-preserved selection and enabled
+  batch submission, with **zero mutations** and unchanged events/jobs/messages.
+  No answer was sent for the user, no model call or external action was needed.
+  SQLite integrity OK; **254 artifacts** verified by size/SHA-256; database,
+  artifact and service-log canary matches zero, log tracebacks zero.
+- No API/schema/database change. Rollback restores the previous static assets
+  and cache URLs; existing conversation history remains intact. Only tab-local
+  question drafts are new. **UXR-G01** and native Linux **P5-G06** remain open;
+  Phase 5 stays current and P5-G06 is still the next roadmap gate.
+
+### User-directed clarification continuation repair (2026-10-15)
+
+- [x] **UXR-T07** Continue source-bound option answers directly through planning,
+  preserving deferred reads and existing approval boundaries. The real task
+  `ac50e857-e176-434e-94ef-677fbc00f4cf` saved the human's three selections as
+  message `e89b34c6-359a-478b-8d52-782fdf0be1a1`, but its reasoning Job
+  `9c45fb17-ccd4-4057-a670-54bfcd68fca6` twice referenced unread task/plan/source
+  evidence and failed closed. The new optional API fields `question_source_id`
+  and `question_source_hash` bind the submitted batch to the verified latest
+  question; admission and dispatch both recheck it. Idempotency includes this
+  binding, stale/duplicate/paused/busy batches reject, plain messages keep their
+  existing reasoning path, and consumed questions no longer project as pending.
+- Recovery first completed the original deferred reads, then exposed a separate
+  planning response-envelope error: implementation fields appeared at the top
+  level. Structural envelope errors now receive field-specific correction within
+  the existing **two** repair rounds. Rejected output is never saved as a plan;
+  sensitive raw output fails before normalization, and rejected structural
+  output usage counts toward the existing cumulative planning/reasoning budgets.
+  No approval, execution, external write, retry or budget bound was relaxed.
+- Verification: `tests/test_conversation_answers.py` covers authenticated API,
+  same-origin rejection, additive-event upgrade/replay, exact source/hash,
+  duplicate/stale batches, paused/busy state, dispatch recheck, original deferred
+  read and custom text unable to invoke control actions. Envelope tests cover
+  corrected plan persistence, the original repair limit, rejected usage budget
+  and sensitive-output rejection. Final related regression **158 passed**, two
+  existing deprecation warnings; native offline conversation browser passes.
+  Compilation, JavaScript syntax and diff checks pass.
+- All six Compose services rebuilt/redeployed; API/Publisher/model-gateway health
+  checks and `/health` pass. Recovery used the exact original saved choices and
+  frozen code context, with append-only recovery receipts. Bounded correction
+  and additional static test-file reads completed; final Job
+  `d51c9428-6d4a-4948-9e9a-6d3e0ff914bd` saved plan v1
+  `96758f2c-a18a-4d36-b40b-37f459ffe364`, ready for human execution confirmation.
+  Original user messages and historical event hashes are unchanged; no execution
+  or publication authorization was created. The deployed desktop/mobile browser
+  verifies plan/detail and enabled execution-confirmation controls, inactive old
+  questions, zero mutations and unchanged history. SQLite integrity, immutable
+  artifact integrity and database/artifact/log canary checks pass; log tracebacks
+  and actual local-secret matches in changed files are zero.
+- The API/event additions require no SQL model change; upgrade replay retains
+  the original receipt and event integrity. Before rollback, drain or safely stop
+  question-bound messages and envelope-correction Jobs, preserve all recovery and
+  failed-event records, and restore matching API/coordinator/static assets.
+  Real implementation/review acceptance remains separate. **UXR-G01** and native
+  Linux **P5-G06** remain open; Phase 5 stays current, with P5-G06 the next gate.
+
+### User-directed HFlow build and execution-prerequisite repair (2026-10-16)
+
+- [x] **UXR-T08** Repair isolated Python build-tool lookup and freeze development
+  dependencies without reusing obsolete approvals. Task
+  `ac50e857-e176-434e-94ef-677fbc00f4cf` failed before code changes in preparation
+  Job `13426e4c-84de-443f-9141-f35c819c6b3c`: `uv_build` could not find its installed
+  `uv-build` executable because the preparation subprocess PATH omitted the
+  credential-free venv. The fixed PATH/VIRTUAL_ENV is confined to that venv and
+  the existing system path, including the separate offline source builder.
+  Explicit safe build-tool/native-tool diagnostics replace generic failures.
+- Signed `python-workspace-preparation-v2` freezes ordinary dev/test/tests group
+  requirements and their local project closure. Unsupported group references,
+  URLs/options and over-budget inputs reject. The recipe participates in
+  dependency hashes and preflight/approval binding; legacy v1 wire hashes and
+  behavior are unchanged. `uv run` is rejected as an environment-management
+  wrapper; the child plan uses direct, read-only commands and includes both
+  curation and CLI tests.
+- The frozen HFlow workspace explicitly maps local package sources while its
+  server wheel requires `hflow>=0.3.0` and the root project is `0.2.21`. V2 honors
+  only exact `{workspace=true}` source edges between verified local wheel names
+  and versions, recording those edges in the hashed environment inventory.
+  Missing local packages, changed local versions, external conflicts and URL
+  dependencies still reject; no global pip-check pass is claimed. Legacy recipes
+  retain their original pip check. Tests cover all these boundaries and changed
+  recipe invalidating authorization before any repository or sandbox operation.
+- Offline related regression **185 passed, 5 skipped**, two existing deprecation
+  warnings; final diagnostics/preflight/API-security regression **55 passed**. Real
+  macOS/OrbStack Docker acceptance for `uv_build` plus the new recipe passed
+  **1 test**: successful wheel build/install, imported package and venv tool
+  lookup in a fresh network-none Verify, identical before/after source inventory.
+  The real frozen HFlow archive also built/installed, then passed ruff check,
+  ruff format --check and ty check. Its pytest curation/CLI baseline **failed**:
+  project fixtures request pinned FFmpeg/ffprobe assets absent in the offline
+  environment. This is not a passing implementation or end-to-end acceptance.
+- All six Compose services were rebuilt/redeployed; API, Publisher, gateway and
+  database health pass. Restart inspection confirmed deployment completion before
+  continuing. Original plan v1, human approval, attempt and failure records remain
+  intact. Saved child plan v2 `9c0f1d54-cb96-4e01-aad7-900176d1cc82` with direct
+  commands, plus diagnostic-only artifact
+  `f7ed02eb937bc405ac9554f9da4f1f35ff1e87c25c9d1c6d045c66d80d0696ca` from the
+  separate frozen-archive probe. Preflight is blocked by `native_tool_unavailable`;
+  ordinary retries and plan rewrites cannot bypass that frozen-environment
+  evidence. No new execution approval or code changes. Real desktop/mobile
+  read-only checks verify the child plan and no implementation button, with zero
+  mutations and unchanged history. SQLite integrity and **263 artifacts** checked
+  by size/SHA-256; database/artifact/log canary matches, log tracebacks and actual
+  local-secret matches across **29 changed files** are zero.
+- [x] **UXR-T09** Prepare the project's exact pinned FFmpeg/ffprobe resources in
+  a separate credential-free, hash-verified step, then rerun the unchanged-source
+  baseline. User authorized the new resource capability and in-product consent
+  workflow on **2026-10-16**, then confirmed the actual pinned download in-product.
+  Download job `6d164c54-bd3c-494c-ace9-e53a5327dae6` succeeded: **107695184 bytes**,
+  archive SHA-256 `ae5da4f51b9052390f414005f8ab26c1eed1268f327cce7cb79aa076b29bd66e`.
+  Receipt artifact `49d33f3beaa7ae3567e7dd50a00c38b0dd325910b24f76909fdd79de367e3af4`
+  and both cached executable hashes/sizes were independently rechecked. The child
+  plan was subsequently confirmed in-product: authorization
+  `f0e94664c9a57521059f30193352ce57b02c4a8ba0e0ce391d2b3e8a0a01cb37`, attempt
+  `509f92f4-6d63-461a-b00b-01130d03c6aa`. Real unchanged-source baseline
+  `a72e6992a4f1d29695ea15e99ef728b57d09385edcd438e57a380b2dbccc9c01`
+  passed **4/4 commands**, with no missing dependencies. Implement also succeeded;
+  subsequent workflow/Verify recovery is tracked separately below, not claimed
+  as completed implementation acceptance. Verify remains network-none and
+  failed tests are not skipped. [Resource contract](hflow-native-test-assets.md).
+- [x] **UXR-T10** User-directed fixed native resource preparation: exact catalog,
+  credential-free downloader plus offline extractor, one-time expiring preview,
+  durable download job/recovery, hash-verified cache, signed dependency/Verify
+  binding, native conversation authorization card, focused/regression and browser
+  checks, real macOS/OrbStack fixture acceptance, redeployment and health checks.
+  Follow-up regression **2026-10-17**: the newly user-approved v3 passed all four
+  baseline commands, then exhausted its three proposal calls by copying an
+  existing test anchor from the wrong file. Proposal generation now supports
+  exact-hash-bound append operations for new tests, optional exact import edits,
+  and retry feedback repeating the failing authoritative file. Scope, original
+  bytes, hashes, secrets and final file budgets remain enforced. A trusted local
+  correction is a new source-labelled artifact/event bound to the original
+  rejection, context, conversation, plan and authorization; it adds zero model
+  calls, preserves the exhausted Job and invocation history, and resumes the
+  same attempt through the usual preparation/baseline, Implement, Verify and
+  independent review. Correction replay cannot change its content. Implement
+  acceptance and enqueue now commit atomically. Reverified: full regression
+  **1027 passed, 18 skipped**, final focused regression **97 passed**, correction
+  suite **18 passed** (including enqueue-failure rollback), compile/diff checks and both conversation/plan
+  browser contracts pass. All six services redeployed and healthy/running.
+  Original authorization
+  `b4f099c138ef595fe7480a0952216c64dde0c24b2464f2326a34256e01f00931`
+  and attempt `6a367b77-768c-4a0b-a40e-195899ff637a` remain unchanged.
+  Backup `/data/backups/proposal-correction-20261017T131913Z` preserves SQLite
+  and the original **240 event hashes**; the failed proposal still has exactly
+  three attempts/invocations. Correction event
+  `0ab29056965ce061c7a118b405136f7093117b4d84906cb395c70a3c727004f3`
+  produced ChangeSet
+  `ba482ed3d8c671f7ecd2da2aef935cf4282b8b4f37f9b1131de5c37abb64cd76`.
+  Real restored baseline, Implement and network-none/read-only Verify succeeded;
+  Ruff check/format, ty and project pytest all pass (**4/4 commands, 204 tests**).
+  Independent ReviewRun
+  `604ccf07dda8ad69a6eaff7208980ab04a36e2785961864e53c30e4357ebcc03`
+  passed without another repair. The task is now **ready / awaiting acceptance**;
+  human result acceptance and publication remain unconfirmed. Deployed browser
+  desktop/mobile checks open the actual diff/test/review panel, verify the enabled
+  acceptance action, and preserve history with zero writes/errors. SQLite and
+  **332 artifacts** pass integrity/size/SHA-256; cache binary hashes, database,
+  artifact/log canaries, post-recovery tracebacks and actual local-secret scans
+  pass. No schema migration or third-party write was introduced by this correction.
+  Native Linux **P5-G06** and **UXR-G01** remain open.
+  Reopened **2026-10-17** after the user-approved run passed preparation/baseline
+  and Implement but hit an unclassified coordinator exception before Verify.
+  The generic blocker triggered dependency cleanup despite a queued Verify;
+  the next Verify failed because its frozen volume was disposed. Original
+  authorization, baseline, ChangeSet, Implement workspace/results and failure
+  events remain intact. Reverified **2026-10-17**: atomic serialized Implement→Verify
+  scheduling, crash-gap recovery, consumer-aware cleanup, redacted location
+  diagnostics, and bounded append-only environment/baseline restoration followed
+  by verification of the same approved code. Migration
+  `0036_verification_environment_recovery` permits only receipt/job-bound new
+  Verify inputs; old hashes are retained. No new publication authority.
+  Workbench event sequence/hash reads now hold the SQLite write transaction;
+  stage advance and Verify enqueue commit together. Existing pending Verify
+  crash gaps use the approved commands and canonical Job key. Cleanup retains
+  queued/running consumers and unconsumed successful restoration environments;
+  genuinely stale manifests still fail closed and are reclaimed. Recovery
+  checks the latest attempt/plan, original authorization, model/context/preflight,
+  stop state, frozen recipe and unchanged Implement workspace. A fresh baseline
+  must pass before an append-only, receipt/Job-bound Verify input version is
+  scheduled within the existing three-run stage budget. Failed preparation
+  allocations receive new Jobs instead of reusing immutable volume receipts.
+  Recovery/stop/changed-recipe/failed-baseline/budget/upgrade/forged-input,
+  concurrency and redacted-diagnostic tests are included.
+  The first real restoration exposed host DNS mapping both PyPI sources to
+  reserved `198.18.*` / `2001:2::*` addresses. Those remain prohibited. The
+  trusted fixed proxy can resolve **only its existing allowlisted package hosts**
+  through certificate-verified `dns.google` at fixed `8.8.8.8:443` when all local
+  answers are in those synthetic ranges. The bounded response must bind the
+  exact question/CNAME chain and contain only public IPv4 destinations. Other
+  private answers, unrelated hosts, redirects and malformed evidence fail closed.
+  Network failures return 502; actual policy denial remains 403. Real proxy/TLS
+  proof `d6973b44b24cd342f7665d79edbe0f4648e436e25216c96ab27ae4c85afaa863`
+  observes PyPI 200 and the files host's root 404, **zero body bytes read**.
+  Resolution event `d44862c81dd5b615a8e98269de8402729dcebf95f0c4805cbccabe0a277bf2b3`
+  binds only that failed recovery Job/diagnostic/environment; unsupported
+  dependencies are not silently retried. Public-address/TLS proof is required
+  before a bounded new preparation allocation can supersede that transport
+  failure. The package host allowlist, proxy-policy hash and Verify isolation
+  remain unchanged.
+  Full regression **1010 passed, 18 skipped** (two existing deprecation warnings).
+  Real macOS arm64/OrbStack package proxy/hash-locked preparation/Verify
+  acceptance **1 passed**, including denied direct egress and metadata, usable
+  PyPI, read-only dependencies and network-none verification. Conversation and
+  plan-confirmation desktop/mobile browser contracts pass; deployed task browser
+  inspection passes with **zero mutations and unchanged history**. All six
+  services rebuilt/redeployed, healthy/running; API/database health passes.
+  SQLite integrity and **312 artifacts** pass size/SHA-256 checks; native cache
+  hashes/sizes rechecked; database/artifact/log canary matches, recent service
+  tracebacks and actual-secret matches across **57 changed files** are zero.
+  Pre-migration backup is retained at
+  `/data/backups/verification-recovery-20261017T063729Z`; the original **148 event
+  hashes** and execution authorization were independently verified unchanged.
+  Real restored baseline
+  `78339f6b5b2713ea9e187bf506f496c6b8da1b6ddc7233b3c9ba83870937a26f`
+  passed **4/4**. Original Implement result
+  `c3b64cd7154a4c1dfdeee2519b2159275d7c157b20e162511a14dd92aee1428b`
+  was verified with new dependency result
+  `43f071298056fd1d21bceaf7ccfa42053457d4ed924e5b7529da9dcf9f2dcf92`;
+  all old failed inputs remain intact. Real execution and independent review then
+  progressed, rather than stopping at the generic coordinator blocker.
+  **This is not successful contribution acceptance:** real implementation rounds
+  passed **2/4**, **2/4**, then **1/4** commands; the first passed **204 functional
+  tests** but failed lint/format, and later changes introduced further type/test
+  regressions. All three independent reviews blocked; two automatic repair
+  rounds were exhausted and were **not extended**. In response to the user's
+  failure report, system preparation returned the idle task to planning and
+  saved child plan **v3** `0be58ad6-b6fa-4706-9360-1f30c46d3e00`, hash
+  `e4cf9ab4b7cbf1b2057f8324917adbff133f5d8c951a2842bd9068610b079afe`.
+  It spells out local/bucket type dispatch, precise import grouping/format,
+  original fixtures and all four checks. No new execution approval or Job was
+  created. Its new resource preview requires separate confirmation because
+  resource grants are plan-bound; verified existing cache is reused on a hit.
+  The native UI exposes that next step. **UXR-G01 remains open** pending a passing
+  implementation/review and human acceptance; native Linux **P5-G06** is still
+  the next roadmap platform gate.
+  Verified **2026-10-16**. Full deterministic regression **969 passed, 18 skipped**;
+  final status/conversation/resource regression **128 passed, 5 skipped**. The
+  **46 native-resource tests** cover exact consent/idempotency/expiry, stale and
+  stopped inputs, redirects/public-IP TLS pinning, hashes, stream/archive budgets,
+  links/duplicates/path escape, cache proof and repair, immutable legacy hashes,
+  post-download stale checks and terminal allocation/staging recovery. Rejecting
+  raw sensitive planning output also preserves the safe diagnostic and usage
+  receipt without normalizing away the canary or scheduling repair.
+  Real macOS arm64/OrbStack Runner tests **2 passed** with and without local native
+  fixtures: tools execute from hashed read-only dependencies, fixed environment
+  keys only, network-none and unchanged repository inventory. These are resource
+  fixture checks, not downloaded FFmpeg or passing HFlow tests.
+  Desktop/mobile browser checks pass for consent preview, busy/expiry disabling,
+  retry, unchanged composer/question flows and no implementation side effect.
+  All six Compose services redeployed and running; API/Publisher/Gateway health
+  checks and API/database health pass. At the initial deployment the live task was planning, not paused,
+  label “等待测试资源下载授权”, pending action `native_resource`. Exact preview
+  `84bac6019b5b863ef06fc2922d4cfa90460dde0d689ae89084251da815abb5a1`
+  is unconsumed; **zero download jobs**, no download grant and no new execution
+  approval. Read-only deployed browser inspection at 1440/390 verifies source,
+  SHA-256 and enabled confirmation, with zero mutations and unchanged history.
+  SQLite integrity and **263 artifact hashes/sizes** pass; database/artifact/log
+  canary matches and log tracebacks are zero; actual local secrets absent from
+  **37 changed files**. Preview expiry can be renewed only by generating another
+  preview; UXR-T09 awaits the user's application consent and true baseline.
+  Reopened and reverified after the user's production report on **2026-10-16**:
+  both actual download attempts (`60b25b27-d397-4810-8e2e-8e09d6c44739` and
+  `90eec40f-bd54-4fa8-b27d-6101965deb30`) failed the aggregate DNS check because
+  OrbStack supplied a benchmarking IPv6 answer alongside usable IPv4. Downloader
+  now requests only `AF_INET`, validates every returned IPv4 address and pins
+  the connection IP with TLS hostname verification. Private/mixed IPv4, metadata
+  addresses and unapproved redirects remain rejected. Known resource exceptions
+  retain their machine-readable `native_resource_*` code. A fresh preview projects
+  its own job state, retaining prior failures solely as historical outcomes.
+  Actual isolated response-header probe proved **302 → 200** for the exact GitHub
+  URL and allowed asset host, **107695184** announced bytes, verified TLS and
+  **zero body bytes read**. Diagnostic artifact
+  `native-resource-transport-probe-v1` is persisted without signed redirect queries;
+  no resource SHA-256 verification or HFlow baseline pass is inferred from it.
+  Resource completion receipts now include `conversation-v1`. One maintenance
+  narration was accidentally appended without that field; explicit recovery
+  appended an old-ID/hash-bound `conversation_result_recovered` marker, labelled
+  `legacy_unverified`, preserving all original hashes. Only trusted, text-only,
+  versionless result narration is eligible; queue/action/unknown-version records
+  remain rejected. Upgrade and rejection tests cover the recovery boundary.
+  Repair regression **118 passed**, final resource/conversation/API regression
+  **174 passed**. All six services redeployed; health, deployed desktop/mobile
+  preview, immutable history and zero mutation checks pass. SQLite integrity and
+  **264 artifacts** verify; database/artifact/log canary matches, post-recovery
+  log tracebacks and actual-secret matches across **38 changed files** are zero.
+  Fresh unconsumed preview
+  `ad2108a4ec2c8fe596dfdea7b90807f9439050731e1910d37a25862ad6ab5686`
+  shows “等待测试资源下载授权”. Two failed downloads and both original grants stay
+  intact; **no additional download job or execution approval** was created.
+  UXR-T09 remains pending the fresh application consent and actual baseline;
+  native Linux P5-G06 remains the next roadmap gate.
+  Reopened and reverified for the next-step UX report: the actual download was
+  ready and execution admission passed, but the latest resource message had no
+  plan action and the plan drawer had no confirmation. Native UI now presents
+  **“核对方案并继续” at the end of the current conversation**, including after
+  later questions or failure receipts. The drawer shows the complete current plan
+  and **“确认方案并开始”**, reusing the existing exact `/execute` contract. Opening
+  it creates no job. Confirmation binds the viewed plan/context/model/preflight/
+  resource receipt; changed inputs, history, busy/pending/paused and blocked states
+  disable it with a reason. Failure retains the drawer; success closes it and
+  shows job progress. Native asset cache versions updated to `plan-continuation-v1`.
+  Regression **89 passed**; new deterministic desktop/mobile browser contract
+  covers the latest action, full plan, every changed input, busy/pending/paused,
+  stale plan and failed confirmation retry. Existing conversation browser suite
+  passes. All six services rebuilt/redeployed and healthy/running; API/database
+  health passes. Live desktop/mobile browser inspection verifies the bottom action
+  and enabled drawer confirmation with **zero mutations and unchanged history**.
+  Actual FFmpeg and ffprobe cache hashes/sizes rechecked against the immutable
+  download receipt. SQLite integrity and **270 artifacts** pass; database/artifact/
+  log canary matches, log tracebacks and actual-secret matches across **39 changed
+  files** are zero. No new execution approval; UXR-T09 awaits that separate exact
+  plan confirmation and the true unchanged-source baseline. P5-G06 stays open.
+- No SQL table/model change; additive signed recipe/event upgrade tests retain
+  legacy hashes. Before rollback, drain or safely stop new recipe jobs, preserve
+  all diagnostics and child-plan history, then restore matching API/coordinator/
+  worker images. Original approvals stay stale. **UXR-G01** and native Linux
+  **P5-G06** remain unchecked; Phase 5 stays current and P5-G06 is the next
+  roadmap platform gate.
 
 ## Phase 6 — Independent review and bounded repair
 

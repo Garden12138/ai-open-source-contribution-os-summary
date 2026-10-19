@@ -181,12 +181,23 @@ class DependencyPreparationPlan:
     metadata_strategy: str = "declarative-v1"
     distribution_strategy: str = "wheel-only-v1"
     builder_image_digest: str | None = None
+    preparation_version: str = "python-workspace-preparation-v1"
+    native_resource: dict | None = None
 
     def __post_init__(self) -> None:
         if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
             raise ValueError("Dependency plan version is unsupported")
         workspace = self.version != DEPENDENCY_PLAN_VERSION
+        if self.native_resource is not None:
+            from app.sandbox_worker.native_resources import validate_resource_binding
+            if not workspace or self.ecosystem != "python":
+                raise ValueError("Native resource binding is invalid")
+            validate_resource_binding(self.native_resource)
         source_build = self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION
+        if self.preparation_version not in {"python-workspace-preparation-v1", "python-workspace-preparation-v2"} or (
+            self.preparation_version == "python-workspace-preparation-v2" and (not workspace or self.ecosystem != "python")
+        ):
+            raise ValueError("Python preparation recipe is unsupported")
         if source_build:
             if self.distribution_strategy != "source-wheel-v1" or not isinstance(self.builder_image_digest,str) or not _IMAGE.fullmatch(self.builder_image_digest):
                 raise ValueError("Source builds require a signed strategy and builder image")
@@ -295,6 +306,10 @@ class DependencyPreparationPlan:
             value["metadata_strategy"] = self.metadata_strategy
         if self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION:
             value.update(distribution_strategy=self.distribution_strategy,builder_image_digest=self.builder_image_digest)
+        if self.preparation_version != "python-workspace-preparation-v1":
+            value["preparation_version"] = self.preparation_version
+        if self.native_resource is not None:
+            value["native_resource"] = self.native_resource
         return value
 
 
@@ -415,6 +430,7 @@ class DependencyWorkspace:
     sandbox_policy_hash: str
     plan_hash: str
     inventory_hash: str | None = None
+    native_resource: dict | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -427,6 +443,9 @@ class DependencyWorkspace:
         _hash(self.plan_hash, name="workspace plan hash")
         if self.inventory_hash is not None:
             _hash(self.inventory_hash, name="dependency inventory hash")
+        if self.native_resource is not None:
+            from app.sandbox_worker.native_resources import validate_resource_binding
+            validate_resource_binding(self.native_resource)
 
 
 @dataclass(frozen=True, slots=True)
@@ -444,8 +463,14 @@ class DependencyPreparationResult:
     result_hash: str
     version: str = DEPENDENCY_RESULT_VERSION
     source_kind: str = "implement"
+    native_resource: dict | None = None
 
     def __post_init__(self) -> None:
+        if self.native_resource is not None:
+            from app.sandbox_worker.native_resources import validate_resource_binding
+            if self.source_kind != "explore":
+                raise ValueError("Native resources require workspace preparation")
+            validate_resource_binding(self.native_resource)
         if self.version not in {DEPENDENCY_RESULT_VERSION, "workspace-dependency-result-v2"}:
             raise DependencyPreparationError(
                 "Dependency result version is unsupported"
@@ -515,6 +540,8 @@ class DependencyPreparationResult:
         if plan.source_kind == "explore":
             payload["source_result_hash"] = payload.pop("implement_result_hash")
             payload["source_kind"] = "explore"
+        if plan.native_resource is not None:
+            payload["native_resource"] = plan.native_resource
         return cls(
             execution_attempt_id=plan.execution_attempt_id,
             implement_result_hash=plan.implement_result_hash,
@@ -528,6 +555,7 @@ class DependencyPreparationResult:
             total_bytes=total_bytes,
             result_hash=content_hash(payload),
             version=payload["version"], source_kind=plan.source_kind,
+            native_resource=plan.native_resource,
         )
 
     def hash_payload(self) -> dict[str, object]:
@@ -553,6 +581,8 @@ class DependencyPreparationResult:
         if self.source_kind == "explore":
             value["source_result_hash"] = value.pop("implement_result_hash")
             value["source_kind"] = self.source_kind
+        if self.native_resource is not None:
+            value["native_resource"] = self.native_resource
         return value
 
     @classmethod
@@ -597,6 +627,7 @@ class DockerDependencyRuntime:
         proxy_lease: DependencyProxyLease,
         sandbox_policy: SandboxPolicy,
         on_workspace=None,
+        native_resource_path: str | None = None,
     ) -> DependencyExecution:
         try:
             plan = signer.verify(signed_plan)
@@ -618,6 +649,9 @@ class DockerDependencyRuntime:
             sandbox_policy=sandbox_policy,
             plan_hash=plan.plan_hash,
         )
+        if plan.native_resource is not None:
+            from dataclasses import replace
+            workspace = replace(workspace, native_resource=plan.native_resource)
         try:
             if on_workspace is not None:
                 on_workspace(workspace)
@@ -641,6 +675,16 @@ class DockerDependencyRuntime:
                         container_name=name,
                         scratch_bytes=min(536870912,sandbox_policy.memory_bytes//2,sandbox_policy.disk_bytes//4)
                             if plan.version==SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION else 134217728)
+                    if plan.native_resource is not None:
+                        from pathlib import Path
+                        from app.sandbox_worker.native_resources import verify_cache
+                        if native_resource_path is None or not os.path.isabs(native_resource_path) or "," in native_resource_path:
+                            raise DependencyPreparationError("Native resources are missing")
+                        verify_cache(Path(native_resource_path), plan.native_resource["files"])
+                        index = argv.index(plan.runner_image_digest)
+                        argv = (*argv[:index], "--mount", f"type=bind,src={native_resource_path},dst=/native-input,readonly", *argv[index:])
+                    elif native_resource_path is not None:
+                        raise DependencyPreparationError("Native resources require a signed binding")
                     remaining=int(deadline-time.monotonic())
                     if remaining<=0: raise DependencyPreparationError('Dependency preparation timed out')
                     try:
@@ -712,6 +756,7 @@ class DockerDependencyRuntime:
                 sandbox_policy_hash=workspace.sandbox_policy_hash,
                 plan_hash=workspace.plan_hash,
                 inventory_hash=inventory_hash,
+                native_resource=plan.native_resource,
             )
             return DependencyExecution(
                 result=result,
@@ -832,7 +877,7 @@ class DockerDependencyRuntime:
                 if item=='--network': value='none'
                 elif item=='--name': value=container_name
                 elif item=='--env' and value.split('=',1)[0] in {'HTTP_PROXY','HTTPS_PROXY','NO_PROXY'}: continue
-                elif item=='--mount' and ('dst=/workspace,' in value or 'dst=/input/' in value): continue
+                elif item=='--mount' and ('dst=/workspace,' in value or 'dst=/input/' in value or 'dst=/native-input,' in value): continue
                 result.extend((item,value)); continue
             result.append(item); index+=1
         image_index=result.index(workspace.runner_image_digest)
@@ -1415,6 +1460,27 @@ else:
         env=environment,
     )
 
+native_resource = plan.get("native_resource")
+if native_resource is not None:
+    native_directory = "/dependencies/output/native-tools"
+    os.makedirs(native_directory, exist_ok=True)
+    for name in ("ffmpeg", "ffprobe"):
+        source = "/native-input/" + name
+        expected = native_resource["files"][name]
+        if os.path.islink(source) or not os.path.isfile(source) or os.stat(source).st_size != expected["size"]:
+            raise SystemExit(85)
+        with open(source, "rb") as handle:
+            if hashlib.file_digest(handle, "sha256").hexdigest() != expected["sha256"]:
+                raise SystemExit(85)
+        target = native_directory + "/" + name
+        # Build steps may have written untrusted output. Never follow their links.
+        if os.path.islink(native_directory) or os.path.lexists(target):
+            raise SystemExit(85)
+        shutil.copyfile(source, target)
+        os.chmod(target, 0o555)
+    with open(native_directory + "/receipt.json", "x", encoding="utf-8") as handle:
+        json.dump(native_resource, handle, sort_keys=True, separators=(",", ":"))
+
 entries = []
 total = 0
 for current, directories, files in os.walk(
@@ -1474,9 +1540,7 @@ def connect_allowed(host, port):
     host = host.lower().rstrip(".")
     if host not in allowed or port not in {80, 443}:
         raise ValueError("denied")
-    candidates = socket.getaddrinfo(
-        host, port, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
-    )
+    candidates = resolve_package_addresses(host, port, allowed)
     for family, socktype, proto, _, address in candidates:
         ip = ipaddress.ip_address(address[0])
         if not ip.is_global:
@@ -1488,7 +1552,7 @@ def connect_allowed(host, port):
             return upstream
         except OSError:
             upstream.close()
-    raise ValueError("unreachable")
+    raise OSError("unreachable")
 
 def relay(left, right):
     sockets = [left, right]
@@ -1566,10 +1630,12 @@ class Handler(socketserver.BaseRequestHandler):
                     self.request.sendall(chunk)
             finally:
                 upstream.close()
-        except (OSError, ValueError):
+        except (OSError, ValueError) as error:
             try:
                 self.request.sendall(
                     b"HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n"
+                    if isinstance(error, ValueError) else
+                    b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\n\r\n"
                 )
             except OSError:
                 pass
@@ -1581,6 +1647,10 @@ class Server(socketserver.ThreadingTCPServer):
 with Server(("0.0.0.0", 8080), Handler) as server:
     server.serve_forever(poll_interval=0.5)
 """
+
+from inspect import getsource
+from app.sandbox_worker.package_dns import fetch_public_package_dns, resolve_package_addresses
+_PROXY_SCRIPT = getsource(fetch_public_package_dns) + "\n" + getsource(resolve_package_addresses) + "\n" + _PROXY_SCRIPT
 
 
 def _relative_path(value: str, *, name: str) -> str:

@@ -5,11 +5,23 @@ wheelhouse and hash lock are retained in the immutable dependency artifact.
 """
 
 from inspect import getsource
-from app.execution_preflight import python_project_error, python_requirement_error, python_backend_error
+from app.execution_preflight import python_project_error, python_requirement_error, python_backend_error, python_development_requirements
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
 from app.sandbox_worker.source_wheels import SOURCE_ACQUISITION_SCRIPT
+from app.sandbox_worker.python_dependency_check import check_python_dependency_versions
 
-WORKSPACE_PYTHON_SCRIPT = getsource(python_requirement_error) + getsource(python_backend_error) + getsource(python_project_error) + getsource(summarize_dependency_failure) + r'''
+_WORKSPACE_CHECK = getsource(check_python_dependency_versions) + '''
+import importlib.metadata, json, sys
+configuration=json.load(sys.stdin)
+packages={d.metadata['Name']:[d.version,d.requires or []] for d in importlib.metadata.distributions()}
+result=check_python_dependency_versions(packages,configuration['local_versions'],configuration['override_edges'])
+if result['failures']:
+    print('ResolutionImpossible: conflicting dependencies')
+    sys.exit(1)
+print(json.dumps(result,sort_keys=True,separators=(',',':')))
+'''
+
+WORKSPACE_PYTHON_SCRIPT = getsource(python_requirement_error) + getsource(python_backend_error) + getsource(python_development_requirements) + getsource(python_project_error) + getsource(summarize_dependency_failure) + r'''
 import email, re, tomllib, zipfile, textwrap, sys
 dependency_root = "/dependencies/output"
 os.makedirs(dependency_root, exist_ok=True)
@@ -20,13 +32,14 @@ metadatas = {}
 requirements = []
 dynamic_mode = plan.get("metadata_strategy") == "wheel-metadata-v1"
 dynamic_projects = set()
+include_development = plan.get("preparation_version", "python-workspace-preparation-v1") == "python-workspace-preparation-v2"
 def normalize(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 for directory in project_dirs:
     with open(os.path.join("/workspace", directory, "pyproject.toml"), "rb") as handle:
         metadata = tomllib.load(handle)
     project_metadata = metadata.get("project", {})
-    if python_project_error(metadata, allow_dynamic=dynamic_mode):
+    if python_project_error(metadata, allow_dynamic=dynamic_mode, include_development=include_development):
         raise SystemExit(91)
     name = normalize(project_metadata["name"])
     if name in metadatas:
@@ -36,6 +49,8 @@ for directory in project_dirs:
         dynamic_projects.add(name)
     requirements += list(project_metadata.get("dependencies", []))
     requirements += list(metadata.get("build-system", {}).get("requires", []))
+    if include_development:
+        requirements += python_development_requirements(metadata)
     extras = project_metadata.get("optional-dependencies", {})
     for group in ("test", "tests", "instruments", "type-check"):
         requirements += list(extras.get(group, []))
@@ -70,6 +85,10 @@ def run(argv, code, cwd=None, phase=None, allow_failure=False):
         print(json.dumps(summarize_dependency_failure(phase or phases[code],status,tail.decode("utf-8","replace"))))
         raise SystemExit(code)
 run(["python3", "-m", "venv", venv], 94)
+# PEP 517 backends may locate their installed executable through PATH. Keep
+# those tools inside this credential-free venv, ahead of the fixed system path.
+environment["PATH"] = venv + "/bin:" + environment["PATH"]
+environment["VIRTUAL_ENV"] = venv
 pip = [venv + "/bin/python", "-m", "pip", "--isolated", "--disable-pip-version-check"]
 inputs = dependency_root + "/requested-requirements.txt"
 with open(inputs, "w", encoding="utf-8") as handle:
@@ -241,7 +260,37 @@ for index, name in enumerate(ordered):
     for filename in created:
         if not filename.endswith(".whl"): raise SystemExit(98)
         run([*pip, "install", "--no-index", "--no-deps", os.path.join(local_wheels, filename)], 99)
-run([*pip, "check"], 99, phase="dependency_check")
+if not include_development:
+    run([*pip, "check"], 99, phase="dependency_check")
+else:
+    local_versions = {}
+    override_edges = []
+    for filename in sorted(os.listdir(local_wheels)):
+        with zipfile.ZipFile(os.path.join(local_wheels,filename)) as wheel:
+            names=[n for n in wheel.namelist() if n.count('/')==1 and n.endswith('.dist-info/METADATA')]
+            if len(names)!=1 or wheel.getinfo(names[0]).file_size>2000000: raise SystemExit(100)
+            info=email.message_from_bytes(wheel.read(names[0]))
+        name=normalize(info.get('Name',''))
+        version=info.get('Version','')
+        if name not in metadatas or not re.fullmatch(r'[A-Za-z0-9_.+!-]+',version): raise SystemExit(100)
+        declared=metadatas[name][1].get('project',{}).get('version')
+        if declared is not None and declared!=version: raise SystemExit(100)
+        local_versions[name]=version
+    for name,(_,metadata) in metadatas.items():
+        sources=metadata.get('tool',{}).get('uv',{}).get('sources',{})
+        if not isinstance(sources,dict): raise SystemExit(91)
+        for target,value in sources.items():
+            if isinstance(value,dict) and 'workspace' in value:
+                if value!={'workspace':True} or normalize(target) not in metadatas: raise SystemExit(91)
+                override_edges.append([name,normalize(target)])
+    checked=subprocess.run([venv+'/bin/python','-I','-c',__WORKSPACE_DEPENDENCY_CHECK__],
+        input=json.dumps({'local_versions':local_versions,'override_edges':override_edges}).encode(),
+        stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,env=environment,check=False)
+    if checked.returncode or len(checked.stdout)>1000000:
+        print(json.dumps(summarize_dependency_failure('dependency_check',1,checked.stdout.decode('utf-8','replace'))))
+        raise SystemExit(99)
+    # Preserve exact source overrides in the hashed environment inventory.
+    with open(dependency_root+'/workspace-dependency-check.json','wb') as handle: handle.write(checked.stdout)
 # Source precedence ensures Verify exercises the modified package, rather than
 # the frozen baseline wheel; the wheel provides metadata/entry points only.
 source_paths = []
@@ -251,4 +300,4 @@ for directory in project_dirs:
     source_paths.append(source_path)
 with open(dependency_root + "/source-paths.json", "w", encoding="utf-8") as handle:
     json.dump(source_paths, handle)
-'''.strip().replace('__SOURCE_ACQUISITION__',SOURCE_ACQUISITION_SCRIPT)
+'''.strip().replace('__SOURCE_ACQUISITION__',SOURCE_ACQUISITION_SCRIPT).replace('__WORKSPACE_DEPENDENCY_CHECK__',repr(_WORKSPACE_CHECK))

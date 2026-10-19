@@ -574,7 +574,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             history = wb.history(data["task_id"])
             if sum(e.kind == "model_call" for e in history) >= MAX_MODEL_CALLS:
                 raise WorkbenchError("本任务达到规划调用上限")
-            usage = [e.payload.get("usage", {}) for e in history if e.kind in {"assistant_message", "conversation_usage"}]
+            usage = [e.payload.get("usage", {}) for e in history if e.kind in {"assistant_message", "conversation_usage", "model_output_rejected"}]
             if (sum(u.get("input_tokens", 0) for u in usage) >= MAX_TOTAL_INPUT_TOKENS
                     or sum(u.get("output_tokens", 0) for u in usage) >= MAX_TOTAL_OUTPUT_TOKENS):
                 raise WorkbenchError("规划累计用量已达上限，请缩小范围；现有代码和方案已保留", code="planning_budget_exceeded")
@@ -684,16 +684,20 @@ class PlanningTurnWorker(WorkbenchJobWorker):
         ):
             raise WorkbenchError("模型响应超过规划预算")
         from app.providers.nvidia_nim import normalize_completion_content
-        normalized_content = normalize_completion_content(completion.content)
         import logging
         logger = logging.getLogger(__name__)
-        logger.info(
-            "PlanningTurn completed: raw_len=%d norm_len=%d out_tokens=%d",
-            len(completion.content),
-            len(normalized_content),
-            completion.output_tokens,
-        )
         try:
+            try:
+                ensure_no_sensitive_data(completion.content, context="planning reply")
+            except SensitiveDataError:
+                # Preserve the rejection receipt and usage without storing the raw value.
+                raise ValidationError.from_exception_data("PlanningEnvelope", [{
+                    "type": PydanticCustomError("planning_sensitive_output", "Sensitive output rejected"),
+                    "loc": (), "input": None,
+                }]) from None
+            normalized_content = normalize_completion_content(completion.content)
+            logger.info("PlanningTurn completed: raw_len=%d norm_len=%d out_tokens=%d",
+                        len(completion.content), len(normalized_content), completion.output_tokens)
             reply = PlanningEnvelope.model_validate_json(normalized_content)
         except ValidationError as exc:
             logger.warning(
@@ -705,19 +709,21 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 wb = PlanningService(session, self.settings.artifact_root)
                 self._current(wb, job)
                 details = planning_validation_details(exc)
-                repair_options = (
-                    details.get("fields") == ["questions.options"]
-                    and details.get("validation_types") == ["string_type"]
-                    and data.get("repair_round", 0) < MAX_PLAN_REPAIRS
-                )
+                options_error = details.get("fields") == ["questions.options"] and details.get("validation_types") == ["string_type"]
+                repair_envelope = (bool(details.get("validation_types"))
+                    and set(details["validation_types"]) <= {"extra_forbidden", "missing", "string_type", "list_type", "dict_type", "model_type", "json_invalid"}
+                    and data.get("repair_round", 0) < MAX_PLAN_REPAIRS)
                 wb.append(data["task_id"], "model_output_rejected", {
                     **details,
                     "policy": "planning-v5-independent-actions",
-                }, key="rejected:" + job.id, job_id=job.id, actor="planner", commit=not repair_options)
-                if repair_options:
+                    "usage": {"input_tokens":completion.input_tokens, "output_tokens":completion.output_tokens,
+                              "duration_ms":completion.duration_ms, "provider":self.identity.hash_payload()},
+                }, key="rejected:" + job.id, job_id=job.id, actor="planner", commit=not repair_envelope)
+                if repair_envelope:
                     child = wb.enqueue(data["task_id"], TURN, {
                         **data, "repair_round": data.get("repair_round", 0) + 1,
-                        "plan_repair": {**details, "constraint": "clarification_options_plain_strings"},
+                        "plan_repair": {**details, "constraint": "clarification_options_plain_strings" if options_error else "planning_envelope_schema",
+                            "instruction":"Return only the reply/questions/read_paths/plan envelope. All implementation fields and commands belong inside plan. Correct the listed fields against REQUIRED_SCHEMA; do not flatten the plan or add response/working_directory at the top level."},
                     }, key="repair-envelope:" + job.id, commit=False)
                     return self.finish(session, job, {
                         "next_job_id": child.id, "plan_status": "rejected", "repair_scheduled": True,

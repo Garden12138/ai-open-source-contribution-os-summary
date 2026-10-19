@@ -172,6 +172,8 @@ def run(argv):
         print(json.dumps(summarize_dependency_failure('upstream_source_build',status,tail.decode('utf-8','replace'))))
         raise SystemExit(104)
 venv=source_root/'venv'
+environment['PATH']=str(venv/'bin')+':'+environment['PATH']
+environment['VIRTUAL_ENV']=str(venv)
 pip=[str(venv/'bin/python'),'-m','pip','--isolated','--disable-pip-version-check']
 source_relative=request['source_directory'][len(request['build_root'])+1:]
 project=pathlib.Path('/tmp/source-project')

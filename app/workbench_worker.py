@@ -98,7 +98,7 @@ class WorkbenchJobWorker:
                 elif isinstance(exc, OSError) and getattr(exc, "errno", None) == errno.ENOSPC:
                     if job.kind == "planning_archive":
                         error_message = "下载仓库归档失败，存储空间不足，请清理后重试。"
-                elif isinstance(exc, WorkbenchError) and job.kind in {"conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}:
+                elif isinstance(exc, WorkbenchError) and job.kind in {"native_resource_download", "conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}:
                     error_code = exc.code
                 # Never log exception text, model output, validation inputs or
                 # arbitrary field names. Error types suffice to diagnose schemas.

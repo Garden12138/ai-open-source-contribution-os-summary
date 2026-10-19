@@ -41,6 +41,7 @@ def test_verification_policy_separates_preparation_and_new_file_baseline():
     assert verification_command_error([missing], inventory, new_paths)["constraint"] == "test_path_missing"
     install = replace(existing, argv=("python", "-m", "pip", "install", "pytest"))
     assert verification_command_error([install], inventory, new_paths)["constraint"] == "dependency_preparation_separate"
+    assert verification_command_error([replace(existing,argv=("uv","run","pytest","tests/test_existing.py"))], inventory, new_paths)["constraint"] == "dependency_preparation_separate"
     assert verification_command_error([replace(existing, working_directory="missing")], inventory, new_paths)["constraint"] == "command_directory_missing"
 
 
@@ -63,14 +64,15 @@ def test_installation_draft_is_repaired_without_claiming_saved_or_started(tmp_pa
     db.close()
 
 
-def test_legacy_installation_plan_cannot_be_approved_or_resaved(tmp_path):
+@pytest.mark.parametrize("argv",[("python","-m","pip","install","pytest"),("uv","run","pytest","-q")])
+def test_legacy_installation_plan_cannot_be_approved_or_resaved(tmp_path,argv):
     from app.plans import PlanVersionService
     from app.schemas import PlanVersionCreateRequest
     from app.contribution_workflow import authorize_execution
     from app.workbench import WorkbenchError
     from app.workbench_view import workbench_view, execution_context
     db, settings, tid, content, context = seeded(tmp_path)
-    invalid = replace(content, commands_to_run=(replace(content.commands_to_run[0], argv=("python", "-m", "pip", "install", "pytest")),))
+    invalid = replace(content, commands_to_run=(replace(content.commands_to_run[0], argv=argv),))
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
         old = PlanVersionService(session).create_initial(task_id=tid, content=invalid, idempotency_key="legacy-install")
@@ -289,6 +291,13 @@ def test_v2_dependency_provenance_and_v1_hashes_are_distinct():
     assert "source_kind" not in old.to_wire() and "implement_result_hash" in old.to_wire()
     new = replace(old, version=WORKSPACE_DEPENDENCY_PLAN_VERSION, source_kind="explore", project_directory="python/pkg",
                   manifests=(DependencyManifest("python/pkg/pyproject.toml", "3" * 64),))
+    assert "preparation_version" not in new.to_wire()
+    development=replace(new,preparation_version="python-workspace-preparation-v2")
+    assert development.plan_hash != new.plan_hash
+    signer=DependencyPlanSigner(key_id="recipe",signing_key=b"r"*32)
+    assert signer.verify(signer.sign(development))==development
+    with pytest.raises(ValueError): replace(signer.sign(new),plan=development)
+    with pytest.raises(ValueError): replace(old,preparation_version="python-workspace-preparation-v2")
     assert "implement_result_hash" not in new.to_wire()
     assert new.to_wire()["source_result_hash"] == old.implement_result_hash
     value = DependencyPreparationResult.create(plan=new, inventory_hash="4" * 64, file_count=3, total_bytes=100)
@@ -300,7 +309,8 @@ def test_v2_dependency_provenance_and_v1_hashes_are_distinct():
 
 
 @pytest.mark.parametrize("fail_preparation",[False,True])
-def test_workspace_worker_freezes_local_dependency_graph_before_coding(tmp_path, monkeypatch, fail_preparation):
+@pytest.mark.parametrize("dev_only",[False,True])
+def test_workspace_worker_freezes_local_dependency_graph_before_coding(tmp_path, monkeypatch, fail_preparation,dev_only):
     from tests import test_workbench as fixtures
     from tests.test_sandbox_dependencies import _FakeDependencyRuntime, _lease
     from app.contribution_workflow import advance_workflows
@@ -318,6 +328,8 @@ def test_workspace_worker_freezes_local_dependency_graph_before_coding(tmp_path,
             evidence = wb.read(old.payload["artifact_id"])
             contents = {target:'[project]\nname="pkg"\ndependencies=["workspace-common>=0.1.0"]\n',
                         common:'[project]\nname="workspace-common"\ndependencies=[]\n'}
+            if dev_only:
+                contents[target]='[project]\nname="pkg"\ndependencies=[]\n[dependency-groups]\ndev=["workspace-common>=0.1.0"]\n'
             for path, text in contents.items():
                 entries[path] = {"path":path, "content":text, "prior_hash":hashlib.sha256(text.encode()).hexdigest(), "executable":False}
             evidence["entries"] = [entries.get(e["path"], e) for e in evidence["entries"]]
@@ -361,6 +373,7 @@ def test_workspace_worker_freezes_local_dependency_graph_before_coding(tmp_path,
         return
     assert completed.state == "succeeded", completed.error_message
     assert runtime.plan.local_projects == ("python/workspace-common",)
+    assert runtime.plan.preparation_version == "python-workspace-preparation-v2"
     assert {m.path:m.content_hash for m in runtime.plan.manifests}[common] == entries[common]["prior_hash"]
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
@@ -379,17 +392,83 @@ def test_baseline_migration_preserves_old_history_and_rejects_invalid_reference(
     from app.database import Database
     all_migrations = versions.MIGRATIONS
     with monkeypatch.context() as patch:
-        patch.setattr(versions, "MIGRATIONS", all_migrations[:-2])
+        patch.setattr(versions, "MIGRATIONS", tuple(m for m in all_migrations if m.revision < "0034"))
         db, settings, tid, *_ = seeded(tmp_path)
         with db.session() as session:
             before = [e.record_hash for e in PlanningService(session, settings.artifact_root).history(tid)]
-    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes")
+    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery")
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
         assert [e.record_hash for e in wb.history(tid)] == before
         with pytest.raises(IntegrityError):
             wb.append(tid, "execution_baseline_ready", {"attempt_id":"missing", "result_hash":"a" * 64}, key="forged-baseline")
     db.close()
+
+
+@pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="real isolated package proxy acceptance")
+@pytest.mark.parametrize("native_resources", [False, True])
+def test_real_uv_backend_finds_its_frozen_venv_executable(tmp_path, native_resources):
+    from app.sandbox_worker.implementation import DockerImplementRuntime
+    from app.sandbox_worker.verification import DockerVerifyRuntime
+    from app.sandbox_worker.explore import RepositoryArchive
+    image=os.environ["CONTRIBOS_SANDBOX_RUNNER_IMAGE"]
+    environment={k:v for k,v in os.environ.items() if k in {"HOME","PATH","TMPDIR","DOCKER_HOST","DOCKER_CONFIG","DOCKER_CONTEXT","DOCKER_CERT_PATH","DOCKER_TLS_VERIFY"}}
+    files={"pyproject.toml":'[project]\nname="contribos-uv-tool-fixture"\nversion="0.1.0"\n[build-system]\nrequires=["uv_build>=0.12.5,<0.13"]\nbuild-backend="uv_build"\n',
+           "src/contribos_uv_tool_fixture/__init__.py":"VALUE = 42\n"}
+    path=tmp_path/"repository.tar.gz"
+    with tarfile.open(path,"w:gz") as bundle:
+        for name,text in files.items():
+            member=tarfile.TarInfo("fixture-"+"a"*40+"/"+name)
+            member.size=len(text.encode());member.mode=0o644
+            bundle.addfile(member,io.BytesIO(text.encode()))
+    archive=RepositoryArchive(repository_full_name="fixture/fixture",base_commit_sha="a"*40,
+        archive_hash=hashlib.sha256(path.read_bytes()).hexdigest(),path=path,size_bytes=path.stat().st_size)
+    inventory=content_hash([{"path":p,"type":"file","size":len(text.encode()),
+        "sha256":hashlib.sha256(text.encode()).hexdigest(),"executable":False} for p,text in sorted(files.items())])
+    policy=SandboxPolicy();proxy_policy=DependencyProxyPolicy.for_ecosystem("python")
+    native_binding = None
+    native_path = tmp_path / "native-resources"
+    if native_resources:
+        native_path.mkdir()
+        native_files = {}
+        for name in ("ffmpeg", "ffprobe"):
+            text = "#!/bin/sh\nprintf 'fixed-resource-fixture'\n"
+            (native_path / name).write_text(text)
+            (native_path / name).chmod(0o555)
+            native_files[name] = {"sha256":hashlib.sha256(text.encode()).hexdigest(),"size":len(text.encode())}
+        native_binding={"version":"native-resource-policy-v1", "receipt_hash":"a"*64,"resource_hash":"b"*64,"files":native_files}
+    signer=DependencyPlanSigner(key_id="uv-backend-fixture",signing_key=b"v"*32)
+    plan=DependencyPreparationPlan(plan_id="uv-backend-fixture",execution_attempt_id="fixture",
+        implement_result_hash=content_hash({"archive":archive.archive_hash}),workspace_inventory_hash=inventory,
+        ecosystem="python",manifests=(DependencyManifest("pyproject.toml",hashlib.sha256(files["pyproject.toml"].encode()).hexdigest()),),
+        runner_image_digest=image,sandbox_policy_hash=policy.policy_hash,proxy_policy_hash=proxy_policy.policy_hash,
+        disk_bytes=policy.disk_bytes,version=WORKSPACE_DEPENDENCY_PLAN_VERSION,source_kind="explore",
+        preparation_version="python-workspace-preparation-v2", native_resource=native_binding)
+    materializer=DockerImplementRuntime(docker_environment=environment)
+    runtime=DockerDependencyRuntime(docker_environment=environment)
+    proxy=DockerDependencyProxyRuntime(docker_environment=environment)
+    async def run():
+        workspace=await materializer.create_workspace(image_digest=image,policy=policy)
+        lease=None;dependency=None
+        try:
+            await materializer.materialize(workspace=workspace,archive=archive,policy=policy)
+            lease=await proxy.start(image_digest=image,policy=proxy_policy)
+            dependency=await runtime.prepare(signed_plan=signer.sign(plan),signer=signer,
+                repository_volume=workspace.volume_name,proxy_policy=proxy_policy,proxy_lease=lease,sandbox_policy=policy,
+                **({"native_resource_path":str(native_path)} if native_resources else {}))
+            await proxy.stop(lease,ignore_missing=True);lease=None
+            result=await DockerVerifyRuntime(docker_environment=environment).run(
+                workspace=replace(workspace,inventory_hash=inventory),policy=policy,dependency_workspace=dependency.workspace,
+                commands=(SandboxCommand(command_id="import",argv=("python","-c",
+                    "import shutil,sys,os,subprocess; from contribos_uv_tool_fixture import VALUE; assert VALUE==42; assert shutil.which('uv-build').startswith('/dependencies/output/venv/bin/'); assert sys.prefix=='/dependencies/output/venv'; " +
+                    ("assert subprocess.check_output([os.environ['HFLOW_FFMPEG']])==b'fixed-resource-fixture'; assert os.environ['HFLOW_FFPROBE']=='/dependencies/output/native-tools/ffprobe'; assert os.statvfs('/dependencies').f_flag & os.ST_RDONLY; assert len(os.listdir('/sys/class/net'))==1" if native_resources else "assert 'HFLOW_FFMPEG' not in os.environ"))),))
+            assert result.command_evidence[0].exit_code==0
+            assert result.before_inventory_hash==result.after_inventory_hash==inventory
+        finally:
+            if lease: await proxy.stop(lease,ignore_missing=True)
+            if dependency: await runtime.destroy(dependency.workspace,ignore_missing=True)
+            await materializer.destroy(workspace)
+    asyncio.run(run())
 
 
 @pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="real isolated package proxy acceptance")

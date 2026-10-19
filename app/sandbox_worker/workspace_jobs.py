@@ -108,7 +108,19 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
         attempts = ExecutionAttemptService(session)
         attempt = attempts.get_verified(job.payload["execution_attempt_id"])
         stage = attempts.current(attempt.id)
-        if stage.stage != "explore" or stage.status != "succeeded" or stage.result_hash != job.payload["explore_result_hash"]:
+        recovery = job.payload.get("recovery_stage_hash")
+        if recovery:
+            from app.execution_recovery import require_recovery_authorization
+            authorization = require_recovery_authorization(wb, attempt, self.settings)
+            previous = next((e for e in wb.history(attempt.task_id)
+                if e.record_hash == job.payload.get("replaces_baseline_hash")
+                and e.kind == "execution_baseline_ready" and e.payload["attempt_id"] == attempt.id), None)
+            if (stage.stage != "verify" or stage.status != "failed" or stage.record_hash != recovery
+                    or authorization.record_hash != job.payload.get("authorization_hash")
+                    or previous is None or not preparation_needs_restore(wb, previous)
+                    or wb.read(previous.payload["result_hash"])["explore_result_hash"] != job.payload["explore_result_hash"]):
+                raise WorkbenchError("验证环境恢复输入已过期。", code="environment_stale")
+        elif stage.stage != "explore" or stage.status != "succeeded" or stage.result_hash != job.payload["explore_result_hash"]:
             raise WorkbenchError("环境准备输入已过期", code="environment_stale")
         if wb.latest(attempt.task_id, "stop_requested"):
             stop = wb.latest(attempt.task_id, "stop_requested")
@@ -124,7 +136,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     authorization.payload['context']['image']!=attempt.runner_image_digest or
                     preflight['status']!='ready' or preflight['report_hash']!=authorization.payload['preflight_hash']):
                 raise WorkbenchError('环境能力或冻结依据已变化，需要重新确认方案。',code='environment_stale')
-        return wb, attempt, wb.read(stage.result_hash)
+        return wb, attempt, wb.read(job.payload["explore_result_hash"])
 
     async def execute(self, job: Job) -> dict:
         with self.database.session() as session:
@@ -187,7 +199,11 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                         if manifest_path not in entries:
                             raise WorkbenchError("本地依赖清单不可读取", code="environment_manifest_unavailable")
                         metadata = tomllib.loads(entries[manifest_path]["content"])
-                        for requirement in metadata.get("project", {}).get("dependencies", []):
+                        from app.execution_preflight import python_development_requirements
+                        declared = list(metadata.get("project", {}).get("dependencies", []))
+                        if selected.get("preparation_version") == "python-workspace-preparation-v2":
+                            declared += python_development_requirements(metadata)
+                        for requirement in declared:
                             match = re.match(r"^([A-Za-z0-9_.-]+)", requirement)
                             if not match: continue
                             name = re.sub(r"[-_.]+", "-", match.group(1)).lower()
@@ -214,9 +230,19 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     version=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("distribution_strategy") == "source-wheel-v1" else DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("metadata_strategy") == "wheel-metadata-v1" else WORKSPACE_DEPENDENCY_PLAN_VERSION,
                     distribution_strategy=selected.get("distribution_strategy","wheel-only-v1"),
                     builder_image_digest=selected.get("builder_image_digest"),
+                    preparation_version=selected.get("preparation_version", "python-workspace-preparation-v1"),
+                    native_resource=selected.get("native_resource"),
                     metadata_strategy=selected.get("metadata_strategy", "declarative-v1"), source_kind="explore",
                     project_directory=selected.get("project_directory", "."), local_projects=tuple(local_projects))
                 environment_spec = plan.to_wire()
+                if job.payload.get("recovery_stage_hash"):
+                    previous = next(e for e in wb.history(attempt.task_id)
+                                    if e.record_hash == job.payload["replaces_baseline_hash"])
+                    previous_baseline = wb.read(previous.payload["result_hash"])
+                    previous_spec = wb.read(previous_baseline["environment_spec_hash"])
+                    if ({k:v for k,v in environment_spec.items() if k != "plan_id"}
+                            != {k:v for k,v in previous_spec.items() if k != "plan_id"}):
+                        raise WorkbenchError("冻结环境配方已变化，不能恢复旧验证。", code="environment_stale")
                 lease = await self.proxy.start(image_digest=attempt.runner_image_digest, policy=proxy_policy)
                 def allocated(value):
                     with self.database.session() as session:
@@ -226,7 +252,9 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                 try:
                     dependency = await self.dependencies.prepare(signed_plan=self.signer.sign(plan), signer=self.signer,
                         repository_volume=workspace.volume_name, proxy_policy=proxy_policy, proxy_lease=lease,
-                        sandbox_policy=policy, on_workspace=allocated)
+                        sandbox_policy=policy, on_workspace=allocated,
+                        **({"native_resource_path": str(wb.artifacts.root / "native-resources" / selected["native_resource"]["resource_hash"])}
+                           if selected.get("native_resource") else {}))
                 finally:
                     await self.proxy.stop(lease, ignore_missing=True)
             kwargs = {"workspace": workspace, "commands": commands, "policy": policy}
@@ -263,6 +291,8 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     "inspection": wire, "outcome": outcome}
                 if job.payload.get("replaces_baseline_hash"):
                     payload["replaces_baseline_hash"] = job.payload["replaces_baseline_hash"]
+                if job.payload.get("recovery_stage_hash"):
+                    payload["recovery_stage_hash"] = job.payload["recovery_stage_hash"]
                 payload["environment_spec_hash"] = wb.artifact(environment_spec) if environment_spec else None
                 baseline_hash = wb.artifact(payload)
                 wb.append(attempt.task_id, "execution_baseline_ready", {"attempt_id": attempt.id,

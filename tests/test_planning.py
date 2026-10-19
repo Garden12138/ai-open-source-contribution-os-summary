@@ -4675,6 +4675,7 @@ def test_task_state_migration_backfills_existing_task_root(
             "0033_snapshot_assessments",
             "0034_execution_baselines",
             "0035_workspace_scopes",
+            "0036_verification_environment_recovery",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

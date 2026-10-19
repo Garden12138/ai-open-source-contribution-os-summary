@@ -1,6 +1,8 @@
 """User-authorized orchestration of existing isolated execution services."""
 
 from __future__ import annotations
+import logging
+import traceback
 from datetime import timezone
 from sqlalchemy import select
 from app.approvals import PlanApprovalService, ApprovalInputFingerprint
@@ -267,6 +269,10 @@ def schedule(wb: Workbench, attempt_id: str, settings: Settings) -> None:
     if signer is None:
         raise WorkbenchError("执行签名配置不可用")
     attempts = ExecutionAttemptService(wb.session)
+    if attempts.current(attempt_id).stage == "verify":
+        from app.execution_environment import schedule_verification
+        schedule_verification(wb, attempt_id, signer)
+        return
     spec = attempts.build_current_job_spec(attempt_id)
     run = ExecutionStageControlService(wb.session).schedule_current(
         attempt_id,
@@ -354,18 +360,39 @@ def advance_workflows(database, settings: Settings) -> None:
                 _advance(wb, task_id, settings)
             except Exception as exc:
                 session.rollback()
+                logging.getLogger(__name__).warning("Workflow advancement failed: exception=%s", type(exc).__name__)
                 # Archiving may win the race after this tick selected the task.
                 if session.scalar(select(visibility_expression(task_id))) != "active":
                     continue
                 # A durable blocker stops the chain; never fall back to fake execution.
                 latest = wb.latest(task_id, "automation_started")
                 if latest:
+                    # Preserve useful locations without exception text, SQL,
+                    # parameters, model output, credentials or local variables.
+                    diagnostic = {
+                        "version": "workflow-diagnostic-v1",
+                        "start_hash": latest.record_hash,
+                        "exception_type": type(exc).__name__,
+                        "frames": [{"module": frame.filename.rsplit("/", 1)[-1],
+                                    "function": frame.name, "line": frame.lineno}
+                                   for frame in traceback.extract_tb(exc.__traceback__)[-12:]],
+                    }
+                    diagnostic_hash = wb.artifact(diagnostic)
+                    resumed = wb.latest(task_id, "automation_resumed")
+                    blocker_key = "blocked:" + latest.id + ":" + (resumed.id if resumed else "initial")
+                    if any(e.idempotency_key == blocker_key for e in wb.history(task_id)):
+                        session.rollback()
+                        continue
+                    wb.append(task_id, "workflow_diagnostic", {"artifact_id": diagnostic_hash},
+                              key="diagnostic:" + latest.id + ":" + (resumed.id if resumed else "initial"))
+                    failed_job = session.get(Job, exc.job_id) if getattr(exc, "job_id", None) else None
                     wb.append(
                         task_id,
                         "automation_blocked",
                         {
                             "reason_code": getattr(exc, "code", "workflow_failed"),
-                            "retryable": getattr(exc, "job_id", None) is not None and session.get(Job, exc.job_id).kind in {"coding_turn", "change_set_proposal", "provider_review"},
+                            "retryable": bool(failed_job and failed_job.kind in {"coding_turn", "change_set_proposal", "provider_review"}
+                                              and failed_job.attempt_count < failed_job.max_attempts),
                             "reason": (
                                 str(exc)
                                 if isinstance(exc, WorkbenchError)
@@ -495,9 +522,6 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         for e in events
     ):
         return
-    blocked = wb.active_blocker(task_id)
-    if blocked:
-        return
     authorization = next(
         e for e in events if e.record_hash == start.payload["authorization_hash"]
     )
@@ -518,7 +542,15 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
     )
     if attempt.plan_version_id != authorization.plan_version_id:
         raise WorkbenchError("执行方案已变化")
+    from app.execution_recovery import advance_environment_recovery
+    if advance_environment_recovery(wb, attempt, settings):
+        return
+    blocked = wb.active_blocker(task_id)
+    if blocked:
+        return
     stage = attempts.current(attempt.id)
+    from app.proposal_recovery import corrected_proposal
+    corrected = corrected_proposal(wb, attempt.id, authorization.record_hash)
     relevant = [
         j
         for j in wb.jobs(task_id)
@@ -540,6 +572,11 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
     for run in stage_runs:
         latest_runs[run.stage] = run
     superseded = {r.job_id for r in stage_runs if latest_runs[r.stage].id != r.id}
+    for receipt in wb.history(task_id):
+        if receipt.kind == "verification_environment_restored" and receipt.payload.get("attempt_id") == attempt.id:
+            superseded.update(receipt.payload.get("superseded_preparation_job_ids", []))
+    if corrected:
+        superseded.add(corrected[0].job_id)
     relevant = [j for j in relevant if j.id not in superseded]
     failed_jobs = [
         j for j in relevant if j.state in {"failed", "cancelled", "timed_out"}
@@ -573,6 +610,17 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                 return
             if receipt.payload["outcome"]["status"] == "environment_blocked":
                 raise WorkbenchError("修改前基线无法启动，测试环境未就绪；未进入代码修改。", code="environment_blocked")
+        if corrected:
+            from app.changesets import ChangeSetService, ChangeSetStore
+            receipt, change_set = corrected
+            wb.append(task_id, "automatic_change_accepted", {
+                "authorization_hash":authorization.record_hash,
+                "change_set_hash":change_set.change_set_hash,"attempt_id":attempt.id,
+                "correction_hash":receipt.record_hash,
+            }, key="accept-corrected:" + receipt.id, plan_id=attempt.plan_version_id, commit=False)
+            changes = ChangeSetService(wb.session, ChangeSetStore(settings.artifact_root), resolve_job_spec_signer(settings))
+            changes.accept_existing(attempt.id, change_set=change_set, idempotency_key="apply-corrected:" + receipt.id)
+            return
         context = CodingContextService(wb.session).get_session(attempt.id)
         if context is None:
             job, _ = CodingContextService(wb.session).enqueue(

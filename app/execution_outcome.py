@@ -21,6 +21,8 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
         stderr = redact_text(str(item.get("stderr_log") or ""))[:4000]
         stdout = redact_text(str(item.get("stdout_log") or ""))[:8000]
         output = "\n\n".join(part for part in (stdout, stderr) if part)
+        if "PinnedDownloadError" in output and "ffmpeg" in output.lower():
+            missing.update(("ffmpeg", "ffprobe"))
         missing.update(re.findall(r"ModuleNotFoundError: No module named ['\"]([a-zA-Z0-9_.-]+)", output))
         if item.get("exit_code") == 127:
             missing.add("command_unavailable")

@@ -53,12 +53,28 @@ class DependencyJobWorker(WorkbenchJobWorker):
                 if any(e.idempotency_key == "dependency-disposed:" + allocated.id for e in wb.history(allocated.task_id)):
                     continue
                 job = session.get(Job, allocated.job_id)
+                # A coordinator blocker does not cancel already scheduled work.
+                # Keep the volume until every consumer has released its lease.
+                consumers = session.scalars(select(Job).where(Job.state.not_in(TERMINAL_STATES)))
+                if any(j.payload.get("execution_attempt_id") == allocated.payload["attempt_id"]
+                       and j.id != job.id for j in consumers):
+                    continue
                 current = ExecutionAttemptService(session).current(allocated.payload["attempt_id"])
                 stop = wb.latest(allocated.task_id, "stop_requested")
                 stopped = stop and allocated.sequence < stop.sequence
+                if not stopped and current.stage == "verify" and current.status in {"pending", "running"}:
+                    continue
                 finished = current.stage == "verify" and current.status in {"succeeded", "failed", "cancelled", "timed_out"}
                 blocker = wb.active_blocker(allocated.task_id)
                 blocked = bool(blocker and blocker.sequence > allocated.sequence)
+                if (not stopped and current.stage == "implement" and current.status == "succeeded"
+                        and (not blocked or blocker.payload.get("reason_code") == "workflow_failed")):
+                    continue
+                if (job.payload.get("recovery_stage_hash") == current.record_hash
+                        and job.state == "succeeded" and not stopped):
+                    # A completed restore is awaiting the coordinator's new
+                    # immutable Verify input version, not disposable failure.
+                    continue
                 if job.state not in TERMINAL_STATES or not (finished or stopped or blocked or job.state != "succeeded"):
                     continue
                 await self.runtime.destroy(DependencyWorkspace(**allocated.payload["workspace"]), ignore_missing=True)

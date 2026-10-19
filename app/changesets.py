@@ -197,6 +197,7 @@ class ChangeSetService:
             input_hashes=(current.result_hash, change_set_hash),
             reason_code="changeset_accepted",
             idempotency_key=idempotency_key,
+            commit=False,
         )
         spec = attempts.build_current_job_spec(
             attempt.id,

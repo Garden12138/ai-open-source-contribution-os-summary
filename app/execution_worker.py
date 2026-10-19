@@ -246,6 +246,9 @@ class ExecutionStageWorker:
                     "implementationerror": "沙箱实施代码修改时失败，请检查修改方案后重试。",
                     "verifyerror": "沙箱运行验证测试时失败，请检查测试命令后重试。",
                 }.get(type(exc).__name__.lower(), f"沙箱隔离执行失败：{type(exc).__name__}")
+                from app.workbench import WorkbenchError
+                if isinstance(exc, WorkbenchError) and exc.code == "environment_stale":
+                    safe_msg = "冻结验证环境已失效，正在检查隔离恢复条件；已有改动保留。"
                 return self._fail(
                     session,
                     run.id,
@@ -352,5 +355,8 @@ class ExecutionStageWorker:
 
 
 def _reason_code(error: Exception) -> str:
+    from app.workbench import WorkbenchError
+    if isinstance(error, WorkbenchError) and error.code == "environment_stale":
+        return "environment_stale"
     name = type(error).__name__.lower()
     return f"sandbox_{name}"[:80]

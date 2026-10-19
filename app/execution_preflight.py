@@ -13,6 +13,23 @@ from app.context_limits import MAX_CODING_FILE_BYTES, MAX_CODING_CONTEXT_BYTES
 from app.provenance import canonical_json, content_hash
 
 VERSION = "execution-capabilities-v3"
+PYTHON_PREPARATION_VERSION = "python-workspace-preparation-v2"
+
+
+def python_development_requirements(metadata: dict) -> list[str]:
+    """Read bounded test/development groups, never evaluate group contents."""
+    groups = metadata.get("dependency-groups", {})
+    if not isinstance(groups, dict):
+        raise ValueError("dependency_groups_unsupported")
+    requirements = []
+    for name in ("dev", "test", "tests"):
+        values = groups.get(name, [])
+        if not isinstance(values, list) or any(python_requirement_error(value) for value in values):
+            raise ValueError("dependency_groups_unsupported")
+        requirements.extend(values)
+    if len(requirements) > 300:
+        raise ValueError("dependency_groups_unsupported")
+    return requirements
 
 
 def environment_inputs_hash(context: Any, selected: dict[str, Any]) -> str:
@@ -43,7 +60,7 @@ def python_backend_error(metadata: dict) -> str | None:
     return None
 
 
-def python_project_error(metadata: dict, *, allow_dynamic: bool = False) -> str | None:
+def python_project_error(metadata: dict, *, allow_dynamic: bool = False, include_development: bool = False) -> str | None:
     """Keep this self-contained: the same function runs in the trusted Runner program."""
     project = metadata.get("project", {})
     if not isinstance(project, dict) or not isinstance(project.get("name"), str) or not project["name"].strip():
@@ -68,6 +85,11 @@ def python_project_error(metadata: dict, *, allow_dynamic: bool = False) -> str 
         groups.append(extras.get(name, []))
     if any(python_requirement_error(item) for group in groups for item in group):
         return "requirement_unsupported"
+    if include_development:
+        try:
+            python_development_requirements(metadata)
+        except ValueError:
+            return "dependency_groups_unsupported"
     return None
 
 
@@ -75,6 +97,7 @@ def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> d
     """A recognized filename selects an adapter; inspected content admits it."""
     if selected.get("status") != "supported" or selected.get("mode") != "workspace-v2" or selected.get("ecosystem") != "python":
         return selected
+    selected = {**selected, "preparation_version": PYTHON_PREPARATION_VERSION}
     entries = {entry["path"]: entry for entry in evidence["entries"]}
     missing = []
     reasons = []
@@ -96,9 +119,9 @@ def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> d
         if path.endswith("pyproject.toml"):
             try:
                 metadata = tomllib.loads(text)
-                error = python_project_error(metadata)
+                error = python_project_error(metadata, include_development=True)
                 if error == "dynamic_dependencies":
-                    error = python_project_error(metadata, allow_dynamic=True)
+                    error = python_project_error(metadata, allow_dynamic=True, include_development=True)
                     if error is None:
                         selected = {**selected, "metadata_strategy":"wheel-metadata-v1"}
             except (ValueError, TypeError):
@@ -112,6 +135,7 @@ def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> d
                 reasons.append("requirement_unsupported")
     if reasons:
         messages = {
+            "dependency_groups_unsupported": "开发和测试依赖组包含不受支持的声明，需补充隔离准备适配；不会跳过这些依赖开始实施。",
             "dynamic_dependencies": "项目使用动态依赖声明，当前隔离准备器尚未适配；源码可以阅读、方案可以保存，但不能启动实施。需要补充执行适配，重复确认或重试不会解决。",
             "build_metadata_unsupported": "动态依赖的构建后端声明缺失或含不安全路径，不能启动隔离元数据准备。",
             "project_metadata_missing": "项目缺少当前准备器要求的声明式包元数据，尚不能启动实施；需要补充执行适配。",
@@ -139,12 +163,21 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
         entries = {entry["path"]: entry for entry in evidence["entries"]}
         known = set(evidence["inventory"])
         environment_hash = environment_inputs_hash(context,selected)
-        diagnosis = next((e for e in reversed(wb.history(task_id))
+        original_environment_hash = environment_inputs_hash(context, {k:v for k,v in selected.items() if k != "native_resource"})
+        events = wb.history(task_id)
+        resolved = {e.payload.get("diagnostic_hash") for e in events
+                    if e.kind == "execution_environment_diagnostic_resolved" and e.actor_id == "system"
+                    and e.payload.get("version") == "package-dns-transport-v1"
+                    and e.payload.get("environment_inputs_hash") == environment_hash}
+        diagnosis = next((e for e in reversed(events)
             if e.kind in {"execution_preparation_failed","execution_environment_diagnostic"}
-            and e.payload.get("environment_inputs_hash") == environment_hash),None)
+            and e.record_hash not in resolved
+            and (e.payload.get("environment_inputs_hash") == environment_hash or (
+                e.payload.get("environment_inputs_hash") == original_environment_hash
+                and e.payload.get("diagnostic",{}).get("reason_code") != "native_tool_unavailable"))),None)
         if diagnosis and diagnosis.payload.get("diagnostic",{}):
             diagnostic = diagnosis.payload["diagnostic"]
-            if diagnostic.get("reason_code") in {"no_matching_distribution","dependency_conflict","proxy_denied"}:
+            if diagnostic.get("reason_code") in {"no_matching_distribution","dependency_conflict","proxy_denied","native_tool_unavailable"}:
                 from app.sandbox_worker.dependency_diagnostics import dependency_diagnostic_message
                 issues.append({"code":"environment_known_failure", "stage":"prepare", "paths":[],
                     "message":dependency_diagnostic_message(diagnostic)+"已保存相同冻结环境的失败证据，重复确认不会解决；需先完成环境适配或显式重新诊断。",

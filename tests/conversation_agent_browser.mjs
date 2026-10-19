@@ -22,6 +22,8 @@ try {
     events:freshTask?[]:[...source.events,...events], plans:freshTask?[]:source.plans, jobs:freshTask?[]:source.jobs,
     execution:projection,cla:previews.cla || {},pr_update:previews.update || {},pr_lifecycle:previews.ready || {},
     conversation:{version:'conversation-v1',messages,results,pending_count:pending,paused,
+      pending_action:!busy && !pending && !paused && events.at(-1)?.payload?.questions?.length
+        ? {kind:'answer',source_id:events.at(-1).id} : null,
       user_state:{label:busy?'正在实现与验证':'准备贡献计划',next_step:'说明要求即可继续。',busy,can_stop:busy,observed_at:null}}});
   await page.route(url, route => route.fulfill({json:snapshot()}));
   await page.route(url+'/conversation/messages', route => {
@@ -198,10 +200,66 @@ try {
   await page.setViewportSize({width:390,height:480});await input.focus();
   const composerBox=await page.locator('.conversation-agent-composer').boundingBox();
   assert.ok(composerBox.y+composerBox.height<=480);
-  events.push({id:'clarification',sequence:3000,kind:'assistant_message',payload:{reply:'',questions:[{id:'scope',prompt:'只修改当前包吗？',options:['只改当前包','同时修改示例']} ]}});
+  const questions=[{id:'scope',prompt:'只修改当前包吗？',options:['只改当前包','同时修改示例']},
+    {id:'tests',prompt:'测试覆盖范围？',options:['单元测试','增加集成测试']},
+    {id:'notes',prompt:'还有补充要求吗？',options:[]}];
+  events.push({id:'clarification',sequence:3000,record_hash:'a'.repeat(64),kind:'assistant_message',payload:{reply:'',questions}});
   messages=[{id:'clarify-request',sequence:2999,text:'请调整范围',receipt:{status:'completed'}}];
-  await page.reload();await main.getByText('只修改当前包吗？',{exact:true}).waitFor();
-  assert.equal(await main.getByRole('button',{name:'只改当前包',exact:true}).count(),0);
+  await page.reload();await main.getByRole('group',{name:'1. 只修改当前包吗？',exact:true}).waitFor();
+  const batch=main.locator('.conversation-questions'), answerSend=batch.getByRole('button',{name:'发送回答',exact:true});
+  const beforeAnswers=requests.length;
+  assert.equal(await answerSend.isDisabled(),true);
+  assert.equal(await batch.getByRole('radio',{checked:true}).count(),0);
+  await batch.getByRole('radio',{name:'只改当前包',exact:true}).check();
+  // Native arrow-key selection and a change of mind do not submit any message.
+  await batch.getByRole('radio',{name:'单元测试',exact:true}).focus();
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await batch.getByRole('radio',{name:'增加集成测试',exact:true}).isChecked(),true);
+  await batch.getByRole('radio',{name:'同时修改示例',exact:true}).check();
+  const custom=batch.getByRole('textbox',{name:'还有补充要求吗？：自定义回答',exact:true});
+  await batch.getByRole('group',{name:'3. 还有补充要求吗？',exact:true}).getByRole('radio',{name:'自定义回答',exact:true}).check();
+  await custom.fill('   ');assert.equal(await answerSend.isDisabled(),true);
+  await custom.fill('保持现有 API\n<script>window.injected=true</script>');
+  assert.equal(await answerSend.isEnabled(),true);assert.equal(requests.length,beforeAnswers);
+  await input.fill('另一个尚未发送的草稿');
+  await page.waitForTimeout(2300); // Polling must retain selection and focus/typing.
+  await page.reload();
+  assert.equal(await batch.getByRole('radio',{name:'同时修改示例',exact:true}).isChecked(),true);
+  assert.equal(await batch.getByRole('radio',{name:'增加集成测试',exact:true}).isChecked(),true);
+  assert.equal(await custom.inputValue(),'保持现有 API\n<script>window.injected=true</script>');
+  assert.equal(await input.inputValue(),'另一个尚未发送的草稿');
+  await custom.fill('很'.repeat(8000));
+  await batch.getByText('回答合并后超过 8000 字，请缩短自定义回答。',{exact:true}).waitFor();
+  assert.equal(await answerSend.isDisabled(),true);
+  await custom.fill('保持现有 API\n<script>window.injected=true</script>');
+  for(const width of [1440,390]) {
+    await page.setViewportSize({width,height:900});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.screenshot({path:`/tmp/contribos-question-options-${width}.png`});
+  }
+  reject=true;await answerSend.click();
+  await page.getByRole('alert').filter({hasText:'消息暂未保存'}).waitFor();
+  assert.equal(await answerSend.isEnabled(),true);
+  const failedAnswer=requests.at(-1);
+  await page.reload();await answerSend.click();
+  await main.getByText('已收到，等待处理',{exact:true}).waitFor();
+  assert.equal(requests.at(-1).key,failedAnswer.key);
+  assert.deepEqual(requests.at(-1).body,{text:'回答你的问题：\n\n1. 只修改当前包吗？\n我的回答：同时修改示例\n\n2. 测试覆盖范围？\n我的回答：增加集成测试\n\n3. 还有补充要求吗？\n我的回答：保持现有 API\n<script>window.injected=true</script>',
+    question_source_id:'clarification',question_source_hash:'a'.repeat(64)});
+  assert.equal(messages.filter(m=>m.text.startsWith('回答你的问题：')).length,1);
+  assert.equal(requests.length,beforeAnswers+2); // Only the failed request and its idempotent retry.
+  assert.equal(await main.locator('.conversation-questions').count(),0);
+  assert.equal(await input.inputValue(),'另一个尚未发送的草稿');
+  assert.equal(await page.evaluate(()=>!!window.injected),false);
+  // Even after processing finishes, old questions must never become actionable.
+  pending=0;messages.forEach(m=>m.receipt.status='completed');await page.reload();
+  assert.equal(await main.getByRole('radio').count(),0);
+  // A new batch may reuse question IDs; choices belong to its source message.
+  events.push({id:'clarification-next',sequence:3100,record_hash:'b'.repeat(64),kind:'assistant_message',payload:{reply:'',questions}});
+  await page.reload();assert.equal(await batch.getByRole('radio',{checked:true}).count(),0);
+  paused=true;await page.reload();assert.equal(await main.getByRole('radio').count(),0);
+  paused=false;busy=true;await page.reload();assert.equal(await main.getByRole('radio').count(),0);
+  busy=false;
   // A follow-up answer cites the exact existing preview and shows its full text
   // inline. Reading it cannot request publication or silently replace a source.
   const cited={id:'cited-preview',sequence:4000,kind:'publication_prepared',record_hash:'8'.repeat(64),payload:{...p,

@@ -193,12 +193,24 @@ class PRLifecycleWorker(WorkbenchJobWorker):
             'head_sha':value.get('head',{}).get('sha'),'head_branch':value.get('head',{}).get('ref'),
             'base_sha':value.get('base',{}).get('sha'),'base_ref':value.get('base',{}).get('ref'),
             'state':value.get('state'),'draft':value.get('draft'),'merged':value.get('merged'),
+            'merged_at':value.get('merged_at'),'closed_at':value.get('closed_at'),
+            'merge_commit_sha':value.get('merge_commit_sha'),
             'mergeable':value.get('mergeable')}
         if (not isinstance(pr['node_id'],str) or not re.fullmatch(r'[A-Za-z0-9_=-]{8,256}',pr['node_id'])
             or not isinstance(pr['title'],str) or len(pr['title'])>256 or not isinstance(pr['body'],str) or len(pr['body'].encode())>65536
             or not re.fullmatch('[a-f0-9]{40}',pr['head_sha'] or '') or not re.fullmatch('[a-f0-9]{40}',pr['base_sha'] or '')
             or pr['state'] not in {'open','closed'} or type(pr['draft']) is not bool or type(pr['merged']) is not bool):
             raise WorkbenchError('PR 状态响应无效',code='pr_lifecycle_remote_invalid')
+        for name in ('merged_at','closed_at'):
+            stamp=pr[name]
+            if stamp is not None:
+                try:
+                    if not isinstance(stamp,str) or len(stamp)>64 or datetime.fromisoformat(stamp.replace('Z','+00:00')).tzinfo is None:
+                        raise ValueError()
+                except ValueError:
+                    raise WorkbenchError('PR 状态时间无效',code='pr_lifecycle_remote_invalid') from None
+        if pr['merge_commit_sha'] is not None and not re.fullmatch('[a-f0-9]{40}',pr['merge_commit_sha'] if isinstance(pr['merge_commit_sha'],str) else ''):
+            raise WorkbenchError('PR 合并提交无效',code='pr_lifecycle_remote_invalid')
         ensure_no_sensitive_data(pr,context='remote lifecycle')
         return target,user,pr
 

@@ -755,6 +755,7 @@ class VerifyService:
                 != implement.sandbox_policy_hash
                 or dependency.workspace.inventory_hash
                 != dependency.result.dependency_inventory_hash
+                or dependency.workspace.native_resource != dependency.result.native_resource
             ):
                 raise VerificationError(
                     "Verify dependency provenance does not match Implement"
@@ -853,6 +854,7 @@ class DockerVerifyRuntime:
                 if dependency_workspace is not None
                 else None
             ),
+            "native_resource": dependency_workspace.native_resource if dependency_workspace is not None else None,
         }
         encoded = (
             json.dumps(
@@ -1148,6 +1150,7 @@ with open("/input/commands.json", encoding="utf-8") as handle:
 if set(specification) != {
     "expected_inventory_hash", "max_log_bytes", "timeout_seconds", "commands",
     "dependency_inventory_hash",
+    "native_resource",
 }:
     raise SystemExit(80)
 commands = specification["commands"]
@@ -1304,6 +1307,28 @@ if dependency_hash is not None:
     )
     if sites:
         dependency_environment["PYTHONPATH"] = os.pathsep.join(sites)
+    native_receipt = "/dependencies/output/native-tools/receipt.json"
+    if specification["native_resource"] is not None:
+        if os.path.islink(native_receipt):
+            raise SystemExit(88)
+        with open(native_receipt, encoding="utf-8") as handle:
+            native = json.load(handle)
+        if (native != specification["native_resource"]
+                or set(native) != {"version", "receipt_hash", "resource_hash", "files"}
+                or native["version"] != "native-resource-policy-v1"
+                or set(native["files"]) != {"ffmpeg", "ffprobe"}):
+            raise SystemExit(88)
+        for name in ("ffmpeg", "ffprobe"):
+            path = "/dependencies/output/native-tools/" + name
+            if os.path.islink(path) or not os.path.isfile(path) or os.stat(path).st_size != native["files"][name]["size"]:
+                raise SystemExit(88)
+            with open(path, "rb") as handle:
+                if hashlib.file_digest(handle, "sha256").hexdigest() != native["files"][name]["sha256"]:
+                    raise SystemExit(88)
+            dependency_environment["HFLOW_" + name.upper()] = path
+    elif os.path.lexists(native_receipt):
+        # Repository build code cannot invent a native-resource authorization.
+        raise SystemExit(88)
     source_paths_file = "/dependencies/output/source-paths.json"
     if os.path.isfile(source_paths_file):
         with open(source_paths_file, encoding="utf-8") as handle:

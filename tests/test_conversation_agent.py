@@ -278,7 +278,8 @@ def test_published_status_and_followup_are_consistent_and_chat_cannot_write(life
     transport.prs[0]["draft"] = False
     send(db, s, task, "跟进一下 PR", "follow")
     advance_conversations(db, s)
-    classify(db, s, "followup")
+    with db.session() as session:
+        assert not any(j.kind == "conversation_intent" for j in Workbench(session, s.artifact_root).jobs(task))
     advance_conversations(db, s)
     job = asyncio.run(worker.run_once())
     assert job.state == "succeeded", (job.error_code, job.error_message)

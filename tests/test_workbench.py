@@ -857,6 +857,7 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
         "0033_snapshot_assessments",
         "0034_execution_baselines",
         "0035_workspace_scopes",
+        "0036_verification_environment_recovery",
     )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Literal
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.jobs import TERMINAL_STATES, JobConflictError
@@ -38,6 +38,14 @@ class WorkbenchPlanRequest(BaseModel):
 class ConversationMessageRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str = Field(min_length=1, max_length=8000)
+    question_source_id: str | None = Field(default=None, min_length=1, max_length=128)
+    question_source_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def require_question_binding(self) -> ConversationMessageRequest:
+        if (self.question_source_id is None) != (self.question_source_hash is None):
+            raise ValueError("Question source ID and hash must be supplied together")
+        return self
 
 
 class ConversationMessageReceipt(BaseModel):
@@ -88,6 +96,7 @@ class WorkbenchResponse(BaseModel):
     pr_update_available: bool = False
     pr_lifecycle: dict[str, Any] = Field(default_factory=dict)
     conversation: dict[str, Any] = Field(default_factory=dict)
+    native_resources: dict[str, Any] = Field(default_factory=dict)
 
 
 class ChangeGoalRequest(BaseModel):
@@ -107,6 +116,11 @@ class ExecutionAcceptanceResponse(BaseModel):
     record_hash: str
     binding_hash: str
     accepted: bool
+
+
+class PublicationContinuationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    binding_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class PublicationPrepareRequest(BaseModel):
@@ -145,8 +159,50 @@ class PRUpdateConfirmRequest(BaseModel):
     approved: Literal[True]
 
 
+class NativeResourceConfirmRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    preview_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    nonce: str = Field(pattern=r"^[0-9a-f]{64}$")
+    approved: Literal[True]
+
+
+class NativeResourcePrepareRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class NativeResourcePreviewResponse(BaseModel):
+    version: Literal["native-resource-policy-v1"]
+    binding: dict[str, Any]
+    resource: dict[str, Any]
+    nonce: str
+    expires_at: str
+    record_hash: str
+
+
 def register_workbench_routes(app, get_session, require_mutation_access) -> None:
     router = APIRouter(prefix="/api/v1/tasks/{task_id}/workbench", tags=["workbench"])
+
+    @router.post("/native-resources/prepare", response_model=NativeResourcePreviewResponse, dependencies=[Depends(require_mutation_access)])
+    def native_resource_prepare(task_id: str, payload: NativeResourcePrepareRequest, request: Request,
+                                key: str = Header(alias="Idempotency-Key", min_length=1, max_length=80),
+                                session: Session = Depends(get_session)):
+        from app.native_resources import prepare
+        try:
+            return prepare(Workbench(session, request.app.state.settings.artifact_root), task_id, key=key)
+        except IntegrityError:
+            session.rollback()
+            raise WorkbenchError("资源请求状态已变化，请刷新后重试", code="native_resource_conflict") from None
+
+    @router.post("/native-resources/confirm", response_model=JobResponse, status_code=202,
+                 dependencies=[Depends(require_mutation_access)])
+    def native_resource_confirm(task_id: str, payload: NativeResourceConfirmRequest, request: Request,
+                                session: Session = Depends(get_session)):
+        from app.native_resources import confirm
+        try:
+            return JobResponse.model_validate(confirm(Workbench(session, request.app.state.settings.artifact_root), task_id, **payload.model_dump()))
+        except IntegrityError:
+            session.rollback()
+            raise WorkbenchError("资源授权状态已变化，请刷新核对", code="native_resource_conflict") from None
 
     @router.post("/conversation/messages", response_model=ConversationMessageReceipt,
                  status_code=202, dependencies=[Depends(require_mutation_access)])
@@ -156,7 +212,9 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         from app.conversation import receive_message
         try:
             return receive_message(Workbench(session, request.app.state.settings.artifact_root), task_id,
-                                   text=payload.text, key=key, settings=request.app.state.settings)
+                                   text=payload.text, key=key, settings=request.app.state.settings,
+                                   question_source_id=payload.question_source_id,
+                                   question_source_hash=payload.question_source_hash)
         except IntegrityError:
             session.rollback()
             raise WorkbenchError("另一条消息正在保存，请重新发送。", code="conversation_conflict") from None
@@ -340,7 +398,9 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         from app.cla import cla_view
         from app.pr_updates import update_view
         from app.conversation import conversation_view
+        from app.native_resources import view as native_resource_view
         return WorkbenchResponse(
+            native_resources=native_resource_view(wb, task_id),
             conversation=conversation_view(wb, task_id),
             execution=projection,
             pr_lifecycle=projection["pr_lifecycle"],
@@ -577,9 +637,9 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             receipt = accept_execution(wb, task_id, binding_hash=payload.binding_hash,
                                        text=payload.text, key=key, commit=False)
             if payload.prepare_pr:
-                from app.conversation import receive_message
-                receive_message(wb, task_id, text="准备发布", key="accepted-" + receipt.id,
-                                settings=request.app.state.settings)
+                from app.conversation_continuations import request_after_acceptance
+                request_after_acceptance(wb, task_id, receipt_hash=receipt.record_hash,
+                                         settings=request.app.state.settings, commit=False)
             session.commit()
         except IntegrityError:
             session.rollback()
@@ -591,6 +651,22 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             session.rollback()
             raise HTTPException(422, "消息中包含凭证形式的内容，请移除后重试")
         return {"record_hash": receipt.record_hash, "binding_hash": receipt.payload["binding_hash"], "accepted": True}
+
+    @router.post("/publication/continue", response_model=ConversationMessageReceipt,
+                 dependencies=[Depends(require_mutation_access)])
+    def continue_publication(task_id: str, payload: PublicationContinuationRequest, request: Request,
+                             key: str = Header(alias="Idempotency-Key", min_length=1, max_length=80),
+                             session: Session = Depends(get_session)):
+        from app.execution_acceptance import acceptance_view
+        from app.conversation_continuations import request_after_acceptance
+        wb = Workbench(session, request.app.state.settings.artifact_root)
+        from app.cla import _lock
+        _lock(wb)
+        accepted = acceptance_view(wb, task_id)
+        if not accepted.get("accepted") or accepted["binding_hash"] != payload.binding_hash:
+            raise WorkbenchError("验收依据已变化，请刷新后继续。", code="continuation_stale")
+        return request_after_acceptance(wb, task_id, receipt_hash=accepted["accepted"]["record_hash"],
+            request_key=key, settings=request.app.state.settings)
 
     @router.get("/timeline")
     def timeline(task_id: str, request: Request, after: int = 0,

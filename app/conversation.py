@@ -54,9 +54,51 @@ def with_publication_link(text: str, payload: dict[str, Any]) -> str:
     return text + "\n\n" + link if link and payload["html_url"] not in text else text
 
 
+def recovered_result_ids(events: list[WorkbenchEvent]) -> set[str]:
+    """Explicit recovery can display legacy narration; it cannot recover actions."""
+    sources = {e.id:e for e in events if e.kind == "conversation_result"
+               and e.actor_id in {"system", "orchestrator"}
+               and set(e.payload) == {"text"} and isinstance(e.payload["text"], str)
+               and 0 < len(e.payload["text"]) <= 8000}
+    recovered = set()
+    for event in events:
+        if event.kind != "conversation_result_recovered":
+            continue
+        source = sources.get(event.payload.get("source_id"))
+        if (source and event.actor_id == "orchestrator" and event.sequence > source.sequence
+                and event.idempotency_key == "conversation-recover:" + source.id
+                and event.payload == {"version":VERSION, "source_id":source.id,
+                    "source_hash":source.record_hash, "classification":"legacy_unverified",
+                    "policy":"readonly-text-only-v1"}):
+            recovered.add(source.id)
+    return recovered
+
+
+def recover_readonly_results(wb: Workbench, task_id: str) -> int:
+    """Append an explicit compatibility marker; preserve every original hash."""
+    _lock(wb)
+    events = wb.history(task_id)
+    recovered = recovered_result_ids(events)
+    count = 0
+    for source in events:
+        if (source.kind != "conversation_result" or source.id in recovered
+                or source.actor_id not in {"system", "orchestrator"}
+                or set(source.payload) != {"text"} or not isinstance(source.payload["text"], str)
+                or not 0 < len(source.payload["text"]) <= 8000):
+            continue
+        wb.append(task_id, "conversation_result_recovered", {"version":VERSION, "source_id":source.id,
+            "source_hash":source.record_hash, "classification":"legacy_unverified", "policy":"readonly-text-only-v1"},
+            key="conversation-recover:" + source.id, actor="orchestrator", commit=False)
+        count += 1
+    wb.session.commit()
+    return count
+
+
 def pending_messages(wb: Workbench, task_id: str) -> list[WorkbenchEvent]:
     events = wb.history(task_id)
-    if any(e.kind.startswith("conversation_") and e.payload.get("version") != VERSION for e in events):
+    recovered = recovered_result_ids(events)
+    if any(e.kind.startswith("conversation_") and e.payload.get("version") != VERSION
+           and e.id not in recovered for e in events):
         raise WorkbenchError("会话记录来自不同版本，请先恢复匹配的服务版本。", code="conversation_version")
     finished = {e.payload["message_id"] for e in events if e.kind == "conversation_finished"}
     return [e for e in events if e.kind == "conversation_received" and e.id not in finished]
@@ -84,6 +126,9 @@ def control_intent(wb: Workbench, task_id: str, text: str) -> str | None:
         return hint
     if text.strip() == "读取仓库并准备方案":
         return "plan"
+    from app.pr_freshness import current_status_requested
+    if wb.latest(task_id,"publication_completed") and current_status_requested(text):
+        return "followup"
     return None
 
 
@@ -180,6 +225,7 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
              "pr_followup":"正在核对 PR 最新状态", "pr_ready_prepare":"正在准备提交审核的预览",
              "pr_ready_write":"正在提交正式审核并核对结果", "pr_update_read":"正在读取 PR 文案",
              "pr_update_document":"正在修订 PR 文案", "pr_update_write":"正在更新并核对 PR 文案",
+             "native_resource_download":"正在下载并校验测试资源",
              "cla_prepare":"正在读取贡献者协议", "cla_check":"正在核对协议签署状态", "cla_write":"正在提交并核对签署声明"}
     if jobs:
         label = names.get(jobs[-1].kind, "正在处理当前工作")
@@ -191,7 +237,8 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
             next_step = plain_text(blocker.payload.get("reason", "需要检查失败记录。"))
             diagnosis = next((e for e in reversed(wb.history(task_id))
                 if e.kind in {"execution_preparation_failed","execution_environment_diagnostic"}
-                and e.job_id == blocker.job_id and e.payload.get("diagnostic")),None)
+                and blocker.job_id is not None and e.job_id == blocker.job_id
+                and e.payload.get("diagnostic")),None)
             if diagnosis:
                 from app.sandbox_worker.dependency_diagnostics import dependency_diagnostic_message
                 next_step = dependency_diagnostic_message(diagnosis.payload["diagnostic"])
@@ -205,6 +252,16 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
             if preflight.get("status") == "blocked":
                 label = "方案已保存，执行条件未满足"
                 next_step = "当前实施适配尚不支持这个方案，请查看执行条件；源码阅读和方案讨论仍可继续。"
+    if state == "planning" and not jobs:
+        from app.native_resources import view as native_resource_view
+        native = native_resource_view(wb, task_id)
+        if native.get("available"):
+            if native.get("ready"):
+                label, next_step = "测试资源已就绪，等待确认方案", "请重新核对当前方案；确认执行后先运行修改前测试。"
+            elif native.get("error"):
+                label, next_step = "测试资源准备未完成", native["error"]
+            else:
+                label, next_step = "等待测试资源下载授权", "请查看固定资源的来源、版本、校验信息和大小限制，再单独授权下载。"
     if paused(wb, task_id):
         label, next_step = ("正在停止当前工作", "停止后保留已有成果和补充信息。") if jobs else ("工作已停止", "已有成果和补充信息已保留。发送“继续”可以接续。")
     write_active = any(j.kind in {"publication_write", "cla_write", "pr_update_write", "pr_ready_write"} for j in jobs)
@@ -212,7 +269,21 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
             "busy": bool(jobs), "can_stop": bool(jobs) and not write_active, "write_active": write_active}
 
 
-def receive_message(wb: Workbench, task_id: str, *, text: str, key: str, settings: Any) -> dict[str, Any]:
+def require_question_source(wb: Workbench, task_id: str, source_id: str, source_hash: str) -> WorkbenchEvent:
+    """A question answer can request planning only; it never grants approval."""
+    from app.task_states import ContributionTaskStateService
+    source = wb.latest(task_id, "assistant_message")
+    if (not source or source.id != source_id or source.record_hash != source_hash
+        or not source.payload.get("questions")
+        or ContributionTaskStateService(wb.session).current(task_id).to_state != "planning"
+        or wb.latest(task_id, "publication_completed") or wb.latest(task_id, "publication_confirmed")):
+        raise WorkbenchError("提问已更新，请刷新后回答当前问题。", code="conversation_question_stale")
+    return source
+
+
+def receive_message(wb: Workbench, task_id: str, *, text: str, key: str, settings: Any,
+                    question_source_id: str | None = None, question_source_hash: str | None = None,
+                    commit: bool = True) -> dict[str, Any]:
     from app.task_visibility import require_active_task
     _lock(wb)
     require_active_task(wb.session, task_id)
@@ -220,19 +291,29 @@ def receive_message(wb: Workbench, task_id: str, *, text: str, key: str, setting
     if not text or len(text) > 8000:
         raise WorkbenchError("请输入不超过 8000 字的消息。", code="conversation_invalid")
     ensure_no_sensitive_data(text, context="conversation message")
+    if (question_source_id is None) != (question_source_hash is None):
+        raise WorkbenchError("提问关联信息不完整，请刷新后重试。", code="conversation_invalid")
+    question_source = {"id":question_source_id, "record_hash":question_source_hash} if question_source_id is not None else None
     old = next((e for e in wb.history(task_id) if e.idempotency_key == "conversation:" + key), None)
     if old:
-        if old.payload["text"] != text:
+        if old.payload["text"] != text or old.payload.get("question_source") != question_source:
             raise WorkbenchError("重复请求的内容不同。", code="conversation_conflict")
         return message_receipt(wb, task_id, old.id)
+    if question_source:
+        source = require_question_source(wb, task_id, question_source_id, question_source_hash)
+        if (paused(wb, task_id) or user_status(wb, task_id)["busy"] or pending_messages(wb, task_id)
+            or any(e.kind == "conversation_received" and e.sequence > source.sequence for e in wb.history(task_id))):
+            raise WorkbenchError("当前问题已回复或任务正在处理，请刷新后继续。", code="conversation_question_stale")
     intent = fast_intent(text)
     if len(pending_messages(wb, task_id)) >= MAX_PENDING and intent not in {"stop", "continue"}:
         raise WorkbenchError("已有 20 条补充信息等待处理，请等待回复后再发送。", code="conversation_queue_full")
-    event = wb.append(task_id, "conversation_received", {"version": VERSION, "text": text},
+    event = wb.append(task_id, "conversation_received", {"version": VERSION, "text": text,
+                      **({"question_source":question_source} if question_source else {})},
                       key="conversation:" + key, actor="local-user", commit=False)
-    if control_intent(wb, task_id, text) in {"stop", "continue"}:
+    if not question_source and control_intent(wb, task_id, text) in {"stop", "continue"}:
         _control(wb, task_id, event, intent, settings)
-    wb.session.commit()
+    if commit:
+        wb.session.commit()
     return message_receipt(wb, task_id, event.id)
 
 
@@ -356,6 +437,12 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
             return
         from app.publication import request_publication
         document = wb.latest(task_id, "publication_document_ready")
+        if intent == "publication" and wb.latest(task_id,"publication_prepared"):
+            from app.conversation_reasoning import EvidenceRead, read_evidence
+            existing=read_evidence(wb,task_id,EvidenceRead(name="publication_preview"))
+            _finish(wb,task_id,message,text="已有发布预览已保留，可查看完整文案；创建草稿 PR 仍需单独确认。",
+                    references=[existing["reference"]])
+            return
         if intent == "publication_renew":
             from app.publication import renew_publication_preview
             preview = wb.latest(task_id, "publication_prepared")
@@ -396,6 +483,8 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
     _lock(wb)
     require_active_task(wb.session, task_id)
     _results(wb, task_id)
+    from app.conversation_continuations import recover_interrupted_acceptance, continuation_intent
+    recover_interrupted_acceptance(wb, task_id, settings)
     queue = pending_messages(wb, task_id)
     for message in queue:
         dispatched = next((e for e in wb.history(task_id) if e.kind == "conversation_dispatched" and e.payload["message_id"] == message.id), None)
@@ -417,15 +506,37 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
         return
     classified = next((e for e in reversed(wb.history(task_id)) if e.kind == "conversation_intent" and e.payload["message_id"] == message.id), None)
     decision = next((e for e in reversed(wb.history(task_id)) if e.kind == "conversation_decision" and e.payload["message_id"] == message.id), None)
-    from app.conversation_reasoning import REASONING_VERSION, WORKFLOWS, observation
+    from app.conversation_reasoning import REASONING_VERSION, REASONING_VERSIONS, WORKFLOWS, observation
     intent = classified.payload["intent"] if classified else control_intent(wb, task_id, message.payload["text"])
-    if decision:
-        if decision.payload.get("reasoning_version") != REASONING_VERSION:
-            raise WorkbenchError("对话工具版本不匹配，请恢复匹配的服务版本。")
-        if decision.payload["action"] == "respond":
-            _finish(wb, task_id, message, text=decision.payload["reply"], references=decision.payload["references"])
+    continuation = continuation_intent(wb, task_id, message)
+    if continuation:
+        intent = continuation
+    question_source = message.payload.get("question_source")
+    if question_source:
+        # The UI explicitly submitted answers to this immutable question batch.
+        # Continue planning without spending a model call to classify them.
+        require_question_source(wb, task_id, question_source["id"], question_source["record_hash"])
+        if paused(wb, task_id):
             wb.session.commit()
             return
+        intent = "plan"
+    if decision:
+        if decision.payload.get("reasoning_version") not in REASONING_VERSIONS:
+            raise WorkbenchError("对话工具版本不匹配，请恢复匹配的服务版本。")
+        if decision.payload["action"] == "respond":
+            from app.pr_freshness import answer_requires_refresh
+            if answer_requires_refresh(wb,task_id,message,decision.payload["references"]):
+                wb.append(task_id,"conversation_refresh_requested",{
+                    "version":VERSION,"message_id":message.id,"decision_hash":decision.record_hash,
+                    "reason":"current_pr_requires_remote_read","cached_reply_displayed":False,
+                },key="refresh-current-pr:"+message.id,job_id=decision.job_id,commit=False)
+                intent="followup"
+                decision=None
+            else:
+                _finish(wb, task_id, message, text=decision.payload["reply"], references=decision.payload["references"])
+                wb.session.commit()
+                return
+    if decision:
         if decision.payload["action"] == "prepare_publication" and wb.latest(task_id,"publication_prepared"):
             # Preparation is idempotent. An expired deliverable remains readable;
             # renewing it is a distinct tool with a distinct requested effect.
@@ -464,7 +575,7 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
                           key=f"conversation-intent-resume:{job.id}:{job.attempt_count}", job_id=job.id, commit=False)
             elif job.state in TERMINAL_STATES:
                 _finish(wb, task_id, message, status="failed", text=("本轮未能完成，已有成果保留。\n" + job.error_message)
-                        if job.payload.get("reasoning_version") == REASONING_VERSION and job.error_message else
+                        if job.payload.get("reasoning_version") in REASONING_VERSIONS and job.error_message else
                         "这条消息暂未能处理，已有内容保留。请换一种说法，我会继续接续工作。")
         else:
             from app.model_settings import ModelSettingsService
@@ -522,6 +633,8 @@ def _results(wb: Workbench, task_id: str) -> None:
         return  # Reading or upgrading an old task must not rewrite its history.
     seen_keys = {e.idempotency_key for e in events}
     kinds = {"awaiting_acceptance": "修改和独立审查已完成。请查看改动、测试与审查结果，确认后我会准备 PR 文案。",
+             "conversation_continuation_recovered": "已根据原验收记录恢复发布准备请求，后续进度会在这里显示。原失败记录已保留，无需再次验收。",
+             "proposal_corrected": "修改草案已按冻结原文校正并通过校验，将继续隔离实施与验证。原授权和失败证据保留，本次校正未增加模型调用次数。",
              "automation_blocked": "工作暂时遇到问题，已有成果保留。", "publication_document_ready": "英文 PR 文案已准备好。请查看内容；确认发布前，我会展示完整发布预览。",
              "publication_prepared": "发布预览已准备好。请检查账号、目标仓库、改动和完整文案，再确认创建草稿 PR。",
              "publication_completed": "草稿 PR 已创建。你可以让我跟进项目检查与维护者反馈。",
@@ -562,6 +675,9 @@ def _results(wb: Workbench, task_id: str) -> None:
     for job in wb.jobs(task_id):
         if job.id not in new_job_ids:
             continue
+        # The serialized message coordinator owns this Job's final receipt.
+        if job.kind == INTENT and any(e.kind == "conversation_classifying" and e.job_id == job.id for e in events):
+            continue
         if job.state in {"failed", "timed_out", "cancelled"}:
             key = f"conversation-job:{job.id}:{job.attempt_count}:{job.state}"
             if key not in seen_keys:
@@ -578,29 +694,55 @@ def _results(wb: Workbench, task_id: str) -> None:
 
 def conversation_view(wb: Workbench, task_id: str) -> dict[str, Any]:
     events = wb.history(task_id)
+    recovered = recovered_result_ids(events)
     publications = {e.id: e for e in events if e.kind == "publication_completed"}
     results = []
     for event in events:
         if event.kind != "conversation_result":
             continue
         result = {"id": event.id, "sequence": event.sequence, **event.payload}
+        if event.id in recovered:
+            result["classification"] = "legacy_unverified"
         source = publications.get(result.get("source_id"))
         if result.get("source_kind") == "publication_completed" and source:
             # Add the link to old receipts at presentation time; the immutable
             # journal and original response remain unchanged.
             result["text"] = with_publication_link(result["text"], source.payload)
         results.append(result)
+    internal = {e.payload["message_id"] for e in events if e.kind == "conversation_continuation_requested"
+                and e.actor_id == "system"}
     messages = [{"id": e.id, "sequence": e.sequence, "text": e.payload["text"],
-                 "receipt": message_receipt(wb, task_id, e.id)} for e in events if e.kind == "conversation_received"]
+                 "receipt": message_receipt(wb, task_id, e.id)} for e in events
+                if e.kind == "conversation_received" and e.id not in internal]
     status = user_status(wb, task_id)
     pending_action = None
     if not pending_messages(wb, task_id) and not paused(wb, task_id) and not status["busy"]:
+        from app.native_resources import view as native_resource_view
+        native = native_resource_view(wb, task_id)
+        question = wb.latest(task_id, "assistant_message")
+        awaiting_answers = bool(question and question.payload.get("questions") and not any(
+            e.kind == "conversation_received" and e.sequence > question.sequence for e in events))
+        if status["phase"] == "planning" and native.get("available") and not native.get("ready") and not awaiting_answers:
+            pending_action = {"kind": "native_resource", "requires_confirmation": True}
         confirmations = {"publication_prepared": ("publication", "publication_confirmed"),
                          "pr_update_prepared": ("update", "pr_update_confirmed"),
                          "pr_ready_prepared": ("ready", "pr_ready_confirmed"),
                          "cla_prepared": ("cla", "cla_confirmed")}
+        published = wb.latest(task_id,"publication_completed")
+        observed = wb.latest(task_id,"pr_followup_observed")
+        terminal = status["phase"] in {"merged","rewarded"} or bool(observed and observed.payload.get("stage") in {"merged","closed"})
+        seen_previews = set()
         for event in reversed(events):
-            if event.kind not in confirmations:
+            if pending_action is not None:
+                break
+            if event.kind not in confirmations or event.kind in seen_previews:
+                continue
+            seen_previews.add(event.kind)
+            if terminal:
+                continue
+            if event.kind == "publication_prepared" and (published or wb.latest(task_id,"publication_confirmed")):
+                continue
+            if event.kind == "pr_ready_prepared" and observed and observed.payload.get("pr",{}).get("draft") is False:
                 continue
             kind, confirmed = confirmations[event.kind]
             if not any(e.kind == confirmed and (e.payload.get("preview_hash") or e.payload.get("intent_hash")) == event.record_hash for e in events):
@@ -609,7 +751,9 @@ def conversation_view(wb: Workbench, task_id: str) -> dict[str, Any]:
         if pending_action is None and status["phase"] == "planning":
             plan = wb.latest_plan(task_id)
             reply = wb.latest(task_id, "assistant_message")
-            if reply and reply.payload.get("questions"):
+            if reply and reply.payload.get("questions") and not any(
+                e.kind == "conversation_received" and e.sequence > reply.sequence for e in events
+            ):
                 pending_action = {"kind": "answer", "source_id": reply.id, "requires_confirmation": False}
             elif plan:
                 from app.execution_preflight import task_preflight
@@ -618,8 +762,13 @@ def conversation_view(wb: Workbench, task_id: str) -> dict[str, Any]:
                                   "source_id": plan.id, "requires_confirmation": preflight["status"] == "ready"}
         elif pending_action is None and status["phase"] == "ready":
             from app.execution_acceptance import acceptance_view
-            if not acceptance_view(wb, task_id).get("accepted"):
+            acceptance = acceptance_view(wb, task_id)
+            if not acceptance.get("accepted"):
                 pending_action = {"kind": "accept", "requires_confirmation": True}
+            elif not wb.latest(task_id,"publication_prepared") and not wb.latest(task_id,"publication_confirmed"):
+                from app.publisher_accounts import account_status
+                pending_action = {"kind":"prepare_publication" if account_status(wb.session)["connected"] else "publisher_setup",
+                                  "binding_hash":acceptance["binding_hash"], "requires_confirmation":False}
     return {"version": VERSION, "user_state": status, "pending_action": pending_action, "paused": paused(wb, task_id),
             "pending_count": len(pending_messages(wb, task_id)), "messages": messages,
             "results": results}
@@ -634,8 +783,8 @@ class ConversationIntentWorker(WorkbenchJobWorker):
         self.resolve_profiles = False
 
     async def execute(self, job: Job) -> dict:
-        from app.conversation_reasoning import REASONING_VERSION, execute_reasoning
-        if job.payload.get("reasoning_version") == REASONING_VERSION:
+        from app.conversation_reasoning import REASONING_VERSIONS, execute_reasoning
+        if job.payload.get("reasoning_version") in REASONING_VERSIONS:
             if self.resolve_profiles:
                 from app.model_settings import configure_bound_worker
                 configure_bound_worker(self, job.id, self.settings, planning=True)

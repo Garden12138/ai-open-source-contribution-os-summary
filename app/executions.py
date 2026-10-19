@@ -989,6 +989,7 @@ class ExecutionAttemptService:
         reason_code: str,
         idempotency_key: str,
         now: datetime | None = None,
+        commit: bool = True,
     ) -> ExecutionStageVersion:
         inputs = _hashes(input_hashes, name="next-stage input hashes")
         key = _idempotency_key(idempotency_key)
@@ -1070,7 +1071,7 @@ class ExecutionAttemptService:
             workspace_ref=workspace_ref,
             workspace_inventory_hash=inventory_hash,
             now=now,
-            commit=True,
+            commit=commit,
         )
 
     def retry_stage(
@@ -1144,6 +1145,33 @@ class ExecutionAttemptService:
             now=now,
             commit=commit,
         )
+
+    def retry_verification_environment(
+        self, attempt_id: str, *, expected_record_hash: str,
+        recovery_event_hash: str, idempotency_key: str, commit: bool = True,
+    ) -> ExecutionStageVersion:
+        """Append a new Verify input version; preserve every failed input/hash."""
+        from app.workbench import Workbench
+        attempt = self.get_verified(attempt_id)
+        current = self.current(attempt_id)
+        events = Workbench(self.session, ".").history(attempt.task_id)
+        receipt = next((e for e in events if e.record_hash == recovery_event_hash
+                        and e.kind == "verification_environment_restored"), None)
+        if (current.record_hash != expected_record_hash or receipt is None
+                or receipt.actor_id != "system" or current.stage != "verify"
+                or current.status != "failed" or len(current.input_hashes) != 2
+                or receipt.payload.get("attempt_id") != attempt_id
+                or receipt.payload.get("failed_stage_hash") != current.record_hash
+                or receipt.payload.get("implement_result_hash") != current.input_hashes[0]
+                or receipt.payload.get("old_dependency_hash") != current.input_hashes[1]):
+            raise ExecutionStageTransitionError("Verification recovery receipt is stale or invalid")
+        return self._append(attempt=attempt, current=current, stage=SandboxStage.VERIFY,
+            status=ExecutionStageStatus.PENDING, reason_code="dependency_environment_restored",
+            idempotency_key=_idempotency_key(idempotency_key), job_spec_hash=None,
+            input_hashes=_hashes((current.input_hashes[0], receipt.payload["dependency_result_hash"]),
+                                name="restored verification inputs"),
+            result_hash=None, workspace_id=current.workspace_id, workspace_ref=current.workspace_ref,
+            workspace_inventory_hash=current.workspace_inventory_hash, now=None, commit=commit)
 
     def _append(
         self,
@@ -1330,6 +1358,17 @@ class ExecutionAttemptService:
                     "Execution stage hash chain does not match"
                 )
             _validate_stage_edge(previous, version)
+            if version.reason_code == "dependency_environment_restored":
+                from app.workbench import Workbench
+                receipts = Workbench(self.session, ".").history(attempt.task_id)
+                if not any(e.kind == "verification_environment_restored" and e.actor_id == "system"
+                           and e.payload.get("failed_stage_hash") == previous.record_hash
+                           and e.payload.get("attempt_id") == attempt.id
+                           and e.payload.get("implement_result_hash") == version.input_hashes[0]
+                           and e.payload.get("old_dependency_hash") == previous.input_hashes[1]
+                           and e.payload.get("dependency_result_hash") == version.input_hashes[1]
+                           for e in receipts):
+                    raise ExecutionAttemptConflictError("Verification recovery provenance is missing")
             previous = version
         return versions
 
@@ -1798,6 +1837,19 @@ def _validate_stage_edge(
         and current.workspace_ref == previous.workspace_ref
         and current.workspace_inventory_hash
         == previous.workspace_inventory_hash
+    ):
+        return
+    if (
+        previous_stage is SandboxStage.VERIFY and current_stage is SandboxStage.VERIFY
+        and previous_status is ExecutionStageStatus.FAILED
+        and current_status is ExecutionStageStatus.PENDING
+        and current.reason_code == "dependency_environment_restored"
+        and len(previous.input_hashes) == len(current.input_hashes) == 2
+        and previous.input_hashes[0] == current.input_hashes[0]
+        and current.job_spec_hash is None and current.result_hash is None
+        and previous.workspace_id == current.workspace_id
+        and previous.workspace_ref == current.workspace_ref
+        and previous.workspace_inventory_hash == current.workspace_inventory_hash
     ):
         return
     if (

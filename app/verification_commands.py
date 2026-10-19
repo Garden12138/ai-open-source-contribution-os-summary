@@ -11,7 +11,8 @@ def verification_command_error(commands: Sequence[Any], inventory: set[str], new
         tool = argv[2] if executable in {"python", "python3"} and len(argv) > 2 and argv[1] == "-m" else executable
         install = ((tool in {"pip", "pip3", "uv", "poetry", "pdm", "npm", "pnpm", "yarn"}
                     and any(a in {"install", "ci", "sync", "add", "update", "upgrade"} for a in argv[1:]))
-                   or tool in {"tox", "tox-uv"})
+                   or tool in {"tox", "tox-uv"}
+                   or (tool == "uv" and "run" in argv[1:]))
         if install:
             return {"reason_code":"planning_output_invalid", "validation_types":["value_error"],
                     "fields":["commands_to_run.argv"], "constraint":"dependency_preparation_separate",

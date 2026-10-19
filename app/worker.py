@@ -550,6 +550,9 @@ class ContribOSSandboxWorker:
         from app.sandbox_worker.workspace_jobs import WorkspacePreparationWorker
         self.preparation = WorkspacePreparationWorker(database, settings, runtimes.implement, runtimes.verify,
             self.dependencies.runtime, self.dependencies.proxy, worker_id=worker_id)
+        from app.sandbox_worker.native_resources import NativeResourceWorker, DockerNativeResourceRuntime
+        self.native_resources = NativeResourceWorker(database, settings,
+            DockerNativeResourceRuntime(docker_environment=docker_environment), worker_id=worker_id)
         self.execution = ExecutionStageWorker(
             database,
             signer,
@@ -564,6 +567,10 @@ class ContribOSSandboxWorker:
         )
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        await self.native_resources.cleanup()
+        completed = await self.native_resources.run_once(now=now)
+        if completed is not None:
+            return completed
         completed = await self.planning_context.run_once(now=now)
         if completed is not None:
             return completed

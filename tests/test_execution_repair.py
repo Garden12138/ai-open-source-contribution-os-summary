@@ -117,6 +117,65 @@ def test_bad_clarification_options_stop_after_two_repairs(tmp_path):
         assert PlanningService(session, settings.artifact_root).latest_plan(task_id) is None
 
 
+@pytest.mark.parametrize("malformed", [
+    '{"response":"准备好了","implementation_steps":["修改入口"],"working_directory":"."}',
+    '{"reply":[],"questions":[],"read_paths":[],"plan":null}',
+])
+def test_invalid_planning_envelope_is_repaired_without_applying_rejected_output(tmp_path, malformed):
+    db,settings,task,content,_=seeded(tmp_path)
+    with db.session() as session:
+        PlanningService(session,settings.artifact_root).request(task,text="沿用已回答范围准备方案",
+            parent_id=None,expected_hash=None,key="envelope")
+    first,_=run_turn(db,settings,malformed)
+    assert first.state == "succeeded" and first.result_data["repair_scheduled"]
+    with db.session() as session:
+        wb=PlanningService(session,settings.artifact_root)
+        assert not wb.latest_plan(task) and not wb.latest(task,"assistant_message")
+        assert wb.latest(task,"model_output_rejected").payload["usage"]["input_tokens"] > 0
+    second,runner=run_turn(db,settings,result(content))
+    assert second.state == "succeeded" and second.result_data["plan_status"] == "saved"
+    correction=json.loads(runner.invocations[0].prompt)["plan_repair"]
+    assert correction["constraint"] == "planning_envelope_schema"
+    with db.session() as session:
+        wb=PlanningService(session,settings.artifact_root)
+        assert wb.latest_plan(task) and not wb.latest(task,"execution_authorized")
+
+
+def test_planning_envelope_correction_stops_at_original_bound_and_counts_rejected_usage(tmp_path):
+    from app.planner import MAX_TOTAL_INPUT_TOKENS
+    db,settings,task,_,_=seeded(tmp_path)
+    with db.session() as session:
+        PlanningService(session,settings.artifact_root).request(task,text="继续方案",parent_id=None,
+            expected_hash=None,key="bound")
+    for number in range(3):
+        job,_=run_turn(db,settings,'{"response":"wrong envelope"}')
+        if number<2: assert job.result_data["repair_scheduled"]
+        else: assert job.state == "failed"
+    with db.session() as session:
+        wb=PlanningService(session,settings.artifact_root)
+        assert len([e for e in wb.history(task) if e.kind=="model_call"]) == 3
+        assert not wb.latest_plan(task) and not wb.latest(task,"execution_authorized")
+        wb.append(task,"model_output_rejected",{"usage":{"input_tokens":MAX_TOTAL_INPUT_TOKENS}},key="exhausted")
+        wb.request(task,text="新的修订",parent_id=None,expected_hash=None,key="next")
+    failed,runner=run_turn(db,settings,'{"reply":"must not be called"}')
+    assert failed.state == "failed" and "规划累计用量已达上限" in failed.error_message
+    assert not runner.invocations
+
+
+def test_sensitive_envelope_is_not_repaired_or_persisted(tmp_path):
+    db,settings,task,_,_=seeded(tmp_path)
+    with db.session() as session:
+        PlanningService(session,settings.artifact_root).request(task,text="准备方案",parent_id=None,
+            expected_hash=None,key="sensitive")
+    canary="ghp_PLANNINGENVELOPECANARY1234567890"
+    failed,_=run_turn(db,settings,json.dumps({"response":canary}))
+    assert failed.state == "failed"
+    with db.session() as session:
+        wb=PlanningService(session,settings.artifact_root)
+        assert len(wb.jobs(task)) == 1 and not wb.latest_plan(task)
+        assert canary not in '\n'.join(session.connection().connection.driver_connection.iterdump())
+
+
 def test_exact_edit_flows_through_existing_worker_and_verified_change_set(tmp_path):
     from app.coding import CodingContextService, CodingConversationService
     from app.artifacts import ArtifactStore

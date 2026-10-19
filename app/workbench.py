@@ -95,6 +95,11 @@ class Workbench:
         ensure_no_sensitive_data(
             {"actor": actor, "payload": payload, "key": key}, context="workbench"
         )
+        # The sequence/hash snapshot and append must share the SQLite write
+        # transaction, including when different workers append different events.
+        connection = self.session.connection()
+        if connection.dialect.name == "sqlite" and not connection.connection.driver_connection.in_transaction:
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
         rows = self.history(task_id)
         old = self.session.scalar(
             select(WorkbenchEvent).where(WorkbenchEvent.idempotency_key == key)

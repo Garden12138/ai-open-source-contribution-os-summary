@@ -89,7 +89,12 @@ def task_environment(wb: Any, task_id: str) -> dict[str, Any]:
     builder = dependency_builder_image()
     if builder and selected.get("mode") == "workspace-v2" and selected.get("ecosystem") == "python":
         selected = {**selected,"distribution_strategy":"source-wheel-v1","builder_image_digest":builder}
-    return inspect_environment(selected, evidence)
+    selected = inspect_environment(selected, evidence)
+    from app.native_resources import dependency_binding
+    native = dependency_binding(wb, task_id)
+    if native:
+        selected = {**selected, "native_resource": native}
+    return selected
 
 
 def schedule_verification(wb: Any, attempt_id: str, signer: Any) -> None:
@@ -99,10 +104,22 @@ def schedule_verification(wb: Any, attempt_id: str, signer: Any) -> None:
     from app.changesets import plan_sandbox_commands
     from app.sandbox_worker.specs import SandboxPolicy
     from app.workbench import WorkbenchError
+    from app.cla import _lock
+    # Both the stage worker and coordinator can reach this boundary. Serialize
+    # before reading the stage and commit its transition with the scheduled Job.
+    _lock(wb)
     attempts = ExecutionAttemptService(wb.session)
     attempt = attempts.get_verified(attempt_id)
     current = attempts.current(attempt_id)
+    if current.stage == "verify" and current.status == "pending":
+        commands = plan_sandbox_commands(PlanVersionService(wb.session).get_verified(attempt.plan_version_id))
+        spec = attempts.build_current_job_spec(attempt_id, commands=commands)
+        ExecutionStageControlService(wb.session).schedule_current(attempt_id, signed_job_spec=signer.sign(spec),
+            signer=signer, sandbox_policy=SandboxPolicy(),
+            idempotency_key=f"schedule:{attempt_id}:{current.stage}:{current.sequence}")
+        return
     if current.stage != "implement" or current.status != "succeeded":
+        wb.session.commit()
         return
     result = wb.read(current.result_hash)
     approved = PlanVersionService(wb.session).get_verified(attempt.plan_version_id)
@@ -133,7 +150,7 @@ def schedule_verification(wb: Any, attempt_id: str, signer: Any) -> None:
         inputs.append(receipt.payload["result_hash"])
     pending = attempts.advance_stage(attempt_id, expected_sequence=current.sequence,
         expected_record_hash=current.record_hash, input_hashes=tuple(inputs), reason_code="implement_succeeded",
-        idempotency_key=f"advance:verify:{attempt_id}:{current.sequence}")
+        idempotency_key=f"advance:verify:{attempt_id}:{current.sequence}", commit=False)
     commands = plan_sandbox_commands(PlanVersionService(wb.session).get_verified(attempt.plan_version_id))
     spec = attempts.build_current_job_spec(attempt_id, commands=commands)
     ExecutionStageControlService(wb.session).schedule_current(attempt_id, signed_job_spec=signer.sign(spec),

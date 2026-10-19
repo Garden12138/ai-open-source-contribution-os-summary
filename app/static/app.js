@@ -1,4 +1,4 @@
-import { mountContributionWorkbench } from "./workbench.js?v=conversation-agent-v1";
+import { mountContributionWorkbench } from "./workbench.js?v=pr-status-live-v1";
 import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
 import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown, changeScopeSummary } from "./studio.js?v=small-change-v2";
 import { mountModelSettings } from "./model-settings.js?v=conversation-agent-v1";

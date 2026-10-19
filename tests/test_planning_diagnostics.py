@@ -20,9 +20,9 @@ CANARY = "ghp_diagnosticcanary123456789012345678"
         ("missing", "planning_outcome_missing"),
         ("duplicates", "planning_question_ids_duplicate"),
         ("sensitive", "planning_sensitive_output"),
-        ("extra", "planning_output_invalid"),
-        ("json", "planning_output_invalid"),
-        ("reply_object", "planning_output_invalid"),
+        ("extra", "planning_sensitive_output"),
+        ("json", "planning_sensitive_output"),
+        ("reply_object", "planning_sensitive_output"),
     ],
 )
 def test_invalid_replies_emit_only_safe_diagnostics(tmp_path, caplog, case, expected):
@@ -64,7 +64,7 @@ def test_invalid_replies_emit_only_safe_diagnostics(tmp_path, caplog, case, expe
         assert diagnostic.payload["reason_code"] == expected
         assert diagnostic.job_id == failed.id
         expected_fields = {
-            "reply_object": ["reply"],
+            "reply_object": ["response"],
             "step_object": ["plan.implementation_steps"],
             "test_object": ["plan.tests_to_add_or_run"],
         }

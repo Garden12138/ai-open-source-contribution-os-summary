@@ -54,7 +54,7 @@ def check_proposal_structure(raw: str, context: Any, allowed_paths: Sequence[str
         seen.add(path); entry=entries[path]
         if set(operation)-{'path','kind','expected_prior_hash','content','executable','edits'}:
             raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
-        if operation.get('kind') not in {'edit','write','delete'}:
+        if operation.get('kind') not in {'edit','write','append','delete'}:
             raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
         if operation.get('expected_prior_hash')!=entry.prior_hash:
             raise ProposalValidationError('proposal_hash_mismatch',path=path,operation_index=index)
@@ -63,6 +63,9 @@ def check_proposal_structure(raw: str, context: Any, allowed_paths: Sequence[str
                 or operation.get('edits') is not None):
             raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
         if operation['kind']=='delete' and any(operation.get(key) is not None for key in ('content','edits','executable')):
+            raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
+        if operation['kind']=='append' and (entry.content is None or not isinstance(operation.get('content'),str)
+                or not operation['content'] or operation.get('executable') is not None):
             raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
     return raw
 
