@@ -4,8 +4,25 @@ from typing import Any
 from pathlib import PurePosixPath
 
 
+def _unsupported_node_lockfile(lock: str) -> dict[str, Any]:
+    return {"status": "unsupported", "reason_code": "node_lockfile_unsupported",
+            "reason": f"项目使用 {lock}，当前 Node 依赖准备器仅支持 package-lock.json。需要补充对应包管理器的隔离执行适配；确认方案不会自动解决，也不会改写项目锁文件。",
+            "manifests": []}
+
+
 def environment_plan(paths: list[str], *, change_paths: list[str] | None = None) -> dict[str, Any]:
     paths = set(paths)
+    from app.node_environments import node_environment_plan
+    only_python = bool(change_paths and any(PurePosixPath(p).suffix in {".py", ".pyi"} for p in change_paths)
+                       and not any(PurePosixPath(p).suffix in {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"} for p in change_paths))
+    node = None if only_python else node_environment_plan(paths, change_paths or ["__selected__.ts"])
+    mixed = node is not None and ((change_paths and any(PurePosixPath(p).suffix in {".py", ".pyi"} for p in change_paths))
+                                 or (not change_paths and bool(paths & {"pyproject.toml", "requirements.txt", "requirements.lock", "setup.py", "Pipfile"})))
+    if mixed:
+        return {"status": "unsupported", "reason_code": "mixed_environment_required", "manifests": [],
+                "reason": "当前改动同时需要 Python 和 Node，必须冻结两种环境后才能执行。"}
+    if node is not None:
+        return node
     # Select the closest package for actual code changes, not every ecosystem
     # present elsewhere in a monorepo. No repository code is evaluated here.
     if change_paths:
@@ -19,7 +36,22 @@ def environment_plan(paths: list[str], *, change_paths: list[str] | None = None)
                     roots.add(prefix)
                     break
         if len(roots) > 1:
-            return {"status": "unsupported", "manifests": [], "reason": "当前改动跨多个包，需拆分方案或提供跨包环境适配。"}
+            ordered = sorted(roots)
+            if len(roots) > 4 or any(prefix + "pyproject.toml" not in paths or prefix + "package.json" in paths for prefix in ordered):
+                return {"status": "unsupported", "manifests": [], "reason": "跨包执行仅支持同一仓库内最多四个 Python 包；混合语言或更多包需要单独适配。"}
+            manifests = []
+            for prefix in ordered:
+                package = environment_plan(list(paths), change_paths=[prefix + "__selected__.py"])
+                manifests.extend(package["manifests"])
+            manifests = list(dict.fromkeys(manifests))
+            if len(manifests) > 16:
+                return {"status": "unsupported", "manifests": [], "reason": "跨包依赖清单超过十六项准备预算。"}
+            return {"status": "supported", "ecosystem": "python", "mode": "workspace-v2",
+                    "project_directory": ordered[0].rstrip("/") or ".",
+                    "project_directories": [prefix.rstrip("/") or "." for prefix in ordered],
+                    "environment_layout": "per-package-v1",
+                    "manifests": manifests,
+                    "reason": "分别冻结所选 Python 包及本地依赖，为每个包准备独立环境并运行基线与离线验证；包内依赖冲突或任一检查失败即停止。"}
         if roots:
             prefix = roots.pop()
             scoped = {p[len(prefix):] for p in paths if p.startswith(prefix) and "/" not in p[len(prefix):]}
@@ -37,6 +69,15 @@ def environment_plan(paths: list[str], *, change_paths: list[str] | None = None)
                         "project_directory": prefix.rstrip("/") or ".", "manifests": manifests,
                         "reason": "在隔离环境中解析所选 Python 包与测试依赖，冻结 wheel 哈希；先运行基线，再实施及离线验证。"}
             selected = environment_plan(list(scoped))
+            if (selected["status"] == "unsupported" and "package.json" in scoped
+                    and "package-lock.json" not in scoped
+                    and not scoped & {"yarn.lock", "pnpm-lock.yaml"}):
+                # Workspace lockfiles may live above the selected package. This
+                # only improves the blocker; it never admits an unsupported manager.
+                inherited = next((str(parent / lock) for parent in PurePosixPath(prefix or ".").parents
+                    for lock in ("yarn.lock", "pnpm-lock.yaml") if str(parent / lock) in paths), None)
+                if inherited:
+                    selected = _unsupported_node_lockfile(inherited)
             if selected["status"] == "supported":
                 selected.update(mode="workspace-v2", project_directory=prefix.rstrip("/") or ".",
                                 manifests=[prefix + p for p in selected["manifests"]])
@@ -49,6 +90,9 @@ def environment_plan(paths: list[str], *, change_paths: list[str] | None = None)
         return {"status": "unsupported", "reason": "项目同时需要 Python 和 Node 环境，需专用环境适配。", "manifests": []}
     if node:
         if "package-lock.json" not in paths:
+            lock = next((name for name in ("yarn.lock", "pnpm-lock.yaml") if name in paths), None)
+            if lock:
+                return _unsupported_node_lockfile(lock)
             return {"status": "unsupported", "reason": "Node 环境需要 package-lock.json；当前锁文件尚未适配。", "manifests": []}
         return {"status": "supported", "ecosystem": "node", "manifests": ["package.json", "package-lock.json"],
                 "reason": "通过包代理准备锁定依赖，禁用安装脚本，随后离线验证。"}
@@ -89,6 +133,8 @@ def task_environment(wb: Any, task_id: str) -> dict[str, Any]:
     builder = dependency_builder_image()
     if builder and selected.get("mode") == "workspace-v2" and selected.get("ecosystem") == "python":
         selected = {**selected,"distribution_strategy":"source-wheel-v1","builder_image_digest":builder}
+    elif builder and selected.get("preparation_version") == "node-workspace-preparation-v1":
+        selected = {**selected, "distribution_strategy": "node-offline-build-v1", "builder_image_digest": builder}
     selected = inspect_environment(selected, evidence)
     from app.native_resources import dependency_binding
     native = dependency_binding(wb, task_id)

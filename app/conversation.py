@@ -37,6 +37,7 @@ def plain_text(text: str) -> str:
     text = re.sub(r"\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b", "（内部记录）", text)
     for old, new in (("哈希", "校验信息"), ("基线", "修改前测试"), ("沙箱 Worker", "隔离执行服务"), ("Publisher", "发布服务")):
         text = text.replace(old, new)
+    text = text.replace("修改前修改前测试", "修改前测试")
     return text[:8000]
 
 
@@ -121,6 +122,13 @@ def control_intent(wb: Workbench, task_id: str, text: str) -> str | None:
     hint = fast_intent(text)
     if hint == "stop":
         return hint
+    if hint == "continue":
+        from app.baseline_feedback import failed_replanning_job
+        from app.planning_budget import failed_budget_planning_job
+        handoff = wb.latest(task_id, "post_publication_finished")
+        if (failed_replanning_job(wb, task_id) or failed_budget_planning_job(wb, task_id)
+                or (handoff and handoff.payload["status"] in {"blocked", "stopped"})):
+            return hint
     if hint == "continue" and (paused(wb, task_id) or wb.active_blocker(task_id)
                                 or wb.latest_plan(task_id) is None):
         return hint
@@ -161,6 +169,33 @@ def fast_intent(text: str) -> str | None:
     if action == FOLLOWUP:
         return "followup"
     return None
+
+
+def plan_confirmation_requested(text: str) -> bool:
+    """Recognize a bare request to confirm, never treat it as authorization."""
+    return bool(re.fullmatch(r"(?:请)?(?:确认|确定|同意|批准)(?:当前|这个|该|已保存的)?方案"
+                            r"(?:并(?:开始|执行|继续|实施))?[。.!！]?", text.strip()))
+
+
+def plan_confirmation_reply(wb: Workbench, task_id: str) -> str:
+    """Explain the current exact confirmation or blocker without starting work."""
+    from app.workbench_view import workbench_view
+    view = workbench_view(wb, task_id)
+    if wb.latest_plan(task_id) is None:
+        return "还没有可确认的已保存方案。请先准备方案，再核对并确认。当前尚未启动实施。"
+    blockers = view["readiness"]["blockers"]
+    if blockers:
+        reasons = list(dict.fromkeys(item["message"] for item in blockers))
+        return ("方案已保留，但当前不能启动实施。\n" + "\n".join(reasons)
+                + "\n这不是确认超时；重复发送确认或点击按钮不会解除这些阻塞。"
+                  "需要先解决执行条件，再核对当前方案并单独确认。源码阅读和方案讨论仍可继续。")
+    if paused(wb, task_id):
+        return "当前工作已停止，方案已保留。请先发送“继续”，再核对当前方案并单独确认。"
+    if view["busy"]:
+        return "当前工作仍在处理，方案已保留。处理结束后，请核对当前方案并单独确认；聊天中的确认不会启动实施。"
+    return ("方案已保留，尚未通过执行确认。聊天中的“确认方案”不会启动实施。"
+            "请点击“核对方案并继续”，查看当前完整方案后点击“确认方案并开始”。"
+            "如果期间补充了要求，请先等待处理完成，再核对最新方案。")
 
 
 def observed_status(payload: dict[str, Any]) -> dict[str, Any]:
@@ -217,7 +252,25 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
                 label, next_step = "英文 PR 文案已准备好", "可以查看已有文案，并准备完整发布预览。"
     elif state == "planning":
         next_step = "说明你的要求，方案准备好后会请你确认。"
+    if wb.latest(task_id, "publication_completed"):
+        handoff = wb.latest(task_id, "post_publication_finished")
+        if handoff and handoff.payload["status"] in {"blocked", "stopped"}:
+            next_step = plain_text(handoff.payload["message"])
+        if observation and observation.payload.get("pr", {}).get("draft"):
+            from app.cla import published_target
+            from app.post_publication import _fresh_preview
+            from app.publisher_accounts import require_account
+            try:
+                preview = _fresh_preview(wb, task_id, published_target(wb, task_id), require_account(wb.session).event_hash)
+            except WorkbenchError:
+                preview = None
+            if preview and (not handoff or handoff.payload["status"] not in {"blocked", "stopped"}
+                            or preview.sequence > handoff.sequence):
+                next_step = "审核预览已就绪。查看预览后，单独确认提交正式审核；项目检查状态以远端记录为准。"
     names = {"planning_archive":"正在读取项目代码", "planning_context":"正在读取相关代码", "planning_turn":"正在完善方案",
+             "baseline_diagnosis":"正在诊断修改前检查失败",
+             "planning_import_metadata":"正在核对安全类型元数据",
+             "execution_prepare":"正在准备依赖并运行修改前检查", "coding_context":"正在读取实施所需代码",
              "conversation_intent":"正在处理补充信息", "execution_question":"正在回答你的问题",
              "contribution_start":"正在准备执行环境", "coding_turn":"正在实现修改", "provider_review":"正在审查代码",
              "publication_requirements":"正在读取贡献规范", "publication_document":"正在准备 PR 文案",
@@ -394,11 +447,22 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
         _finish(wb, task_id, message, text="你希望我解释当前结果，还是按这条要求调整工作？直接告诉我即可。")
         return
     if intent == "continue":
+        if state == "planning":
+            from app.baseline_feedback import resume_failed_replanning
+            job = resume_failed_replanning(wb, task_id, text=text, key=key)
+            if job is None:
+                from app.planning_budget import resume_budget_planning
+                job = resume_budget_planning(wb, task_id, text=text, key=key)
+            if job:
+                wb.append(task_id, "conversation_dispatched", {"version":VERSION,
+                    "message_id":message.id, "status":"processing", "intent":intent},
+                    key="conversation-dispatch:" + message.id, job_id=job.id, commit=False)
+                return
         blocker = wb.active_blocker(task_id)
         failed = next((j for j in reversed(wb.jobs(task_id)) if j.state == "failed"
                        and j.kind not in {"conversation_intent", "execution_question"}), None)
         if blocker and (("retryable" in blocker.payload and not blocker.payload["retryable"])
-                        or (failed and failed.kind not in {"coding_turn", "change_set_proposal", "provider_review"})):
+                        or (failed and failed.kind not in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"})):
             _finish(wb, task_id, message, text="当前执行受阻，已有方案和证据已保留。\n" + blocker.payload.get("reason", "")
                     + "\n这是执行适配或准备条件问题，不能通过重复继续解决；不会重新启动相同作业，也不会自动改变方案或降低测试要求。")
             return
@@ -406,9 +470,13 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
             from app.contribution_workflow import retry_execution_job
             job = retry_execution_job(wb, blocker.job_id, settings, commit=False)
         elif published:
-            intent = "followup"
+            handoff = wb.latest(task_id, "post_publication_finished")
+            observation = wb.latest(task_id, "pr_followup_observed")
+            pr = observation.payload["pr"] if observation else None
+            intent = "ready" if (handoff and handoff.payload["status"] in {"blocked", "stopped"}
+                and (pr is None or (pr["draft"] and pr["state"] == "open"))) else "followup"
         elif state == "planning" and wb.latest_plan(task_id) and not workbench_view(wb, task_id)["plan_stale"]:
-            _finish(wb, task_id, message, text="已有方案已保留。请查看当前方案并点击“按此方案开始”，我会接着实施和测试。")
+            _finish(wb, task_id, message, text=plan_confirmation_reply(wb, task_id))
             return
         elif state == "ready":
             intent = "publication"
@@ -496,6 +564,9 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
     dispatched_ids = {e.payload["message_id"] for e in wb.history(task_id) if e.kind == "conversation_dispatched"}
     waiting = [e for e in queue if e.id not in dispatched_ids]
     if not waiting:
+        from app.post_publication import advance_post_publication
+        advance_post_publication(wb, task_id, settings)
+        _results(wb, task_id)
         wb.session.commit()
         return
     # Progress questions can pass queued changes without modifying current work.
@@ -504,6 +575,12 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
     if paused(wb, task_id) and pause_event and message.sequence <= pause_event.sequence:
         wb.session.commit()
         return
+    if not message.payload.get("question_source") and plan_confirmation_requested(message.payload["text"]):
+        from app.task_states import ContributionTaskStateService
+        if ContributionTaskStateService(wb.session).current(task_id).to_state == "planning":
+            _finish(wb, task_id, message, text=plan_confirmation_reply(wb, task_id), references=[])
+            wb.session.commit()
+            return
     classified = next((e for e in reversed(wb.history(task_id)) if e.kind == "conversation_intent" and e.payload["message_id"] == message.id), None)
     decision = next((e for e in reversed(wb.history(task_id)) if e.kind == "conversation_decision" and e.payload["message_id"] == message.id), None)
     from app.conversation_reasoning import REASONING_VERSION, REASONING_VERSIONS, WORKFLOWS, observation
@@ -637,7 +714,7 @@ def _results(wb: Workbench, task_id: str) -> None:
              "proposal_corrected": "修改草案已按冻结原文校正并通过校验，将继续隔离实施与验证。原授权和失败证据保留，本次校正未增加模型调用次数。",
              "automation_blocked": "工作暂时遇到问题，已有成果保留。", "publication_document_ready": "英文 PR 文案已准备好。请查看内容；确认发布前，我会展示完整发布预览。",
              "publication_prepared": "发布预览已准备好。请检查账号、目标仓库、改动和完整文案，再确认创建草稿 PR。",
-             "publication_completed": "草稿 PR 已创建。你可以让我跟进项目检查与维护者反馈。",
+             "publication_completed": "草稿 PR 已创建。系统将自动核对远端状态与审核预览，后续进度会显示在这里。",
              "pr_update_prepared": "PR 文案修订已准备好。查看完整预览后，可以确认更新。",
              "pr_update_completed": "PR 标题和正文已更新并核对。可以继续跟进审核进展。",
              "pr_ready_prepared": "提交正式审核的预览已准备好。确认后会通知维护者，不代表项目检查已经通过。",
@@ -656,11 +733,22 @@ def _results(wb: Workbench, task_id: str) -> None:
                 "\n你可以让我继续恢复；若需要调整方案，我会先说明并请你确认。")
         elif event.kind == "pr_followup_observed":
             status = observed_status(event.payload)
+            if event.payload.get("pr", {}).get("draft") and any(
+                    e.kind == "pr_ready_prepared" and e.job_id == event.job_id for e in events):
+                status["next_step"] = "审核预览已准备好，请查看预览并单独确认；项目检查状态以远端记录为准。"
             text = status["label"] + "。\n\n" + status["next_step"]
+        elif event.kind == "post_publication_step":
+            text = "系统正在自动核对 PR 状态与审核预览，完成后会在这里给出下一步。"
+        elif event.kind in {"post_publication_finished", "post_publication_retrying", "post_publication_recovered"}:
+            text = plain_text(event.payload["message"])
         elif event.kind == "cla_status_observed":
             text = {"passed": "贡献者协议检查已通过。", "failed": "贡献者协议检查尚未通过。你可以让我读取协议供你查看。"}.get(event.payload.get("status"), "协议检查结果尚未确定，可以稍后让我再次核对。")
         elif event.kind == "execution_answer":
             text = "根据你提问时的记录：\n\n" + plain_text(event.payload["text"])
+        elif event.kind == "assistant_message" and event.job_id:
+            job = wb.session.get(Job, event.job_id)
+            if job and job.payload.get("baseline_recovery_hash"):
+                text = plain_text(event.payload.get("reply", ""))
         elif event.kind == 'proposal_rejected' and event.payload.get('retry_scheduled'):
             text = '修改草案未通过精确校验，尚未写入源码。正在依据冻结原文和具体错误自动修正，使用原有次数额度。'
         elif event.kind == "awaiting_acceptance":
@@ -693,9 +781,11 @@ def _results(wb: Workbench, task_id: str) -> None:
 
 
 def conversation_view(wb: Workbench, task_id: str) -> dict[str, Any]:
+    from app.post_publication import result_origin
     events = wb.history(task_id)
     recovered = recovered_result_ids(events)
     publications = {e.id: e for e in events if e.kind == "publication_completed"}
+    sources = {e.id: e for e in events}
     results = []
     for event in events:
         if event.kind != "conversation_result":
@@ -708,6 +798,9 @@ def conversation_view(wb: Workbench, task_id: str) -> dict[str, Any]:
             # Add the link to old receipts at presentation time; the immutable
             # journal and original response remain unchanged.
             result["text"] = with_publication_link(result["text"], source.payload)
+        origin = result_origin(wb, sources.get(result.get("source_id"), event), events)
+        if origin:
+            result["origin"] = origin
         results.append(result)
     internal = {e.payload["message_id"] for e in events if e.kind == "conversation_continuation_requested"
                 and e.actor_id == "system"}
@@ -794,7 +887,6 @@ class ConversationIntentWorker(WorkbenchJobWorker):
         return await self._execute_legacy(job)
 
     async def _execute_legacy(self, job: Job) -> dict:
-        from app.planner import MAX_MODEL_CALLS, MAX_TOTAL_INPUT_TOKENS, MAX_TOTAL_OUTPUT_TOKENS
         from app.providers.codex_cli import CodexExecInvocation
         from app.providers.contracts import ProviderStage
         from app.providers.nvidia_nim import normalize_completion_content
@@ -811,11 +903,8 @@ class ConversationIntentWorker(WorkbenchJobWorker):
                 attempt = len(calls)
                 if attempt >= 2:
                     raise WorkbenchError("这条消息已达到理解重试上限，原文与已有成果保留。")
-                usage = [e.payload.get("usage", {}) for e in history if e.kind in {"assistant_message", "conversation_usage"}]
-                if (sum(e.kind == "model_call" for e in history) >= MAX_MODEL_CALLS
-                    or sum(u.get("input_tokens", 0) for u in usage) >= MAX_TOTAL_INPUT_TOKENS
-                    or sum(u.get("output_tokens", 0) for u in usage) >= MAX_TOTAL_OUTPUT_TOKENS):
-                    raise WorkbenchError("本任务的讨论预算已用完，已有结果保留。")
+                from app.planning_budget import require_planning_budget
+                require_planning_budget(wb, job.payload["task_id"])
                 task = ContributionTaskService(session).get_verified(job.payload["task_id"])
                 plan = wb.latest_plan(task.id)
                 state = user_status(wb, task.id)

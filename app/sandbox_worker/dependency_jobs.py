@@ -25,7 +25,7 @@ def load_dependency(wb: Workbench, attempt_id: str) -> DependencyExecution | Non
                        and e.job_id == event.job_id
                        and {k: v for k, v in e.payload["workspace"].items() if k != "inventory_hash"}
                        == {k: v for k, v in event.payload["workspace"].items() if k != "inventory_hash"}), None)
-    if allocation and any(e.kind == "dependency_workspace_disposed"
+    if allocation and any(e.kind in {"dependency_workspace_disposed", "dependency_workspace_invalidated"}
                           and e.payload["allocation_hash"] == allocation.record_hash for e in events):
         raise WorkbenchError("冻结依赖工作区已回收，不能使用旧环境验证", code="environment_stale")
     value = wb.read(event.payload["result_hash"])
@@ -61,7 +61,10 @@ class DependencyJobWorker(WorkbenchJobWorker):
                     continue
                 current = ExecutionAttemptService(session).current(allocated.payload["attempt_id"])
                 stop = wb.latest(allocated.task_id, "stop_requested")
-                stopped = stop and allocated.sequence < stop.sequence
+                stopped = (stop and allocated.sequence < stop.sequence) or any(
+                    e.kind == "baseline_replan_requested" and e.sequence > allocated.sequence
+                    and e.payload.get("attempt_id") == allocated.payload["attempt_id"]
+                    for e in wb.history(allocated.task_id))
                 if not stopped and current.stage == "verify" and current.status in {"pending", "running"}:
                     continue
                 finished = current.stage == "verify" and current.status in {"succeeded", "failed", "cancelled", "timed_out"}

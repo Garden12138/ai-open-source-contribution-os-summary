@@ -14,9 +14,12 @@ Issue 快照出发，读取固定提交的仓库代码；信息不足时提出�
 1. 说明改造目标、回答必要问题。方案回复简述修改范围和测试安排，“查看方案”打开全文。
 2. 需要调整时直接回复；新方案保存为子版本，保留父版本和原有批准记录。
    代码依据或规划状态变化后必须重新确认，旧页面不能执行旧方案。
-3. 点击“按此方案开始”。后台校验当前方案、代码、执行环境和模型，重新读取上游。
-   依据变化时会停止并说明需要重新规划；普通聊天中的“好”不会启动执行。
-4. Sandbox Worker 执行 Explore；模型生成限于批准文件的 ChangeSet；隔离容器
+3. 点击“核对方案并继续”，查看完整方案后点击“确认方案并开始”。后台校验当前方案、代码、执行环境和模型，重新读取上游。
+   依据变化时会停止并说明需要重新规划。晚些确认不会使任务失效；期间补充要求后应等待处理完成并核对最新方案。
+   聊天中的“确认方案”只会返回真实执行条件和按钮提示，不会授予执行权限。
+   Node 项目会读取工作区、`packageManager`、Node 版本声明和原始 npm/Yarn/pnpm 锁文件，按项目配置准备隔离环境。
+   配置缺失时先补读；没有锁文件、声明冲突或超出资源预算时说明具体原因。
+4. Sandbox Worker 执行 Explore，准备冻结依赖并运行修改前基线；模型生成限于批准文件的 ChangeSet；隔离容器
    完成 Implement 和无网络 Verify；独立模型检查实际 diff 和测试产物。
    失败测试、未运行测试或阻断问题不能被模型的 `pass` 覆盖。审查阻断时最多
    自动修复两轮；基础设施失败停止并显示错误，不转为 Fake 执行。
@@ -33,16 +36,40 @@ Issue 快照出发，读取固定提交的仓库代码；信息不足时提出�
 旧停止请求的重放不会取消新一轮讨论。取消状态会明确显示在对话页，重新发送不会
 自动重新授权执行或发布。
 
-规划回复必须在“提问／补读文件／提交方案”中只选择一种。该互斥约束同时发送到
-模型工具 JSON Schema 并在本地校验；不会把纯说明、互相冲突的分支或不完整方案
-伪装成成功。失败时仅追加 `model_output_rejected` 诊断（白名单原因码、字段类别、
-校验类型），不保存模型原文。无有效分支、分支冲突、问题编号重复和疑似敏感输出
-有独立提示；其他字段／JSON 错误仍拒绝保存。失败不触发额外的模型修复调用。
-`planning-v4-optional-narration` 将外层 `reply` 定义为可选展示文案：省略或空字符串
-不会单独导致有效结果失败。界面可显示固定的“方案已生成”状态，数据库仍保留空
-文案，不编造模型原话。问题、文件列表和完整方案的互斥、字段及安全校验不变；
-实施步骤和测试项仍必须是字符串数组，仅 `commands_to_run` 接受结构化命令对象。
-其他类型错误、缺少方案内容或敏感输出仍拒绝保存。
+`planning-v5-independent-actions` 允许说明、问题、补读请求和方案草稿组合返回。
+系统先等待问题答案，再补读必要文件，最后校验并保存完整方案；等待答案或代码的
+草稿不能批准。外层 `reply` 可省略，有效说明也可单独返回；实施步骤和测试项
+必须是字符串数组，仅 `commands_to_run` 接受结构化命令对象。
+
+补读按冻结仓库清单逐个校验：有效路径继续读取，不存在的路径和 `content=null`
+的不可读文件不会拖累其余请求，也不会被当作已读证据。提问附带的补读在收到
+答案后同样遵循此规则。`assistant_message.read_paths` 只保留本次有效路径，
+`read_feedback` 记录 `planning_read_invalid`、不存在／不可读路径及固定修正提示；
+危险路径只记录数量，不写入原文。模型通过下一次请求中的 `read_feedback` 获得
+实际工具反馈，不能猜测替代路径或绕过敏感内容检查。全部路径无效时最多自动
+修正两次，仍受每次请求四轮补读、任务总调用和 Token 预算限制。
+
+拒绝的方案和读取请求追加 `model_output_rejected` 安全诊断；读取反馈、回复用量、
+子任务入队和本轮完成原子保存，重启后继续使用原有答案。达到补读上限会保留
+明确回执，不回滚整轮。敏感输出仍拒绝保存且不触发修复；缺失字段和其他可修复
+的结构错误使用同一个有界修订预算。任何补读、修订或聊天回复均不授予实施或发布权限。
+
+同一仓库最多支持四个 Python 包共同修改。工作台为每个包独立冻结依赖与本地包
+闭包，因此各包可以保留不同依赖版本。方案须在每个包自己的目录安排既有 pytest
+基线；所有命令按目录选择对应环境。修改前检查失败会进入持久化的自动诊断：能在
+已批准文件范围内处理、且无需改变环境或命令的代码问题，进入原修复与验证链；
+需要额外文件、依赖、命令或新依据时，自动准备具体的子方案，供单独确认。环境
+失败、证据不完整或诊断未完成时不会开始修改。最终验证和独立审查覆盖全部所选包，
+不能把原有错误记录当成最终检查通过。适配就绪不代表项目测试已经通过，仍需核对当前方案并
+单独确认开始。只读挂载、断网验证和一次性授权保持不变。
+
+执行详情分别展示“修改前测试”和“修改后测试”。前者失败时可查看命令的标准输出
+与错误输出；尚未实施时不会将修改前测试显示成修改后的验证结果。历史基线缺少
+摘要输出时，从原始不可变检查证据生成只读展示，不改写原记录或清除阻塞。
+诊断本身不能授予改动权限。新确认绑定 `baseline-feedback-v1`；旧授权只能恢复
+只读诊断与修订方案，不能在后台补上新的执行许可。每次执行最多诊断两个基线，
+每项诊断最多两次模型尝试，仍计入任务的规划调用和 Token 总预算；原代码修复
+次数不增加。停止、取消、模型/方案/源码变化会使诊断或恢复失效。
 
 当前状态显示在任务顶部，与任务列表使用相同的状态来源。页面每 2 秒读取状态，
 离开任务时清理轮询。Enter 发送、Shift+Enter 换行，中文选字不会误发；Ctrl/Cmd+Enter 兼容。
@@ -428,6 +455,18 @@ GitHub 更新 PR 接口不提供有文档保证的原子条件 PATCH；发送前
 
 ### 对话内转为正式审核与发布后跟进
 
+原对话创建 Draft PR 后，普通后台协调器会自动接续一次有界的只读核对，
+生成审核预览并在原对话展示下一步，无需补发消息或由维护会话代排任务。
+队列、发布来源 hash、账号绑定和处理进度持久化；重启或并发调度不会重复创建。
+临时读取失败在同一 Job 的两次尝试额度内恢复；取消、暂停、归档和账号变化会停止
+接续，失败原因留在原对话。失败后可直接发送“继续”重新核对并准备预览。
+已有有效预览会保留并只刷新远端事实；过期后创建新的不可变版本。已观测到非草稿、
+已关闭或已合并的旧任务不再排入审核预览；明确要求只读已保存记录时不追加远端读取。
+
+回执显示“系统自动跟进”“手动请求触发”或“维护操作触发”，来源绑定到实际 Job
+及发布事件。已核实的历史维护调用通过追加来源更正事件展示，旧回执、Job payload、
+actor 和 hash 均不改写；来源更正不能生成确认或授权。
+
 已发布任务可直接输入“请准备将当前 PR 转为 Ready for review，先给我确认预览”。
 该请求自动接续当前任务，只创建
 `pr_ready_prepare` 只读任务，不需要模型，不会改变 GitHub 状态。Publisher 核对
@@ -462,8 +501,9 @@ Checks、PR 工作流、commit statuses、审核、行内意见和 PR 讨论。�
 API：`POST .../workbench/messages` 新增 `pr_ready`、`pr_followup`；默认 question
 模式识别明确请求并只排入读取/预览任务。`POST .../pr-ready/prepare` 和
 `POST .../pr-followup` 是相同入口。普通“确认”、模型输出、原发布确认不能改变
-审核状态。所有入口保留同源/CSRF 和 CLI Token 保护。按需读取，无静默后台轮询
-GitHub；UI 自动轮询的是本地 Job 进度，远端状态以核对时间为准。
+审核状态。所有入口保留同源/CSRF 和 CLI Token 保护。发布后的自动接续只进行上述
+一次有界核对，其后按需读取，不持续轮询 GitHub；UI 自动轮询的是本地 Job 进度，
+远端状态以核对时间为准。自动预览不会调用 Ready 写入接口，仍须新的精确人工确认。
 
 状态观测和 Ready 授权/发送/回执存入 append-only WorkbenchEvent/Audit，观测完整
 内容存入内容寻址 Artifact，并在同一事务中记录 PullRequestEvent 和 Job 结果。
@@ -474,3 +514,66 @@ GitHub；UI 自动轮询的是本地 Job 进度，远端状态以核对时间为
 服务端幂等或条件 head 保证；最后一次 GET 到 mutation 的并发变更窗口仍存在，
 操作期间避免同时手工修改 PR。确认后的写任务不可取消，读取可取消。回退前
 排空读取任务并完成或核对已确认的写任务，保留所有授权、发送标记、观测和回执。
+
+## Baseline import metadata
+
+During automatic baseline replanning, a mypy `entry_points` diagnostic can refer
+to a file whose full source was withheld. The persistent
+`planning_import_metadata` job may inspect at most four such exact inventory
+paths in the same frozen archive, using the existing credential-free,
+network-disabled read-only OCI boundary. Its `python-entrypoints-imports-v1`
+output contains only the requested path, source hash and a fixed import-origin
+enum; ambiguous imports return `unknown`. It parses syntax without importing or
+executing repository code. Source text, literals and arbitrary identifiers never
+leave that container through this operation.
+
+The original unavailable source entry remains unavailable and cannot be edited.
+Archive/base/image/policy hashes and before/after job leases are checked; the
+metadata artifact is bound into the child planning input and resulting plan's
+audit evidence. No execution approval is created. Automatic recovery rejects
+unresolved acceptance questions and `.pyi` files that shadow existing repository
+`.py` source. All original command IDs, arguments, working directories and
+contribution paths remain required; failed checks cannot become passing results
+through diagnosis prose. Cancellation or stale evidence discards the continuation.
+Rollback uses the same drained-job database/artifact restore procedure as
+migration 0037; these jobs require no further schema change.
+
+An explicit continue after failed, timed-out or rejected recovery planning retains
+the same baseline packet, metadata and source/context checks. It does not use a
+model call merely to classify the retry, change execution consent or extend model
+budgets. Stops and changed inputs still invalidate the continuation. Status follows
+the durable job continuation chain, including the metadata-enriched input hash.
+The isolated Compose Worker receives the configured fixed Runner digest explicitly;
+missing or mismatched configuration fails closed.
+
+## 自动整理上下文
+
+规划、基线诊断和正常任务对话会自动整理背景代码、长日志及历史讨论。当前要求、
+规则、当前方案、批准方案和本轮精确读取的材料保留；旧方案、被拒绝的建议及较早
+的用户原话保留来源索引。摘要中的助手建议不代表已验证事实或人类批准。
+
+原文保存在不可变产物中，需要时由模型按任务内索引分段取回；仓库源文件也可通过
+原有阅读工具补读。未处理的后续消息不会提前进入当前任务记忆。不可读文件仍不可读。
+停止或依据变化会使旧索引失效，重试不沿用过期读取。
+
+大型仓库目录只在本轮保留相关路径，并明确标注清单不完整。模型可用目录索引按路径
+关键词查询完整目录，再读取所需文件；查询结果只包含路径，不会绕过文件读取限制。
+
+状态栏显示文本体积的减少比例；这不等于模型供应商的计费 token 减少比例。
+累计任务预算按已记录的实际用量计算，压缩不清零，也不自动追加预算。若达到任务
+累计上限，系统会明确显示是哪一项达到上限，现有记录、方案和批准历史继续保留。
+
+输入框下方的“输入预算”下拉框可选择本任务的累计输入上限：200 万、300 万、
+500 万或 1000 万 token。“自定义”可同时设置累计输入、输出及调用次数。当前已用量
+显示在旁边；选项低于已用量时不可选。选择后立即保存，仅影响当前任务，历史用量
+不会清零，其他任务不变。提高上限允许后续模型计费调用；保存本身不会自动开始
+规划或执行。需要继续时，在原对话发送“继续”，新方案仍须单独确认。
+
+任务正在处理时不能修改预算，请等待结束或先停止。自定义输入范围为 1000–2000 万
+token，输出范围为 1000–100 万 token，调用次数为 1–256，均不能低于已用量。
+这是一项任务累计阈值，不是模型账户余额或单次上下文窗口；每次调用的其他限额
+继续生效。预算修改以 `planning-budget-v1` 追加事件保存，支持重试并拒绝过期修改。
+
+`task-context-v1` 使用现有 Artifact/WorkbenchEvent 的版本化记录，不改变数据库
+表结构。回退前排空规划与对话作业；旧版本可忽略这些索引记录，或使用部署前完整
+数据库/产物备份恢复。不要通过改写历史用量或批准来恢复任务。

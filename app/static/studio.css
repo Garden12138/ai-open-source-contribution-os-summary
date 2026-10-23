@@ -572,6 +572,13 @@ body[data-view="task"] .dashboard-shell { max-width:none; padding:0; } body[data
 .conversation-agent-composer textarea:focus { outline:none; box-shadow:none; }
 .conversation-agent-composer:focus-within { border-color:var(--muted); }
 .conversation-agent-toolbar { display:flex; align-items:center; gap:14px; margin-top:10px; }
+.conversation-budget-control { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--muted); }
+.conversation-budget-control[hidden] { display:none; }
+.conversation-budget-control select { width:auto; max-width:180px; margin:0; padding:5px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; }
+.conversation-budget-control select:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
+.conversation-budget-usage { flex-basis:100%; font-size:11px; }
+.conversation-budget-field { display:grid; gap:6px; margin:14px 0; }
+.conversation-budget-field input { width:100%; }
 .conversation-agent-hint { margin-right:auto; font-size:10px; color:var(--muted); }
 .conversation-agent-toolbar .analysis-action { border-radius:20px; min-height:36px; }
 .conversation-new-messages { position:absolute; bottom:145px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:7px 16px; box-shadow:var(--shadow); z-index:2; }

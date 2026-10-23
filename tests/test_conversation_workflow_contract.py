@@ -103,9 +103,9 @@ def test_restart_restores_validation_feedback_without_an_extra_call(tmp_path,mon
     db,s,task,*_=seeded(tmp_path)
     request(db,s,task,'解释当前已保存的内容')
     original=reasoning.reasoning_prompt
-    def crash(wb,task_id,message_id,reads,correction,remaining_calls):
+    def crash(wb,task_id,message_id,reads,correction,remaining_calls,**kwargs):
         if correction:raise OSError('injected restart after rejection')
-        return original(wb,task_id,message_id,reads,correction,remaining_calls)
+        return original(wb,task_id,message_id,reads,correction,remaining_calls,**kwargs)
     monkeypatch.setattr(reasoning,'reasoning_prompt',crash)
     failed,_=run(db,s,'not json');assert failed.state=='failed'
     with db.session() as session:JobService(session).retry(failed.id)

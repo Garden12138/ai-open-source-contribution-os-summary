@@ -2662,7 +2662,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> JobResponse:
         try:
             current = JobService(session).get(job_id)
-            if current.kind in {"coding_turn", "change_set_proposal", "provider_review"}:
+            if current.kind in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"}:
                 from app.contribution_workflow import retry_execution_job
                 from app.workbench import Workbench, WorkbenchError
                 try:

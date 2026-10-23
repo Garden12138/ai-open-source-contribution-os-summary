@@ -14,6 +14,7 @@ from app.provenance import canonical_json, content_hash
 
 VERSION = "execution-capabilities-v3"
 PYTHON_PREPARATION_VERSION = "python-workspace-preparation-v2"
+MULTIPACKAGE_PREPARATION_VERSION = "python-workspace-preparation-v3"
 
 
 def python_development_requirements(metadata: dict) -> list[str]:
@@ -95,9 +96,13 @@ def python_project_error(metadata: dict, *, allow_dynamic: bool = False, include
 
 def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
     """A recognized filename selects an adapter; inspected content admits it."""
+    if selected.get("preparation_version") == "node-workspace-preparation-v1":
+        from app.node_environments import inspect_node_environment
+        return inspect_node_environment(selected, evidence)
     if selected.get("status") != "supported" or selected.get("mode") != "workspace-v2" or selected.get("ecosystem") != "python":
         return selected
-    selected = {**selected, "preparation_version": PYTHON_PREPARATION_VERSION}
+    selected = {**selected, "preparation_version": MULTIPACKAGE_PREPARATION_VERSION
+                if selected.get("project_directories") else PYTHON_PREPARATION_VERSION}
     entries = {entry["path"]: entry for entry in evidence["entries"]}
     missing = []
     reasons = []
@@ -162,6 +167,19 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
         evidence = wb.read(context.payload["artifact_id"])
         entries = {entry["path"]: entry for entry in evidence["entries"]}
         known = set(evidence["inventory"])
+        changed_manifests = sorted(set(plan.files_likely_to_change) & set(selected.get("manifests", [])))
+        if changed_manifests and selected.get("mode") == "workspace-v2":
+            issues.append({"code": "environment_manifest_change_unsupported", "stage": "prepare", "paths": changed_manifests,
+                "message": "方案将修改用于冻结环境的清单；当前流程会按完整文件哈希核对，不能用旧环境实施后再静默忽略清单变化。请先修订为源码修复，或完成独立的环境变更适配。"})
+        if selected.get("project_directories"):
+            from app.verification_commands import verification_command_error
+            from app.plans import PlanVersionService
+            error = verification_command_error(PlanVersionService._validated_content(plan).commands_to_run,
+                                               known, set(plan.files_likely_to_change))
+            if error:
+                issues.append({"code": "verification_commands_invalid", "stage": "prepare",
+                               "message": "每个所选包都需要在自身目录运行既有 pytest 基线；仅新增测试或仅收集测试不能覆盖修改前验证。",
+                               "reason_code": error["constraint"], "paths": error.get("paths", [])})
         environment_hash = environment_inputs_hash(context,selected)
         original_environment_hash = environment_inputs_hash(context, {k:v for k,v in selected.items() if k != "native_resource"})
         events = wb.history(task_id)
@@ -210,4 +228,7 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
               "input_hash":content_hash({"version":VERSION, "plan_hash":plan.record_hash if plan else None,
                                          "context_hash":context.record_hash if context else None}),
               "limits":{"coding_file_bytes":MAX_CODING_FILE_BYTES, "coding_context_bytes":MAX_CODING_CONTEXT_BYTES}}
+    if selected.get("project_directories"):
+        from app.baseline_feedback import POLICY
+        report["baseline_failure_policy"] = POLICY
     return {**report, "report_hash":content_hash(report)}

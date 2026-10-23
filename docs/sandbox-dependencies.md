@@ -86,6 +86,122 @@ Real macOS arm64 + OrbStack acceptance against the digest-pinned Runner proves:
 Native Linux amd64 + Docker Engine acceptance remains part of P5-G06 and is not
 claimed by this macOS result.
 
+## Project-derived Node environments (2026-10-22)
+
+`node-workspace-preparation-v1` selects the installation root from the approved
+source paths and original lockfile. It inspects every package manifest under
+that root, `packageManager`, `engines.node`, `.node-version`/`.nvmrc`,
+`pnpm-workspace.yaml` and the Yarn linker declaration. Exact manager versions
+are frozen; absent `packageManager` uses the versioned platform default
+(npm 10.9.4, Yarn 1.22.22, pnpm 10.11.0). Missing evidence requires a read,
+while conflicting managers, unsafe declarations, missing locks, more than 64
+manifests or unrelated installation roots fail explicitly. Mixed Python/Node
+changes retain their existing blocker. Repository configuration cannot change
+the fixed package proxy or supply credentials.
+
+`workspace-dependency-plan-v5` extends the existing signed plan with the Node
+recipe, package roots, lifecycle declaration, original manifest hashes and an
+optional digest-pinned compiler image. `workspace-dependency-result-v3` seals
+the actual Node/manager version, runtime path, original recipe, installed
+manifest hashes, actual execution image and offline-build completion. These
+are additive artifact versions: legacy v1–v4 plans and v1/v2 results serialize
+identically, preserving their hashes. No SQL schema migration is needed.
+
+Network acquisition installs only through `registry.npmjs.org`, with repository
+lifecycle scripts disabled. If the base runtime does not satisfy the project
+constraints, the worker freezes a compatible platform-specific Node binary
+from that same registry. npm, Yarn Classic, modern Yarn/PnP and pnpm retain
+their original lockfile semantics. Only the public Yarn npm-mirror URL is
+normalized in the private installation copy. A second credential-free
+`network=none` container runs dependency builds. Compiler-image use is explicit
+in the signed recipe and result; it does not bypass the source Runner identity
+or image/hash checks.
+
+Baseline and post-change Verify each create a fresh bounded source view in
+`/execution`, mount frozen dependencies read-only and probe the exact runtime
+and manager before lifecycle initialization. Workspace links point at the
+current source view. ESM, package-local modules and Yarn loaders therefore see
+the current modification. Source-file hashes are checked after initialization
+and every test; caches/generated files stay outside the contribution diff.
+The source view retains `nosuid,nodev,noexec`; native dependency binaries execute
+from the frozen read-only dependency volume. Repository-generated executables
+in writable scratch and arbitrary browser/service downloads are not admitted by
+this recipe. External test resources still need their separate versioned
+startup/readiness/reset/cleanup contract.
+
+The baseline, Verify and independent Review bind the same preparation result.
+The review prompt includes the exact environment spec and runtime receipt;
+queued reviews also freeze the baseline/environment binding. Human acceptance
+and read-only publication preview retain the existing exact Verify/Review
+chain. Preparation success alone never counts as passed tests or publication
+authorization.
+
+A disposal journal entry or a trusted pre-command dependency-inventory probe
+can invalidate one exact allocation. The latter appends
+`dependency_workspace_invalidated`, rather than pretending cleanup succeeded.
+Existing bounded recovery rebuilds the same frozen recipe, creates a new
+baseline and runs a fresh Verify/Review against the preserved implementation.
+It does not repeat code generation or reuse old test/review evidence. Ordinary
+command failures and post-command tampering cannot trigger this probe result.
+
+Node dependency entries are canonically sorted by their own relative path before
+hashing in both preparation and Verify. A workspace symlink can be broken during
+preparation and resolve to a directory after the fresh source view exists;
+`os.walk` must not change the hash merely by moving it between file/directory
+groups. Link target strings and regular-file bytes remain part of the hash.
+Legacy non-Node inventory ordering is unchanged. A real post-command mismatch
+still rejects all test evidence and produces a persisted
+`environment_baseline_integrity_failed` diagnostic rather than a generic error.
+
+Trusted maintenance can resume a failed initial preparation after a proven
+runtime fix, or after an isolated successful acquisition/version probe matches
+the exact frozen manager. No model/API route accepts maintenance proofs. Each
+replacement keeps the failed Job and allocations, preserves the exact approval,
+revalidates source/context/model/policy/stop state, and uses new allocation keys.
+There are at most two replacements; replay returns the same Job. A successful
+availability probe does not diagnose an earlier unknown transport failure.
+Npm network, certificate, write-permission, memory and integrity failures retain
+fixed reason codes without exporting raw package output. Preparation must still
+complete a real baseline before code generation.
+
+The fresh Node view uses a private `node_modules` directory with package entries
+linked to the read-only bundle. Vite's `.vite-temp`, `.vite` and `.cache` outputs
+stay private to that view. `TMPDIR`/`TMP`/`TEMP`, `XDG_CACHE_HOME` and `HOME` use
+fresh directories in the existing bounded execution tmpfs; the small `/tmp`
+mount remains available for supervisor logs. No resource ceiling or network
+policy is increased. Cache startup errors and ENOSPC are environment failures,
+not evidence that the approved source requires a code repair.
+
+An internal `workspace-preparation-job-v2` can establish a new baseline with an
+unchanged, still-live bundle after a trusted readiness probe. It checks the
+original approval, stage, prior baseline, source/result/spec hashes, runtime
+source proof and allocation; a disposed bundle or failed/mismatched probe is
+rejected. The Worker never invokes acquisition in this mode. A new allocation
+reference binds the original allocation hash, and the new immutable baseline
+includes its runtime proof and reused reference. Verify still rehashes the
+read-only bundle before/after execution and Review binds the new baseline.
+The old tests, jobs, baseline and approval remain intact. This is an additive
+job/artifact contract with no SQL schema change; drain these jobs before rolling
+back workers that do not implement the contract.
+
+Explore/Implement/Verify stage workers renew their live lease every ten seconds
+while retaining the original stage timeout and retry ceilings. Completion uses
+elapsed current time and refreshes the Job state before atomic artifact
+finalization. Cancellation, lost ownership or renewal failure cancels execution;
+the Docker process group and the exact task container are cleaned up. A late
+result from an expired run cannot become successful evidence. Stage
+reconciliation also handles a generic Job reaper having recorded expiry first,
+so the Job and its pending/running stage converge before a bounded retry.
+
+Upgrade/recovery: back up SQLite together with the content-addressed artifacts,
+deploy all API/provider/sandbox services from the same revision, and retain
+allocation journals during cleanup. Before rollback to a version without v5/v3
+support, stop new execution, drain/cancel new jobs, and dispose their labelled
+resources. Keep new artifacts/history for audit; do not edit hashes, approvals,
+or recreate the database to make older workers accept them. Plans created
+against the old capability fingerprint require a child version and fresh
+execution confirmation.
+
 ## Workspace preparation and baseline (2026-10-10)
 
 New `sandbox-workflow-v2` authorizations prepare the selected package and run a
@@ -119,8 +235,77 @@ The dependency inventory includes the lock, downloaded/local wheels, venv and
 source-path configuration. Source precedence ensures baseline and post-change
 Verify import the actual workspace code, rather than an old installed wheel.
 
+Multi-package Python preparation uses `python-workspace-preparation-v3` with
+`environment_layout=per-package-v1`. It selects at most four package roots from
+the approved change paths and freezes their ordered root list and manifest union
+in the signed dependency plan. There are at most six additional local projects,
+eight total projects, sixteen manifests, and the existing shared disk/time/model
+budgets. Mixed Python/Node changes remain unsupported.
+
+Each selected package receives a separate venv, wheel/hash lock, local dependency
+closure and source-path receipt under `output/environments/<index>`. Its own test
+requirements and ancestor development requirements apply only to that environment;
+another selected package's requirement file does not leak into it. One package
+can retain `packaging<24` while another uses `packaging>=24`. Conflicts inside either
+environment still fail. Distribution names must be unique. Runtime, selected
+optional/development/build and frozen requirements-file constraints are checked
+after installation, including local wheel versions; the existing explicit
+workspace-source overrides remain exact.
+
+`package-environments.json` records the per-package recipes inside the hashed
+dependency inventory. The immutable baseline and Verify commands bind every
+working directory to its corresponding environment. All commands must run under
+a selected package root, and each root needs an existing direct pytest baseline
+command; new-file-only tests and collection-only commands cannot qualify. Every
+baseline command is recorded before v3 enters code generation. New exact
+authorizations bind `baseline-feedback-v1` in admission and approval hashes:
+failed baselines first enter a persistent read-only diagnosis. Complete ordinary
+code/test failures may enter the existing coding path only when the diagnosed
+repair stays inside approved files with unchanged dependencies/commands and all
+frozen inputs still match. Environment/incomplete evidence, outside-scope repairs
+and legacy approvals instead prepare a child plan for fresh confirmation. Post-change tests
+and independent review remain required for all selected packages.
+
+Fresh network-none Verify builds bounded symlink-only Python source overlays on
+tmpfs. A common regular package such as `openinference.instrumentation` therefore
+sees the modified instrumentor and its local dependencies together, instead of
+importing a baseline wheel. Source roots stay read-only; escaping paths, input
+symlinks and conflicting module files reject. Each environment has its own
+overlay; no source is copied back into the repository or dependency volume.
+The whole dependency inventory is checked before and after all commands.
+
+Legacy v1/v2 preparation wire shapes/hashes are unchanged. No SQL schema is added:
+v3 is an additive signed-recipe/artifact version. Upgrade API/coordinator/Sandbox
+Worker images together, retain old immutable records, and require new exact
+execution confirmation for changed capability/recipe inputs. Before rollback,
+stop or drain v3 jobs and preserve their bundle, baseline and journal; restore
+matching images, then re-plan/reconfirm. Never reinterpret a v3 recipe as v2 or
+restore an old approval by editing its hashes.
+
+Plans editing a selected Python workspace's frozen manifest are not executable
+with the existing environment, including a pyproject change confined to mypy
+settings: current Verify binds the entire manifest hash, not only dependencies.
+Admission reports `environment_manifest_change_unsupported` before confirmation.
+Automatic baseline replanning rejects these edits with actionable feedback and
+retains the original approved contribution paths/commands (not additions from a
+rejected intermediate draft). Supporting manifest overlays or a changed recipe
+requires its own explicit adapter; no silent old-environment reuse is permitted.
+
+Migration `0037_baseline_feedback` permits automatic executing-to-planning only
+through a succeeded diagnosis job and matching append-only planner/baseline/
+authorization/artifact receipts at the exact execution-state predecessor. It
+does not grant execution consent. New diagnosis/planning jobs must be drained
+before rollback, followed by restoration of the complete pre-upgrade SQLite and
+artifact backup with matching code. Historical failures and approvals are never
+edited. Dependency cleanup retains volumes while diagnosis consumes them and
+idempotently releases the abandoned attempt when it enters read-only replanning.
+
 `execution-baseline-v1` records exact commands, plan hash, real Explore result,
 environment spec/result hashes, sanitized command evidence and outcome.
+Both stdout and stderr feed outcome classification and the native execution
+details. Historical summaries that omitted stdout are projected from their
+unchanged, hash-verified inspection artifact; this does not replace the original
+receipt, change a failure into a pass or grant recovery/implementation consent.
 Environment errors stop before code generation; code/test failures remain visible
 baseline evidence and do not manufacture a passing baseline. Post-change Verify
 must pass, and independent review receives the immutable baseline evidence.

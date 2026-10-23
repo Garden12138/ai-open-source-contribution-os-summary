@@ -186,7 +186,7 @@ def test_upgrade_from_0030_preserves_tasks_and_backup_recovery(tmp_path, monkeyp
     with sqlite3.connect(tmp_path / "old.db") as source, sqlite3.connect(tmp_path / "backup.db") as backup:
         source.backup(backup)
     report = db.create_schema()
-    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews", "0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery")
+    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews", "0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback")
     with db.session() as session:
         assert ContributionTaskService(session).get_verified(task.id).record_hash == task.record_hash
         TaskVisibilityService(session).change(task.id, target="archived", expected_sequence=0)

@@ -1254,6 +1254,9 @@ class DockerImplementRuntime:
                 timeout_seconds=timeout_seconds,
                 start_new_session=True,
             )
+        except asyncio.CancelledError:
+            await self._force_remove(container_name)
+            raise
         except TimeoutError as exc:
             await self._force_remove(container_name)
             raise ImplementationError(
@@ -1280,7 +1283,7 @@ class DockerImplementRuntime:
                 process.communicate(),
                 timeout=timeout_seconds,
             )
-        except TimeoutError:
+        except (TimeoutError, asyncio.CancelledError):
             if start_new_session:
                 try:
                     os.killpg(process.pid, signal.SIGKILL)

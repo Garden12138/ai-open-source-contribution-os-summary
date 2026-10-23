@@ -5,15 +5,31 @@ from sqlalchemy.orm import Session
 
 
 def selected_workspace_paths(environment: dict[str, Any], inventory: set[str], changes: set[str]) -> tuple[str, ...]:
-    directory = environment.get("project_directory", ".")
-    if directory == "." or environment.get("status") != "supported":
+    if environment.get("ecosystem") == "node":
+        # Preserve the full installation graph, while keeping credential paths
+        # outside the signed source scope. The Runner's rejection stays intact.
+        denied = {".env", ".git", ".netrc", ".npmrc", ".pypirc", "auth.json",
+                  "credentials", "id_dsa", "id_ed25519", "id_rsa"}
+        unsafe = {p for p in inventory if any(part.lower() in denied for part in p.split("/"))}
+        safe = sorted(inventory - unsafe)
+        roots = set()
+        for path in safe:
+            parts = path.split("/")
+            for length in range(1, len(parts) + 1):
+                candidate = "/".join(parts[:length])
+                if not any(p == candidate or p.startswith(candidate + "/") for p in unsafe):
+                    roots.add(candidate)
+                    break
+        return tuple(sorted(roots))
+    directories = environment.get("project_directories") or [environment.get("project_directory", ".")]
+    if "." in directories or environment.get("status") != "supported":
         return ()
-    root = directory.split("/", 1)[0]
-    roots = {root, *changes}
+    package_roots = {directory.split("/", 1)[0] for directory in directories}
+    roots = {*package_roots, *changes}
     names = {"README.md", "LICENSE", "LICENSE.md", "LICENSE.txt", "NOTICE", "CHANGELOG.md",
              "CONTRIBUTING.md", "pyproject.toml", "ruff.toml", ".ruff.toml", "mypy.ini", "pytest.ini", "setup.cfg", ".coveragerc"}
     roots.update(p for p in inventory if p in names)
-    return tuple(sorted(p for p in roots if p == root or not p.startswith(root + "/")))
+    return tuple(sorted(p for p in roots if p in package_roots or not any(p.startswith(root + "/") for root in package_roots)))
 
 
 def attempt_workspace_paths(session: Session, attempt: Any) -> tuple[str, ...]:

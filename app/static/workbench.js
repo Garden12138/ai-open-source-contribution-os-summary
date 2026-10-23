@@ -55,9 +55,19 @@ export function mountContributionWorkbench(root, taskId, options) {
   try { input.value = sessionStorage.getItem(draftKey) || ""; } catch { /* Storage may be unavailable. */ }
   const toolbar = node("div", "", "conversation-agent-toolbar");
   const hint = node("span", "Enter 发送 · Shift+Enter 换行", "conversation-agent-hint");
+  const budgetControl = node("div", "", "conversation-budget-control");
+  const budgetLabel = node("label", "输入预算", "conversation-budget-label");
+  const budgetSelect = node("select"); budgetSelect.id = `conversation-budget-${taskId}`;
+  budgetSelect.setAttribute("aria-label", "本任务累计输入预算"); budgetSelect.disabled = true;
+  budgetLabel.htmlFor = budgetSelect.id;
+  const budgetUsage = node("small", "正在读取预算…", "conversation-budget-usage");
+  budgetUsage.id = `conversation-budget-usage-${taskId}`;
+  budgetUsage.setAttribute("role", "status"); budgetUsage.setAttribute("aria-live", "polite");
+  budgetSelect.setAttribute("aria-describedby", budgetUsage.id);
+  budgetControl.append(budgetLabel, budgetSelect, budgetUsage);
   const stop = button("停止", () => act(() => post("/conversation/messages", {text:"停止"}))); stop.hidden = true;
   const send = button("发送 ↑", () => {}, true); send.type = "submit"; send.setAttribute("aria-label", "发送");
-  toolbar.append(hint, stop, send); form.append(input, toolbar);
+  toolbar.append(hint, stop, send); form.append(input, budgetControl, toolbar);
   shell.append(header, error, messages, fresh, form); root.replaceChildren(shell);
   const viewport = window.visualViewport;
   function fitKeyboard() {
@@ -101,6 +111,10 @@ export function mountContributionWorkbench(root, taskId, options) {
   function controls() {
     send.disabled = sending || !input.value.trim() || !data;
     stop.hidden = !data?.conversation?.user_state?.can_stop; stop.disabled = sending;
+    budgetSelect.disabled = sending || !data?.execution?.planning_budget?.configurable;
+    for (const el of drawerBody.querySelectorAll("[data-budget-save]"))
+      el.disabled = sending || !data?.execution?.planning_budget?.configurable
+        || el.dataset.budgetSave !== data.execution.planning_budget.revision;
     for (const el of shell.querySelectorAll("[data-start-planning]")) el.disabled = sending || !!data?.busy;
     for (const el of shell.querySelectorAll("[data-confirmation]")) {
       el.disabled = sending || !!data?.conversation?.pending_count || !!data?.conversation?.paused || !!data?.busy || el.dataset.valid !== "true" || (el.validate && !el.validate());
@@ -119,6 +133,72 @@ export function mountContributionWorkbench(root, taskId, options) {
     catch (problem) { error.textContent = friendly(problem.message); if (drawer.open) drawerError.textContent = error.textContent; await load(true); }
     finally { sending = false; controls(); }
   }
+  function tokenLabel(value) {
+    return value >= 10000 ? `${Number((value / 10000).toFixed(1))} 万` : value.toLocaleString("zh-CN");
+  }
+  function renderBudget() {
+    const budget = data.execution?.planning_budget;
+    if (!budget) { budgetControl.hidden = true; return; }
+    budgetControl.hidden = false;
+    const selected = budget.limits.input_tokens;
+    const signature = JSON.stringify([selected, budget.usage.input_tokens]);
+    if (budgetSelect.dataset.options !== signature) {
+      budgetSelect.replaceChildren();
+      for (const value of [...new Set([2000000, 3000000, 5000000, 10000000, selected])].sort((a,b) => a-b)) {
+        const option = node("option", `${tokenLabel(value)} token`); option.value = String(value);
+        option.disabled = value < budget.usage.input_tokens; budgetSelect.append(option);
+      }
+      const custom = node("option", "自定义…"); custom.value = "custom"; budgetSelect.append(custom);
+      budgetSelect.dataset.options = signature;
+    }
+    budgetSelect.value = String(selected);
+    budgetUsage.textContent = `已用 ${tokenLabel(budget.usage.input_tokens)} · 调用 ${budget.usage.calls}/${budget.limits.calls}`;
+    budgetControl.title = "仅限当前任务的累计规划、诊断和对话预算。选择后立即保存，不清零历史用量、不自动开始处理。提高上限会允许后续模型计费调用。";
+  }
+  let budgetAttempt;
+  async function saveBudget(limits, basis) {
+    const body = {expected_hash:basis, limits}, signature = JSON.stringify(body);
+    if (!budgetAttempt || budgetAttempt.signature !== signature)
+      budgetAttempt = {signature, key:crypto.randomUUID()};
+    await post("/budget", body, budgetAttempt.key); budgetAttempt = null;
+  }
+  function showCustomBudget() {
+    const basis = data.execution.planning_budget;
+    openDrawer("当前任务预算");
+    drawerBody.append(node("p", "这是累计上限，历史用量继续保留。提高上限会允许后续模型计费调用；保存只修改当前任务，不会自动开始规划或执行。"));
+    const fields = {};
+    for (const [key, label] of [["input_tokens", "累计输入 token"], ["output_tokens", "累计输出 token"], ["calls", "累计调用次数"]]) {
+      const row = node("label", "", "conversation-budget-field");
+      const field = node("input"); field.type = "number"; field.step = "1";
+      field.min = String(Math.max(basis.bounds[key].min, basis.usage[key]));
+      field.max = String(basis.bounds[key].max); field.value = String(basis.limits[key]);
+      field.setAttribute("aria-label", label);
+      row.append(node("span", `${label}（已用 ${basis.usage[key].toLocaleString("zh-CN")}）`), field);
+      drawerBody.append(row); fields[key] = field;
+    }
+    const save = button("保存当前任务预算", () => act(async () => {
+      const limits = {};
+      for (const [key, field] of Object.entries(fields)) {
+        if (!field.reportValidity() || !Number.isSafeInteger(Number(field.value)))
+          throw new Error("请填写范围内的整数上限，且不能低于已用量。");
+        limits[key] = Number(field.value);
+      }
+      await saveBudget(limits, basis.revision); drawer.close();
+    }), true);
+    save.dataset.budgetSave = basis.revision;
+    const state = node("p"); state.setAttribute("role", "status"); state.dataset.previewStatus = "true";
+    state.update = () => { state.textContent = data.execution.planning_budget.revision !== basis.revision
+      ? "预算或用量已变化，请返回对话后重新选择。" : !data.execution.planning_budget.configurable
+        ? "任务正在处理，请等待完成或停止后再调整预算。" : ""; };
+    drawerBody.append(state, save); controls();
+  }
+  budgetSelect.addEventListener("change", () => {
+    const selected = budgetSelect.value, budget = data?.execution?.planning_budget;
+    if (!budget) return;
+    if (selected === "custom") { budgetSelect.value = String(budget.limits.input_tokens); showCustomBudget(); return; }
+    const limits = {...budget.limits, input_tokens:Number(selected)};
+    act(() => saveBudget(limits, budget.revision));
+  });
   form.addEventListener("submit", event => {
     event.preventDefault(); const text = input.value.trim(); if (!text || sending) return;
     if (!requestAttempt || requestAttempt.text !== text) requestAttempt = {text, key:crypto.randomUUID()};
@@ -315,6 +395,10 @@ export function mountContributionWorkbench(root, taskId, options) {
   }
   function verificationText() {
     const v = data.execution?.verification;
+    const baseline = data.execution?.baseline?.outcome;
+    if (v?.status === "not_run" && baseline && baseline.status !== "passed") {
+      return `修改前测试 ${baseline.passed || 0}/${baseline.total || 0} 条命令通过；检查未全部通过，尚无修改后验证结果。`;
+    }
     return v?.status === "passed" ? `${v.passed}/${v.total} 条验证命令通过；项目测试中的跳过情况请查看详细结果。`
       : v?.status === "environment_blocked" ? "测试环境尚未就绪，当前不能确认测试通过。"
       : v?.status === "failed" ? "验证尚未通过，已有修改保留。" : "尚无完整的测试结果。";
@@ -331,8 +415,26 @@ export function mountContributionWorkbench(root, taskId, options) {
       changes = createExecutionChanges(); drawerBody.append(changes.summary, changes.viewer);
       await changes.update({...detail, verification:outcome});
       if (generation !== drawerGeneration) return;
-      drawerBody.append(node("h3", "测试结果"));
-      if (outcome) {
+      const baseline = data.execution?.baseline;
+      if (baseline?.attempt_id === id) {
+        drawerBody.append(node("h3", "修改前测试"));
+        const before = baseline.outcome;
+        drawerBody.append(node("p", `${before.passed || 0}/${before.total || 0} 条验证命令通过。`));
+        for (const failure of before.failures || []) drawerBody.append(node("pre", `${failure.command_id || "验证命令"}\n${failure.output || failure.stderr || "未通过"}`));
+        const feedback = data.execution?.baseline_feedback;
+        if (feedback) {
+          drawerBody.append(node("h3", "失败诊断"));
+          drawerBody.append(node("p", ({diagnosing:"正在自动分析修改前的失败。", diagnosed:"诊断已完成，正在安排下一步。",
+            repairing:"正在原批准范围内处理失败，修改后仍须运行全部检查。", replanning:"正在根据诊断准备修订方案。",
+            awaiting_confirmation:"修订方案已准备好，等待单独确认。", needs_input:"诊断和方案讨论已保留，仍有待补充的信息。",
+            failed:"自动诊断或修订未完成，失败证据保留。", cancelled:"诊断已停止，失败证据保留。"})[feedback.status] || "诊断记录已保留。"));
+          if (feedback.diagnosis?.summary) drawerBody.append(node("p", feedback.diagnosis.summary));
+        }
+      }
+      drawerBody.append(node("h3", "修改后测试"));
+      if (outcome?.status === "not_run") {
+        drawerBody.append(node("p", "尚未运行修改后测试。"));
+      } else if (outcome) {
         drawerBody.append(node("p", `${outcome.passed || 0}/${outcome.total || 0} 条验证命令通过。`));
         for (const failure of outcome.failures || []) drawerBody.append(node("pre", `${failure.command_id || "验证命令"}\n${failure.output || failure.stderr || "未通过"}`));
       }
@@ -456,12 +558,13 @@ export function mountContributionWorkbench(root, taskId, options) {
       const role = node("span", item.user ? "你" : "贡献助手", "conversation-message-role");
       const body = node("div", "", "conversation-message-body"); const actions = node("div", "", "conversation-message-actions");
       const receipt = node("small", "", "conversation-message-receipt"); receipt.setAttribute("role", "status");
-      el.append(role, body, actions, receipt); entry = {el, body, actions, receipt}; entries.set(item.id, entry);
+      el.append(role, body, actions, receipt); entry = {el, role, body, actions, receipt}; entries.set(item.id, entry);
     }
     const signature = JSON.stringify([item.text, item.questions, item.questionHash, questionsCurrent(item), item.plan?.record_hash,
-      item.plan && executionBinding(item.plan), item.action, item.valid, item.bindingHash, item.preview?.record_hash, item.receipt, item.references, latest("publication_completed")?.id, latest("publication_prepared")?.record_hash]);
+      item.plan && executionBinding(item.plan), item.action, item.valid, item.bindingHash, item.preview?.record_hash, item.receipt, item.references, item.origin, latest("publication_completed")?.id, latest("publication_prepared")?.record_hash]);
     if (entry.signature !== signature) {
       entry.signature = signature; entry.body.replaceChildren(); entry.actions.replaceChildren();
+      entry.role.textContent = item.user ? "你" : "贡献助手" + (item.origin?.label ? " · " + item.origin.label : "");
       entry.updateQuestions = null;
       renderMarkdown(entry.body, item.user ? item.text : friendly(item.text));
       for (const reference of item.references || []) {
@@ -525,7 +628,16 @@ export function mountContributionWorkbench(root, taskId, options) {
   function render() {
     const bottom = atBottom(), before = entries.size;
     const c = data.conversation || {}, state = c.user_state || {};
+    renderBudget();
     status.textContent = state.label || "等待下一步";
+    const contextState = data.execution?.context_management;
+    if (contextState?.status === "compacted") {
+      const percent = Math.round(100 * contextState.saved_bytes / Math.max(1, contextState.original_bytes));
+      status.append(node("small", `上下文已整理，文本体积减少 ${percent}%；原始证据保留。`));
+    }
+    const usage = contextState?.usage;
+    if (usage?.limits && ["calls", "input_tokens", "output_tokens"].some(key => usage[key] >= usage.limits[key]))
+      status.append(node("small", "本任务累计预算已用尽；整理上下文不会恢复已消耗预算。"));
     if (state.observed_at) status.append(node("small", `上次核对：${new Date(state.observed_at).toLocaleString("zh-CN")}`));
     const items = [], newStart = c.messages?.[0]?.sequence ?? Infinity;
     const resources = data.native_resources;
@@ -578,7 +690,8 @@ export function mountContributionWorkbench(root, taskId, options) {
       {kind:"cla", event:latest("cla_prepared"), p:data.cla?.preview, eligible:!data.cla?.preview?.consumed && !data.cla?.submitted && data.cla?.status?.status !== "passed"},
     ]).filter(x => x.p && x.eligible).sort((a,b) => (b.event?.sequence || 0) - (a.event?.sequence || 0)).slice(0, 1);
     for (const candidate of candidates) items.push({id:`preview:${candidate.p.record_hash}`, sequence:candidate.event?.sequence || (data.events?.at(-1)?.sequence || 0) + 0.1,
-      text:({publication:"发布预览已准备好。请查看账号、目标仓库、完整标题与正文，再决定是否创建草稿 PR。", update:"文案修订已准备好。请查看修改前后内容，再确认更新。", ready:"提交正式审核的预览已准备好，请核对后单独确认。", cla:"贡献者协议已读取。请阅读完整协议，是否同意由你决定。"})[candidate.kind], action:candidate.kind, preview:candidate.p});
+      text:({publication:"发布预览已准备好。请查看账号、目标仓库、完整标题与正文，再决定是否创建草稿 PR。", update:"文案修订已准备好。请查看修改前后内容，再确认更新。", ready:"提交正式审核的预览已准备好，请核对后单独确认。", cla:"贡献者协议已读取。请阅读完整协议，是否同意由你决定。"})[candidate.kind], action:candidate.kind, preview:candidate.p,
+      origin:(c.results || []).find(result => result.source_id === candidate.event?.id)?.origin});
     if (!data.planner_available && !published && !state.busy) items.push({id:"setup", sequence:0.05, text:"讨论或执行服务尚未准备好。消息可以保存；请在设置中检查模型与服务配置。", action:"settings"});
     const blockers = data.execution?.readiness?.blockers || [];
     if (blockers.length && !state.busy && !published) items.push({id:"readiness:" + JSON.stringify(blockers), sequence:(data.events?.at(-1)?.sequence || 0) + 0.2, text:blockers.map(b => b.message).join("\n")});

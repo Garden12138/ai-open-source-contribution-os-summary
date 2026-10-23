@@ -255,10 +255,10 @@ def test_restart_after_read_reuses_receipt_and_remaining_call_budget(tmp_path, m
     db, settings, task, *_ = seeded(tmp_path)
     request(db, settings, task, "读取 app/plans.py 并解释")
     original = reasoning.reasoning_prompt
-    def crash_after_read(wb, task_id, message_id, reads, correction, remaining_calls):
+    def crash_after_read(wb, task_id, message_id, reads, correction, remaining_calls, **kwargs):
         if reads:
             raise OSError('injected restart before the second model call')
-        return original(wb, task_id, message_id, reads, correction, remaining_calls)
+        return original(wb, task_id, message_id, reads, correction, remaining_calls, **kwargs)
     monkeypatch.setattr(reasoning, 'reasoning_prompt', crash_after_read)
     failed, _ = run(db, settings, {"reads":[{"name":"repository_file", "path":"app/plans.py"}]})
     assert failed.state == 'failed'

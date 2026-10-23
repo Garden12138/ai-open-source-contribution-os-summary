@@ -8,6 +8,85 @@ from app.executions import ExecutionAttemptService
 from app.workbench import Workbench, WorkbenchError
 
 
+def resume_preparation_after_runtime_repair(wb: Workbench, failed_job_id: str, settings: Any, proof: dict) -> Job:
+    """Trusted maintenance only: rerun unchanged preparation after a proven runtime fix.
+
+    No API/model route accepts this proof. A successful exact tool probe may
+    also establish restored acquisition availability, without claiming that its
+    earlier unknown failure was diagnosed. Keep the failed job and allocations
+    immutable, and allocate a new bounded job under the existing exact approval.
+    """
+    import hashlib
+    from pathlib import Path
+    import re
+    from app.cla import _lock
+    from app.provenance import content_hash
+    _lock(wb)
+    failed = wb.session.get(Job, failed_job_id)
+    if failed is None or failed.kind != "execution_prepare" or failed.state != "failed" or failed.payload.get("recovery_stage_hash"):
+        raise WorkbenchError("不是可恢复的初始环境准备任务。", code="environment_stale")
+    attempt = ExecutionAttemptService(wb.session).get_verified(failed.payload["execution_attempt_id"])
+    authorization = require_recovery_authorization(wb, attempt, settings)
+    sources = {"app/sandbox_worker/dependencies.py", "app/sandbox_worker/verification.py"}
+    project = Path(__file__).resolve().parent.parent
+    inventory = isinstance(proof, dict) and proof.get("version") == "node-inventory-runtime-repair-v1"
+    required = {"version", "failed_job_id", "source_hashes", "regression_hash"}
+    required.update({"supervisor_exit_code", "supervisor_log"} if inventory else {"probe"})
+    if (not isinstance(proof, dict) or set(proof) != required or proof["failed_job_id"] != failed.id
+            or not isinstance(proof["source_hashes"], dict) or set(proof["source_hashes"]) != sources
+            or any(proof["source_hashes"][name] != hashlib.sha256((project / name).read_bytes()).hexdigest() for name in sources)
+            or not isinstance(proof["regression_hash"], str) or not re.fullmatch(r"[a-f0-9]{64}", proof["regression_hash"])):
+        raise WorkbenchError("环境准备修复证据不完整。", code="environment_stale")
+    events = wb.history(attempt.task_id)
+    if inventory:
+        valid = (proof["supervisor_exit_code"] == 89 and isinstance(proof["supervisor_log"], str)
+            and len(proof["supervisor_log"]) <= 4096 and failed.id in proof["supervisor_log"]
+            and "code=89" in proof["supervisor_log"] and "Verification" in proof["supervisor_log"]
+            and failed.error_code in {"environment_preparation_failed", "environment_baseline_integrity_failed"})
+    else:
+        from app.execution_environment import task_environment
+        recipe = task_environment(wb, attempt.task_id).get("node_environment", {})
+        diagnosis = next((e for e in reversed(events) if e.kind == "execution_preparation_failed" and e.job_id == failed.id), None)
+        probe = proof["probe"]
+        valid = (proof["version"] == "node-tools-availability-v1"
+            and failed.error_code == "environment_node_preparation_failed" and diagnosis is not None
+            and diagnosis.payload.get("diagnostic", {}).get("phase") == "node_tools"
+            and isinstance(probe, dict) and set(probe) == {"version", "exit_code", "known_codes", "registry",
+                "manager", "manager_version", "npm_version", "scripts_disabled", "output_bytes"}
+            and probe["version"] == "node-tools-probe-v1" and probe["exit_code"] == 0
+            and probe["known_codes"] == [] and probe["scripts_disabled"] is True
+            and probe["registry"] == recipe.get("registry") and probe["manager"] == recipe.get("manager")
+            and probe["manager_version"] == recipe.get("manager_version") and probe["npm_version"] == "10.9.4"
+            and type(probe["output_bytes"]) is int and 0 <= probe["output_bytes"] <= 65536)
+    if not valid:
+        raise WorkbenchError("准备失败与已核对的修复或可用性证据不匹配。", code="environment_stale")
+    previous = next((e for e in events if e.idempotency_key == "prepare-runtime-repair:" + failed.id), None)
+    if previous:
+        if previous.payload["proof_hash"] != content_hash(proof):
+            raise WorkbenchError("重复恢复的证据不同。", code="environment_stale")
+        return wb.session.get(Job, previous.job_id)
+    stage = ExecutionAttemptService(wb.session).current(attempt.id)
+    repairs = [e for e in events if e.kind == "preparation_runtime_retry_requested" and e.payload["attempt_id"] == attempt.id]
+    if (stage.stage != "explore" or stage.status != "succeeded" or stage.result_hash != failed.payload["explore_result_hash"]
+            or len(repairs) >= 2 or any(e.kind == "execution_baseline_ready" and e.payload["attempt_id"] == attempt.id for e in events)
+            or any(e.kind in {"coding_started", "automatic_change_accepted", "awaiting_acceptance"}
+                   and e.payload.get("attempt_id") == attempt.id for e in events)
+            or any(j.state not in {"succeeded", "failed", "cancelled", "timed_out"} for j in wb.jobs(attempt.task_id))):
+        raise WorkbenchError("已有执行进展或恢复预算耗尽，不能重跑旧准备。", code="environment_stale")
+    proof_hash = wb.artifact(proof)
+    job = wb.enqueue(attempt.task_id, "execution_prepare", {
+        **failed.payload, "replaces_preparation_job_id": failed.id, "runtime_repair_hash": proof_hash},
+        key="prepare-runtime-repair:" + failed.id, timeout_seconds=failed.timeout_seconds, commit=False)
+    wb.append(attempt.task_id, "preparation_runtime_retry_requested", {
+        "attempt_id": attempt.id, "authorization_hash": authorization.record_hash,
+        "stage_hash": stage.record_hash, "proof_hash": proof_hash,
+        "superseded_preparation_job_ids": [failed.id]}, key="prepare-runtime-repair:" + failed.id,
+        job_id=job.id, plan_id=attempt.plan_version_id, actor="orchestrator", commit=False)
+    _resume_blocker(wb, attempt, authorization, job, stage)
+    wb.session.commit()
+    return job
+
+
 def record_transport_recovery(wb: Workbench, failed_job_id: str, proof: dict) -> Any:
     """Trusted maintenance entry; require a real proxy/TLS probe before retry."""
     import ipaddress

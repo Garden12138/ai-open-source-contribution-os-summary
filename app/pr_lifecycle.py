@@ -69,14 +69,24 @@ def lifecycle_view(wb: Workbench, task_id: str) -> dict:
             'completed':completed.payload if completed else None,'unresolved':unresolved_ready(wb,task_id)}
 
 
-def request_lifecycle(wb: Workbench, task_id: str, *, kind: str, account_hash: str, key: str, text: str = '', commit: bool = True) -> Job:
+def request_lifecycle(wb: Workbench, task_id: str, *, kind: str, account_hash: str, key: str, text: str = '', commit: bool = True,
+                      origin: str = 'user', source: WorkbenchEvent | None = None) -> Job:
     _lock(wb)
     if kind not in {PREPARE,FOLLOWUP}:
         raise WorkbenchError('不允许的 PR 跟进请求',code='pr_lifecycle_unauthorized')
+    if origin not in {'user','workflow','maintenance'}:
+        raise WorkbenchError('PR 跟进来源无效',code='pr_lifecycle_unauthorized')
+    trigger = None
+    if origin != 'user':
+        if origin == 'workflow' and (source is None or source.task_id != task_id or source.kind != 'publication_completed'
+                or not any(e.id == source.id and e.record_hash == source.record_hash for e in wb.history(task_id))):
+            raise WorkbenchError('自动跟进缺少已核实的发布来源',code='pr_lifecycle_unauthorized')
+        trigger = {'kind':origin, **({'source_id':source.id,'source_hash':source.record_hash} if source else {})}
     ensure_no_sensitive_data(text,context='PR lifecycle request')
     old=wb.session.scalar(select(Job).where(Job.kind==kind,Job.idempotency_key==kind+':'+key))
     if old:
-        if old.payload['task_id']!=task_id or old.payload['text']!=text or old.payload['publisher_account_hash']!=account_hash:
+        if (old.payload['task_id']!=task_id or old.payload['text']!=text or old.payload['publisher_account_hash']!=account_hash
+                or old.payload.get('trigger') != trigger):
             raise WorkbenchError('重复请求内容不同',code='pr_lifecycle_conflict')
         return old
     require_account(wb.session,account_hash);wb.assert_idle(task_id)
@@ -85,8 +95,12 @@ def request_lifecycle(wb: Workbench, task_id: str, *, kind: str, account_hash: s
         raise WorkbenchError('远端操作结果尚未明确，请先核对 PR 跟进或文案更新结果',code='pr_ready_outcome_unknown')
     if sum(j.kind==kind for j in wb.jobs(task_id)) >= (16 if kind==PREPARE else 64):
         raise WorkbenchError('本任务 PR 跟进预算已用完',code='pr_lifecycle_budget')
-    job=wb.enqueue(task_id,kind,{'target':target,'publisher_account_hash':account_hash,'text':text},
-                   key=kind+':'+key,actor='local-user',commit=False)
+    actor = {'user':'local-user','workflow':'system','maintenance':'orchestrator'}[origin]
+    job=wb.enqueue(task_id,kind,{'target':target,'publisher_account_hash':account_hash,'text':text,
+                   **({'trigger':trigger} if trigger else {})},
+                   key=kind+':'+key,actor=actor,max_attempts=2 if origin=='workflow' else 1,commit=False)
+    if trigger:
+        wb.append(task_id,'pr_lifecycle_triggered',trigger,key='lifecycle-trigger:'+job.id,actor=actor,job_id=job.id,commit=False)
     if text:wb.append(task_id,'pr_lifecycle_requested',{'text':text},key='lifecycle-message:'+key,actor='local-user',job_id=job.id,commit=False)
     if commit:
         wb.session.commit()

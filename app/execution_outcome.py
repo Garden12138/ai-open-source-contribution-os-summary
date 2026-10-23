@@ -26,6 +26,11 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
         missing.update(re.findall(r"ModuleNotFoundError: No module named ['\"]([a-zA-Z0-9_.-]+)", output))
         if item.get("exit_code") == 127:
             missing.add("command_unavailable")
+        if "ENOSPC" in output or "no space left on device" in output.lower():
+            missing.add("sandbox_storage_exhausted")
+        if (re.search(r"(?:ENOENT|EACCES|EROFS)", output)
+                and re.search(r"node_modules[/\\](?:\.vite-temp|\.vite|\.cache)(?:[/\\\s'\"]|$)", output)):
+            missing.add("node_tool_cache_unavailable")
         if re.search(r"FileNotFoundError: /usr/(?:local/)?bin/[A-Za-z0-9_.-]+", output):
             missing.add("command_unavailable")
         failures.append({"command_id": item.get("command_id"), "exit_code": item.get("exit_code"),
@@ -37,6 +42,17 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
     return {"status": status, "passed": passed, "total": len(tests),
             "missing_dependencies": sorted(missing), "failures": failures,
             "test_results_hash": value.get("test_results_hash")}
+
+
+def baseline_outcome(value: dict[str, Any]) -> dict[str, Any]:
+    """Project complete immutable evidence, including older stdout-less summaries."""
+    evidence = value["inspection"]["command_evidence"]
+    return classify_verification({
+        "succeeded": bool(evidence) and all(e["exit_code"] == 0 for e in evidence),
+        "test_results": [{"outcome": "passed" if e["exit_code"] == 0 else "failed",
+                          "exit_code": e["exit_code"]} for e in evidence],
+        "command_evidence": evidence,
+    })
 
 
 def attempt_verification(session: Any, artifact_root: str, attempt_id: str) -> dict[str, Any]:

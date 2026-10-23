@@ -118,7 +118,7 @@ def test_clarification_answer_runs_deferred_read_before_model_and_dependencies(t
 @pytest.mark.parametrize("paths,status", [
     (["app.py"], "builtin"), (["requirements.lock"], "supported"),
     (["package.json", "package-lock.json"], "supported"),
-    (["package.json", "yarn.lock"], "unsupported"), (["pyproject.toml"], "unsupported"),
+    (["package.json", "yarn.lock"], "supported"), (["pyproject.toml"], "unsupported"),
     (["requirements.txt", "package.json"], "unsupported"),
 ])
 def test_environment_support_is_explicit(paths, status):

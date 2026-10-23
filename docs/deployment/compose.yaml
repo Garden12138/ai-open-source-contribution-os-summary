@@ -121,6 +121,7 @@ services:
       ARTIFACT_ROOT: ${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}/artifacts
       TMPDIR: ${SANDBOX_DATA_ROOT:-/var/lib/docker/volumes/contribos-local-data/_data}/sandbox-tmp
       SANDBOX_STAGE_RUNTIME: docker
+      WORKBENCH_RUNNER_IMAGE: ${WORKBENCH_RUNNER_IMAGE:-}
       DEPENDENCY_BUILDER_IMAGE: ${DEPENDENCY_BUILDER_IMAGE:-}
       SANDBOX_JOB_SPEC_KEY_ID: ${SANDBOX_JOB_SPEC_KEY_ID:-local-v1}
       SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}

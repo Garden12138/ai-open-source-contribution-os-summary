@@ -206,8 +206,21 @@ class NvidiaReviewJobWorker:
                     wb = Workbench(session, self.artifact_root)
                     baseline = preparation_receipt(wb, _required_text(payload, "execution_attempt_id"))
                     baseline_value = wb.read(baseline.payload["result_hash"]) if baseline else None
+                    environment = None
+                    if baseline_value and baseline_value.get("environment_spec_hash"):
+                        spec = wb.read(baseline_value["environment_spec_hash"])
+                        if spec.get("node_environment"):
+                            dependency_hash = baseline_value["dependency_result_hash"]
+                            if json.loads(verification).get("dependency_result_hash") != dependency_hash:
+                                raise ReviewConflictError("Review environment differs from baseline")
+                            prepared = wb.read(dependency_hash)
+                            environment = {"specification_hash": baseline_value["environment_spec_hash"],
+                                "dependency_result_hash": dependency_hash, "specification": spec,
+                                "preparation": prepared.get("environment_receipt"),
+                                "dependency_inventory_hash": prepared["dependency_inventory_hash"]}
                     prompt = _review_prompt(plan, diff=diff, tests=tests, verification=verification,
-                                            baseline=baseline_value, baseline_hash=baseline.payload["result_hash"] if baseline else None)
+                                            baseline=baseline_value, baseline_hash=baseline.payload["result_hash"] if baseline else None,
+                                            environment=environment)
                     if attempt_number > 1:
                         prompt += "\nCONTRIBOS_REVIEW_OUTPUT_RULES=" + canonical_json({
                             "instruction": "The previous review job failed. Reassess the same frozen evidence independently and return one complete JSON object conforming exactly to this schema, without markdown or commentary. Use only the enumerated verdict and severity values. reason_code must be a short English machine identifier, not an explanation. Each finding requires concrete location and evidence. Do not weaken approval scope or verification to obtain a pass.",
@@ -397,7 +410,7 @@ def freeze_review_inputs(
         verify_result_hash=str(verify.result_hash),
         test_results_hash=tests_hash,
     )
-    return {
+    result = {
         "execution_attempt_id": attempt.id,
         "task_id": attempt.task_id,
         "plan_version_id": attempt.plan_version_id,
@@ -410,6 +423,21 @@ def freeze_review_inputs(
         "test_results_hash": tests_hash,
         "binding_hash": content_hash(binding),
     }
+    from app.workbench import Workbench
+    from app.sandbox_worker.workspace_jobs import preparation_receipt
+    wb = Workbench(session, artifacts.root)
+    baseline = preparation_receipt(wb, attempt.id)
+    if baseline:
+        evidence = wb.read(baseline.payload["result_hash"])
+        if evidence.get("environment_spec_hash"):
+            spec = wb.read(evidence["environment_spec_hash"])
+            if spec.get("node_environment"):
+                verify_value = wb.read(str(verify.result_hash))
+                if verify_value.get("dependency_result_hash") != evidence.get("dependency_result_hash"):
+                    raise ReviewConflictError("Review environment differs from baseline")
+                result["environment_binding_hash"] = content_hash({"baseline": baseline.payload["result_hash"],
+                    "specification": evidence["environment_spec_hash"], "dependencies": evidence["dependency_result_hash"]})
+    return result
 
 
 def _manifest_artifact_hash(
@@ -447,8 +475,8 @@ def _require_job_matches(
         raise ReviewConflictError("NVIDIA Review provider identity changed")
 
 
-def _review_prompt(plan: object, *, diff: bytes, tests: bytes, verification: bytes = b"{}", baseline: dict | None = None, baseline_hash: str | None = None) -> str:
-    if len(diff) + len(tests) + len(verification) + (len(canonical_json(baseline).encode()) if baseline else 0) > MAX_MODEL_REVIEW_INPUT_BYTES:
+def _review_prompt(plan: object, *, diff: bytes, tests: bytes, verification: bytes = b"{}", baseline: dict | None = None, baseline_hash: str | None = None, environment: dict | None = None) -> str:
+    if len(diff) + len(tests) + len(verification) + (len(canonical_json(baseline).encode()) if baseline else 0) + (len(canonical_json(environment).encode()) if environment else 0) > MAX_MODEL_REVIEW_INPUT_BYTES:
         raise ReviewConflictError("NVIDIA Review input exceeds its byte limit")
     try:
         diff_text = diff.decode("utf-8")
@@ -474,6 +502,9 @@ def _review_prompt(plan: object, *, diff: bytes, tests: bytes, verification: byt
     if baseline is not None:
         envelope["pre_change_baseline"] = {"artifact_hash": baseline_hash, "evidence": baseline}
         envelope["rules"].append("Only the frozen baseline artifact establishes pre-existing failures. Require post-change verification to pass; never excuse new failures using issue/chat claims.")
+    if environment is not None:
+        envelope["frozen_environment"] = environment
+        envelope["rules"].append("The baseline and post-change Verify use the same frozen dependencies in fresh offline execution views. Review the exact runtime/manager and environment references. Workspace links target current source; initialization outputs stay outside the contribution diff. Environment preparation is not a test pass or publication authorization.")
     prompt = "CONTRIBOS_TRUSTED_REVIEW_ENVELOPE=" + canonical_json(envelope)
     ensure_no_sensitive_data(prompt, context="NVIDIA Review prompt")
     return prompt

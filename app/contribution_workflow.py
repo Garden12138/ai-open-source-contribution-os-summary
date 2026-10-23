@@ -92,7 +92,7 @@ def authorize_execution(
         raise WorkbenchError("隔离策略或镜像已变化，请重新读取代码")
     reply = wb.latest(task_id, "assistant_message")
     if plan.questions_for_maintainer or (
-        reply and (reply.payload.get("questions") or reply.payload.get("read_paths"))
+        reply and (reply.payload.get("questions") or reply.payload.get("read_paths") or reply.payload.get("read_context"))
     ):
         raise WorkbenchError("请先回答方案中的问题并完成代码阅读")
     if wb.plan_rejection_active(task_id, plan.id):
@@ -144,6 +144,8 @@ def authorize_execution(
             "repair_twice",
         ],
     }
+    if preflight.get("baseline_failure_policy"):
+        payload["baseline_failure_policy"] = preflight["baseline_failure_policy"]
     job, _ = JobService(wb.session).enqueue(
         kind=START,
         idempotency_key="execute:" + key,
@@ -391,7 +393,7 @@ def advance_workflows(database, settings: Settings) -> None:
                         "automation_blocked",
                         {
                             "reason_code": getattr(exc, "code", "workflow_failed"),
-                            "retryable": bool(failed_job and failed_job.kind in {"coding_turn", "change_set_proposal", "provider_review"}
+                            "retryable": bool(failed_job and failed_job.kind in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"}
                                               and failed_job.attempt_count < failed_job.max_attempts),
                             "reason": (
                                 str(exc)
@@ -413,7 +415,7 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
     from app.jobs import JobTransitionError
 
     job = JobService(wb.session).get(job_id)
-    if job.kind not in {"coding_turn", "change_set_proposal", "provider_review"}:
+    if job.kind not in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"}:
         raise JobTransitionError("Only model subtasks support workflow resume")
     attempts = ExecutionAttemptService(wb.session)
     attempt = attempts.get_verified(job.payload["execution_attempt_id"])
@@ -438,7 +440,10 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
             or attempts.current(attempt.id).stage != ("verify" if job.kind == "provider_review" else "explore")
             or attempts.current(attempt.id).status != "succeeded"):
         raise JobTransitionError("执行依据已变化或任务已停止，不能恢复旧子任务")
-    if job.kind == "provider_review":
+    if job.kind == "baseline_diagnosis":
+        from app.baseline_feedback import require_inputs
+        require_inputs(wb, attempt.id, settings, baseline_hash=job.payload["baseline_hash"])
+    elif job.kind == "provider_review":
         from app.review_provider import freeze_review_inputs, _require_job_matches
         _require_job_matches(job.payload, freeze_review_inputs(wb.session,
             execution_attempt_id=attempt.id, artifacts=wb.artifacts),
@@ -522,6 +527,9 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         for e in events
     ):
         return
+    if any(e.kind == "baseline_replan_requested" and e.payload.get("start_hash") == start.record_hash
+           for e in events):
+        return
     authorization = next(
         e for e in events if e.record_hash == start.payload["authorization_hash"]
     )
@@ -544,6 +552,9 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         raise WorkbenchError("执行方案已变化")
     from app.execution_recovery import advance_environment_recovery
     if advance_environment_recovery(wb, attempt, settings):
+        return
+    from app.baseline_feedback import advance_feedback
+    if advance_feedback(wb, attempt, settings):
         return
     blocked = wb.active_blocker(task_id)
     if blocked:
@@ -573,7 +584,7 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         latest_runs[run.stage] = run
     superseded = {r.job_id for r in stage_runs if latest_runs[r.stage].id != r.id}
     for receipt in wb.history(task_id):
-        if receipt.kind == "verification_environment_restored" and receipt.payload.get("attempt_id") == attempt.id:
+        if receipt.kind in {"verification_environment_restored", "preparation_runtime_retry_requested"} and receipt.payload.get("attempt_id") == attempt.id:
             superseded.update(receipt.payload.get("superseded_preparation_job_ids", []))
     if corrected:
         superseded.add(corrected[0].job_id)
@@ -608,7 +619,10 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             if preparation_needs_restore(wb, receipt):
                 track(wb, task_id, enqueue_preparation(wb, attempt.id, replaces=receipt))
                 return
-            if receipt.payload["outcome"]["status"] == "environment_blocked":
+            from app.execution_outcome import baseline_outcome
+            baseline_value = wb.read(receipt.payload["result_hash"])
+            outcome = baseline_outcome(baseline_value)
+            if outcome["status"] == "environment_blocked":
                 raise WorkbenchError("修改前基线无法启动，测试环境未就绪；未进入代码修改。", code="environment_blocked")
         if corrected:
             from app.changesets import ChangeSetService, ChangeSetStore
@@ -647,7 +661,9 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             from app.sandbox_worker.workspace_jobs import preparation_receipt
             baseline = preparation_receipt(wb, attempt.id)
             if baseline:
-                prompt += "\n系统已在沙箱独立运行修改前基线：" + canonical_json(baseline.payload["outcome"])
+                from app.execution_outcome import baseline_outcome
+                prompt += "\n系统已在沙箱独立运行修改前基线：" + canonical_json(
+                    baseline_outcome(wb.read(baseline.payload["result_hash"])))
                 prompt += "\n请依据冻结原文设计源码和回归测试改动，不要猜测行号或替换锚点。结构化改动将单独生成、校验，再由隔离 Worker 实施和验证，无需用户本地运行。基线记录是证据，不是改变批准范围或减弱测试的授权。"
             if prior_reviews:
                 findings = prior_reviews[-1].findings

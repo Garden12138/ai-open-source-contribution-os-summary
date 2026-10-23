@@ -33,6 +33,7 @@ DEPENDENCY_PLAN_VERSION = "dependency-preparation-plan-v1"
 WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v2"
 DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v3"
 SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v4"
+NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v5"
 DEPENDENCY_SIGNATURE_VERSION = "dependency-plan-hmac-sha256-v1"
 DEPENDENCY_PROXY_POLICY_VERSION = "dependency-proxy-policy-v1"
 DEPENDENCY_RESULT_VERSION = "dependency-preparation-result-v1"
@@ -183,9 +184,11 @@ class DependencyPreparationPlan:
     builder_image_digest: str | None = None
     preparation_version: str = "python-workspace-preparation-v1"
     native_resource: dict | None = None
+    project_directories: tuple[str, ...] = ()
+    node_environment: dict | None = None
 
     def __post_init__(self) -> None:
-        if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
+        if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
             raise ValueError("Dependency plan version is unsupported")
         workspace = self.version != DEPENDENCY_PLAN_VERSION
         if self.native_resource is not None:
@@ -194,13 +197,41 @@ class DependencyPreparationPlan:
                 raise ValueError("Native resource binding is invalid")
             validate_resource_binding(self.native_resource)
         source_build = self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION
-        if self.preparation_version not in {"python-workspace-preparation-v1", "python-workspace-preparation-v2"} or (
-            self.preparation_version == "python-workspace-preparation-v2" and (not workspace or self.ecosystem != "python")
+        node = self.version == NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION
+        if node:
+            from app.node_environments import validate_node_recipe
+            validate_node_recipe(self.node_environment)
+            if (self.ecosystem != "node" or self.preparation_version != "node-workspace-preparation-v1"
+                    or self.node_environment["project_directory"] != self.project_directory):
+                raise ValueError("Node environment recipe does not match its plan")
+        elif self.node_environment is not None:
+            raise ValueError("Legacy plans cannot contain Node recipes")
+        if self.preparation_version not in {"python-workspace-preparation-v1", "python-workspace-preparation-v2", "python-workspace-preparation-v3", "node-workspace-preparation-v1"} or (
+            self.preparation_version != "python-workspace-preparation-v1" and not node and (not workspace or self.ecosystem != "python")
         ):
             raise ValueError("Python preparation recipe is unsupported")
+        if self.preparation_version == "python-workspace-preparation-v3":
+            if (not isinstance(self.project_directories, tuple) or not 2 <= len(self.project_directories) <= 4
+                    or any(not isinstance(directory, str) for directory in self.project_directories)
+                    or self.project_directories != tuple(sorted(set(self.project_directories)))
+                    or self.project_directory != self.project_directories[0]
+                    or set(self.project_directories) & set(self.local_projects)
+                    or len(self.project_directories) + len(self.local_projects) > 8):
+                raise ValueError("Workspace selected project roots are invalid")
+            for directory in self.project_directories:
+                if directory != ".":
+                    _relative_path(directory, name="selected project directory")
+        elif self.project_directories:
+            raise ValueError("Legacy recipes cannot contain multiple selected projects")
         if source_build:
             if self.distribution_strategy != "source-wheel-v1" or not isinstance(self.builder_image_digest,str) or not _IMAGE.fullmatch(self.builder_image_digest):
                 raise ValueError("Source builds require a signed strategy and builder image")
+        elif node:
+            if self.builder_image_digest is not None:
+                if self.distribution_strategy != "node-offline-build-v1" or not _IMAGE.fullmatch(self.builder_image_digest):
+                    raise ValueError("Node builds require a signed builder image")
+            elif self.distribution_strategy != "wheel-only-v1":
+                raise ValueError("Node build strategy requires its builder image")
         elif self.distribution_strategy != "wheel-only-v1" or self.builder_image_digest is not None:
             raise ValueError("Legacy dependency strategies remain wheel-only")
         if (source_build and self.metadata_strategy not in {"wheel-metadata-v1","declarative-v1"}) or (not source_build and self.metadata_strategy != ("wheel-metadata-v1" if self.version == DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION else "declarative-v1")):
@@ -245,7 +276,7 @@ class DependencyPreparationPlan:
             raise ValueError("Dynamic metadata preparation requires Python")
         if (
             not manifests
-            or len(manifests) > (16 if workspace else 2)
+            or len(manifests) > (64 if node else 16 if workspace else 2)
             or any(not isinstance(item, DependencyManifest) for item in manifests)
             or len({item.path for item in manifests}) != len(manifests)
         ):
@@ -259,6 +290,15 @@ class DependencyPreparationPlan:
                     raise ValueError("Workspace Python dependencies require a pyproject manifest")
                 if any(p + "/pyproject.toml" not in paths for p in self.local_projects):
                     raise ValueError("Local workspace projects require frozen manifests")
+                if any(("" if p == "." else p + "/") + "pyproject.toml" not in paths for p in self.project_directories):
+                    raise ValueError("Selected workspace projects require frozen manifests")
+            elif node:
+                lock = {"npm": "package-lock.json", "yarn": "yarn.lock", "pnpm": "pnpm-lock.yaml"}[self.node_environment["manager"]]
+                if (prefix + "package.json" not in paths or prefix + lock not in paths
+                        or any(prefix and not p.startswith(prefix) for p in paths)
+                        or any(PurePosixPath(p).name not in {"package.json", lock, ".nvmrc", ".node-version", ".yarnrc.yml", "pnpm-workspace.yaml"} for p in paths)
+                        or any(("" if p == "." else p + "/") + "package.json" not in paths for p in self.node_environment["package_roots"])):
+                    raise ValueError("Node workspace manifest binding is invalid")
             elif paths != tuple(sorted((prefix + "package-lock.json", prefix + "package.json"))):
                 raise ValueError("Workspace Node dependencies require package.json and package-lock.json")
         elif ecosystem is DependencyEcosystem.PYTHON:
@@ -306,10 +346,17 @@ class DependencyPreparationPlan:
             value["metadata_strategy"] = self.metadata_strategy
         if self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION:
             value.update(distribution_strategy=self.distribution_strategy,builder_image_digest=self.builder_image_digest)
+        elif self.node_environment is not None and self.builder_image_digest is not None:
+            value.update(distribution_strategy=self.distribution_strategy, builder_image_digest=self.builder_image_digest)
         if self.preparation_version != "python-workspace-preparation-v1":
             value["preparation_version"] = self.preparation_version
         if self.native_resource is not None:
             value["native_resource"] = self.native_resource
+        if self.project_directories:
+            value["project_directories"] = list(self.project_directories)
+            value["environment_layout"] = "per-package-v1"
+        if self.node_environment is not None:
+            value["node_environment"] = self.node_environment
         return value
 
 
@@ -431,6 +478,8 @@ class DependencyWorkspace:
     plan_hash: str
     inventory_hash: str | None = None
     native_resource: dict | None = None
+    node_environment: dict | None = None
+    execution_image_digest: str | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -446,6 +495,11 @@ class DependencyWorkspace:
         if self.native_resource is not None:
             from app.sandbox_worker.native_resources import validate_resource_binding
             validate_resource_binding(self.native_resource)
+        if self.node_environment is not None:
+            from app.node_environments import validate_node_recipe
+            validate_node_recipe(self.node_environment)
+        if self.execution_image_digest is not None and (self.node_environment is None or not _IMAGE.fullmatch(self.execution_image_digest)):
+            raise ValueError("Execution image requires a frozen Node environment")
 
 
 @dataclass(frozen=True, slots=True)
@@ -464,6 +518,7 @@ class DependencyPreparationResult:
     version: str = DEPENDENCY_RESULT_VERSION
     source_kind: str = "implement"
     native_resource: dict | None = None
+    environment_receipt: dict | None = None
 
     def __post_init__(self) -> None:
         if self.native_resource is not None:
@@ -471,11 +526,18 @@ class DependencyPreparationResult:
             if self.source_kind != "explore":
                 raise ValueError("Native resources require workspace preparation")
             validate_resource_binding(self.native_resource)
-        if self.version not in {DEPENDENCY_RESULT_VERSION, "workspace-dependency-result-v2"}:
+        if self.environment_receipt is not None:
+            from app.node_environments import validate_node_receipt
+            if self.version != "workspace-dependency-result-v3" or self.ecosystem != "node":
+                raise ValueError("Node receipts require a versioned Node result")
+            validate_node_receipt(self.environment_receipt)
+        elif self.version == "workspace-dependency-result-v3":
+            raise ValueError("Node result requires environment evidence")
+        if self.version not in {DEPENDENCY_RESULT_VERSION, "workspace-dependency-result-v2", "workspace-dependency-result-v3"}:
             raise DependencyPreparationError(
                 "Dependency result version is unsupported"
             )
-        if self.source_kind != ("explore" if self.version == "workspace-dependency-result-v2" else "implement"):
+        if self.source_kind != ("explore" if self.version in {"workspace-dependency-result-v2", "workspace-dependency-result-v3"} else "implement"):
             raise DependencyPreparationError("Dependency result source kind is invalid")
         for value in (
             self.implement_result_hash,
@@ -523,6 +585,7 @@ class DependencyPreparationResult:
         inventory_hash: str,
         file_count: int,
         total_bytes: int,
+        environment_receipt: dict | None = None,
     ) -> "DependencyPreparationResult":
         payload = {
             "version": "workspace-dependency-result-v2" if plan.source_kind == "explore" else DEPENDENCY_RESULT_VERSION,
@@ -542,6 +605,12 @@ class DependencyPreparationResult:
             payload["source_kind"] = "explore"
         if plan.native_resource is not None:
             payload["native_resource"] = plan.native_resource
+        if plan.node_environment is not None:
+            from app.node_environments import validate_node_receipt
+            validate_node_receipt(environment_receipt, plan.node_environment)
+            if environment_receipt["execution_image_digest"] != (plan.builder_image_digest or plan.runner_image_digest):
+                raise ValueError("Prepared execution image differs from signed environment")
+            payload.update(version="workspace-dependency-result-v3", environment_receipt=environment_receipt)
         return cls(
             execution_attempt_id=plan.execution_attempt_id,
             implement_result_hash=plan.implement_result_hash,
@@ -556,6 +625,7 @@ class DependencyPreparationResult:
             result_hash=content_hash(payload),
             version=payload["version"], source_kind=plan.source_kind,
             native_resource=plan.native_resource,
+            environment_receipt=environment_receipt,
         )
 
     def hash_payload(self) -> dict[str, object]:
@@ -583,12 +653,14 @@ class DependencyPreparationResult:
             value["source_kind"] = self.source_kind
         if self.native_resource is not None:
             value["native_resource"] = self.native_resource
+        if self.environment_receipt is not None:
+            value["environment_receipt"] = self.environment_receipt
         return value
 
     @classmethod
     def from_payload(cls, value: dict) -> "DependencyPreparationResult":
         values = dict(value)
-        if values.get("version") == "workspace-dependency-result-v2":
+        if values.get("version") in {"workspace-dependency-result-v2", "workspace-dependency-result-v3"}:
             values["implement_result_hash"] = values.pop("source_result_hash")
         return cls(**values)
 
@@ -649,9 +721,10 @@ class DockerDependencyRuntime:
             sandbox_policy=sandbox_policy,
             plan_hash=plan.plan_hash,
         )
-        if plan.native_resource is not None:
+        if plan.native_resource is not None or plan.node_environment is not None:
             from dataclasses import replace
-            workspace = replace(workspace, native_resource=plan.native_resource)
+            workspace = replace(workspace, native_resource=plan.native_resource, node_environment=plan.node_environment,
+                                execution_image_digest=(plan.builder_image_digest or plan.runner_image_digest) if plan.node_environment else None)
         try:
             if on_workspace is not None:
                 on_workspace(workspace)
@@ -674,7 +747,7 @@ class DockerDependencyRuntime:
                         policy=sandbox_policy,
                         container_name=name,
                         scratch_bytes=min(536870912,sandbox_policy.memory_bytes//2,sandbox_policy.disk_bytes//4)
-                            if plan.version==SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION else 134217728)
+                            if plan.version in {SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION} else 134217728)
                     if plan.native_resource is not None:
                         from pathlib import Path
                         from app.sandbox_worker.native_resources import verify_cache
@@ -689,6 +762,28 @@ class DockerDependencyRuntime:
                     if remaining<=0: raise DependencyPreparationError('Dependency preparation timed out')
                     try:
                         output=await self._run(argv,container_name=name,timeout_seconds=remaining)
+                        if plan.node_environment is not None:
+                            offline_name = f"contribos-dependency-worker-{uuid4().hex}"
+                            offline_argv = []
+                            position = 0
+                            while position < len(argv):
+                                item = argv[position]
+                                if item in {"--network", "--name", "--env"}:
+                                    value = argv[position + 1]
+                                    position += 2
+                                    if item == "--network": value = "none"
+                                    elif item == "--name": value = offline_name
+                                    elif value.split("=", 1)[0] in {"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}: continue
+                                    offline_argv.extend((item, value))
+                                else:
+                                    offline_argv.append(item)
+                                    position += 1
+                            at = offline_argv.index(plan.runner_image_digest)
+                            offline_argv[at:at] = ["--env", "CONTRIBOS_NODE_OFFLINE=1"]
+                            if plan.builder_image_digest:
+                                offline_argv[offline_argv.index(plan.runner_image_digest)] = plan.builder_image_digest
+                            output = await self._run(tuple(offline_argv), container_name=offline_name,
+                                timeout_seconds=max(1, int(deadline-time.monotonic())))
                         break
                     except SourceBuildRequired as request:
                         if plan.version!=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or build_round>=8:
@@ -722,7 +817,7 @@ class DockerDependencyRuntime:
                 "inventory_hash",
                 "file_count",
                 "total_bytes",
-            }:
+            } | ({"environment_receipt"} if plan.node_environment is not None else set()):
                 raise DependencyPreparationError(
                     "Dependency preparation evidence is invalid"
                 )
@@ -748,6 +843,7 @@ class DockerDependencyRuntime:
                 inventory_hash=inventory_hash,
                 file_count=raw["file_count"],
                 total_bytes=raw["total_bytes"],
+                environment_receipt=raw.get("environment_receipt"),
             )
             completed_workspace = DependencyWorkspace(
                 workspace_id=workspace.workspace_id,
@@ -757,6 +853,8 @@ class DockerDependencyRuntime:
                 plan_hash=workspace.plan_hash,
                 inventory_hash=inventory_hash,
                 native_resource=plan.native_resource,
+                node_environment=plan.node_environment,
+                execution_image_digest=(plan.builder_image_digest or plan.runner_image_digest) if plan.node_environment else None,
             )
             return DependencyExecution(
                 result=result,
@@ -1051,6 +1149,8 @@ class DockerDependencyRuntime:
             logger.error("Sandbox container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
                          process.returncode, len(stderr), len(stdout))
             phase = {
+                110: ("environment_node_recipe_invalid", "Node 环境版本、工作区链接或冻结清单校验失败；尚未修改代码。"),
+                111: ("environment_node_preparation_failed", "Node 工具、依赖解析或离线构建未完成；尚未修改代码。"),
                 94: ("environment_preparation_failed", "隔离 Python 环境创建未完成；尚未修改代码。"),
                 91: ("environment_manifest_unsupported", "所选包使用动态依赖声明，需要独立适配；尚未修改代码。"),
                 92: ("environment_manifest_unsupported", "依赖数量超出准备预算，请缩小工作区范围。"),
@@ -1386,7 +1486,8 @@ encoded = json.dumps(
 if hashlib.sha256(encoded).hexdigest() != envelope["plan_hash"]:
     raise SystemExit(81)
 proxy = os.environ.get("HTTPS_PROXY")
-if proxy != "http://dependency-proxy:8080":
+node_offline = plan.get("node_environment") is not None and os.environ.get("CONTRIBOS_NODE_OFFLINE") == "1"
+if proxy != "http://dependency-proxy:8080" and not (node_offline and proxy is None):
     raise SystemExit(82)
 for manifest in plan["manifests"]:
     path = manifest["path"]
@@ -1411,7 +1512,13 @@ environment = {
     "NO_PROXY": "",
     **git_environment,
 }
-if plan["ecosystem"] == "python" and plan["version"] in {"workspace-dependency-plan-v2", "workspace-dependency-plan-v3", "workspace-dependency-plan-v4"} and any(m["path"].endswith("pyproject.toml") for m in plan["manifests"]):
+if node_offline:
+    for key in ("HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"):
+        environment.pop(key, None)
+if plan.get("node_environment") is not None:
+    dependency_root = "/dependencies/output"
+    __NODE_PREPARATION__
+elif plan["ecosystem"] == "python" and plan["version"] in {"workspace-dependency-plan-v2", "workspace-dependency-plan-v3", "workspace-dependency-plan-v4"} and any(m["path"].endswith("pyproject.toml") for m in plan["manifests"]):
     __WORKSPACE_PYTHON_PREPARATION__
 elif plan["ecosystem"] == "python":
     dependency_root = "/dependencies/output"
@@ -1488,6 +1595,12 @@ for current, directories, files in os.walk(
 ):
     directories.sort()
     files.sort()
+    if plan.get("node_environment") is not None:
+        for name in list(directories):
+            absolute = os.path.join(current, name)
+            if os.path.islink(absolute):
+                directories.remove(name)
+                entries.append([os.path.relpath(absolute, dependency_root), "symlink", os.readlink(absolute)])
     for name in files:
         absolute = os.path.join(current, name)
         metadata = os.lstat(absolute)
@@ -1505,6 +1618,10 @@ for current, directories, files in os.walk(
             raise SystemExit(85)
         if total > plan["disk_bytes"]:
             raise SystemExit(86)
+if plan.get("node_environment") is not None:
+    # A workspace link may be broken here but resolve to a directory in Verify.
+    # Bind link identity, not os.walk's target-dependent file/dir grouping.
+    entries.sort(key=lambda item: item[0])
 inventory = hashlib.sha256(
     json.dumps(entries, sort_keys=True, separators=(",", ":")).encode("utf-8")
 ).hexdigest()
@@ -1512,14 +1629,25 @@ print(json.dumps({
     "inventory_hash": inventory,
     "file_count": len(entries),
     "total_bytes": total,
+    **({"environment_receipt": json.load(open("/dependencies/output/node-environment.json"))}
+       if plan.get("node_environment") is not None else {}),
 }, sort_keys=True, separators=(",", ":")))
 """.replace(
     "__GIT_ENVIRONMENT_NAMES__",
     repr(GIT_SAFETY_ENVIRONMENT_NAMES),
 )
 
-from app.sandbox_worker.workspace_dependencies import WORKSPACE_PYTHON_SCRIPT
-_PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __WORKSPACE_PYTHON_PREPARATION__", "\n".join("    " + line for line in WORKSPACE_PYTHON_SCRIPT.splitlines()))
+from app.sandbox_worker.workspace_dependencies import WORKSPACE_PYTHON_SCRIPT, MULTIPACKAGE_PYTHON_SCRIPT
+from inspect import getsource
+from app.node_environments import validate_node_recipe
+from app.sandbox_worker.node_dependencies import prepare_node_dependencies
+from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
+_node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
+_PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __NODE_PREPARATION__", "\n".join("    " + line for line in _node_program.splitlines()))
+_workspace_program = "if plan.get('preparation_version') == 'python-workspace-preparation-v3':\n" + "\n".join(
+    "    " + line for line in MULTIPACKAGE_PYTHON_SCRIPT.splitlines()) + "\nelse:\n" + "\n".join(
+    "    " + line for line in WORKSPACE_PYTHON_SCRIPT.splitlines())
+_PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __WORKSPACE_PYTHON_PREPARATION__", "\n".join("    " + line for line in _workspace_program.splitlines()))
 
 _PROXY_SCRIPT = r"""
 import ipaddress

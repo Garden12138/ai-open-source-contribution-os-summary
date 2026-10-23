@@ -81,7 +81,7 @@ def test_upgrade_preserves_old_analysis_tasks_and_plan_hashes(tmp_path, monkeypa
             analysis_hash = session.get(AnalysisVersion, analysis_id).record_hash
             plan = PlanVersionService(session).create_initial(task_id=task_id, content=_plan_content(), idempotency_key="old-plan")
             plan_id, plan_hash = plan.id, plan.record_hash
-    assert db.create_schema().applied == ("0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery")
+    assert db.create_schema().applied == ("0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback")
     with db.session() as session:
         task = ContributionTaskService(session).get_verified(task_id)
         assert task.record_hash == task_hash

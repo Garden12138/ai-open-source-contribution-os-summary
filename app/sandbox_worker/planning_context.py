@@ -24,6 +24,10 @@ MAX_AUTOMATIC_PLANNING_FILE_BYTES = 256_000
 
 
 class DockerPlanningContextRuntime(DockerCodingContextRuntime):
+    async def inspect_import_metadata(self, *, archive, image_digest: str, policy, paths: tuple[str, ...]) -> dict:
+        from app.sandbox_worker.import_metadata import inspect_import_metadata
+        return await inspect_import_metadata(self, archive=archive, image_digest=image_digest, policy=policy, paths=paths)
+
     async def inspect(
         self,
         *,

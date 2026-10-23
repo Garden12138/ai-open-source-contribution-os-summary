@@ -66,18 +66,21 @@ def test_exact_edit_rejects_unproven_or_sensitive_replacements(change):
         _parse_change_set_proposal(json.dumps(proposal), context)
 
 
-def test_stdout_diagnostics_are_visible_redacted_and_classified():
+@pytest.mark.parametrize("baseline", [False, True])
+def test_stdout_diagnostics_are_visible_redacted_and_classified(baseline):
+    from app.execution_outcome import baseline_outcome
+    classify = (lambda value: baseline_outcome({"inspection": {"command_evidence": value["command_evidence"]}})) if baseline else classify_verification
     value = {"succeeded": False, "test_results": [{"outcome": "failed", "exit_code": 1}],
              "command_evidence": [{"command_id": "pytest", "status": "failed", "exit_code": 1,
                                    "stderr_log": "", "stdout_log": "StopIteration\napi_key=repaircanary123456"}]}
-    outcome = classify_verification(value)
+    outcome = classify(value)
     assert outcome["status"] == "failed"
     failure = outcome["failures"][0]
     assert "StopIteration" in failure["output"]
     assert failure["stderr"] == ""
     assert "repaircanary123456" not in json.dumps(outcome)
     value["command_evidence"][0]["stdout_log"] = "ModuleNotFoundError: No module named 'missing_package'"
-    assert classify_verification(value)["missing_dependencies"] == ["missing_package"]
+    assert classify(value)["missing_dependencies"] == ["missing_package"]
 
 
 def test_bad_clarification_options_schedule_bounded_repair_then_save_plan(tmp_path):
@@ -158,7 +161,8 @@ def test_planning_envelope_correction_stops_at_original_bound_and_counts_rejecte
         wb.append(task,"model_output_rejected",{"usage":{"input_tokens":MAX_TOTAL_INPUT_TOKENS}},key="exhausted")
         wb.request(task,text="新的修订",parent_id=None,expected_hash=None,key="next")
     failed,runner=run_turn(db,settings,'{"reply":"must not be called"}')
-    assert failed.state == "failed" and "规划累计用量已达上限" in failed.error_message
+    assert failed.state == "failed" and failed.error_code == "planning_budget_exceeded"
+    assert "任务累计预算已用尽" in failed.error_message and "缩小范围" not in failed.error_message
     assert not runner.invocations
 
 

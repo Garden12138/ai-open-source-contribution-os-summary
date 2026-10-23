@@ -11,6 +11,7 @@ import os
 import re
 import signal
 import tempfile
+from inspect import getsource
 
 logger = logging.getLogger(__name__)
 from collections.abc import Mapping, Sequence
@@ -42,6 +43,7 @@ from app.sandbox_worker.specs import (
     SignedJobSpec,
 )
 from app.security import ensure_no_sensitive_data, redact_text
+from app.sandbox_worker.python_sources import build_python_source_overlay
 
 
 VERIFY_RESULT_VERSION = "sandbox-verify-result-v2"
@@ -73,6 +75,14 @@ _ALLOWED_DOCKER_ENV = frozenset(
 
 class VerificationError(RuntimeError):
     pass
+
+
+class VerificationEnvironmentUnavailable(VerificationError):
+    """Trusted pre-command inventory probe found missing or corrupt dependencies."""
+
+
+class VerificationDependencyIntegrityError(VerificationError):
+    """Frozen dependency inventory changed after repository execution."""
 
 
 class VerifyCommandStatus(StrEnum):
@@ -756,6 +766,10 @@ class VerifyService:
                 or dependency.workspace.inventory_hash
                 != dependency.result.dependency_inventory_hash
                 or dependency.workspace.native_resource != dependency.result.native_resource
+                or dependency.workspace.node_environment != (
+                    dependency.result.environment_receipt["recipe"] if dependency.result.environment_receipt else None)
+                or dependency.workspace.execution_image_digest != (
+                    dependency.result.environment_receipt["execution_image_digest"] if dependency.result.environment_receipt else None)
             ):
                 raise VerificationError(
                     "Verify dependency provenance does not match Implement"
@@ -856,6 +870,8 @@ class DockerVerifyRuntime:
             ),
             "native_resource": dependency_workspace.native_resource if dependency_workspace is not None else None,
         }
+        if dependency_workspace is not None and dependency_workspace.node_environment is not None:
+            wrapper["node_environment"] = dependency_workspace.node_environment
         encoded = (
             json.dumps(
                 wrapper,
@@ -933,6 +949,8 @@ class DockerVerifyRuntime:
                     "dst=/dependencies,readonly"
                 ),
             )
+            if dependency_workspace.node_environment is not None:
+                dependency_mount += ("--tmpfs", f"/execution:rw,nosuid,nodev,size={min(policy.disk_bytes // 2, policy.memory_bytes // 2)},mode=1777")
         return (
             self.docker_executable,
             "run",
@@ -990,7 +1008,8 @@ class DockerVerifyRuntime:
             ),
             "--entrypoint",
             "python3",
-            workspace.runner_image_digest,
+            (dependency_workspace.execution_image_digest if dependency_workspace is not None
+             and dependency_workspace.execution_image_digest is not None else workspace.runner_image_digest),
             "-I",
             "-c",
             _VERIFY_SCRIPT,
@@ -1016,6 +1035,14 @@ class DockerVerifyRuntime:
                 process.communicate(),
                 timeout=timeout_seconds,
             )
+        except asyncio.CancelledError:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            await process.wait()
+            await self._force_remove(container_name)
+            raise
         except TimeoutError as exc:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
@@ -1024,6 +1051,10 @@ class DockerVerifyRuntime:
             await process.wait()
             await self._force_remove(container_name)
             raise VerificationError("Verify container timed out") from exc
+        if process.returncode == 91 and not stderr:
+            raise VerificationEnvironmentUnavailable("Frozen dependency inventory is unavailable")
+        if process.returncode == 89 and not stderr:
+            raise VerificationDependencyIntegrityError("Frozen dependency inventory changed during verification")
         if (
             process.returncode != 0
             or stderr
@@ -1138,6 +1169,8 @@ import subprocess
 import time
 
 root = "/workspace"
+__PYTHON_SOURCE_OVERLAY__
+__NODE_EXECUTION__
 git_environment_names = __GIT_ENVIRONMENT_NAMES__
 git_environment = {}
 for name in git_environment_names:
@@ -1147,7 +1180,7 @@ for name in git_environment_names:
     git_environment[name] = value
 with open("/input/commands.json", encoding="utf-8") as handle:
     specification = json.load(handle)
-if set(specification) != {
+if set(specification) - {"node_environment"} != {
     "expected_inventory_hash", "max_log_bytes", "timeout_seconds", "commands",
     "dependency_inventory_hash",
     "native_resource",
@@ -1271,6 +1304,12 @@ def dependency_inventory_hash():
     ):
         directories.sort()
         files.sort()
+        if specification.get("node_environment") is not None:
+            for name in list(directories):
+                absolute = os.path.join(current, name)
+                if os.path.islink(absolute):
+                    directories.remove(name)
+                    entries.append([os.path.relpath(absolute, dependency_root), "symlink", os.readlink(absolute)])
         for name in files:
             absolute = os.path.join(current, name)
             metadata = os.lstat(absolute)
@@ -1282,6 +1321,8 @@ def dependency_inventory_hash():
                 entries.append([relative, "symlink", os.readlink(absolute)])
             else:
                 raise SystemExit(87)
+    if specification.get("node_environment") is not None:
+        entries.sort(key=lambda item: item[0])
     return hashlib.sha256(
         json.dumps(entries, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
@@ -1291,12 +1332,13 @@ if before_hash != specification["expected_inventory_hash"]:
     raise SystemExit(83)
 dependency_hash = specification["dependency_inventory_hash"]
 dependency_environment = {}
+package_environments = []
 if dependency_hash is not None:
     if (
         not os.path.isdir("/dependencies/output")
         or dependency_inventory_hash() != dependency_hash
     ):
-        raise SystemExit(88)
+        raise SystemExit(91)
     dependency_environment["PATH"] = "/dependencies/output/venv/bin:/dependencies/output/project/node_modules/.bin:/usr/local/bin:/usr/bin:/bin"
     dependency_environment["VIRTUAL_ENV"] = "/dependencies/output/venv"
     dependency_environment["NODE_PATH"] = (
@@ -1340,6 +1382,62 @@ if dependency_hash is not None:
             raise SystemExit(88)
         dependency_environment["PYTHONPATH"] = os.pathsep.join(source_paths + sites)
         dependency_environment["MYPYPATH"] = os.pathsep.join(source_paths)
+        if os.path.isfile("/dependencies/output/selected-projects.json"):
+            # Shared regular packages must see every selected source tree,
+            # including modified code, instead of baseline-installed wheels.
+            try:
+                overlay = build_python_source_overlay(source_paths, "/tmp/contribos-python-sources")
+            except (ValueError, OSError):
+                raise SystemExit(88)
+            dependency_environment["PYTHONPATH"] = os.pathsep.join([overlay, *sites])
+            dependency_environment["MYPYPATH"] = overlay
+    package_receipt = "/dependencies/output/package-environments.json"
+    if os.path.isfile(package_receipt):
+        with open(package_receipt, encoding="utf-8") as handle:
+            package_bundle = json.load(handle)
+        if (set(package_bundle) != {"version", "packages"}
+                or package_bundle["version"] != "python-package-environments-v1"
+                or not isinstance(package_bundle["packages"], list)
+                or not 2 <= len(package_bundle["packages"]) <= 4):
+            raise SystemExit(88)
+        package_roots = []
+        for index, package in enumerate(package_bundle["packages"]):
+            if (set(package) != {"project_directory", "output_directory", "manifests", "local_projects"}
+                    or package["output_directory"] != "environments/" + str(index)):
+                raise SystemExit(88)
+            directory = package["project_directory"]
+            if (not isinstance(directory, str) or directory.startswith("/") or ".." in directory.split("/")
+                    or "\\" in directory or not directory):
+                raise SystemExit(88)
+            package_roots.append(directory)
+            output = "/dependencies/output/" + package["output_directory"]
+            if os.path.realpath(output) != output:
+                raise SystemExit(88)
+            with open(output + "/source-paths.json", encoding="utf-8") as handle:
+                paths = json.load(handle)
+            try:
+                overlay = build_python_source_overlay(paths, "/tmp/contribos-python-sources-" + str(index))
+            except (ValueError, OSError, TypeError):
+                raise SystemExit(88)
+            package_sites = sorted(glob.glob(output + "/venv/lib/python*/site-packages"))
+            if not package_sites:
+                raise SystemExit(88)
+            package_environments.append((directory, {**dependency_environment,
+                "PATH":output + "/venv/bin:/usr/local/bin:/usr/bin:/bin",
+                "VIRTUAL_ENV":output + "/venv", "PYTHONPATH":os.pathsep.join([overlay, *package_sites]),
+                "MYPYPATH":overlay}))
+        if package_roots != sorted(set(package_roots)):
+            raise SystemExit(88)
+execution_root = root
+node_originals = []
+if specification.get("node_environment") is not None:
+    try:
+        execution_root, node_environment, node_originals = prepare_node_execution(
+            root, "/dependencies/output", "/execution", specification["node_environment"], git_environment)
+        dependency_environment.update(node_environment)
+        verify_node_source(execution_root, node_originals)
+    except (ValueError, OSError, subprocess.SubprocessError):
+        raise SystemExit(88)
 evidence = []
 halt = False
 empty_hash = hashlib.sha256(b"").hexdigest()
@@ -1374,10 +1472,18 @@ for index, command in enumerate(commands):
         })
         continue
     directory = os.path.realpath(
-        os.path.join(root, command["working_directory"])
+        os.path.join(execution_root, command["working_directory"])
     )
-    if os.path.commonpath((root, directory)) != root or not os.path.isdir(directory):
+    if os.path.commonpath((execution_root, directory)) != execution_root or not os.path.isdir(directory):
         raise SystemExit(85)
+    command_environment = dependency_environment
+    if package_environments:
+        matches = [(project, environment) for project, environment in package_environments
+                   if project == "." or command["working_directory"] == project
+                   or command["working_directory"].startswith(project + "/")]
+        if not matches:
+            raise SystemExit(88)
+        command_environment = max(matches, key=lambda item: len(item[0]))[1]
     stdout_path = f"/tmp/verify-{index}.stdout"
     stderr_path = f"/tmp/verify-{index}.stderr"
     started_at = utc_timestamp()
@@ -1395,7 +1501,7 @@ for index, command in enumerate(commands):
             if argv:
                 # Resolve against the child environment, including the frozen
                 # venv. Supervisor PATH must not select the system interpreter.
-                path = dependency_environment.get("PATH", os.environ.get("PATH", ""))
+                path = command_environment.get("PATH", os.environ.get("PATH", ""))
                 if argv[0] in {"python", "python3", "pip", "pip3"}:
                     resolved = shutil.which(argv[0], path=path)
                     if resolved is None and argv[0] in {"python", "pip"}:
@@ -1426,7 +1532,7 @@ for index, command in enumerate(commands):
                         "MYPY_CACHE_DIR": "/dev/null",
                         "RUFF_CACHE_DIR": "/tmp/ruff-cache",
                         **git_environment,
-                        **dependency_environment,
+                        **command_environment,
                     },
                     timeout=remaining,
                     check=False,
@@ -1441,6 +1547,11 @@ for index, command in enumerate(commands):
                 stderr.write(f"Command execution error: {exc}\n".encode("utf-8"))
                 exit_code = 127
                 status = "failed"
+    if node_originals:
+        try:
+            verify_node_source(execution_root, node_originals)
+        except (ValueError, OSError):
+            raise SystemExit(88)
     if os.path.exists(stdout_path):
         stdout_hash, stdout_bytes = file_evidence(stdout_path)
     else:
@@ -1505,3 +1616,8 @@ print(json.dumps({
     "__GIT_ENVIRONMENT_NAMES__",
     repr(GIT_SAFETY_ENVIRONMENT_NAMES),
 ).strip()
+_VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__PYTHON_SOURCE_OVERLAY__", getsource(build_python_source_overlay))
+from app.node_environments import validate_node_recipe
+from app.sandbox_worker.node_execution import prepare_node_execution, verify_node_source
+_VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__NODE_EXECUTION__",
+    getsource(validate_node_recipe) + getsource(prepare_node_execution) + getsource(verify_node_source))

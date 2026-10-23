@@ -2241,6 +2241,10 @@ Execution composer polish requested on 2026-10-10:
   Native Linux **P5-G06** is still the next roadmap gate.
 
 - [x] **WD-T12** User-directed conversation post-publication lifecycle (2026-10-12):
+  Reopened 2026-10-23: live task stopped at Draft PR creation until an external
+  maintenance conversation queued its Ready preview. Resolved below with the
+  normal-worker read-only handoff, bounded recovery and explicit workflow/request/
+  maintenance provenance; exact human consent remains required for Ready.
   model-free Ready for review preview/exact one-time consent through isolated
   Publisher; immutable target/account/base/head/text/rules/test/review bindings,
   durable send marker and read-only unknown-result reconciliation. Read-only
@@ -2282,6 +2286,37 @@ Execution composer polish requested on 2026-10-10:
   comments, merge, workflow approval or feedback-driven code push added. Real
   ready mutation awaits user's fresh exact consent; native Linux **P5-G06**
   remains the next roadmap gate.
+  Regression acceptance (2026-10-23): 22 new deterministic cases cover ordinary
+  coordinator handoff without another message, concurrency/restart idempotency,
+  two-attempt read recovery, cancellation/visibility/account/remote changes,
+  fresh-preview adoption/expired-version replacement, atomic queue/provenance
+  failure, saved-only requests, original-conversation recovery, append-only
+  maintenance attribution, API origin/confirmation contracts, and the actual
+  coordinator configuration (Publisher mode disabled and no management key).
+  Full suite: **1270 passed, 34 skipped**; focused integration: **80 passed**.
+  Offline and deployed desktop/mobile Chromium verify source labels, enabled
+  exact confirmation and zero browser writes. All six services redeployed;
+  API/Publisher/Gateway healthy, `/health` database OK; API/worker/Publisher
+  verify the same four changed runtime source hashes. Actual task
+  `165f0bd6-02f4-45a1-bb7d-442bca1ad77d`: ordinary worker automatically queued
+  `f06dfd67-b6f9-434f-a519-d4013ee7bdde`, completed the Publisher read and generated
+  preview `47931c5c6045d3ceb0d173fcb356aa8d84167150ef64290e1c14709888f867ff`.
+  PR #12435 remains Draft at the original head; CI awaits maintainer approval;
+  no new user message, Ready confirmation or write job. Earlier maintenance job
+  `971a9bdd-6a7b-43e0-9aa8-520eaed78150` is labelled by a corrective attribution
+  event; all original 163 events and existing Job payload hashes remain intact.
+  The first deployment exposed an incorrect coordinator-local Publisher mode
+  guard. Its failure receipt remains intact; v2 automatically recovers only that
+  exact pre-queue failure once, bound to its hash. No manual lifecycle request
+  was used to complete this acceptance. Security audit: 820 content-addressed
+  artifacts, database/API/local changed files and service logs: zero credentials/
+  canaries; integrity/FKs/audit chain valid; no service failure logs. Compile,
+  JS syntax and diff checks pass. Uses optional Job trigger payload and append-only
+  events, no schema migration; prior user payload/idempotency remains compatible.
+  Backup: `/data/backups/post-publication-handoff-v1`. Before rollback, stop the
+  coordinator, drain read jobs and reconcile confirmed writes; preserve new
+  provenance events and artifacts. Native Linux **P5-G06**, **ENV-G01** and
+  **UXR-G01** remain open; no later phase entry or full-platform pass is claimed.
 
 ### Conversation-agent product review and proposed redesign (2026-10-12)
 
@@ -3312,6 +3347,718 @@ Pre-commit verification (2026-10-15, user-requested commit/push):
   worker images. Original approvals stay stale. **UXR-G01** and native Linux
   **P5-G06** remain unchecked; Phase 5 stays current and P5-G06 is the next
   roadmap platform gate.
+
+Planning mixed-read regression (2026-10-19, user-directed; Phase 5 remains current):
+
+- **WB-T01/WB-T02 regression reopened and reverified.** Task
+  `17f4852b-7b70-443f-8c6e-4395a8241b9e` failed after the human answered three
+  questions. Its deferred 17-path read contained one nonexistent path and one
+  explicit unavailable entry. The request service's all-or-nothing check skipped
+  all 15 admissible reads; the next model read then failed inventory validation.
+  That validation happened after staging the reply, so transaction rollback also
+  discarded the reply, read diagnostics and usage. The old failed response/usage
+  cannot be reconstructed and is not fabricated.
+- Read proposals now use one deterministic classifier for both clarification
+  continuation and model turns. Only exact inventory paths without an explicit
+  unavailable entry reach the Sandbox Worker. Missing/unavailable paths produce
+  bounded `read_feedback`; unsafe path values are omitted. Valid reads proceed,
+  answers survive, and all-invalid requests receive at most two repairs within
+  existing task/token/read-round budgets. Replies, usage, diagnostics and child
+  scheduling commit together. Exhausted reads preserve an explicit receipt.
+  Drafts with rejected reads cannot be saved or approved; sensitive output still
+  rejects without repair. No path guessing, host execution or weakened filter.
+- Verification: new regression **8 passed**, full offline suite **1073 passed,
+  18 skipped**, two existing deprecation warnings; compile and diff checks pass.
+  Tests cover mixed legacy/new clarification requests, exact idempotency, partial
+  reads through context merge and process restart, accompanying draft rejection,
+  bounded repair/read rounds, usage preservation, unsafe paths and canary secrecy.
+  All six Compose services rebuilt/redeployed; API/database, Publisher and gateway
+  health pass. SQLite integrity/foreign keys and **347 artifact hashes/sizes**
+  pass; database/artifact/runtime-secret and recent log canary checks, plus log
+  tracebacks, are zero. Changed source/docs contain no actual local secret values.
+- Live recovery used exactly the original human answer and question hashes.
+  Backup `/data/backups/planning-path-17f4852b` preserves SQLite and all original
+  **20 event IDs/hashes**. Recovery job
+  `8c0222ab-175d-4600-9ea1-99ff4713f385` read all **15 admissible paths** in the real
+  macOS/OrbStack Runner and the remaining read/model jobs succeeded. The original
+  failed Job remains failed with one attempt. Later model drafts exhausted the
+  existing two-repair budget on JSON, command-directory and invented manifest
+  paths; this is not claimed as a successful live model-generated plan.
+- A source-labelled `trusted-local-plan-recovery-v1` draft was then saved through
+  the normal path/command/hash checks: PlanVersion
+  `20b46768-784b-475d-a452-1f24f7f04dbb`, record hash
+  `fe0a9b70fb61bb73316eb26288045f69296a62118e4b9beb6d1ff734b0b9bb52`.
+  The prior **46 event IDs/hashes** remain intact. This maintenance recovery adds
+  **zero model calls**, preserves the user's two-package/unconditional-field/
+  upstream-refresh choices, removes nonexistent paths, Git writes from Verify,
+  and unsupported claims of test counts. No execution/publication consent added.
+- **Remaining real limitation:** the selected plan changes two Python packages;
+  current execution support intentionally returns `environment_unsupported` for
+  multiple package roots. The saved plan is inspectable but blocked, not ready
+  for implementation. Cross-package environment support or a new human scope
+  choice is required before fresh exact execution confirmation. No contribution
+  baseline, implementation, tests or review is claimed to have passed.
+  No schema change. Rollback drains new planning jobs, preserves the append-only
+  feedback/recovery records and restores matching app/worker images; never reset
+  historical Jobs or approval state. **UXR-G01 and native Linux P5-G06 remain
+  open; P5-G06 is the next roadmap acceptance task.**
+
+Cross-package Python execution (2026-10-19, user-directed; Phase 5 remains current):
+
+- [ ] **UXR-T11** Support the selected same-repository Python packages through
+  independent frozen dependency environments, exact approval binding, per-package
+  baselines and offline verification. Implementation, proportionate regression,
+  real macOS fixture acceptance, deployment and live task admission are verified.
+  Reopened after the real v2 execution below: the project baseline is blocked;
+  fixture/admission success is not completion of this contribution workflow.
+- Selection accepts two to four Python roots, at most six additional local
+  projects/eight total projects, sixteen manifest files and existing aggregate
+  resource budgets. Python/Node mixtures and over-budget selections still reject.
+  V1/v2 single-package wire shapes and hashes remain unchanged.
+- `python-workspace-preparation-v3` signs the exact ordered primary roots and
+  `environment_layout=per-package-v1`. Each root's own test requirements, ancestor
+  development requirements and local dependency closure produce a separate venv,
+  wheel/hash lock and receipt. The complete bundle remains one immutable hashed
+  dependency volume. This isolation is necessary for this task: its OpenAI test
+  requirements pin `httpx<0.28`, while the pinned MistralAI SDK requires
+  `httpx>=0.28.1` ([published metadata](https://pypi.org/pypi/mistralai/2.0.0/json)).
+  No constraint is deleted or relaxed to make the bundle resolve.
+- Every command must belong to a selected package directory. Each package needs
+  a direct pytest command covering existing tests; new-file-only or collection-
+  only commands do not provide a baseline. The initial failed-v3-baseline halt
+  is superseded by the bounded feedback protocol below; post-change failures
+  continue to block acceptance/review. Primary roots,
+  manifests, recipe/layout, commands and whole dependency inventory participate
+  in the existing authorization, baseline, Verify and recovery hashes.
+- Fresh network-none Verify selects the exact package's venv by working directory
+  and assembles its source/dependency namespaces on bounded tmpfs using file
+  symlinks. Shared regular namespaces therefore use modified source instead of
+  baseline-installed wheels. Source and dependency mounts stay read-only; input
+  symlinks, path escape and conflicting source files reject. Explicit local version
+  checks include selected extras/development/build and requirement-file constraints.
+- Focused regression **77 passed, 8 skipped**, final full regression **1086 passed,
+  20 skipped**, two existing deprecation warnings; compile/diff checks pass. Real
+  macOS/OrbStack acceptance **2 passed**. The two real cases
+  prove separate `packaging<24` / `packaging>=24` environments, both package
+  baselines, modified-source imports under a shared regular namespace, unchanged
+  source/dependency inventories, read-only mounts and network-none Verify; the
+  second case proves a conflicting test-only local dependency still rejects.
+  These fixtures do not claim a live OpenInference baseline or contribution pass.
+- All six Compose services rebuilt/redeployed and healthy/running. Task
+  `17f4852b-7b70-443f-8c6e-4395a8241b9e` now has source-labelled child plan **v2**
+  `0a3005ee-4fae-49ba-befd-af56d077b9ab`, record hash
+  `bdec88f2da95100964003a77fe0d17dec3c1c69601588d1a31ed001e5acab415`.
+  Deployed API/native UI contract reports **preflight ready**, an enabled exact
+  execution action and no active Job. Original double-package scope and all human
+  choices remain intact. Backup `/data/backups/multipackage-17f4852b` preserves
+  SQLite and the original **50 event IDs/hashes**, original PlanVersion, all Job
+  states/payload hashes/attempts and the model-call count. No new Job, model call,
+  execution/publication consent or third-party write was created.
+- SQLite integrity/foreign keys and **347 artifact hashes/sizes** pass, with zero
+  database/artifact/runtime-secret and recent service-log canary matches, zero log
+  tracebacks, and zero actual local-secret matches across all **18 changed files**.
+  No SQL schema change; additive
+  signed-recipe compatibility and upgrade/rollback are documented in
+  `docs/sandbox-dependencies.md`. Real project preparation/baselines/implementation
+  await fresh exact in-product confirmation of v2; they are not inferred from
+  fixture or admission success. **UXR-G01 and native Linux P5-G06 remain open;
+  P5-G06 remains the next roadmap acceptance task.**
+
+Live v2 execution and baseline diagnostics (2026-10-19):
+
+- The user subsequently confirmed v2 in the application. ExecutionAttempt
+  `71faaca7-3546-4606-b9c5-ce08a548ecd6` completed Explore and isolated
+  dependency preparation. Its immutable baseline artifact is
+  `452e8a8424ecf4ef7155089354b3446e5aa72f8bcc1fe0c17af88d07da5518ca`.
+  All eight approved commands ran. OpenAI pytest reported **531 passed,
+  27 skipped**; MistralAI pytest reported **30 passed**. Both packages' Ruff
+  lint/format and OpenAI mypy passed. MistralAI mypy failed: two `import-untyped`
+  errors for installed `wrapt`, plus one `no-untyped-call` for `entry_points`.
+  These failures exist in the unchanged frozen source. Upstream's frozen
+  `python/tox.ini`, development/test requirements and package mypy configuration
+  were inspected; no omitted declared stub requirement was established. Do not
+  claim that installing guessed stubs resolves all three errors.
+- The coordinator correctly recorded `baseline_failed` and disposed both
+  temporary workspaces. The preparation Job succeeded at collecting evidence;
+  the baseline **failed 7/8**, and implementation, post-change verification and
+  independent review **have not run**. The type failures affect files outside
+  the approved accumulator/new-test scope. Expanding that scope requires a new
+  inspectable plan and exact application consent; no silent check suppression,
+  command deletion, baseline rewrite or automatic resumption is authorized.
+- [x] **UXR-T12** Repair the missing baseline diagnostics: preparation now passes
+  both stdout and stderr into the shared classifier. The read-only API/model
+  projection reconstructs historical incomplete summaries from their original
+  hash-verified inspection artifact. Native execution details show pre-change
+  and post-change results separately, including the failed command's output.
+  No database migration, event rewrite, new model call or execution authorization.
+- Focused regression passed; final full offline suite **1089 passed, 20 skipped**
+  (two existing deprecation warnings). Compile, JavaScript module syntax, diff
+  and actual local-secret checks passed (**22 changed files**, zero matches).
+  Regression covers stdout-only code/environment failures, historical incomplete
+  summaries, unchanged event hashes, continued baseline blocking and redaction.
+- Backup `/data/backups/baseline-diagnostic-17f4852b` preserves SQLite, all
+  **68 event IDs/hashes**, approved v2/authorization hashes, Jobs and model-call
+  count. SQLite integrity/foreign keys and **352 artifact hashes/sizes** passed;
+  zero database/artifact runtime-secret or canary matches. All six Compose
+  services rebuilt/redeployed and healthy/running; `/health` reports API/database
+  `ok`. Deployed projection now exposes the original mypy stdout and explicitly
+  reports post-change verification `not_run`, while all 68 event hashes, plan,
+  authorization, Jobs and model-call count remain unchanged. Recent service logs
+  have zero actual-secret/canary matches and zero tracebacks. UXR-T11/UXR-G01
+  and native Linux P5-G06 remain open; P5-G06 remains the next roadmap gate.
+
+Baseline failure feedback and recovery (2026-10-19, user-requested workflow fix):
+
+- [x] **UXR-T13** Replace the blanket pre-change failure halt with a bounded,
+  evidence-bound diagnosis/repair/replan chain. Final regression, deployment,
+  immutable-history audit and real recovery to an unapproved reviewed child plan
+  are verified below. This does not complete the target contribution or UXR-T11.
+- Root cause: cross-package admission stopped on every failed baseline before
+  coding context/model feedback, while the existing repair loop began only after
+  post-change Verify/review. The earlier diagnostic-display fix did not repair
+  this control-flow gap. Baseline failure remains evidence, never a passing result.
+- `baseline-feedback-v1` is bound into new multi-package preflight/authorization
+  hashes. A persistent `baseline_diagnosis` planning job consumes the original
+  verified baseline, approved commands/source, immutable authorization and model
+  binding. Only complete ordinary code/test failures with proposed repairs inside
+  approved paths, unchanged dependencies/commands and matching current admission
+  enter the existing coding/Verify/review chain. Final checks still must pass.
+- Environment/incomplete evidence, necessary outside-scope changes and legacy
+  approvals instead enter read-only automatic child planning. No legacy approval
+  gains the new execution policy retrospectively. Automatic child planning retains
+  every original change path and exact verification command; it may add necessary
+  scoped work, not silently remove the contribution or its failing checks. A child
+  plan must pass normal reads, safety, command, scope and readiness validation and
+  needs separate exact confirmation. Unavailable/sensitive source remains blocked.
+- Diagnosis uses the configured provider-neutral planning interface, existing
+  task model/token budgets, at most two baseline diagnoses per attempt and two
+  attempts per diagnosis. It does not extend the original code-repair budget.
+  Input hashes, stdout/stderr, usage and source-labelled system recovery requests
+  are append-only; system requests are not represented as new human instructions.
+  Stops, cancellation, stale source/plan/model/policy and forged/incomplete
+  baselines reject. A failed diagnosis can retry without rerunning the sandbox.
+- Forward migration **0037_baseline_feedback** changes only the legal-transition
+  trigger. Executing-to-planning for diagnosis requires a matching succeeded
+  diagnosis job, planner receipt, baseline/authorization/artifact references and
+  exact execution-state predecessor. Upgrade tests preserve event/approval hashes
+  and artifact bytes and reject an unproven transition. Before deployment, backup
+  `/data/backups/baseline-feedback-0037` preserves SQLite at 0036, the original
+  **68 events**, **352 verified artifacts**, and all **394 artifact files /
+  1,922,173,459 bytes**. Rollback drains new jobs and restores this complete
+  database/artifact backup with matching code; never rewrite history or consent.
+- Native UI/API now expose diagnosis, repair, replanning and fresh-confirmation
+  status while continuing to show the failed original baseline separately from
+  post-change verification. No third-party write is involved. UXR-T11/UXR-G01 and
+  native Linux P5-G06 remain open; P5-G06 remains the next roadmap gate.
+- Initial real recovery succeeded: diagnosis Job
+  `9c110547-94ab-4f77-bf0a-4a8550497855` and planning Job
+  `604f6a38-ee4d-401c-8d4f-9c172cfbb9a7` both completed, adding two actual model
+  calls and preparing unapproved v3
+  `3fda91e0-9f57-49d0-96fe-9454a32aa929`. Original 68 events, original Jobs,
+  authorization and failed baseline remain unchanged; 0037 upgrade, deployed
+  module hashes, SQLite/foreign keys and 353 artifacts verified. All six services
+  were healthy/running and `/health` reported API/database `ok`.
+- Review then rejected v3 before execution: it suggested mypy suppressions,
+  guessed the untyped `entry_points` origin, referred to editing an unavailable
+  test outside its declared paths, and changed a frozen pyproject. The source-
+  labelled append-only rejection preserves the draft and makes approval fail
+  closed. This is **not** a valid contribution plan or a baseline/test pass.
+- The live draft exposed a second admission gap: Python workspace manifest
+  edits were advertised ready although Verify correctly rejects their changed
+  complete-file hashes. Admission now blocks them explicitly; automatic baseline
+  planning feeds that unsupported mutation back into bounded draft repair.
+  Retained paths/commands are checked against the original approved plan behind
+  the baseline, so rejected draft additions do not become new authorization.
+  Legacy non-workspace lock-file restart/stale-input behavior is retained.
+  Focused admission/compatibility regression **37 passed**; complete final
+  regression and reviewed-draft recovery are pending below. No new approval,
+  contribution code execution or third-party write has occurred.
+- Follow-up real recovery (2026-10-20) completed another safe context read and
+  planning turn, but asked the user to choose between suppressing checks and
+  reducing the already confirmed two-package scope. That is not a material input
+  prerequisite and cannot authorize either action. The invalid question was
+  withdrawn by a source-labelled append-only validation receipt; no old record,
+  approval, plan or Job was rewritten.
+- Baseline recovery now feeds premature authorization questions back through the
+  existing bounded draft-repair loop. Concrete missing-source/data questions are
+  preserved; a plan accompanying a rejected question cannot be silently saved.
+  This is a discussion-quality guard, not an authorization mechanism: every
+  actual execution still needs immutable exact confirmation and runtime scope/
+  environment/command checks. Earlier user choices and original checks remain.
+- Rejected-plan state now remains active across later ordinary messages or
+  clarification: only a subsequent validated plan binding resolves it. UI no
+  longer shows a reviewed/rejected candidate as awaiting execution confirmation.
+  Focused recovery/source/sticky-rejection regression **53 passed, 5 skipped**;
+  final full regression/deployment and terminal live recovery are pending below.
+- A subsequent candidate v4 still proposed accepting pre-existing failures and
+  left unresolved acceptance questions; it is not an executable repair. Recovery
+  now rejects unresolved maintainer questions and source-shadowing `.pyi` files.
+  The existing hard Verify gate cannot be changed by generated plan prose.
+- A bounded `planning_import_metadata` continuation resolves the missing import
+  origin without exporting protected source. At most four exact unavailable
+  diagnostic paths are parsed inside the same network-disabled, credential-free
+  OCI boundary. Only fixed import-origin enums and source hashes are returned;
+  full source stays unavailable and cannot be edited. Archive/base/image/policy,
+  cancellation, stale callbacks and output schema are verified. Metadata artifacts
+  are bound to planning inputs and resulting plan evidence; no new consent or
+  execution is implied. New boundary regression **39 passed, 1 skipped** and real
+  macOS/OrbStack metadata acceptance **1 passed**. Complete regression/deployment
+  and final real-task state are recorded below when verified.
+- Real metadata Job `fa9fb34d-baa0-4bd0-b49c-b76220a2cee1` succeeded on the
+  original archive and proved the direct import origin is
+  `opentelemetry.util._importlib_metadata`, source hash
+  `be0fd711baaf09d8453d4e14e9881a56b96ebe2f4d1f3e448238b2bf94c2a7d1`.
+  No full protected source was returned or made editable. First admission correctly
+  rejected missing Worker Runner configuration; Compose now explicitly passes
+  `WORKBENCH_RUNNER_IMAGE` to the isolated Worker. All ten real provenance checks
+  then matched; the failed first job remains unchanged in history.
+- The following model call hit a real provider rate limit. A bounded read-only
+  retry reused the metadata and completed, but its question still offered
+  guessing signatures or suppressing checks; those are not accepted decisions.
+  Recovery now checks question options as well as prompts for these known invalid
+  suppression choices. It does not treat a provider/job success as a valid plan.
+- Native explicit continue now resumes failed/timed-out/rejected baseline planning
+  using the same frozen baseline/context and enriched metadata, without spending
+  a separate model call to classify the retry. Changed context/state/parent rejects
+  this continuation. Original model budgets and all scope/command guards remain.
+  API diagnosis retries use the existing execution-context validator. UI follows
+  durable `next_job_id` receipts across metadata hash changes, so a running child
+  is not incorrectly displayed as finished. Focused workflow/conversation regression
+  **94 passed, 1 skipped** and final retry/option cases **8 passed**; complete
+  regression of the final code and final deployment evidence are pending below.
+- Final code regression **1133 passed, 21 skipped** (two existing deprecation
+  warnings); compile, JavaScript syntax, diff and actual local-secret checks passed
+  (**47 changed files**, zero matches). All six services rebuilt/redeployed;
+  health reports API/database `ok`. Post-deployment logs: **9,052 bytes**, zero
+  runtime-secret/canary matches and zero tracebacks.
+- A separate trusted, read-only diagnostic answered the model's remaining factual
+  question without exposing the protected body: static call shape is
+  `group_name_keywords` (no positional arguments), and the package `py.typed`
+  marker exists. It reused the hardened OCI archive reader, pinned the same
+  source/archive/base/image/policy hashes, and first passed a fixture containing
+  a credential canary and code that would raise if executed. Only bounded enums
+  and a boolean left the container; fixture literals/code did not. This audited
+  local maintenance observation is not a new general native call-shape API.
+  Artifact `adb1327db5305d8eba286287f96d2b15a8a4bdd86d0cc4e160747436fd9c6ada`
+  is bound into recovery packet
+  `4d4268fa25f6125dc1fc56853d608c368607a00d412a468f66aa3c2e736efe00`.
+  Factual recovery Job `4de18f71-b731-4a5f-bf75-bbf3063de25b` was enqueued
+  without new authorization or contribution execution. Terminal state and final
+  integrity evidence follow below once verified.
+- Final live review rejected v5 `e5f60be0-f60e-4ac0-acba-aec7cd39466a`
+  before execution: it still proposed inline type ignores and did not supply a
+  concrete `entry_points` fix. Rejection is append-only; no model's passing Job
+  status is treated as a valid contribution plan or test result.
+- A trusted local engineering revision then prepared **v6**
+  `0203ff64-9212-42b4-a3c7-48fd8e0a810f`, hash
+  `a390fa3d98c58a056cf5bc7260d1c1f3bab097051e5ab3fcad9bc99521a97f40`.
+  It retains the original four contribution paths and all eight exact commands,
+  adds only MistralAI package-root `wrapt.pyi` and
+  `opentelemetry/util/_importlib_metadata.pyi`, and requires actual typed contracts,
+  positive/negative type cases and all original checks to pass. It changes no
+  frozen manifests, runtime package initializers, existing checking policy or
+  unavailable source. Namespace discovery is grounded in the safely read
+  `explicit_package_bases=true` and official mypy documentation; interface details
+  and discovery still require real verification in the frozen implementation.
+  This is an **unimplemented candidate**, not fabricated passing evidence.
+- V6 is labelled `trusted-local-engineering-review-v1` / actor `orchestrator`,
+  binds the original plan/baseline, current context and import/call metadata, and
+  does not fabricate a human instruction, model call, approval or execution.
+  Admission is `ready`, `can_execute=true`, feedback `awaiting_confirmation`,
+  task `planning`, `busy=false`; fresh exact confirmation is still required.
+- Final acceptance preserves the original **68 event IDs/hashes**, original
+  approval/Jobs and failed baseline; now **152 events / 360 verified artifacts**,
+  with ten actual additional model calls. Schema 0037, all 13 deployed module
+  hashes, SQLite integrity/foreign keys and artifact hash/size checks passed;
+  zero runtime-secret or canary matches. All six services are healthy/running and
+  API/database health is `ok`. Final recent logs: **38,358 bytes**, zero secret/
+  canary matches and zero tracebacks. Contribution verification remains `not_run`.
+  UXR-T11/UXR-G01 and native Linux amd64 P5-G06 remain open; P5-G06 remains the
+  next roadmap gate. No commit, push, contribution execution or third-party write
+  occurred as part of this workflow recovery.
+
+Automatic task context management (2026-10-20, user-requested extension):
+
+- [x] **UXR-T14** Add automatic, source-bound task memory and prompt compression,
+  bounded original-text retrieval and truthful budget/status reporting. Full
+  regression, deployment and real frozen-task preview verified below.
+- Phase 5 remains current; this extends the workbench context boundary, not a
+  later phase. Existing `code_compressor` skeletonized background files, but the
+  planner pinned every inspected path forever and resent long drafts/status/logs.
+  The last-12-turn window also lost earlier user decisions. Lifetime token limits
+  and the per-request context size are different limits.
+- The real frozen task has 2,167 inventory paths occupying 211,886 bytes, more
+  than its 133,887 bytes of source entries. Large inventories now retain a
+  relevant path sample and an explicitly partial marker, backed by the complete
+  immutable directory reference. Bounded, case-insensitive substring queries
+  retrieve matching paths before ordinary source reads; they never expose file
+  bodies or change source-read permissions.
+- `task-context-v1` creates deterministic memory from source-labelled user text,
+  rejected assistant proposals and historical plan references, without another
+  model call. It pins the latest request, rules, current/approved plan and exact
+  tool reads; background source and long prose become explicitly partial excerpts
+  with content-addressed original-text references. Explicitly requested and changed
+  files retain full source. Unavailable files remain `content=null`; checkpoints
+  neither make them readable nor authorize edits.
+- Planning targets 160,000 UTF-8 bytes and activates aggressive projection above
+  220,000 bytes; conversation targets 48,000 bytes within its existing 64,000-byte
+  hard cap. The existing planning/diagnosis hard cap stays 1,800,000 bytes. Required
+  exact inputs may exceed the target; this is recorded as such instead of silently
+  truncating them. Byte reduction is not reported as billed-token savings.
+- Persistent context reads use only issued task-local hashes, four requests of
+  at most 16,000 bytes per planning turn and the existing four-round read limit.
+  UTF-8 offsets are lossless. Wrong-task/unknown references, changed plan/context/
+  state/model or later stops reject. Context and repository reads are separate
+  bounded turns; consumed reads do not replay after repository context changes.
+  Deferred proposals do not become saved plans or execution authorization.
+- User memory is bounded by the originating request's journal cursor, including
+  legacy job ancestry; future queued user messages cannot bypass FIFO. Source,
+  cancellation and cumulative budget are rechecked immediately before invoking
+  a provider. New `read_context` guidance and conversation `context_reference`
+  tools remain provider-neutral read operations.
+- Checkpoints/fragments reuse the existing immutable Artifact/WorkbenchEvent
+  models with versioned payloads; there are no SQL model/column/transition changes
+  and no schema migration is needed. Upgrade tests preserve earlier event hashes,
+  source bytes and approvals. Rollback drains planning/conversation jobs first;
+  old code can ignore checkpoint events, or restore the complete pre-deployment
+  database/artifact backup. Never rewrite historical prompts, bills or approvals.
+- Unified lifetime budget accounting retains all recorded usage and the existing
+  32-call / 2,000,000-input / 100,000-output limits. Error messages distinguish this
+  local cumulative budget from account quota and context size. Compression neither
+  refunds tokens nor automatically tops up budgets. Native UI exposes compression
+  status and an independent budget-exhausted notice; API schemas document them.
+- Final regression **1155 passed, 21 skipped**, with two existing dependency
+  deprecations. Context/flow tests cover lossless original reads after restart,
+  source/approval preservation, stale/foreign references, deferred proposals,
+  bounded/mixed reads, FIFO isolation and stop/source/budget races before provider
+  invocation. Both context status and existing conversation continuation browser
+  contracts passed at desktop 1440px/mobile 390px, with no JavaScript errors,
+  model calls or real mutations. Compile/JS/diff and changed-source actual-secret
+  checks passed (56 files, zero matches).
+- Real local acceptance completed **2026-10-21**. Before deployment, a complete
+  SQLite/artifact backup was stored at `/data/backups/context-management-v1`
+  (408 files, 1,927,795,905 bytes; 365 registered artifacts verified). All six
+  Compose services were rebuilt and redeployed; API/Publisher/Gateway are healthy,
+  all three workers running, and `/health` reports application/database `ok`.
+  Twelve relevant source hashes match in both API and Provider Worker.
+- The frozen task `17f4852b-7b70-443f-8c6e-4395a8241b9e` read-only maintenance
+  preview projects **429,102 → 159,700 UTF-8 bytes (62.8% reduction)**, meeting the
+  160,000-byte target. Checkpoint
+  `12aa7a0ad3f6f2ec1bc7616e4fe8d2a78e6104dfcf9de6f808f1a0c7ce170e57`
+  binds 54 original references; its 316-path sample retains every read entry,
+  while a full-directory query retrieves all 32 matching Mistral package paths.
+  Replay is idempotent. This is measured prompt text, not a billed-token claim
+  or a new live-model run.
+- All 191 original event IDs/hashes, 43 Job states/payload hashes/attempt counts,
+  source bytes, plan/approval and baseline hashes are unchanged. Only one context
+  checkpoint event was added. Model calls remain 23, input tokens 2,079,795 and
+  output tokens 52,195; `planning_budget_exceeded` still blocks invocation.
+  Contribution verification remains `not_run`. SQLite integrity/FKs and all 420
+  current registered artifacts (109,919,679 bytes) verified with zero secret/canary
+  matches. The deployed task API returns `compacted`, the exact usage and new UI
+  code; internal checkpoint events stay out of public dialogue. Service logs have
+  zero inspected secret/canary matches or tracebacks.
+- No schema revision change, budget increase/refund, new model call, contribution
+  execution, Git commit/push or third-party write occurred. UXR-T11/UXR-G01 and
+  native Linux amd64 P5-G06 remain open; P5-G06 is the next roadmap gate.
+
+Task budget selector and recovery (2026-10-21, user-requested extension):
+
+- [x] **UXR-T15** Put a task-local budget dropdown beside the composer, with
+  cumulative input presets and custom input/output/call limits. Preserve actual
+  usage and immutable approvals, deploy, and apply the user's exact 3,000,000
+  input-token authorization only to task `17f4852b-7b70-443f-8c6e-4395a8241b9e`.
+  Restore budget-stopped read-only planning with compressed context; any new plan
+  still needs its own exact execution confirmation.
+- Defaults remain 32 calls / 2,000,000 input / 100,000 output tokens. Bounds are
+  1–256 calls, 1,000–20,000,000 input and 1,000–1,000,000 output tokens. Presets
+  change only input limits; custom configuration edits all three. Limits below
+  actual usage and edits during active jobs reject. No automatic budget top-up,
+  automatic execution or provider-generated budget authorization is introduced.
+- `planning-budget-v1` is an append-only local-user WorkbenchEvent, validated
+  against the task's journal and prior budget record. POST `/workbench/budget`
+  uses Origin/CSRF or local-token authorization, idempotency and a compare-and-swap
+  revision over task/configuration/usage. Model output cannot call this endpoint.
+  All planning, baseline diagnosis and conversation workers consume current task
+  limits; request-time call checks use them too. Frozen source, plans, approvals
+  and test artifacts remain unchanged.
+- Real recovery found the original failed job predates baseline recovery packets
+  and uses the legacy generic `planning_turn_failed` code with the exact budget
+  message. Explicit “continue” now recognizes this known budget interruption and
+  the current `planning_budget_exceeded` code, rechecks task/plan/context bindings
+  and restored limits, then dispatches one new planning job without an intent-model
+  call. Existing baseline packets keep their existing guarded path; absent packets
+  are never fabricated. Original jobs remain failed historical evidence.
+- No SQL model/column change: versioned payloads reuse the existing immutable
+  event store. Upgrade/reopen tests verify overrides and old data. Rollback must
+  drain planning/conversation jobs; old code ignores budget events and applies
+  its smaller defaults while retaining actual usage, or restore the full
+  pre-change SQLite/artifact backup. Never rewrite history to recover budget.
+- Final focused budget/recovery regression **24 passed**; related conversation/
+  baseline regression **84 passed** before the last two stale-source cases, and
+  existing context/planning/workbench regression **79 passed**. The complete final
+  suite passed **1179 tests, 21 skipped**, with two existing dependency deprecations.
+  Dropdown and custom configuration browser contract
+  passed at desktop 1440px/mobile 390px, including draft preservation, busy/stale
+  disabling and idempotent retry, with no model calls or real writes. Compile/JS/
+  diff and actual local-secret scans pass (59 changed files, zero matches).
+- Before the live budget change, `/data/backups/task-budget-v1` captured SQLite
+  plus all 463 artifact files (1,928,482,013 bytes). Both the snapshot database
+  and 420 registered backup artifact hashes verified. All six services were
+  rebuilt/redeployed; API/Publisher/Gateway are healthy, the three workers run,
+  `/health` reports application/database `ok`, and 13 relevant source hashes match
+  in both API and Provider Worker. Task API and served JS/CSS match the new UI.
+- The user's exact per-task input limit **3,000,000** was applied once through
+  budget event `3f31a2a243fe41ee18320d695d864fecc44c5b3ee8dddbf27548247eb11e7805`.
+  Configuration alone retained calls **23**, input **2,079,795**, output **52,195**,
+  the unchanged 32-call / 100,000-output caps and every old Job/approval/source.
+  The failed legacy job had no baseline recovery packet, so the new continuation
+  path uses its verified original request/context/parent without inventing one.
+- Explicit continuation created exactly one read-only planning job,
+  `684cc259-adcd-4f49-85d8-ae87b857f4be`, and it **succeeded**. Its actual model
+  call consumes a checkpoint-bound **432,332 → 159,888-byte** prompt (272,444
+  bytes omitted into source references, target met). It saved child PlanVersion
+  **7**, `16ffb5ba-b051-40d0-ae79-f953467093ab`, parented to the original latest
+  plan. All original changed paths and all eight exact command IDs/argv/working
+  directories are retained. No questions/blockers remain and `can_execute=true`,
+  but contribution verification stays `not_run`; the new plan is not approved or
+  executed. This readiness result is not a test pass.
+- After that one authorized real call, actual lifetime use is **24 calls /
+  2,125,891 input / 57,272 output tokens**, with 3,000,000 input and all other caps
+  intact. All 192 pre-budget event IDs/hashes and all 43 original Job states,
+  payload hashes and attempt counts are unchanged. Original approval/baseline/
+  source bytes remain intact. SQLite integrity/FKs and all 427 registered artifacts
+  (110,129,984 bytes) verify with zero secret/canary matches; inspected service logs
+  have zero secret/canary matches or tracebacks. No Git commit/push, new execution
+  approval, contribution execution, schema revision change or third-party write
+  occurred. The next user action is to review and explicitly confirm plan 7.
+- Phase 5 remains current. UXR-T11/UXR-G01 and native Linux amd64 P5-G06 remain
+  open; P5-G06 is still the next roadmap gate.
+
+Late conversational plan confirmation regression (2026-10-22, user-directed):
+
+- **WB-T01 regression reopened and reverified.** Task
+  `165f0bd6-02f4-45a1-bb7d-442bca1ad77d` received “确认方案” after a Node
+  environment request. Its model returned `action=respond` while claiming that
+  implementation had started. All six Jobs had succeeded, but none was an
+  execution Job; the task remained `planning`, without approval or execution.
+  There was no confirmation timeout or lost queued message. The actual blocker
+  was the repository's `yarn.lock`, unsupported by the package-lock-only adapter.
+- Bare plan-confirmation requests now receive a deterministic, read-only reply
+  based on current execution admission, without a model invocation. Supported
+  plans direct the user to the complete plan and exact confirmation; blocked,
+  stale, busy, paused and absent-plan cases explain their current conditions.
+  Source-bound clarification answers and compound requests retain their own
+  workflow. “继续” also reports current admission rather than promising execution.
+- Conversational reasoning now observes the same current preflight, environment,
+  stale-plan and readiness blockers as the native execution controls. Yarn/pnpm
+  lockfiles identify the missing adapter explicitly; confirmation cannot install
+  that adapter or convert the project's lockfile. Yarn/pnpm execution support
+  remains unimplemented and is not an acceptance pass.
+- Initial confirmation/reasoning/answers/preflight regression: **75 passed**.
+  Final confirmation/environment/preflight/workspace regression: **78 passed,
+  7 skipped**, including **27** confirmation cases and inherited workspace locks.
+  Broader conversation/execution/workbench/provider/budget/context/security/PR
+  regression: **162 passed**. Only two existing dependency deprecations appeared.
+  Live database backup and the original 40-event/6-Job manifest were captured at
+  `/data/backups/conversation-165f-confirmation-v1` before deployment or recovery.
+  An optional existing browser script could not run because Playwright is not
+  installed in the current Node environment; no browser pass is claimed. The
+  authenticated API replay and exact existing native button labels are covered
+  by the deterministic contracts; no frontend asset was changed in this fix.
+- All six services rebuilt and redeployed. API/Publisher/Gateway are healthy,
+  workers run, and `/health` reports application/database `ok`. Three changed
+  application source hashes match the running API. Authenticated live API
+  verification reports `planning`, `busy=false`, zero pending messages and
+  `node_lockfile_unsupported`, with the actual inherited `yarn.lock` named.
+  One append-only correction references both original misleading replies by
+  ID/hash; all original **40 event IDs/hashes**, **6 Jobs**, the saved plan and
+  model-call count remain unchanged. No new execution approval or execution,
+  model invocation, Git commit/push or third-party write occurred.
+- SQLite integrity/FKs and **780 registered artifacts** verify. Database,
+  artifacts, authenticated API responses, changed source files and final service
+  logs have zero inspected secret/canary matches; service logs have zero
+  tracebacks. Compilation and diff checks pass. No persistent model/schema
+  change. Rollback restores the prior matching app images after draining
+  conversation work; preserve the append-only correction and original hashes.
+  The reported contribution remains blocked on Yarn isolation support; the
+  correction is not a contribution test pass or execution recovery. Phase 5
+  remains current; UXR-G01 and native Linux amd64 P5-G06 remain open, with
+  P5-G06 still the next roadmap gate.
+
+General environment lifecycle requirements (2026-10-22, user-directed Phase 5
+repair; **project-derived Node slice implemented, cross-platform gate open**):
+
+The user requires project-driven environment preparation to connect through the
+whole contribution workflow. Installation success alone is not acceptance.
+The producer now derives npm/Yarn/pnpm runtime, manager and workspace recipes
+from inspected project declarations, preserving existing Python preparation.
+It supplies frozen dependencies and a fresh source view through baseline,
+Verify, Review and acceptance. Source Runner identity remains checked; an
+optional compiler execution image is separately pinned in the signed recipe
+and immutable result. This remains Phase 5 work and does not claim support for
+arbitrary languages, writable executable scratch, services or browser downloads.
+
+- [x] **ENV-T01** Define one immutable environment specification/result contract
+  covering runtime and image digests, package-manager version, dependency hashes,
+  workspace/package roots, execution paths/loaders, build outputs, required test
+  resources and policy. Bind it to the approved plan/base and consume verified
+  references throughout preparation, baseline, repair and Verify. Changing a
+  frozen environment or command invalidates affected confirmation and evidence;
+  never weaken image/hash checks to accept a new environment.
+- [x] **ENV-T02** Make each command run against its declared package directory
+  and frozen runtime. Verify local Node modules, ESM, workspace links and any
+  supported Yarn loader layout in both baseline and post-change execution.
+  Ensure tests import the current workspace source rather than an installed
+  original copy; isolate dependency/build/cache output from the contribution
+  diff and preserve exact approved source changes.
+  Reopened 2026-10-22 after the live approved Excalidraw run: baseline ended
+  with supervisor code 89 despite a read-only dependency mount. Node inventory
+  ordering changed when a previously broken workspace symlink became a
+  directory in the fresh source view. Canonical sorting is now verified by
+  target-existence/tampering tests and a real unscoped-workspace regression.
+  Vite caches use a private module-directory view; tool temp/cache/HOME data
+  uses the existing execution tmpfs. Eight real manager/runtime/recovery cases,
+  a 32 MiB temporary-data case and the real Excalidraw four-check baseline pass.
+- [x] **ENV-T03** Separate dependency preparation, execution readiness,
+  pre-change test outcome and post-change verification. Run mandatory baseline
+  commands before implementation; classify existing code failures separately
+  from environment failure using the existing bounded diagnosis rules. Optional
+  test resources/services must have explicit startup, readiness, reset and
+  cleanup contracts; unsupported needs cannot silently relax sandbox policy.
+- [x] **ENV-T04** Persist environment jobs and references so cancellation,
+  retries, worker restarts, cache expiry and reclaimed volumes resume safely.
+  Revalidate restored inputs; a retained success receipt is not proof that its
+  environment still exists. An environment change requires a new baseline and
+  renewed downstream evidence instead of reusing old tests or reviews.
+- [x] **ENV-T05** Carry the exact environment/baseline/Verify evidence through
+  independent Review and human acceptance to publication eligibility. Review
+  remains a separate model invocation consuming immutable evidence, without
+  credentials or model access entering repository execution. No installation
+  receipt or model claim may substitute for passed required checks or authorize
+  publication; existing exact one-time confirmations remain in force.
+- [ ] **ENV-G01** Demonstrate full project-driven preparation → baseline → scoped
+  implementation → fresh offline Verify → independent Review → human acceptance
+  and read-only publication preview on dedicated Python/npm/Yarn/pnpm fixtures,
+  including an unfamiliar workspace layout. Exercise dependency failure, source
+  shadowing, stale environment, cancellation/restart, environment reclamation,
+  bounded repair and cleanup. Record real macOS/OrbStack and native Linux/Docker
+  evidence separately; deterministic fakes or installation-only runs cannot pass
+  the end-to-end gate. External publication still requires its own exact consent.
+
+Implementation evidence: `node-environment-v1`, signed
+`workspace-dependency-plan-v5` and `workspace-dependency-result-v3` retain legacy
+wire hashes and use the existing content-addressed store; no SQL model changes.
+Online acquisition disables repository scripts and retains the fixed npm
+proxy. A second networkless container builds dependencies. Each Verify probes
+exact versions, initializes a fresh source view, checks original source hashes,
+and imports current workspace code through modules/ESM/Yarn PnP. Only declared
+workspaces run lifecycle scripts. Native frozen dependency output stays
+read-only; the writable source tmpfs retains noexec. Unsupported resources
+retain explicit blockers rather than expanding network or mount policy.
+
+Review input includes the exact spec/result/runtime and a frozen baseline
+binding. Disposal or trusted initial inventory failure invalidates one exact
+allocation; bounded recovery preserves the approved implementation, rebuilds
+the same recipe and produces a new baseline/Verify/Review. Ordinary test
+failures and later inventory tampering cannot grant this recovery. Existing
+scheduler crash, stop, stale-input, cleanup and budget tests remain enabled.
+Upgrade/rollback requires draining new artifact versions before older workers;
+see `docs/sandbox-dependencies.md`.
+
+Offline evidence: full suite `1226 passed, 32 skipped`; after the final workspace
+membership refinement, focused Node/confirmation regression `49 passed,
+11 skipped`. Python compilation and `git diff --check` pass. Real
+macOS arm64/OrbStack evidence and live deployment/recovery are recorded below;
+native Linux amd64/Docker remains unavailable. P5-G06 remains the first current
+roadmap gate; ENV-G01 and UXR-G01 remain open, with no later phase entry claimed.
+
+Final macOS arm64/OrbStack acceptance: `tests/test_node_workflow.py -k real`
+passes **7** real-container scenarios: npm 10.9.4, Yarn Classic 1.22.22,
+Yarn 4.9.2/PnP, pnpm 10.11.0, provisioned Node 20.19.0, signed compiler-image
+native dependency build/use, and actual missing-volume recovery. All four
+manager scenarios continue through baseline, approved scoped source changes,
+fresh Verify, independent Review, acceptance and read-only publication preview.
+Model completions and GitHub reads use deterministic fixtures; this is not
+live-model, live-GitHub publication or universal project acceptance. Runtime,
+compiler and volume-loss fixtures were checked after correcting fixture
+injection; earlier non-injected runs are not their evidence. Existing real
+Python baseline/modified-source regression passes **3** variants (declarative,
+dynamic and source compiler). Final fixture cleanup regression passes
+`22 passed, 11 skipped` plus **1** real missing-volume scenario, including
+dependency/preparation/source-volume cleanup.
+
+Live repair: all six configured Compose services rebuilt/redeployed, health
+reports API/database `ok`, and API/provider/sandbox images match **17** source
+hashes. Conversation `165f0bd6-02f4-45a1-bb7d-442bca1ad77d` was backed up at
+`/data/backups/environment-lifecycle-v1/before.db`; its original **41** events,
+**6** succeeded jobs and original plan remain unchanged. Child plan
+`8a6d7d9e-7a00-41c6-b537-a625b82449b0` preserves the two log-string edits and all
+four distinct project checks, removes duplicate executions, and uses the exact
+platform diff instead of `git diff` (the source snapshot has no `.git`).
+Its hash is `298799dc01d80fca67f639ddd83cd1dbdbf82d8562b4876a1d8d26a5c7bae89a`.
+At that pre-confirmation milestone, the API reported `planning`,
+`preflight=ready`, `pending_action=execute`,
+no pending work and `environment_prepared=false`. No model call, execution
+approval or implementation was created; dependency preparation and tests still
+require the user's exact plan confirmation. This is readiness, not a claim that
+Excalidraw's full dependency installation or tests have passed.
+
+Integrity/security evidence: SQLite integrity/foreign keys pass; **780**
+registered artifacts rehash correctly, original event/job references are
+preserved, and database/artifact/API scans contain no credential or canary
+matches. Local source/tests/docs plus deployed service logs were scanned
+without echoing secrets. No Git commits, pushes or third-party writes occurred.
+
+Follow-up live regressions and completion evidence (2026-10-23): the user's
+exact approval subsequently started real execution. Three environment/runtime
+gaps were repaired without relaxing the policy: canonical dependency-entry
+ordering when workspace links begin resolving; private Vite cache and tool
+temporary/HOME paths within the existing execution tmpfs; and live stage-lease
+renewal with current-time completion and cancellation cleanup. ENOSPC/cache
+startup failures are now environment blockers. A generic Job reaper's expiry
+also converges the owning stage instead of leaving it running. Shortened-lease
+regressions cover renewal, cancellation and rejection of late expired results.
+
+The original frozen dependency bundle was revalidated and reused by a persistent
+`workspace-preparation-job-v2`, with an original-allocation hash and runtime
+readiness proof in the new immutable baseline. All four real Excalidraw baseline
+checks pass. The rejected repair draft was corrected using exact frozen source
+and its verified predecessor, preserving only the two approved log-string edits
+and adding no model invocation. The expired Verify job remains recorded;
+run **2 of the original maximum 3** reused the same implementation and approval,
+renewed its lease throughout the long test, passed **4/4** post-change checks,
+and completed a fresh independent real-provider Review with verdict `pass`.
+
+The actual API now reports `ready`, `pending_action=accept`, no pending messages,
+and no active Job. Human result acceptance remains outstanding; it was not
+performed by maintenance and no publication was confirmed. Verified bindings:
+
+- Attempt: `07b04a29-5e5e-46d3-a30a-2f8a787cbf34`.
+- Baseline: `1db3dc3d1b7cdf1aa88f8b8fcbd57551525cd3d262d8a12f54bd556261061b85`.
+- Diff: `417b0ff82ee24e14953a0ffc83fa951aa7382010f16460875499667a8d9dd048`.
+- Verify: `42b1da6bc7d990e7621098d36de6b4382fe54c5c490e6e4e020f0bf9c9958202`.
+- Review: `6e163e9b8acb156d7b09fabdacbe8495d7aebe1c9615a0a8461917b0b302aaaa`.
+
+Final full offline suite: **1248 passed, 34 skipped**. Real Node manager/runtime/
+cache/volume-loss scenarios pass **8**, plus a real **32 MiB** temporary-data
+case. The real unchanged-project Vitest readiness probe passed in about 266
+seconds; readiness was then followed by the full persistent baseline and
+post-change Verify above. Final focused lifecycle/runtime suite passes
+`58 passed, 17 skipped`; the three lease regressions also pass. Python
+compilation, JavaScript syntax and whitespace checks pass.
+
+All six Compose services were rebuilt/redeployed and are healthy/running, with
+API/database health `ok`. API/provider/sandbox match **22** source hashes.
+The final audit preserves all **56** events and **9** Jobs from the first failed
+execution snapshot, the original single approval and both execution attempts.
+All **816** registered artifacts rehash correctly; database/artifact/API and
+**188** local source/test/doc/log files have zero credential/canary matches.
+Backups are retained under `/data/backups/node-inventory-repair-v1`,
+`node-cache-repair-v1`, `node-cache-readiness-v2` and `stage-lease-renewal-v1`.
+No persistent schema change or third-party write was needed. Native Linux
+amd64/Docker P5-G06, ENV-G01 and UXR-G01 remain open; P5-G06 is still the next
+roadmap gate, with no later phase entry or repository-wide completion claimed.
 
 ## Phase 6 — Independent review and bounded repair
 

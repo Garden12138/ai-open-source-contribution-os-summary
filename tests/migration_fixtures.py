@@ -7,6 +7,10 @@ from sqlalchemy import Connection
 def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -> None:
     execute = getattr(connection, "exec_driver_sql", connection.execute)
     from app.migrations.versions.v0018_dependency_verify_inputs import _STATEMENTS
+    from app.migrations.versions.v0029_workbench import STATEMENTS as WORKBENCH_STATEMENTS
+    execute('DROP TRIGGER contribution_task_state_legal_insert')
+    execute(next(s for s in WORKBENCH_STATEMENTS if s.startswith('CREATE TRIGGER contribution_task_state_legal_insert')))
+    execute("DELETE FROM _schema_migrations WHERE revision='0037_baseline_feedback'")
     for statement in _STATEMENTS:
         execute(statement)
     execute("DELETE FROM _schema_migrations WHERE revision='0036_verification_environment_recovery'")

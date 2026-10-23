@@ -113,6 +113,60 @@ def test_two_schedulers_share_one_verify_and_atomic_enqueue(tmp_path, monkeypatc
         assert Workbench(session, settings.artifact_root).active_blocker(tid) is None
 
 
+@pytest.mark.parametrize("mode", ["renew", "cancel", "lost"])
+def test_long_stage_renews_lease_and_rejects_cancelled_or_expired_results(tmp_path, monkeypatch, mode):
+    from datetime import datetime, timezone
+    from app.jobs import JobService
+    from app.sandbox_worker.fake import FakeVerifyRuntime
+    db, settings, tid, aid, workers, *_ = implemented(tmp_path, monkeypatch)
+    with db.session() as session:
+        schedule_verification(Workbench(session, settings.artifact_root), aid, resolve_job_spec_signer(settings))
+    worker = workers[0]
+    worker.lease_seconds = 1
+    worker.heartbeat_interval_seconds = 2 if mode == "lost" else .05
+    async def exercise():
+        entered = asyncio.Event()
+        cancelled = asyncio.Event()
+        class Slow(FakeVerifyRuntime):
+            async def run(self, **kwargs):
+                entered.set()
+                try:
+                    await asyncio.sleep(1.4 if mode != "cancel" else 10)
+                    return await super().run(**kwargs)
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    raise
+        worker.verify_runtime = Slow()
+        task = asyncio.create_task(worker.run_once())
+        await entered.wait()
+        with db.session() as session:
+            run = session.scalar(select(ExecutionStageRun).where(ExecutionStageRun.stage == "verify"))
+            job_id = run.job_id
+            if mode == "cancel": JobService(session).request_cancel(job_id)
+        for _ in range(20):
+            await asyncio.sleep(.1)
+            with db.session() as session:
+                JobService(session).recover_expired(now=datetime.now(timezone.utc))
+                if mode == "lost":
+                    # The generic reaper consumed the expiry before the stage
+                    # coordinator sees it; both durable states must converge.
+                    ExecutionStageControlService(session).reconcile_expired()
+            if task.done(): break
+        result = await task
+        assert result.state == {"renew":"succeeded", "cancel":"cancelled", "lost":"timed_out"}[mode]
+        with db.session() as session:
+            stage = ExecutionAttemptService(session).current(aid)
+            assert stage.status == result.state
+            if mode != "renew": assert stage.result_hash is None
+            else:
+                job = session.get(Job, job_id)
+                assert (job.completed_at - job.started_at).total_seconds() >= 1
+                assert job.heartbeat_at > job.started_at
+        if mode == "cancel": assert cancelled.is_set()
+    asyncio.run(exercise())
+    db.close()
+
+
 def test_enqueue_crash_rolls_back_verify_transition_and_retries(tmp_path, monkeypatch):
     db, settings, tid, aid, *_ = implemented(tmp_path, monkeypatch)
     signer = resolve_job_spec_signer(settings)
@@ -299,11 +353,11 @@ def test_recovery_upgrade_preserves_hashes_and_database_rejects_unproven_input(t
     import app.migrations.versions as versions
     migrations = versions.MIGRATIONS
     with monkeypatch.context() as patch:
-        patch.setattr(versions, "MIGRATIONS", migrations[:-1])
+        patch.setattr(versions, "MIGRATIONS", tuple(m for m in migrations if m.revision < "0036"))
         db, settings, tid, aid, workers, *_ = disposed_verify(tmp_path, monkeypatch)
         with db.session() as session:
             hashes = [e.record_hash for e in Workbench(session, settings.artifact_root).history(tid)]
-    assert db.create_schema().applied == ("0036_verification_environment_recovery",)
+    assert db.create_schema().applied == ("0036_verification_environment_recovery", "0037_baseline_feedback")
     assert db.create_schema().applied == ()
     with db.session() as session:
         assert [e.record_hash for e in Workbench(session, settings.artifact_root).history(tid)] == hashes

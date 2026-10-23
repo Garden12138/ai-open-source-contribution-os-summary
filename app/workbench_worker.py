@@ -65,6 +65,8 @@ class WorkbenchJobWorker:
                         "依赖准备未通过：请检查锁定版本与哈希、wheel 可用性及包代理；未进入代码修复。",
                     ),
                     "execution_question": ("execution_question_failed", "执行问答未完成，当前执行不受影响，可以重新提问。"),
+                    "baseline_diagnosis": ("baseline_diagnosis_failed", "修改前自动诊断未完成，原始失败证据保留，可在预算内重试。"),
+                    "planning_import_metadata": ("planning_import_metadata_failed", "安全导入元数据读取未完成；完整源码仍不可用，不能猜测其内容。"),
                     "planning_archive": (
                         "planning_archive_failed",
                         "下载仓库归档失败，请检查只读 GitHub 访问后重新读取仓库。",
@@ -98,7 +100,7 @@ class WorkbenchJobWorker:
                 elif isinstance(exc, OSError) and getattr(exc, "errno", None) == errno.ENOSPC:
                     if job.kind == "planning_archive":
                         error_message = "下载仓库归档失败，存储空间不足，请清理后重试。"
-                elif isinstance(exc, WorkbenchError) and job.kind in {"native_resource_download", "conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}:
+                elif isinstance(exc, WorkbenchError) and (exc.code == "planning_budget_exceeded" or job.kind in {"native_resource_download", "conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}):
                     error_code = exc.code
                 # Never log exception text, model output, validation inputs or
                 # arbitrary field names. Error types suffice to diagnose schemas.

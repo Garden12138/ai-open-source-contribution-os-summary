@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import asyncio
+from contextlib import suppress
+from collections.abc import Callable
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import time
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -49,20 +53,76 @@ class ExecutionStageWorker:
         self.explore_runtime = explore_runtime
         self.implement_runtime = implement_runtime
         self.verify_runtime = verify_runtime
+        self.lease_seconds = 60
+        self.heartbeat_interval_seconds = 10
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
         started_at = now or datetime.now(timezone.utc)
         if started_at.tzinfo is None:
             started_at = started_at.replace(tzinfo=timezone.utc)
+        started = time.monotonic()
+        clock = lambda: started_at + timedelta(seconds=time.monotonic() - started)
         with self.database.session() as session:
             control = ExecutionStageControlService(session)
             run = control.lease_next(
                 worker_id=self.worker_id,
-                lease_seconds=60,
+                lease_seconds=self.lease_seconds,
                 now=started_at,
             )
             if run is None:
                 return None
+            run_id, timeout = run.id, run.timeout_seconds
+        work = asyncio.create_task(self._run_leased(run_id, started_at, clock))
+        heartbeat = asyncio.create_task(self._heartbeat(run_id, work, clock))
+        try:
+            async with asyncio.timeout(timeout):
+                return await work
+        except (Exception, asyncio.CancelledError) as exc:
+            logger.warning("Sandbox worker interrupted: exception=%s", type(exc).__name__)
+            with self.database.session() as session:
+                control = ExecutionStageControlService(session)
+                control.reconcile_expired(now=clock())
+                current = control.get_verified(run_id)
+                if current.job.state not in {"succeeded", "failed", "cancelled", "timed_out"}:
+                    if current.job.lease_owner != self.worker_id:
+                        return current.job
+                    if current.job.state == "leased":
+                        from app.jobs import JobService
+                        JobService(session).fail(current.job_id, worker_id=self.worker_id,
+                            error_code="worker_interrupted", error_message="隔离执行初始化已中断。", now=clock())
+                        control.reconcile_expired(now=clock())
+                        return self._job(session, run_id)
+                    status = (ExecutionStageStatus.CANCELLED if current.job.cancel_requested_at else
+                        ExecutionStageStatus.TIMED_OUT if isinstance(exc, TimeoutError) else ExecutionStageStatus.FAILED)
+                    control.complete(run_id, worker_id=self.worker_id, status=status,
+                        reason_code="cancelled" if status is ExecutionStageStatus.CANCELLED else "worker_interrupted",
+                        error_message="隔离执行已中断，已有改动与证据保留。", now=clock())
+                return self._job(session, run_id)
+        finally:
+            work.cancel()
+            heartbeat.cancel()
+            with suppress(asyncio.CancelledError, Exception): await work
+            with suppress(asyncio.CancelledError): await heartbeat
+
+    async def _heartbeat(self, run_id: str, work: asyncio.Task, clock: Callable[[], datetime]) -> None:
+        while True:
+            await asyncio.sleep(self.heartbeat_interval_seconds)
+            try:
+                with self.database.session() as session:
+                    control = ExecutionStageControlService(session)
+                    run = control.get_verified(run_id)
+                    if run.job.cancel_requested_at or run.job.state in {"succeeded", "failed", "cancelled", "timed_out"}:
+                        work.cancel()
+                        return
+                    control.heartbeat(run_id, worker_id=self.worker_id, lease_seconds=self.lease_seconds, now=clock())
+            except Exception:
+                work.cancel()
+                return
+
+    async def _run_leased(self, run_id: str, started_at: datetime, clock: Callable[[], datetime]) -> Job:
+        with self.database.session() as session:
+            control = ExecutionStageControlService(session)
+            run = control.get_verified(run_id)
             attempts = ExecutionAttemptService(session)
             policy = SandboxPolicy()
             attempt = attempts.get_verified(run.execution_attempt_id)
@@ -129,14 +189,14 @@ class ExecutionStageWorker:
                 sandbox_policy=policy,
                 workspace_id=workspace_id,
                 workspace_ref=workspace_ref,
-                now=started_at,
+                now=clock(),
             )
             if archive is None:
                 return self._fail(
                     session,
                     run.id,
                     "repository_archive_unavailable",
-                    started_at,
+                    clock(),
                     error_message="仓库归档不可用或校验未通过，请检查代码仓库。",
                 )
             if runtime_missing:
@@ -146,9 +206,10 @@ class ExecutionStageWorker:
                     "explore_runtime_unavailable"
                     if stage is SandboxStage.EXPLORE
                     else "stage_runtime_unavailable",
-                    started_at,
+                    clock(),
                     error_message="沙箱执行环境不可用，请检查沙箱容器配置。",
                 )
+            dependency = None
             try:
                 if stage is SandboxStage.EXPLORE:
                     from app.sandbox_worker.explore import ExploreService
@@ -163,7 +224,7 @@ class ExecutionStageWorker:
                         run.id,
                         result,
                         "explore_succeeded",
-                        started_at,
+                        clock(),
                     )
                 if stage is SandboxStage.IMPLEMENT:
                     if self.change_set_store is None:
@@ -193,7 +254,7 @@ class ExecutionStageWorker:
                         run.id,
                         execution.result,
                         "implement_succeeded",
-                        started_at,
+                        clock(),
                         workspace_inventory_hash=(
                             execution.result.result_inventory_hash
                         ),
@@ -233,7 +294,7 @@ class ExecutionStageWorker:
                     run.id,
                     result,
                     "verify_succeeded",
-                    started_at,
+                    clock(),
                 )
             except Exception as exc:
                 if self._job(session, run.id).state == "succeeded":
@@ -247,13 +308,26 @@ class ExecutionStageWorker:
                     "verifyerror": "沙箱运行验证测试时失败，请检查测试命令后重试。",
                 }.get(type(exc).__name__.lower(), f"沙箱隔离执行失败：{type(exc).__name__}")
                 from app.workbench import WorkbenchError
-                if isinstance(exc, WorkbenchError) and exc.code == "environment_stale":
+                from app.sandbox_worker.verification import VerificationEnvironmentUnavailable
+                if isinstance(exc, VerificationEnvironmentUnavailable) and dependency is not None:
+                    wb = Workbench(session, str(self.artifact_root))
+                    allocation = next((e for e in reversed(wb.history(attempt.task_id))
+                        if e.kind == "dependency_workspace"
+                        and e.payload["workspace"]["workspace_id"] == dependency.workspace.workspace_id), None)
+                    if allocation is not None:
+                        wb.append(attempt.task_id, "dependency_workspace_invalidated", {
+                            "allocation_hash": allocation.record_hash,
+                            "dependency_result_hash": dependency.result.result_hash,
+                            "reason_code": "dependency_inventory_unavailable"},
+                            key="dependency-invalidated:" + allocation.id, job_id=run.job_id)
+                if ((isinstance(exc, WorkbenchError) and exc.code == "environment_stale")
+                        or isinstance(exc, VerificationEnvironmentUnavailable)):
                     safe_msg = "冻结验证环境已失效，正在检查隔离恢复条件；已有改动保留。"
                 return self._fail(
                     session,
                     run.id,
                     _reason_code(exc),
-                    started_at,
+                    clock(),
                     error_message=safe_msg,
                 )
 
@@ -267,6 +341,7 @@ class ExecutionStageWorker:
         *,
         workspace_inventory_hash: str | None = None,
     ) -> Job:
+        session.expire_all()
         if self.artifact_root is None:
             raise RuntimeError("Execution artifact root is required")
         store = ArtifactStore(
@@ -298,6 +373,7 @@ class ExecutionStageWorker:
         *,
         error_message: str | None = None,
     ) -> Job:
+        session.expire_all()
         ExecutionStageControlService(session).complete(
             run_id,
             worker_id=self.worker_id,
@@ -356,6 +432,9 @@ class ExecutionStageWorker:
 
 def _reason_code(error: Exception) -> str:
     from app.workbench import WorkbenchError
+    from app.sandbox_worker.verification import VerificationEnvironmentUnavailable
+    if isinstance(error, VerificationEnvironmentUnavailable):
+        return "environment_stale"
     if isinstance(error, WorkbenchError) and error.code == "environment_stale":
         return "environment_stale"
     name = type(error).__name__.lower()

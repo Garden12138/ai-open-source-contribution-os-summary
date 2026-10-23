@@ -12,6 +12,7 @@ from app.schemas import JobResponse, PlanVersionResponse, PlanVersionCreateReque
 from app.task_states import ContributionTaskStateService
 from app.workbench import Workbench, WorkbenchError
 from app.security import SensitiveDataError
+from app.planning_budget import PlanningBudgetRequest
 from app.contribution_workflow import authorize_execution, stop_workflow, _advance
 
 
@@ -76,6 +77,29 @@ class TaskModelsResponse(BaseModel):
     changed: bool
 
 
+class ContextManagementResponse(BaseModel):
+    status: Literal["not_built", "stale", "compacted", "within_budget", "pinned_context_large"]
+    original_bytes: int = 0
+    prompt_bytes: int = 0
+    saved_bytes: int = 0
+    target_bytes: int = 0
+    target_met: bool = True
+    reference_count: int = 0
+    instruction_count: int = 0
+    usage: dict[str, Any] = Field(default_factory=dict)
+
+
+class PlanningBudgetResponse(BaseModel):
+    version: str
+    revision: str
+    record_hash: str | None
+    limits: dict[str, int]
+    usage: dict[str, int]
+    remaining: dict[str, int]
+    bounds: dict[str, dict[str, int]]
+    configurable: bool
+
+
 class WorkbenchResponse(BaseModel):
     task_id: str
     state: str
@@ -90,7 +114,9 @@ class WorkbenchResponse(BaseModel):
     model_profiles: dict[str, str | None] = Field(default_factory=dict)
     model_labels: dict[str, str] = Field(default_factory=dict)
     model_binding_hash: str | None = None
-    execution: dict[str, Any] = Field(default_factory=dict)
+    execution: dict[str, Any] = Field(default_factory=dict, json_schema_extra={
+        "properties":{"context_management":ContextManagementResponse.model_json_schema(),
+                      "planning_budget":PlanningBudgetResponse.model_json_schema()}})
     cla: dict[str, Any] = Field(default_factory=dict)
     pr_update: dict[str, Any] = Field(default_factory=dict)
     pr_update_available: bool = False
@@ -181,6 +207,19 @@ class NativeResourcePreviewResponse(BaseModel):
 
 def register_workbench_routes(app, get_session, require_mutation_access) -> None:
     router = APIRouter(prefix="/api/v1/tasks/{task_id}/workbench", tags=["workbench"])
+
+    @router.post("/budget", response_model=PlanningBudgetResponse,
+                 dependencies=[Depends(require_mutation_access)])
+    def configure_budget(task_id: str, payload: PlanningBudgetRequest, request: Request,
+                         key: str = Header(alias="Idempotency-Key", min_length=1, max_length=80),
+                         session: Session = Depends(get_session)):
+        from app.planning_budget import configure_planning_budget
+        try:
+            return configure_planning_budget(Workbench(session, request.app.state.settings.artifact_root),
+                                             task_id, payload, key=key)
+        except IntegrityError:
+            session.rollback()
+            raise WorkbenchError("任务预算已变化，请刷新后重新选择。", code="planning_budget_conflict") from None
 
     @router.post("/native-resources/prepare", response_model=NativeResourcePreviewResponse, dependencies=[Depends(require_mutation_access)])
     def native_resource_prepare(task_id: str, payload: NativeResourcePrepareRequest, request: Request,

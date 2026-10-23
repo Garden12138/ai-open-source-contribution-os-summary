@@ -628,6 +628,14 @@ class DockerExploreRuntime:
                 process.communicate(),
                 timeout=timeout_seconds,
             )
+        except asyncio.CancelledError:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            await process.wait()
+            await self._force_remove(container_name)
+            raise
         except TimeoutError as exc:
             try:
                 os.killpg(process.pid, signal.SIGKILL)

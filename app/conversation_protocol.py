@@ -11,7 +11,7 @@ REASONING_VERSION = "conversation-reasoning-v3"
 LEGACY_REASONING_VERSION = "conversation-reasoning-v2"
 REASONING_VERSIONS = {REASONING_VERSION, LEGACY_REASONING_VERSION}
 EvidenceName = Literal["task", "plan", "changes", "tests", "review", "publication_document",
-                       "publication_preview", "ready_preview", "pull_request", "publisher_account", "repository_file"]
+                       "publication_preview", "ready_preview", "pull_request", "publisher_account", "repository_file", "context_reference"]
 Action = Literal["respond", "discuss_plan", "revise_plan", "resume_work", "prepare_publication",
                  "renew_publication_preview", "revise_document", "followup_pr", "prepare_ready_for_review", "read_cla",
                  "check_cla", "refresh_repository", "stop_work"]
@@ -23,6 +23,14 @@ class EvidenceRead(BaseModel):
     path: str | None = Field(default=None, max_length=300)
     query: str | None = Field(default=None, max_length=200)
     start_line: int = Field(default=1, ge=1, le=1_000_000)
+    reference_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    offset: int = Field(default=0, ge=0, le=2_000_000)
+
+    @model_validator(mode="after")
+    def context_reference_required(self) -> EvidenceRead:
+        if self.name == "context_reference" and self.reference_id is None:
+            raise PydanticCustomError("context_reference_required", "Context reads require an issued reference_id")
+        return self
 
 
 class TurnEnvelope(BaseModel):

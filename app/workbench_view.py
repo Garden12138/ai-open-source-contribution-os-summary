@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import select
 from app.models import ExecutionAttempt, ReviewRun
 from app.executions import ExecutionAttemptService
-from app.execution_outcome import attempt_verification
+from app.execution_outcome import attempt_verification, baseline_outcome
 from app.jobs import TERMINAL_STATES
 from app.provenance import content_hash
 from app.task_states import ContributionTaskStateService
@@ -49,7 +49,9 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
     from app.execution_preflight import task_preflight
     preflight = task_preflight(wb, task_id, environment=environment)
     baseline = next((e for e in reversed(events) if e.kind == "execution_baseline_ready"
-                     and (not latest or e.payload["attempt_id"] == latest["id"])), None)
+                     and latest and e.payload["attempt_id"] == latest["id"]), None)
+    baseline_view = ({**baseline.payload, "outcome": baseline_outcome(wb.read(baseline.payload["result_hash"]))}
+                     if baseline else None)
     context = wb.latest(task_id, "context_ready")
     binding = next((e for e in reversed(events) if e.kind == "plan_bound" and plan and e.plan_version_id == plan.id), None)
     plan_stale = bool(plan and state.to_state == "planning" and (
@@ -72,7 +74,7 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
     if plan_stale:
         blockers.append({"code": "plan_stale", "message": "执行依据已变化，请保存新版本并重新确认。"})
     reply = wb.latest(task_id, "assistant_message")
-    if (plan and plan.questions_for_maintainer) or (reply and (reply.payload.get("questions") or reply.payload.get("read_paths"))):
+    if (plan and plan.questions_for_maintainer) or (reply and (reply.payload.get("questions") or reply.payload.get("read_paths") or reply.payload.get("read_context"))):
         blockers.append({"code": "planning_incomplete", "message": "请先回答方案问题并完成代码阅读。"})
     if wb.plan_rejection_active(task_id, plan.id if plan else None):
         blockers.append({"code": "planning_plan_invalid", "message": "新草稿未通过校验，请修订并保存方案。"})
@@ -80,10 +82,24 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
         "plan_approved", "executing", "reviewing", "ready"},
         "can_execute": bool(plan and state.to_state == "planning" and not busy and
                             not blockers and preflight["status"] == "ready")}
+    from app.baseline_feedback import feedback_view
+    dependency = next((e for e in reversed(events) if e.kind == "dependencies_ready"
+                       and latest and e.payload["attempt_id"] == latest["id"]
+                       and plan and latest["plan_id"] == plan.id), None)
+    allocation = next((e for e in reversed(events) if e.kind == "dependency_workspace"
+                       and dependency and e.job_id == dependency.job_id), None)
+    disposed = bool(allocation and any(e.kind in {"dependency_workspace_disposed", "dependency_workspace_invalidated"}
+        and e.payload["allocation_hash"] == allocation.record_hash for e in events))
+    prepared = bool(dependency and allocation and not disposed)
+    environment_evidence = {"status": "disposed" if disposed else "recorded" if prepared else "not_prepared",
+        "dependency_result_hash": dependency.payload["result_hash"] if dependency else None,
+        "preparation": wb.read(dependency.payload["result_hash"]).get("environment_receipt") if dependency else None}
     view = {"environment": environment, "preflight":preflight, "run_id": authorization.id if authorization else None,
-            "baseline": baseline.payload if baseline else None,
+            "environment_evidence": environment_evidence,
+            "baseline": baseline_view,
+            "baseline_feedback": feedback_view(wb, task_id, latest["id"] if latest else None),
             "runtime": {"code_reading_verified": wb.latest(task_id, "context_ready") is not None,
-                        "environment_prepared": any(e.kind == "dependencies_ready" for e in events),
+                        "environment_prepared": prepared,
                         "note": "can_execute 是当前方案操作的准入状态，不是沙箱是否具备执行能力；builtin 不是环境已验证。"},
             "state": state.to_state, "busy": busy, "attempts": attempts,
             "readiness": {"scope": "execution", "blocks_repository_reading": False,
@@ -104,6 +120,10 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
                                  and not busy and not blocked and latest and latest["verification"]["status"] == "passed")
     from app.pr_lifecycle import lifecycle_view
     view["pr_lifecycle"] = lifecycle_view(wb, task_id)
+    from app.context_compaction import context_view
+    from app.planning_budget import planning_usage, planning_budget_view
+    view["context_management"] = {**context_view(wb, task_id), "usage":planning_usage(wb, task_id)}
+    view["planning_budget"] = planning_budget_view(wb, task_id)
     view["revision"] = content_hash({**view, "jobs": [(j.id, j.state, bool(j.cancel_requested_at)) for j in jobs]})
     return view
 
@@ -111,6 +131,8 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
 def execution_context(wb: Workbench, task_id: str) -> dict[str, Any]:
     """Bounded, evidence-based status for both planning and progress questions."""
     view = workbench_view(wb, task_id)
+    view.pop("context_management", None)
+    view.pop("planning_budget", None)
     attempts = view.pop("attempts")
     view["attempt_count"] = len(attempts)
     lifecycle = view.pop("pr_lifecycle")

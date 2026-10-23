@@ -20,6 +20,7 @@ from app.sandbox_worker.dependencies import (
     DependencyProxyPolicy, WORKSPACE_DEPENDENCY_PLAN_VERSION,
     DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION,
     SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION,
+    NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION,
 )
 from app.sandbox_worker.specs import SandboxPolicy
 from app.sandbox_worker.implementation import ImplementRuntime
@@ -51,7 +52,7 @@ def preparation_needs_restore(wb: Workbench, receipt: WorkbenchEvent) -> bool:
                        == {k: v for k, v in ready.payload["workspace"].items() if k != "inventory_hash"}), None)
     if allocation is None:
         raise WorkbenchError("冻结依赖分配记录缺失，不能恢复执行", code="environment_stale")
-    return any(e.kind == "dependency_workspace_disposed"
+    return any(e.kind in {"dependency_workspace_disposed", "dependency_workspace_invalidated"}
                and e.payload["allocation_hash"] == allocation.record_hash for e in events)
 
 
@@ -61,6 +62,16 @@ def enqueue_preparation(wb: Workbench, attempt_id: str, *, replaces: WorkbenchEv
     stage = attempts.current(attempt_id)
     if stage.stage != "explore" or stage.status != "succeeded":
         raise WorkbenchError("环境准备需要完成隔离代码探索", code="environment_stale")
+    if replaces is None:
+        recovery = next((e for e in reversed(wb.history(attempt.task_id))
+            if e.kind == "preparation_runtime_retry_requested" and e.payload["attempt_id"] == attempt_id
+            and e.payload["stage_hash"] == stage.record_hash), None)
+        if recovery is not None:
+            job = wb.session.get(Job, recovery.job_id)
+            if (job is None or job.kind != PREPARE or job.payload.get("execution_attempt_id") != attempt_id
+                    or job.payload.get("runtime_repair_hash") != recovery.payload["proof_hash"]):
+                raise WorkbenchError("环境准备恢复记录不匹配。", code="environment_stale")
+            return job
     payload = {
         "version": "workspace-preparation-job-v1", "execution_attempt_id": attempt_id,
         "explore_result_hash": stage.result_hash,
@@ -72,6 +83,64 @@ def enqueue_preparation(wb: Workbench, attempt_id: str, *, replaces: WorkbenchEv
         payload["replaces_baseline_hash"] = replaces.record_hash
         key += ":restore:" + replaces.id
     return wb.enqueue(attempt.task_id, PREPARE, payload, key=key, timeout_seconds=1800)
+
+
+def enqueue_cached_rebaseline(wb: Workbench, attempt_id: str, settings: Settings, proof_hash: str) -> Job:
+    """Trusted maintenance: fresh baseline with an unchanged, still-live bundle."""
+    import hashlib
+    from pathlib import Path
+    from app.cla import _lock
+    from app.execution_recovery import require_recovery_authorization, _resume_blocker
+    from app.execution_outcome import baseline_outcome
+    from app.sandbox_worker.dependency_jobs import load_dependency
+    _lock(wb)
+    attempt = ExecutionAttemptService(wb.session).get_verified(attempt_id)
+    authorization = require_recovery_authorization(wb, attempt, settings)
+    stage = ExecutionAttemptService(wb.session).current(attempt_id)
+    receipt = preparation_receipt(wb, attempt_id)
+    proof = wb.read(proof_hash)
+    existing = next((e for e in wb.history(attempt.task_id) if e.kind == "runtime_rebaseline_requested"
+        and e.payload["proof_hash"] == proof_hash), None)
+    if existing: return wb.session.get(Job, existing.job_id)
+    if receipt is None or stage.stage != "explore" or stage.status != "succeeded":
+        raise WorkbenchError("当前执行不能重新建立修改前基线。", code="environment_stale")
+    old = wb.read(receipt.payload["result_hash"])
+    outcome = baseline_outcome(old)
+    dependency = load_dependency(wb, attempt_id)
+    sources = {"app/sandbox_worker/node_execution.py", "app/execution_outcome.py"}
+    project = Path(__file__).resolve().parent.parent.parent
+    if (set(proof) != {"version", "attempt_hash", "dependency_hash", "probe_hash", "source_hashes"}
+            or proof["version"] != "node-runtime-readiness-proof-v1" or proof["attempt_hash"] != attempt.record_hash
+            or dependency is None or dependency.workspace.node_environment is None
+            or proof["dependency_hash"] != dependency.result.result_hash
+            or dependency.result.result_hash != old["dependency_result_hash"]
+            or outcome["status"] != "environment_blocked"
+            or not set(outcome["missing_dependencies"]) <= {"node_tool_cache_unavailable", "sandbox_storage_exhausted"}
+            or set(proof["source_hashes"]) != sources
+            or any(proof["source_hashes"][p] != hashlib.sha256((project / p).read_bytes()).hexdigest() for p in sources)):
+        raise WorkbenchError("基线或运行时修复证据已变化。", code="environment_stale")
+    probe = wb.read(proof["probe_hash"])
+    if (probe.get("diagnostic_only") is not True or not probe.get("checks")
+            or {c["command"] for c in probe["checks"]} != {f["command_id"] for f in outcome["failures"]}
+            or any(c.get("status") != "passed" or c.get("exit") != 0 for c in probe["checks"])):
+        raise WorkbenchError("原失败命令尚未通过真实诊断。", code="environment_stale")
+    if any(j.state in {"queued", "leased", "running"} for j in wb.jobs(attempt.task_id)):
+        raise WorkbenchError("请等待当前任务完成。", code="environment_stale")
+    allocation = next(e for e in reversed(wb.history(attempt.task_id))
+        if e.kind == "dependency_workspace" and e.job_id == receipt.job_id)
+    job = wb.enqueue(attempt.task_id, PREPARE, {"version": "workspace-preparation-job-v2",
+        "execution_attempt_id": attempt_id, "explore_result_hash": stage.result_hash,
+        "replaces_baseline_hash": receipt.record_hash, "reuse_dependency_hash": dependency.result.result_hash,
+        "reuse_allocation_hash": allocation.record_hash, "runtime_rebaseline_proof_hash": proof_hash},
+        key="cached-rebaseline:" + receipt.id, timeout_seconds=1800, commit=False)
+    wb.append(attempt.task_id, "runtime_rebaseline_requested", {"attempt_id": attempt_id,
+        "stage_hash": stage.record_hash, "proof_hash": proof_hash, "authorization_hash": authorization.record_hash},
+        key="cached-rebaseline:" + receipt.id, actor="orchestrator", job_id=job.id, commit=False)
+    blocker = wb.active_blocker(attempt.task_id)
+    if blocker and blocker.payload.get("reason_code") == "environment_blocked":
+        _resume_blocker(wb, attempt, authorization, job, stage)
+    wb.session.commit()
+    return job
 
 
 class WorkspacePreparationWorker(WorkbenchJobWorker):
@@ -122,6 +191,13 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                 raise WorkbenchError("验证环境恢复输入已过期。", code="environment_stale")
         elif stage.stage != "explore" or stage.status != "succeeded" or stage.result_hash != job.payload["explore_result_hash"]:
             raise WorkbenchError("环境准备输入已过期", code="environment_stale")
+        if job.payload.get("reuse_dependency_hash"):
+            event = next((e for e in wb.history(attempt.task_id) if e.kind == "runtime_rebaseline_requested"
+                and e.job_id == job.id and e.actor_id == "orchestrator"), None)
+            if (job.payload.get("version") != "workspace-preparation-job-v2" or event is None
+                    or event.payload["proof_hash"] != job.payload.get("runtime_rebaseline_proof_hash")
+                    or event.payload["stage_hash"] != stage.record_hash):
+                raise WorkbenchError("重新建立基线缺少可信的冻结依据。", code="environment_stale")
         if wb.latest(attempt.task_id, "stop_requested"):
             stop = wb.latest(attempt.task_id, "stop_requested")
             authorization = wb.latest(attempt.task_id, "execution_authorized")
@@ -172,7 +248,26 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                           key="preparation-workspace:" + job.id, job_id=job.id)
             await materializer.materialize(workspace=workspace, archive=archive, policy=policy)
             workspace = replace(workspace, inventory_hash=explore["inventory_hash"])
-            if selected["status"] == "supported":
+            if job.payload.get("reuse_dependency_hash"):
+                from app.sandbox_worker.dependency_jobs import load_dependency
+                with self.database.session() as session:
+                    wb, _, _ = self.current(session, job)
+                    dependency = load_dependency(wb, attempt.id)
+                    previous = next(e for e in wb.history(attempt.task_id)
+                        if e.kind == "execution_baseline_ready" and e.record_hash == job.payload["replaces_baseline_hash"])
+                    old = wb.read(previous.payload["result_hash"])
+                    environment_spec = wb.read(old["environment_spec_hash"])
+                    if (dependency is None or dependency.result.result_hash != job.payload["reuse_dependency_hash"]
+                            or dependency.result.result_hash != old["dependency_result_hash"]
+                            or dependency.result.plan_hash != content_hash(environment_spec)
+                            or dependency.result.implement_result_hash != job.payload["explore_result_hash"]
+                            or dependency.workspace.node_environment != selected.get("node_environment")):
+                        raise WorkbenchError("冻结依赖已变化，不能复用建立新基线。", code="environment_stale")
+                    wb.append(attempt.task_id, "dependency_workspace", {"attempt_id": attempt.id,
+                        "workspace": asdict(dependency.workspace),
+                        "reused_allocation_hash": job.payload["reuse_allocation_hash"]},
+                        key="dependency-workspace:" + job.id, job_id=job.id)
+            elif selected["status"] == "supported":
                 # Manifest hashes come from the credential-free archive reader;
                 # this reader never evaluates repository build/install code.
                 from app.sandbox_worker.planning_context import DockerPlanningContextRuntime
@@ -185,8 +280,10 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                 if selected.get("mode") == "workspace-v2" and selected["ecosystem"] == "python":
                     import re, tomllib
                     inventory = frozen_inventory
-                    pending = [selected["project_directory"] + "/pyproject.toml"]
-                    if selected["project_directory"] == ".": pending = ["pyproject.toml"]
+                    directories = selected.get("project_directories") or [selected["project_directory"]]
+                    pending = [("" if directory == "." else directory + "/") + "pyproject.toml"
+                               for directory in reversed(directories)]
+                    multi_package = selected.get("preparation_version") == "python-workspace-preparation-v3"
                     visited = set()
                     while pending:
                         manifest_path = pending.pop()
@@ -201,18 +298,33 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                         metadata = tomllib.loads(entries[manifest_path]["content"])
                         from app.execution_preflight import python_development_requirements
                         declared = list(metadata.get("project", {}).get("dependencies", []))
-                        if selected.get("preparation_version") == "python-workspace-preparation-v2":
+                        if selected.get("preparation_version") in {"python-workspace-preparation-v2", "python-workspace-preparation-v3"}:
                             declared += python_development_requirements(metadata)
+                        if multi_package:
+                            from app.execution_preflight import python_project_error
+                            error = python_project_error(metadata, allow_dynamic=True, include_development=True)
+                            if error:
+                                raise WorkbenchError("跨包依赖元数据未通过校验", code="environment_manifest_unsupported")
+                            if set(metadata.get("project", {}).get("dynamic", [])) & {"dependencies", "optional-dependencies"}:
+                                selected["metadata_strategy"] = "wheel-metadata-v1"
+                            extras = metadata.get("project", {}).get("optional-dependencies", {})
+                            for group in ("test", "tests", "instruments", "type-check"):
+                                declared += extras.get(group, [])
+                            for path in selected["manifests"]:
+                                if path.endswith((".txt", ".lock")) and path in entries:
+                                    declared += [line.split(" #", 1)[0].strip()
+                                        for line in entries[path]["content"].splitlines()
+                                        if line.strip() and not line.lstrip().startswith("#")]
                         for requirement in declared:
                             match = re.match(r"^([A-Za-z0-9_.-]+)", requirement)
                             if not match: continue
                             name = re.sub(r"[-_.]+", "-", match.group(1)).lower()
-                            candidates = [p for p in inventory if p.endswith("/pyproject.toml")
-                                and re.sub(r"[-_.]+", "-", p.split("/")[-2]).lower() == name]
+                            candidates = sorted(p for p in inventory if p.endswith("/pyproject.toml")
+                                and re.sub(r"[-_.]+", "-", p.split("/")[-2]).lower() == name)
                             if len(candidates) > 1:
                                 raise WorkbenchError("本地依赖存在多个候选路径，需缩小范围", code="environment_manifest_unsupported")
                             if candidates and candidates[0] not in selected["manifests"]:
-                                if len(local_projects) >= 6:
+                                if len(local_projects) >= 6 or len(selected["manifests"]) >= 16 or (multi_package and len(directories) + len(local_projects) >= 8):
                                     raise WorkbenchError("本地依赖数量超出预算", code="environment_manifest_unsupported")
                                 selected["manifests"].append(candidates[0])
                                 local_projects.append(candidates[0].rsplit("/", 1)[0])
@@ -227,13 +339,15 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     manifests=tuple(DependencyManifest(path=p, content_hash=entries[p]["prior_hash"]) for p in selected["manifests"]),
                     runner_image_digest=attempt.runner_image_digest, sandbox_policy_hash=policy.policy_hash,
                     proxy_policy_hash=proxy_policy.policy_hash, disk_bytes=policy.disk_bytes,
-                    version=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("distribution_strategy") == "source-wheel-v1" else DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("metadata_strategy") == "wheel-metadata-v1" else WORKSPACE_DEPENDENCY_PLAN_VERSION,
+                    version=NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("node_environment") else SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("distribution_strategy") == "source-wheel-v1" else DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("metadata_strategy") == "wheel-metadata-v1" else WORKSPACE_DEPENDENCY_PLAN_VERSION,
                     distribution_strategy=selected.get("distribution_strategy","wheel-only-v1"),
                     builder_image_digest=selected.get("builder_image_digest"),
                     preparation_version=selected.get("preparation_version", "python-workspace-preparation-v1"),
                     native_resource=selected.get("native_resource"),
                     metadata_strategy=selected.get("metadata_strategy", "declarative-v1"), source_kind="explore",
-                    project_directory=selected.get("project_directory", "."), local_projects=tuple(local_projects))
+                    project_directory=selected.get("project_directory", "."), local_projects=tuple(local_projects),
+                    project_directories=tuple(selected.get("project_directories", ())),
+                    node_environment=selected.get("node_environment"))
                 environment_spec = plan.to_wire()
                 if job.payload.get("recovery_stage_hash"):
                     previous = next(e for e in wb.history(attempt.task_id)
@@ -260,7 +374,16 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
             kwargs = {"workspace": workspace, "commands": commands, "policy": policy}
             if dependency:
                 kwargs["dependency_workspace"] = dependency.workspace
-            inspection = await self.verifier.run(**kwargs)
+            from app.sandbox_worker.verification import VerificationDependencyIntegrityError
+            try:
+                inspection = await self.verifier.run(**kwargs)
+            except VerificationDependencyIntegrityError as exc:
+                from app.sandbox_worker.dependency_diagnostics import dependency_diagnostic_message
+                diagnostic = {"version": "dependency-failure-v1", "phase": "baseline_verify",
+                    "reason_code": "dependency_integrity_changed", "exit_code": 89, "packages": []}
+                raise DependencyPreparationError("Baseline dependency integrity check failed",
+                    code="environment_baseline_integrity_failed", diagnostic=diagnostic,
+                    safe_message=dependency_diagnostic_message(diagnostic)) from exc
             if inspection.before_inventory_hash != explore["inventory_hash"] or inspection.after_inventory_hash != explore["inventory_hash"]:
                 raise WorkbenchError("基线验证改变了冻结代码", code="baseline_inventory_mismatch")
             wire = {"before_inventory_hash": inspection.before_inventory_hash,
@@ -270,9 +393,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
             value = {"succeeded": all(e.exit_code == 0 for e in inspection.command_evidence),
                      "test_results": [{"outcome": "passed" if e.exit_code == 0 else "failed", "exit_code": e.exit_code}
                                       for e in inspection.command_evidence],
-                     "command_evidence": [{"command_id": e.command_id, "exit_code": e.exit_code,
-                                           "status": e.status.value, "stderr_log": e.stderr_log}
-                                          for e in inspection.command_evidence]}
+                     "command_evidence": wire["command_evidence"]}
             outcome = classify_verification(value)
             with self.database.session() as session:
                 wb, _, _ = self.current(session, job)
@@ -294,6 +415,9 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                 if job.payload.get("recovery_stage_hash"):
                     payload["recovery_stage_hash"] = job.payload["recovery_stage_hash"]
                 payload["environment_spec_hash"] = wb.artifact(environment_spec) if environment_spec else None
+                if job.payload.get("reuse_dependency_hash"):
+                    payload["runtime_rebaseline_proof_hash"] = job.payload["runtime_rebaseline_proof_hash"]
+                    payload["reused_dependency_allocation_hash"] = job.payload["reuse_allocation_hash"]
                 baseline_hash = wb.artifact(payload)
                 wb.append(attempt.task_id, "execution_baseline_ready", {"attempt_id": attempt.id,
                     "result_hash": baseline_hash, "outcome": outcome}, key="baseline-ready:" + job.id,
@@ -318,5 +442,5 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
             raise
         finally:
             await self.materializer.destroy(workspace)
-            if dependency and not retained:
+            if dependency and not retained and not job.payload.get("reuse_dependency_hash"):
                 await self.dependencies.destroy(dependency.workspace, ignore_missing=True)

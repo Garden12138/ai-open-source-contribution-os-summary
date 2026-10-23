@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -701,6 +701,21 @@ class ExecutionStageControlService:
         now: datetime | None = None,
     ) -> tuple[str, ...]:
         job_ids = JobService(self.session).recover_expired(now=now)
+        # A generic Job reaper may have expired this lease before the sandbox
+        # coordinator runs. Reconcile only the run that still owns the current
+        # pending/running stage, preserving all old terminal outcomes.
+        latest = select(func.max(ExecutionStageVersion.sequence)).where(
+            ExecutionStageVersion.execution_attempt_id == ExecutionStageRun.execution_attempt_id
+        ).correlate(ExecutionStageRun).scalar_subquery()
+        stranded = select(ExecutionStageRun).join(Job).join(ExecutionStageVersion,
+            ExecutionStageVersion.execution_attempt_id == ExecutionStageRun.execution_attempt_id).where(
+                Job.state.in_({"failed", "timed_out", "cancelled"}),
+                ExecutionStageVersion.sequence == latest,
+                ExecutionStageVersion.status.in_({"pending", "running"}),
+                (ExecutionStageVersion.id == ExecutionStageRun.pending_stage_version_id)
+                | (ExecutionStageVersion.previous_stage_state_hash == ExecutionStageRun.pending_stage_record_hash))
+        for run in self.session.scalars(stranded):
+            if run.job_id not in job_ids: job_ids += (run.job_id,)
         reconciled: list[str] = []
         for job_id in job_ids:
             run = self.session.scalar(

@@ -2,6 +2,7 @@ from app.migrations.core import Migration
 from app.migrations.versions.v0034_execution_baselines import MIGRATION as EXECUTION_BASELINES
 from app.migrations.versions.v0035_workspace_scopes import MIGRATION as WORKSPACE_SCOPES
 from app.migrations.versions.v0036_verification_environment_recovery import MIGRATION as VERIFICATION_ENVIRONMENT_RECOVERY
+from app.migrations.versions.v0037_baseline_feedback import MIGRATION as BASELINE_FEEDBACK
 from app.migrations.versions.v0001_phase1 import MIGRATION as PHASE1_BASELINE
 from app.migrations.versions.v0002_provenance import MIGRATION as PROVENANCE
 from app.migrations.versions.v0003_jobs import MIGRATION as JOBS
@@ -125,6 +126,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     EXECUTION_BASELINES,
     WORKSPACE_SCOPES,
     VERIFICATION_ENVIRONMENT_RECOVERY,
+    BASELINE_FEEDBACK,
 )
 
 __all__ = ["MIGRATIONS"]

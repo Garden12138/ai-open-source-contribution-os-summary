@@ -337,6 +337,7 @@ def bind_job_model(session: Session, job: Job) -> None:
     stage = {
         "provider_analysis": "analysis",
         "planning_turn": "planning",
+        "baseline_diagnosis": "planning",
         "execution_question": "planning",
         "conversation_intent": "planning",
         "publication_document": "planning",

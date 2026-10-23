@@ -33,6 +33,31 @@ def verification_command_error(commands: Sequence[Any], inventory: set[str], new
                                 "fields":["commands_to_run.argv"], "constraint":"test_path_missing",
                                 "command_ids":[command.command_id], "paths":[target],
                                 "remediation":"Use exact repository inventory test paths relative to working_directory, or an approved new regression test path."}
+    from app.execution_environment import environment_plan
+    selected = environment_plan(list(inventory), change_paths=list(new_paths))
+    directories = selected.get("project_directories", [])
+    if directories:
+        unscoped = [command.command_id for command in commands if not any(
+            root == "." or command.working_directory == root or command.working_directory.startswith(root + "/")
+            for root in directories)]
+        if unscoped:
+            return {"reason_code": "planning_output_invalid", "validation_types": ["value_error"],
+                    "fields": ["commands_to_run.working_directory"], "constraint": "package_command_unscoped",
+                    "command_ids": unscoped,
+                    "remediation": "Every command in a multi-package plan must run under its selected package root; the worker selects that package's independently frozen environment by working_directory."}
+        existing = baseline_commands(commands, inventory, new_paths)
+        covered = set()
+        for command in existing:
+            argv = list(command.argv)
+            executable = PurePosixPath(argv[0]).name
+            tool = argv[2] if executable in {"python", "python3"} and len(argv) > 2 and argv[1] == "-m" else executable
+            if tool == "pytest" and not any(value in {"--collect-only", "--co"} for value in argv):
+                covered.add(command.working_directory)
+        missing = sorted(set(directories) - covered)
+        if missing:
+            return {"reason_code": "planning_output_invalid", "validation_types": ["value_error"],
+                    "fields": ["commands_to_run"], "constraint": "package_baseline_missing", "paths": missing,
+                    "remediation": "Each selected Python package needs a direct offline pytest command with its exact package root as working_directory and an existing test target. New-file-only tests or collection-only commands cannot provide a pre-change baseline."}
     return None
 
 

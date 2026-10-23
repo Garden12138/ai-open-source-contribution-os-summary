@@ -254,8 +254,8 @@ class Workbench:
     def plan_rejection_active(self, task_id: str, plan_id: str | None) -> bool:
         """A validated later save resolves a rejected draft without editing history."""
         rows = self.history(task_id)
-        reply = next((e for e in reversed(rows) if e.kind == "assistant_message"), None)
-        if reply is None or not reply.payload.get("plan_error"):
+        reply = next((e for e in reversed(rows) if e.kind == "assistant_message" and e.payload.get("plan_error")), None)
+        if reply is None:
             return False
         binding = next((e for e in reversed(rows)
                         if e.kind == "plan_bound" and e.plan_version_id == plan_id), None)
