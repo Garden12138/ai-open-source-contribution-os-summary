@@ -33,6 +33,16 @@ Update rules:
 | Last roadmap audit | 2026-09-02 |
 | Feature note | MiniMax-M3 domestic direct access is the settings-page four-stage default after explicit encrypted-key activation; NVIDIA/OpenAI-compatible Profiles remain manual alternatives. Live MiniMax, real Draft PR and Linux platform gates stay unchecked. |
 
+Conversation/incident archive (2026-10-27):
+[项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
+contains 881 sanitized public conversation/context records, 417 dialogue
+events from a read-only, nine-task/2,241-event snapshot, and all 66 legacy
+CodingTurn messages across 34 nonempty sessions (1,364 archive entries total).
+The legacy plan-conversation table has no entries. It records 28 problem
+categories, including the newly observed A2UI planning read-tool conflict, and
+preserves all open gates. This documentation-only snapshot does not authorize
+execution, change business state or claim independent acceptance.
+
 ## Optional xcli integration
 
 - [ ] Native `xcli_local` transport and model-settings selection: source applied; native client HTTP acceptance passed, full offline regression 1403 passed/45 skipped, latest source-module regression 504 passed/28 skipped. After explicit user confirmation, image `xcli-integration-75d9cea7fbde` was deployed to all six services; API/Model Gateway/Publisher health checks passed, original volumes preserved, and 200 deployed source files matched that snapshot. ENV-R08 subsequently repaired the omitted runtime component and restored the complete 202-file runtime, retaining the xcli source unchanged. Docker Host Bridge and real Plan/Review remain unverified.
