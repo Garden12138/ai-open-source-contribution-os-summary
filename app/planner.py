@@ -174,6 +174,7 @@ class PlanningService(Workbench):
         refresh: bool = False,
         model_profile_id: str | None = None,
         recovery_source: Any | None = None,
+        continuation_source: Any | None = None,
         commit: bool = True,
     ) -> Job:
         state_hash = self.require_planning(task_id)
@@ -189,6 +190,11 @@ class PlanningService(Workbench):
         }
         if model_profile_id is not None:
             request["model_profile_id"] = model_profile_id
+        if continuation_source is not None:
+            source=next((e for e in history if e.id==continuation_source.id),None)
+            if source is None or source.actor_id!="local-user" or source.kind!="conversation_received" or source.record_hash!=continuation_source.record_hash or source.payload["text"]!=text:
+                raise WorkbenchError("原继续请求依据不匹配。",code="planning_continuation_stale")
+            request["continuation_source"]={"id":source.id,"record_hash":source.record_hash}
         if recovery_source is not None:
             source = next((e for e in history if e.id == recovery_source.id), None)
             if (source is None or source.record_hash != recovery_source.record_hash
@@ -240,6 +246,19 @@ class PlanningService(Workbench):
             # replies, safely inspect the requested known files before replanning.
             paths = reply.payload.get("read_paths", []) if reply and reply.payload.get("questions") else []
             evidence = self.read(context.payload["artifact_id"])
+            from app.agent_runtime import enabled
+            if latest is not None and enabled(self,task_id):
+                from app.execution_environment import task_environment
+                required = task_environment(self,task_id).get("required_paths",[])
+                paths=list(dict.fromkeys([*paths,*required]))[:32]
+                from app.verification_commands import verification_command_error
+                saved = PlanVersionService._validated_content(latest)
+                error = verification_command_error(saved.commands_to_run, set(evidence["inventory"]),
+                    set(saved.files_likely_to_change), evidence)
+                if error or required:
+                    payload["pending_plan"] = saved.hash_payload()
+                    if error:
+                        payload["plan_repair"] = error
             paths, feedback = planning_read_paths(paths, evidence)
             if reply and reply.payload.get("questions"):
                 feedback = feedback or reply.payload.get("read_feedback")
@@ -263,10 +282,10 @@ class PlanningService(Workbench):
         )
         self.append(
             task_id,
-            "planning_recovery_requested" if recovery_source is not None else "user_message",
+            "planning_continuation_requested" if continuation_source is not None else "planning_recovery_requested" if recovery_source is not None else "user_message",
             request,
             key="request:" + key,
-            actor="orchestrator" if recovery_source is not None else "local-user",
+            actor="orchestrator" if recovery_source is not None or continuation_source is not None else "local-user",
             job_id=job.id,
             plan_id=parent_id,
             commit=False,
@@ -361,7 +380,7 @@ class PlanningService(Workbench):
             raise WorkbenchError("方案验证命令不能超过 20 条")
         evidence = self.read(context.payload["artifact_id"])
         from app.verification_commands import verification_command_error
-        if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change)):
+        if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change), evidence):
             raise WorkbenchError("验证命令包含安装操作或不存在的路径，请修订方案。", code="verification_commands_invalid")
         known = set(evidence["inventory"])
         inspected = {v["path"] for v in evidence["entries"] if v["content"] is not None}
@@ -466,13 +485,16 @@ class PlanningArchiveWorker(WorkbenchJobWorker):
 
 
 class PlanningContextWorker(WorkbenchJobWorker):
-    kinds = (CONTEXT, "planning_import_metadata")
+    kinds = (CONTEXT, "planning_import_metadata", "coding_source_read")
 
     def __init__(self, database, settings: Settings, runtime, *, worker_id: str):
         super().__init__(database, worker_id=worker_id)
         self.settings, self.runtime = settings, runtime
 
     async def execute(self, job: Job) -> dict:
+        if job.kind == "coding_source_read":
+            from app.coding_reads import complete_source_read
+            return await complete_source_read(self, job)
         if job.kind == "planning_import_metadata":
             from app.baseline_metadata import complete_metadata
             return await complete_metadata(self, job)
@@ -649,7 +671,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                         "Follow execution_status.workflow.order: fetch the complete archive, read project README/contribution rules/manifests and relevant source, prepare a plan, then request exact confirmation. Reading files and preparing plans NEVER require installing project dependencies. Environment support only gates implementation and verification; the Sandbox Worker prepares dependencies and runs pre-change tests after confirmation. Infer project requirements from inspected files, not just filenames. Do not ask the user to supply a lockfile to read source.",
                         "can_execute=false means an action is not yet ready (for example no saved plan or no approval), NEVER that the sandbox cannot execute. builtin means dependencies have not been identified, NEVER that pytest/tox is available or impossible. Implementation, dependency preparation and verification belong to the Sandbox Worker, not the user or their host/CI. Do not ask the user to install dependencies, edit code or run tests locally. Prepare the concrete plan for exact confirmation; the orchestrator owns execution. Only recorded test artifacts prove a test was run.",
                         "Verification is network-free in the prepared environment. For a Python package use direct python -m pytest / ruff / mypy commands with the package working_directory; do not use tox/uv/pip commands that resolve or install more dependencies during Verify. Include a meaningful test command for existing tests, not only a selector that collects zero tests on the baseline. Adding regression tests belongs to implementation_steps, not to verification commands that write files. Dependency preparation is a separate Sandbox Worker action, not a command for the user.",
-                        "For Node projects, use the inspected packageManager/runtime/workspace declarations and original npm/Yarn/pnpm lockfile. The environment worker installs the exact manager, resolves a compatible Node runtime, builds dependencies offline and initializes a fresh workspace for each verification. Do not convert lockfiles, repeat installation inside verification, assume NODE_PATH alone supports ESM/PnP, or ask the user to install tools locally. Repository snapshots have no .git metadata: use project checks and direct source assertions; the platform supplies the exact diff and file inventory as artifacts, so git diff/grep/status are not verification commands.",
+                        "For Node/Bun projects, use the inspected packageManager/runtime/workspace declarations and original project lockfile. The environment worker installs the exact manager, resolves a compatible runtime, builds dependencies offline and initializes a fresh workspace for each verification. Do not convert lockfiles, repeat installation inside verification, assume NODE_PATH alone supports ESM/PnP, or ask the user to install tools locally. Repository snapshots have no .git metadata: use project checks and direct source assertions; the platform supplies the exact diff and file inventory as artifacts, so git diff/grep/status are not verification commands.",
                         "When baseline_recovery is present, it contains the actual original-code diagnosis, not new user authorization. Prepare a minimal child plan after necessary safe reads. Preserve every original files_likely_to_change path and all original command IDs, argv and working directories; do not omit the contribution, narrow checks or hide pre-existing failures. Add necessary work explicitly. A substantive reply alone cannot complete this recovery; return a full plan or a material clarification/read request. Saving the child never approves or executes it.",
                         "baseline_recovery.import_metadata, when present, is an enum-only static import probe from the frozen archive. It identifies a unique direct entry_points import, not the file body or every call's behavior. Full source marked unavailable remains unavailable and cannot be modified. Prefer these machine facts over speculative diagnosis prose. Never shadow existing repository .py files with .pyi to hide checking. External-library typing interfaces may be proposed only as actual type contracts, with all original strict checks retained. A baseline repair plan must resolve questions_for_maintainer or return an actual material question, never propose accepting failed commands as passed.",
                         "When changes span multiple Python packages, each selected package must have its own direct pytest command in that package's exact root working_directory, covering existing tests before implementation. Each package gets an independently frozen environment so different package constraints remain isolated. All commands must run under a selected package root; up to four Python packages are supported. Missing dependencies or conflicts within a package stop execution. Never silently reduce the user's selected package scope.",
@@ -858,7 +880,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     draft = candidate
                     if draft:
                         from app.verification_commands import verification_command_error
-                        command_error = verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change))
+                        command_error = verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change), evidence)
                         if command_error:
                             reject_plan(command_error)
                             draft = None

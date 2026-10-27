@@ -113,9 +113,10 @@ const state = {
     taskHistoryGeneration: 0,
 };
 
-const REAL_MODEL_PROVIDERS = new Set(["nvidia_nim", "openai_compatible", "minimax"]);
+const REAL_MODEL_PROVIDERS = new Set(["nvidia_nim", "openai_compatible", "minimax", "xcli_local"]);
 function isRealModelProvider(provider) { return REAL_MODEL_PROVIDERS.has(provider); }
 function modelProviderLabel(provider) {
+  if (provider === "xcli_local") return "xcli";
   if (provider === "minimax") return "MiniMax";
   if (provider === "nvidia_nim") return "NVIDIA";
   return "模型服务";

@@ -101,12 +101,21 @@ def advance_feedback(wb: Workbench, attempt: Any, settings: Any) -> bool:
         return False
     value = wb.read(receipt.payload["result_hash"])
     spec = wb.read(value["environment_spec_hash"]) if value.get("environment_spec_hash") else {}
+    from app.agent_runtime import enabled, blocking_messages
+    if enabled(wb, attempt.task_id) and baseline_outcome(value)["status"] == "failed":
+        # Existing failures remain evidence and block final acceptance. They do
+        # not authorize extra source/typing changes outside the approved issue.
+        wb.append(attempt.task_id, "agent_baseline_observed", {
+            "version": "agent-runtime-v1", "baseline_hash": receipt.record_hash,
+            "attempt_id": attempt.id, "policy": "preserve_issue_scope",
+        }, key="agent-baseline:" + receipt.id, actor="orchestrator")
+        return False
     if spec.get("preparation_version") != "python-workspace-preparation-v3" or baseline_outcome(value)["status"] == "passed":
         return False
     blocked = wb.active_blocker(attempt.task_id)
     if blocked and blocked.payload.get("reason_code") not in {"baseline_failed", "environment_blocked"}:
         return False
-    if pending_messages(wb, attempt.task_id):
+    if blocking_messages(wb, attempt.task_id):
         return True
     _lock(wb)
     attempt, auth, receipt, value = require_inputs(wb, attempt.id, settings, baseline_hash=receipt.record_hash)

@@ -264,7 +264,8 @@ def test_conversation_api_access_idempotency_sensitive_data_and_contract(tmp_pat
         assert rejected.status_code == 422 and canary not in rejected.text
         assert client.post(url + "/conversation/messages", json={"text":"now","mode":"question"}, headers=headers).status_code == 422
         advance_conversations(db, s)
-        classify(db, s, "question")
+        with db.session() as session:
+            assert not Workbench(session, s.artifact_root).latest(task, "model_call")
         advance_conversations(db, s)
         assert client.get(url).json()["conversation"]["pending_count"] == 0
         assert client.get(url + "/timeline").json()["conversation"]["version"] == "conversation-v1"

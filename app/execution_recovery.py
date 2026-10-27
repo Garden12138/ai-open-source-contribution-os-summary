@@ -8,6 +8,84 @@ from app.executions import ExecutionAttemptService
 from app.workbench import Workbench, WorkbenchError
 
 
+def resume_startup_after_runtime_repair(wb: Workbench, attempt_id: str, settings: Any, proof: dict) -> Job:
+    """Trusted maintenance: rerun an unchanged baseline after a checked runtime fix."""
+    import hashlib
+    from pathlib import Path
+    from app.cla import _lock
+    from app.provenance import content_hash
+    from app.execution_outcome import baseline_outcome
+    from app.sandbox_worker.workspace_jobs import preparation_receipt, preparation_needs_restore
+    _lock(wb)
+    attempt = ExecutionAttemptService(wb.session).get_verified(attempt_id)
+    authorization = require_recovery_authorization(wb, attempt, settings)
+    history = wb.history(attempt.task_id)
+    baseline = next((e for e in history if isinstance(proof, dict)
+        and e.kind == "execution_baseline_ready" and e.record_hash == proof.get("baseline_hash")
+        and e.payload.get("attempt_id") == attempt.id), None)
+    stage = ExecutionAttemptService(wb.session).current(attempt.id)
+    sources = {"app/coding.py","app/coding_reads.py","app/node_environments.py","app/execution_outcome.py",
+        "app/sandbox_worker/node_dependencies.py","app/sandbox_worker/node_execution.py",
+        "app/sandbox_worker/verification.py"}
+    project = Path(__file__).resolve().parent.parent
+    if (not isinstance(proof, dict) or set(proof)!={"version","attempt_hash","baseline_hash","source_hashes","regression_artifact_id"}
+            or proof["version"]!="native-workspace-runtime-repair-v1" or proof["attempt_hash"]!=attempt.record_hash
+            or baseline is None or proof["baseline_hash"]!=baseline.record_hash
+            or not isinstance(proof["source_hashes"], dict) or set(proof["source_hashes"])!=sources
+            or any(hashlib.sha256((project/p).read_bytes()).hexdigest()!=proof["source_hashes"][p] for p in sources)):
+        raise WorkbenchError("运行时修复证据已变化。",code="environment_stale")
+    regression=wb.read(proof["regression_artifact_id"])
+    if regression.get("exit_code")!=0 or not regression.get("passed") or regression.get("failed")!=0:
+        raise WorkbenchError("运行时修复回归尚未通过。",code="environment_stale")
+    key="startup-runtime-repair:"+baseline.id
+    old=next((e for e in history if e.idempotency_key==key),None)
+    if old:
+        if old.payload["proof_hash"]!=content_hash(proof):
+            raise WorkbenchError("重复恢复的依据不同。",code="environment_stale")
+        return wb.session.get(Job,old.job_id)
+    from app.baseline_feedback import require_inputs
+    require_inputs(wb,attempt.id,settings,baseline_hash=baseline.record_hash)
+    value=wb.read(baseline.payload["result_hash"])
+    outcome=baseline_outcome(value)
+    if (stage.stage!="explore" or stage.status!="succeeded" or not preparation_needs_restore(wb,baseline)
+            or outcome["status"]!="environment_blocked" or outcome["missing_dependencies"]!=["native_addon_unavailable"]
+            or any(e.kind=="automatic_change_accepted" and e.payload.get("attempt_id")==attempt.id for e in history)
+            or any(j.state not in {"succeeded","failed","cancelled","timed_out"} for j in wb.jobs(attempt.task_id))
+            or sum(e.kind=="preparation_runtime_retry_requested" and e.payload.get("attempt_id")==attempt.id for e in history)>=2):
+        raise WorkbenchError("当前执行不满足原生环境恢复条件。",code="environment_stale")
+    rejected=next((e for e in reversed(history) if e.kind=="proposal_rejected" and e.plan_version_id==attempt.plan_version_id),None)
+    failed=wb.session.get(Job,rejected.job_id) if rejected else None
+    if failed is not None and (failed.state!="failed" or failed.error_code!="proposal_structure_invalid"):
+        raise WorkbenchError("代码草案的恢复依据不匹配。",code="environment_stale")
+    if failed is not None:
+        import json
+        from app.plans import _repository_path
+        raw = json.loads(wb.read(rejected.payload["result_hash"])["raw_proposal"])
+        paths = raw.get("read_paths") if isinstance(raw, dict) else None
+        if (failed.payload.get("execution_attempt_id") != attempt.id
+                or failed.payload.get("version") != "change-set-proposal-job-v2"
+                or raw.get("operations") != [] or not isinstance(paths, list) or not 1 <= len(paths) <= 4
+                or any(not isinstance(p, str) for p in paths) or len(set(paths)) != len(paths)):
+            raise WorkbenchError("原失败不是可恢复的精确补读请求。", code="environment_stale")
+        for path in paths:
+            _repository_path(path, "Coding read path")
+    proof_hash=wb.artifact(proof)
+    job=wb.enqueue(attempt.task_id,"execution_prepare",{"version":"workspace-preparation-job-v1",
+        "execution_attempt_id":attempt.id,"explore_result_hash":stage.result_hash,
+        "replaces_baseline_hash":baseline.record_hash,"runtime_repair_hash":proof_hash},
+        key=key,timeout_seconds=1800,commit=False)
+    receipt=wb.append(attempt.task_id,"preparation_runtime_retry_requested",{
+        "attempt_id":attempt.id,"authorization_hash":authorization.record_hash,"stage_hash":stage.record_hash,
+        "proof_hash":proof_hash,"superseded_preparation_job_ids":[failed.id] if failed else [],
+        "rejected_read_hash":rejected.record_hash if rejected else None},key=key,job_id=job.id,
+        actor="orchestrator",plan_id=attempt.plan_version_id,commit=False)
+    from app.agent_runtime import mark_maintenance
+    mark_maintenance(wb,attempt.task_id,receipt,reason="native_workspace_runtime_repair")
+    _resume_blocker(wb,attempt,authorization,job,stage)
+    wb.session.commit()
+    return job
+
+
 def resume_preparation_after_runtime_repair(wb: Workbench, failed_job_id: str, settings: Any, proof: dict) -> Job:
     """Trusted maintenance only: rerun unchanged preparation after a proven runtime fix.
 

@@ -9,7 +9,8 @@ WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY app ./app
 
-RUN python -m pip install --no-cache-dir . \
+RUN python -m app.runtime_integrity \
+    && python -m pip install --no-cache-dir . \
     && groupadd --gid 10001 contribos \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent contribos \
     && mkdir -p /data/artifacts /data/model-secrets \

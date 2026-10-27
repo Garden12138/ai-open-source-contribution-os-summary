@@ -1,0 +1,644 @@
+{
+  "version": "verification-command-policy-acceptance-v1",
+  "date": "2026-10-26",
+  "phase": 5,
+  "classification": "maintenance_assisted_command_policy_recovery",
+  "roadmap_complete": false,
+  "tasks": {
+    "ENV-R03": "reopened_then_reverified",
+    "ENV-R07": "awaiting_new_exact_plan_confirmation",
+    "P5-G06": "unverified_native_linux_amd64"
+  },
+  "tests": {
+    "full_shard_1": {
+      "tests": 662,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 22,
+      "passed": 640,
+      "seconds": 352.396
+    },
+    "full_shard_2": {
+      "tests": 806,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 24,
+      "passed": 782,
+      "seconds": 434.002
+    },
+    "focused_policy": {
+      "tests": 106,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "passed": 103,
+      "seconds": 41.867
+    },
+    "focused_ui_budget": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 41,
+      "seconds": 47.102
+    },
+    "final_focused": {
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "passed": 29,
+      "seconds": 4.063
+    },
+    "real_bun_dispatch": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1,
+      "seconds": 14.291
+    },
+    "python_compileall": "passed",
+    "git_diff_check": "passed"
+  },
+  "bun_dispatch": {
+    "version": "1.4.4",
+    "classification": "controlled_cli_execution_sentinels",
+    "commands": {
+      "prefix-probe": {
+        "exit_code": 0,
+        "child_executed": false,
+        "help_only": true,
+        "stdout_hash": "675e72e3234d5d1844697e8a4550d0f38d7cc59640ad542ab8e17c3d277f1a08",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "equals-probe": {
+        "exit_code": 0,
+        "child_executed": true,
+        "help_only": false,
+        "stdout_hash": "8a67001f9b9851f0d355a24f77c11bf568baffd43aed9db362847a7cf40e97ad",
+        "stderr_hash": "f788eb0a2ce1e948421ad32be24b76c419ded748b7d49159a7654aaf52d8ecea"
+      },
+      "post-run-probe": {
+        "exit_code": 0,
+        "child_executed": true,
+        "help_only": false,
+        "stdout_hash": "8a67001f9b9851f0d355a24f77c11bf568baffd43aed9db362847a7cf40e97ad",
+        "stderr_hash": "f788eb0a2ce1e948421ad32be24b76c419ded748b7d49159a7654aaf52d8ecea"
+      },
+      "typed-cwd-probe": {
+        "exit_code": 0,
+        "child_executed": true,
+        "help_only": false,
+        "stdout_hash": "8a67001f9b9851f0d355a24f77c11bf568baffd43aed9db362847a7cf40e97ad",
+        "stderr_hash": "f788eb0a2ce1e948421ad32be24b76c419ded748b7d49159a7654aaf52d8ecea"
+      },
+      "prefix-fail": {
+        "exit_code": 0,
+        "child_executed": false,
+        "help_only": true,
+        "stdout_hash": "675e72e3234d5d1844697e8a4550d0f38d7cc59640ad542ab8e17c3d277f1a08",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "equals-fail": {
+        "exit_code": 17,
+        "child_executed": false,
+        "help_only": false,
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "d2984d290248e411c2ab3a1018a3c6c6cace8006a904be7ac61f0aa1f0cf3913"
+      },
+      "post-run-fail": {
+        "exit_code": 17,
+        "child_executed": false,
+        "help_only": false,
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "d2984d290248e411c2ab3a1018a3c6c6cace8006a904be7ac61f0aa1f0cf3913"
+      },
+      "typed-cwd-fail": {
+        "exit_code": 17,
+        "child_executed": false,
+        "help_only": false,
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "d2984d290248e411c2ab3a1018a3c6c6cace8006a904be7ac61f0aa1f0cf3913"
+      }
+    },
+    "inventories_unchanged": true
+  },
+  "frozen_source_diagnostics": {
+    "classification": "diagnostic_only_not_approved_baseline",
+    "unthreaded": {
+      "classification": "frozen_source_command_diagnostic",
+      "diagnostic_only": true,
+      "production_mutations": 0,
+      "model_calls": 0,
+      "external_writes": 0,
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+      "original_plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+      "archive_hash": "7ee697b1908313f50962e27cf98f37a1386bc2689977e32dcc3290d7ac35c8ea",
+      "base_sha": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+      "environment_spec_hash": "6c540ae34e22bea049363e0e90cf64177fc69dd8944645f6857e96a1b9693bdf",
+      "dependency_result_hash": "7d2aa9a98f87813226c5a021c4eda2f354beb56fd0973b5ee9bc8a61cc8764a0",
+      "commands": [
+        {
+          "command_id": "typecheck-tui",
+          "argv": [
+            "bun",
+            "run",
+            "check:types"
+          ],
+          "working_directory": "packages/tui"
+        },
+        {
+          "command_id": "check-tui",
+          "argv": [
+            "bun",
+            "run",
+            "check"
+          ],
+          "working_directory": "packages/tui"
+        }
+      ],
+      "command_evidence": [
+        {
+          "command_id": "typecheck-tui",
+          "command_hash": "624f7929b483d8a3707b0187cc76bb8a82ebf600bf43c3eb807f72b48e469161",
+          "status": "failed",
+          "exit_code": -9,
+          "started_at": "2026-10-26T01:48:43.439901Z",
+          "completed_at": "2026-10-26T01:50:48.074478Z",
+          "resource_usage": {
+            "user_cpu_ms": 4437,
+            "system_cpu_ms": 201643,
+            "max_rss_bytes": 1893965824,
+            "minor_page_faults": 746443,
+            "major_page_faults": 278375,
+            "voluntary_context_switches": 30820,
+            "involuntary_context_switches": 160816
+          },
+          "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 0,
+          "stdout_log": "",
+          "stderr_hash": "a62ef98a58fb46cf2eec440e5d4540d7108e1985aaee2368cef6d92de0398157",
+          "stderr_bytes": 108,
+          "stderr_log": "$ tsgo -p tsconfig.json --noEmit\nerror: script \"check:types\" was terminated by signal SIGKILL (Forced quit)\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 124639
+        },
+        {
+          "command_id": "check-tui",
+          "command_hash": "b7847e872ff62623a0776bda00dcfdc17c73cd0ffc3ca7238bb4d5fbebc27f86",
+          "status": "failed",
+          "exit_code": -9,
+          "started_at": "2026-10-26T01:50:48.080006Z",
+          "completed_at": "2026-10-26T01:51:56.024470Z",
+          "resource_usage": {
+            "user_cpu_ms": 4747,
+            "system_cpu_ms": 94545,
+            "max_rss_bytes": 1893965824,
+            "minor_page_faults": 398246,
+            "major_page_faults": 98485,
+            "voluntary_context_switches": 14697,
+            "involuntary_context_switches": 60796
+          },
+          "stdout_hash": "17d5ad15d7e85a2248911a2e831c26ddeacfe9dcf63ad14ab70afe46386ffbca",
+          "stdout_bytes": 206,
+          "stdout_log": "Found 0 warnings and 0 errors.\nFinished in 96ms on 774 files with 95 rules using 2 threads.\nChecking formatting...\n\nAll matched files use the correct format.\nFinished in 140ms on 774 files using 2 threads.\n",
+          "stderr_hash": "77380a5c9638afc56b799cfebbf34ca34388fb9632f46471500041d1909e5c65",
+          "stderr_bytes": 327,
+          "stderr_log": "$ oxlint . && oxfmt --check --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx}' '{test,bench,examples,scripts}/**/*.ts' '*.ts' && bun run check:types\n$ tsgo -p tsconfig.json --noEmit\nerror: script \"check:types\" was terminated by signal SIGKILL (Forced quit)\nerror: script \"check\" was terminated by signal SIGKILL (Forced quit)\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 67944
+        }
+      ],
+      "inventories_unchanged": true
+    },
+    "single_threaded": {
+      "classification": "frozen_source_singlethread_command_diagnostic",
+      "diagnostic_only": true,
+      "production_mutations": 0,
+      "model_calls": 0,
+      "external_writes": 0,
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+      "original_plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+      "archive_hash": "7ee697b1908313f50962e27cf98f37a1386bc2689977e32dcc3290d7ac35c8ea",
+      "base_sha": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+      "environment_spec_hash": "6c540ae34e22bea049363e0e90cf64177fc69dd8944645f6857e96a1b9693bdf",
+      "dependency_result_hash": "ef631c2d35027f4afe03abbf1609f3b62e26ac3b986ab814e6259501f49c6ae3",
+      "commands": [
+        {
+          "command_id": "typecheck-tui",
+          "argv": [
+            "bun",
+            "run",
+            "check:types",
+            "--singleThreaded"
+          ],
+          "working_directory": "packages/tui"
+        },
+        {
+          "command_id": "check-tui",
+          "argv": [
+            "bun",
+            "run",
+            "check",
+            "--singleThreaded"
+          ],
+          "working_directory": "packages/tui"
+        }
+      ],
+      "command_evidence": [
+        {
+          "command_id": "typecheck-tui",
+          "command_hash": "5223023d691c5a679555568fa0503ad5152f4eeb12e99e0c5aa1bf6509f01c1e",
+          "status": "passed",
+          "exit_code": 0,
+          "started_at": "2026-10-26T01:55:22.795725Z",
+          "completed_at": "2026-10-26T01:55:27.424727Z",
+          "resource_usage": {
+            "user_cpu_ms": 5125,
+            "system_cpu_ms": 189,
+            "max_rss_bytes": 1613348864,
+            "minor_page_faults": 158066,
+            "major_page_faults": 15,
+            "voluntary_context_switches": 768,
+            "involuntary_context_switches": 133
+          },
+          "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 0,
+          "stdout_log": "",
+          "stderr_hash": "593809c707a7f52124c34bd8061a022849f2575e1f46813e57432c70801bebd1",
+          "stderr_bytes": 50,
+          "stderr_log": "$ tsgo -p tsconfig.json --noEmit --singleThreaded\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 4629
+        },
+        {
+          "command_id": "check-tui",
+          "command_hash": "22c52281de7f2f0a24bf42d22300b833932810e7aa9b45e5b16529d0edc7bbb9",
+          "status": "passed",
+          "exit_code": 0,
+          "started_at": "2026-10-26T01:55:27.425038Z",
+          "completed_at": "2026-10-26T01:55:32.381340Z",
+          "resource_usage": {
+            "user_cpu_ms": 5566,
+            "system_cpu_ms": 236,
+            "max_rss_bytes": 1613348864,
+            "minor_page_faults": 159153,
+            "major_page_faults": 77,
+            "voluntary_context_switches": 1553,
+            "involuntary_context_switches": 503
+          },
+          "stdout_hash": "85ec7828b6542089a7f0ebe68304e662b07407b3500cfffca08f4f633fd971e8",
+          "stdout_bytes": 206,
+          "stdout_log": "Found 0 warnings and 0 errors.\nFinished in 96ms on 774 files with 95 rules using 2 threads.\nChecking formatting...\n\nAll matched files use the correct format.\nFinished in 134ms on 774 files using 2 threads.\n",
+          "stderr_hash": "90270b36de30cfb40c2f450f913d5aab9186080a70514eb38cd3630321590929",
+          "stderr_bytes": 217,
+          "stderr_log": "$ oxlint . && oxfmt --check --no-error-on-unmatched-pattern 'src/**/*.{ts,tsx}' '{test,bench,examples,scripts}/**/*.ts' '*.ts' && bun run check:types --singleThreaded\n$ tsgo -p tsconfig.json --noEmit --singleThreaded\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 4956
+        }
+      ],
+      "inventories_unchanged": true
+    },
+    "compiler_reference": "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0-rc/",
+    "sandbox_policy_unchanged": true,
+    "memory_bytes": 2147483648,
+    "network_during_verification": "none",
+    "credentials": false,
+    "source_mutations": 0,
+    "earlier_attempts": [
+      {
+        "result": "diagnostic_harness_serialization_error",
+        "counted_as_pass": false,
+        "cleanup": "self_owned_workspaces_destroyed"
+      }
+    ]
+  },
+  "budget": {
+    "grant": {
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+      "resumed_job_id": "a80d6c60-9cde-4586-8209-ccfc3f321e7f",
+      "job_state": "queued",
+      "grant_id": "138f3beb-8c75-4095-88b4-69be3a20adcb",
+      "grant_hash": "53f9e4fc725354afd79064697287d15eff8ab7c7b69af2e3bc0deadac77582da",
+      "instruction_hash": "31e5810e6e59a5d7d790b4b062e33fbb4026b63497ddf80db0ca0af9a0a9ecb7",
+      "budget": {
+        "version": "coding-budget-extension-v1",
+        "binding": {
+          "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+          "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+          "root_payload_hash": "fedcf37fcfe764c93980e71b2b1e697ce784bfe89837f81ae826ea08c62b18ad",
+          "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+          "attempt_hash": "52407eac46a5ca89f968b366be7e1c6c01adff953c04cf1d49bdb53e24c81a6b",
+          "plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+          "plan_hash": "f6c7a2d33ca7ac641d8a55b67eb1fd17a10eb3045d0def139c38891938054e4b",
+          "context_hash": "41a3fdbf55e8a3e3d0f9559a77e7196686d79eb44262c576776d617ddb7bcd3c",
+          "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+        },
+        "limit": 8,
+        "used": 6,
+        "remaining": 2,
+        "grant_hash": "53f9e4fc725354afd79064697287d15eff8ab7c7b69af2e3bc0deadac77582da",
+        "revision": "47bde55b650e5d80f9d92f0d5cf7b7c4b1e332fc353f95f337a4dafaa80db7bd"
+      },
+      "new_plan_approval": false,
+      "maintenance": true,
+      "third_party_writes": 0
+    },
+    "original_lineage": {
+      "version": "coding-budget-extension-v1",
+      "binding": {
+        "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+        "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+        "root_payload_hash": "fedcf37fcfe764c93980e71b2b1e697ce784bfe89837f81ae826ea08c62b18ad",
+        "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+        "attempt_hash": "52407eac46a5ca89f968b366be7e1c6c01adff953c04cf1d49bdb53e24c81a6b",
+        "plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+        "plan_hash": "f6c7a2d33ca7ac641d8a55b67eb1fd17a10eb3045d0def139c38891938054e4b",
+        "context_hash": "41a3fdbf55e8a3e3d0f9559a77e7196686d79eb44262c576776d617ddb7bcd3c",
+        "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+      },
+      "limit": 8,
+      "used": 7,
+      "remaining": 1,
+      "grant_hash": "53f9e4fc725354afd79064697287d15eff8ab7c7b69af2e3bc0deadac77582da",
+      "revision": "f07fae7e450af99b0ac1864218054fe24f9cd0d51dcc32f7656c3859e78b0802"
+    },
+    "total_task_code_calls": 10,
+    "automated_repair_attempts": 2,
+    "repair_authority": "original_approved_max_repairs_2",
+    "usage_reset": false
+  },
+  "historical_runs": [
+    {
+      "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+      "number": 1,
+      "baseline": {
+        "status": "environment_blocked",
+        "passed": 3,
+        "total": 5
+      },
+      "verification": {
+        "status": "environment_blocked",
+        "passed": 1,
+        "total": 5,
+        "result_hash": "a794feb97cb6bd58b63260368149d36208b0a63d1655a247969d825cca7b9d66"
+      },
+      "reviews": [
+        {
+          "id": "b8f858c9-9a01-46aa-8e05-4e1a996c6e2c",
+          "verdict": "block",
+          "hash": "bff74733d4bdac1fed92ab9ae05d5f97b43531689ff53872367d3f5fec33e76b"
+        }
+      ]
+    },
+    {
+      "attempt_id": "11e9c963-1312-4ba8-a71e-53b04c3fe0bd",
+      "number": 2,
+      "baseline": {
+        "status": "environment_blocked",
+        "passed": 3,
+        "total": 5
+      },
+      "verification": {
+        "status": "environment_blocked",
+        "passed": 1,
+        "total": 5,
+        "result_hash": "4afdf760f16fef44fdf75c80303b876dc7b4d69e3587e812c70e078d51853470"
+      },
+      "reviews": [
+        {
+          "id": "e4dca895-4981-4a99-ade6-0e5a69b63868",
+          "verdict": "block",
+          "hash": "6c7998945451bca148e1267f3920c2991b56c510b75e4a8e4fb520b87d68cf76"
+        }
+      ]
+    },
+    {
+      "attempt_id": "d9236d23-1581-4fb3-9c59-1ff5b212f2f3",
+      "number": 3,
+      "baseline": {
+        "status": "environment_blocked",
+        "passed": 3,
+        "total": 5
+      },
+      "verification": {
+        "status": "environment_blocked",
+        "passed": 3,
+        "total": 5,
+        "result_hash": "2330c6b9c5537cba74926cf0017e29d5ea3cc2ad96dbdf26d6742e319e9d39f7"
+      },
+      "reviews": [
+        {
+          "id": "c65026c5-c6f5-41f3-9b23-c940fbcfa147",
+          "verdict": "block",
+          "hash": "76d9a7293a41fa18b0e499bfde5a737a1b49df2104f20321394d644b3d96f6e1"
+        }
+      ]
+    }
+  ],
+  "plan": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+    "plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+    "content_hash": "466dc79a12c2e0c8c113b29c7c2cae03fd7d8890d55ecfae6f9efcc36675c14b",
+    "parent_plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+    "parent_plan_hash": "f6c7a2d33ca7ac641d8a55b67eb1fd17a10eb3045d0def139c38891938054e4b",
+    "maintenance_hash": "1ddff9ee1fc5ee6756f5487377b474f6b673b4076f266a31644a215bacd88cda",
+    "diagnostic_hash": "0f6b5395602de246252b1c8cf776dbed7717b56c3890f26c73b517a0eb4cab91",
+    "can_execute": true,
+    "approval_lock_attempt_job_counts_unchanged": true,
+    "original_events_unchanged": 263,
+    "execution_authorized": false,
+    "preflight_hash": "32415e0a7f8cf951fea6cbaf0d61939bd6d187956add6d9b58a6f7ec98703609",
+    "commands": [
+      {
+        "command_id": "baseline-macos-spelling",
+        "purpose": "Baseline before any source change: run the existing macOS spelling test file unchanged to record the current pass/fail state.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/macos-spelling.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "test-macos-spelling",
+        "purpose": "Run the updated macOS spelling tests covering whole-line checking, per-line request/caching count, path-fragment filtering and the preserved gates.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/macos-spelling.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "test-editor-text-assist",
+        "purpose": "Run the editor text-assistance test file to confirm the editor-side assist contract is unaffected by the provider change.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/editor-text-assist.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "typecheck-tui",
+        "purpose": "Type-check the touched package using its declared script (`check:types` = tsgo -p tsconfig.json --noEmit) as declared in packages/tui/package.json.",
+        "argv": [
+          "bun",
+          "run",
+          "check:types",
+          "--singleThreaded"
+        ],
+        "working_directory": "packages/tui"
+      },
+      {
+        "command_id": "check-tui",
+        "purpose": "Run the package's full check script (oxlint + oxfmt --check + check:types) to confirm lint, formatting and types are clean after the change.",
+        "argv": [
+          "bun",
+          "run",
+          "check",
+          "--singleThreaded"
+        ],
+        "working_directory": "packages/tui"
+      }
+    ],
+    "files_likely_to_change": [
+      "packages/tui/src/prompt/macos-spelling.ts",
+      "packages/tui/test/macos-spelling.test.ts"
+    ]
+  },
+  "plan_preparation": {
+    "authorship": "maintenance_command_only",
+    "user_instruction": "continue_requested_work",
+    "state_path": "existing_user_replan_for_local_readonly_revision",
+    "new_execution_consent": false,
+    "new_execution_jobs": 0,
+    "model_calls": 0,
+    "rejected_transition_attempts": [
+      {
+        "reason_code": "verification_commands_require_revision",
+        "result": "domain_rejection_rolled_back"
+      },
+      {
+        "reason_code": "baseline_requires_replan",
+        "result": "database_rejected_missing_verified_planner_diagnosis_rolled_back"
+      }
+    ],
+    "schema_or_gate_changes": false
+  },
+  "historical_correction": {
+    "previous_claim": "baseline 5/5 passed",
+    "actual": "3/5 executed; two Bun script commands only printed help",
+    "immutable_evidence_rewritten": false,
+    "new_derived_status": "environment_blocked",
+    "reason_code": "verification_command_not_executed",
+    "old_acceptance_snapshot": "execution-read-recovery-2026-10-25.json"
+  },
+  "deployment": {
+    "services": [
+      {
+        "service": "api",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "provider-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "sandbox-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "publisher",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "model-gateway",
+        "exit_code": 0,
+        "report": {
+          "checked": 201,
+          "mismatches": []
+        }
+      }
+    ],
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "browser": {
+    "live": true,
+    "task": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "reviewEnabled": true,
+    "exactConfirmationEnabled": true,
+    "realPackageScriptVisible": true,
+    "desktop": true,
+    "mobile": true,
+    "executionStarted": false,
+    "mutations": 0
+  },
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 2061,
+    "original_events_unchanged": 2056,
+    "original_artifacts_unchanged": 1184,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "logs": {
+    "lines": 222,
+    "runtime_secret_or_canary_matches": 0,
+    "credential_pattern_matches": 0,
+    "tracebacks": 0
+  },
+  "backup": {
+    "backup": "/data/backups/verification-command-policy-20261026T014915Z",
+    "events": 2056,
+    "artifacts": 1184,
+    "sqlite_integrity": "ok",
+    "active_jobs": 0
+  },
+  "source_backup": {
+    "path": "/data/backups/verification-command-policy-20261026T014915Z/service-sources.tar",
+    "files": 201,
+    "sha256": "aa448fe7241c1b6791c6611fff416ef12a82e923bb2f2978d6c5b19fe10956a9"
+  },
+  "external_writes": 0
+}

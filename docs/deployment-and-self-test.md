@@ -107,6 +107,13 @@ docker compose --env-file .env -f docs/deployment/compose.yaml up -d --build
 
 第一次启动会构建本地镜像并安装依赖。随后检查状态：
 
+应用和 Publisher 镜像先运行 `python -m app.runtime_integrity`，静态检查包括
+函数内部的 `app.*` 延迟导入。引用了未打包的模块时构建直接失败，避免健康 API
+掩盖代码生成 Worker 的组件缺失。该检查不会导入业务模块、读取凭据或执行仓库
+代码。不要从旧源码副本拼接部署；应以包含全部新增文件的当前工作目录构建。
+代码生成时发现缺失模块会记录 `worker_runtime_incomplete`，提示重建完整服务。
+完成验证和部署后，才能在原方案和预算内恢复失败子任务。
+
 ```bash
 docker compose --env-file .env -f docs/deployment/compose.yaml ps
 ```

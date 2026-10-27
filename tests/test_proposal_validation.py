@@ -16,6 +16,79 @@ from tests.test_execution_repair import context_for,edit_proposal
 from tests.test_workbench import automatic_fixture,populate_round,drive_round
 
 
+def test_duplicate_approved_path_is_correctable_structure_error_without_expanding_scope():
+    from app.proposal_validation import check_proposal_structure
+    context = context_for('original source\n', 'source.py')
+    value = edit_proposal(context, 'original source', 'replacement')
+    value['operations'] *= 2
+    with pytest.raises(ProposalValidationError) as rejected:
+        check_proposal_structure(json.dumps(value), context, ['source.py'])
+    assert rejected.value.code == 'proposal_structure_invalid' and rejected.value.retryable
+    assert rejected.value.diagnostic['path'] == 'source.py'
+    assert rejected.value.diagnostic['operation_index'] == 1
+    value['operations'][1]['path'] = 'unapproved.py'
+    with pytest.raises(ProposalValidationError) as outside:
+        check_proposal_structure(json.dumps(value), context, ['source.py'])
+    assert outside.value.code == 'proposal_scope_invalid' and not outside.value.retryable
+
+
+def test_duplicate_file_operations_are_rejected_then_regenerated_with_same_approval(tmp_path):
+    db, settings, task, workers, code, review = automatic_fixture(tmp_path)
+    populate_round(code, review)
+    valid = code.contents[1]
+    invalid = json.loads(valid)
+    invalid['operations'].append(dict(invalid['operations'][0]))
+    code.contents[1] = json.dumps(invalid)
+    code.contents.append(valid)
+    for _ in range(10):
+        for worker in workers:
+            completed = asyncio.run(worker.run_once())
+            if completed:
+                assert completed.state in {'succeeded', 'queued'}, completed.error_message
+        advance_workflows(db, settings)
+    with db.session() as session:
+        w = PlanningService(session, settings.artifact_root)
+        rejected = w.latest(task, 'proposal_rejected')
+        assert rejected.payload['diagnostic']['code'] == 'proposal_structure_invalid'
+        assert rejected.payload['retry_scheduled']
+        assert w.latest(task, 'awaiting_acceptance')
+        assert len([e for e in w.history(task) if e.kind == 'execution_authorized']) == 1
+        assert "exactly one operation per approved path" in code.invocations[-1].prompt
+
+
+@pytest.mark.parametrize('receipt', ['current', 'wrong_attempt', 'untrusted_actor'])
+def test_retry_excludes_only_current_trusted_superseded_failures(tmp_path, receipt):
+    from app.jobs import JobService, JobTransitionError
+    from app.contribution_workflow import retry_execution_job
+    db, settings, task, workers, code, review, job_id, valid, _ = proposal_fixture(tmp_path)
+    invalid = json.loads(valid)
+    invalid['operations'][0]['path'] = 'unapproved.py'
+    code.contents.append(json.dumps(invalid))
+    assert asyncio.run(workers[2].run_once()).state == 'failed'
+    advance_workflows(db, settings)
+    with db.session() as session:
+        w = PlanningService(session, settings.artifact_root)
+        jobs = JobService(session)
+        current = jobs.get(job_id)
+        attempt_id = current.payload['execution_attempt_id']
+        old, _ = jobs.enqueue(kind='change_set_proposal', payload=current.payload,
+            idempotency_key='historical-failed-proposal', max_attempts=1)
+        leased = jobs.lease_next(worker_id='historical', kinds=('change_set_proposal',))
+        assert leased.id == old.id
+        jobs.start(old.id, worker_id='historical')
+        jobs.fail(old.id, worker_id='historical', error_code='proposal_structure_invalid', error_message='Historical failed read')
+        w.append(task, 'preparation_runtime_retry_requested', {
+            'attempt_id':attempt_id if receipt != 'wrong_attempt' else 'another-attempt',
+            'superseded_preparation_job_ids':[old.id]}, key='trusted-recovery',
+            actor='local-user' if receipt == 'untrusted_actor' else 'orchestrator')
+        if receipt == 'current':
+            assert retry_execution_job(w, job_id, settings).state == 'queued'
+            assert jobs.get(old.id).state == 'failed'
+        else:
+            with pytest.raises(JobTransitionError, match='其他失败'):
+                retry_execution_job(w, job_id, settings)
+
+
 def proposal_fixture(tmp_path):
     db,settings,task,workers,code,review=automatic_fixture(tmp_path)
     populate_round(code,review)

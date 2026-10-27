@@ -20,7 +20,9 @@ from app.sandbox_worker.specs import SandboxPolicy
 from tests.test_node_environments import node_files, selected, FakeNodeDependencies
 
 
-def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False):
+def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False,
+                  files_override=None, source_override=None, commands_override=None,
+                  goal_override=None):
     from tests import test_workbench as fixtures
     from tests import test_execution_pipeline as archives
     from app.sandbox_worker.coding_context import CodingContextEntry
@@ -28,13 +30,21 @@ def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False):
     from app.sandbox_worker.explore import ExploreInspection
     from app.sandbox_worker.implementation import FileInventoryEntry
     from tests.test_sandbox_dependencies import _FakeDependencyRuntime, _lease
-    files = node_files(manager, version)
-    source = "packages/lib/index.js"
+    files = node_files(manager, version) if files_override is None else files_override
+    source = source_override or "packages/lib/index.js"
+    def selection(values):
+        if files_override is None:
+            return selected(values)
+        from app.execution_environment import environment_plan
+        from app.execution_preflight import inspect_environment
+        return inspect_environment(environment_plan(list(values), change_paths=[source]),
+            {"inventory":sorted(values), "entries":[{"path":p,"content":text,
+                "prior_hash":hashlib.sha256(text.encode()).hexdigest()} for p,text in values.items()]})
     original_content = fixtures._plan_content()
-    content = replace(original_content, goal="Update the workspace fixture while preserving isolated verification",
-        files_to_inspect=tuple(selected(files)["manifests"] + [source, "test.mjs"]),
+    content = replace(original_content, goal=goal_override or "Update the workspace fixture while preserving isolated verification",
+        files_to_inspect=tuple(selection(files)["manifests"] + [source] + [p for p in files if p == "test.mjs" or "/tests/" in p]),
         files_likely_to_change=(source,), questions_for_maintainer=(),
-        commands_to_run=(PlanCommand("workspace-test", "Verify current workspace source", (manager, "run", "test")),))
+        commands_to_run=commands_override or (PlanCommand("workspace-test", "Verify current workspace source", (manager, "run", "test")),))
     monkeypatch.setattr(fixtures, "_plan_content", lambda: content)
     original_seeded = fixtures.seeded
     def seeded(path):
@@ -78,7 +88,7 @@ def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False):
             inventory = [{"path": p, "type": "file", "size": len(value.encode()),
                 "sha256": hashlib.sha256(value.encode()).hexdigest(), "executable": False} for p, value in sorted(files.items())]
             return ExploreInspection.from_wire({"inventory_hash": content_hash(inventory), "file_count": snapshot.file_count,
-                "total_bytes": snapshot.total_bytes, "sample_paths": sorted(files), "manifest_paths": selected(files)["manifests"]})
+                "total_bytes": snapshot.total_bytes, "sample_paths": sorted(files), "manifest_paths": selection(files)["manifests"]})
     class Implement(FakeImplementRuntime):
         async def apply(self, **kwargs):
             inspection = await super().apply(**kwargs)

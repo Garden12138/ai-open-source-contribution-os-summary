@@ -1,0 +1,191 @@
+{
+  "version": "project-environment-acceptance-v1",
+  "task_replay": {
+    "classification": "isolated_snapshot_real_model_readonly_replay",
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "job_state": "succeeded",
+    "error_code": null,
+    "source_records": 77,
+    "production_modified": false,
+    "original_records_unchanged": true,
+    "budgets": [
+      {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13824,
+        "output_limit": 4096,
+        "schema_hash": "7a475f79c5678d127722fb30a4464f1a2778550b6004a2268fa622ab8f879b78",
+        "original_prompt_hash": "dbb926643ada9825bd1251ef3160e6291e51060acc6ac37dd235d71aa75af8c8",
+        "prompt_hash": "7690997cb4454ff78b1263a78d95af529e93d6f00453781a2b994c14b990a060",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "e65d9bda3e352ce85689f931265f8057c8783ee22547fbd4a4dfdf19d835007b"
+          },
+          {
+            "label": "recent_dialogue",
+            "artifact_id": "a257b739479a66f4122144049dbf1ef285b05b183be4f80a6a6a4359c531647f"
+          },
+          {
+            "label": "execution_status",
+            "artifact_id": "12f5f0da5e6acea700d29fd4e6827438c25fb9114abe25582ac5d37cfddbdc30"
+          }
+        ],
+        "admitted": true
+      }
+    ],
+    "reads": [
+      {
+        "name": "environment",
+        "path": null,
+        "query": null,
+        "start_line": 1,
+        "reference_id": null,
+        "offset": 0,
+        "source_id": null,
+        "source_hash": null
+      }
+    ],
+    "answer": "已检查项目环境:这是 Node 工作区,声明的包管理器是 bun(>=1.4),仓库里已存在锁文件 `bun.lock`(安装根目录为仓库根)。所以不是“没有可用锁文件”的情况——锁文件是有的,只是还有 26 项配置尚未读取,环境方案因此被标为待读取状态。\n\n另外有一个独立的阻塞点:现有方案里的验证命令引用了 `typecheck` 脚本,但项目的 package.json 里并没有这个脚本,所以这条验证命令无法执行,需要修订后再冻结方案。\n\n下一步我会补读工作区清单与运行时配置(尤其是 package.json 中实际存在的脚本),把验证命令替换成真实存在的脚本,然后再冻结环境方案。",
+    "action": "respond"
+  },
+  "isolated_replay_history": [
+    {
+      "run": "contribos-task65-runtime-replay-v2.json",
+      "state": "failed",
+      "error": "conversation_input_budget",
+      "input_bounds": [
+        16061
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v3.json",
+      "state": "failed",
+      "error": "conversation_input_budget",
+      "input_bounds": [
+        16099
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v4.json",
+      "state": "failed",
+      "error": "conversation_input_budget",
+      "input_bounds": [
+        14133,
+        18663
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v5.json",
+      "state": "failed",
+      "error": "conversation_tool_budget",
+      "input_bounds": [
+        13709,
+        14521,
+        14344
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v6.json",
+      "state": "succeeded",
+      "error": null,
+      "input_bounds": [
+        13757,
+        13755
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v7.json",
+      "state": "failed",
+      "error": "conversation_decision_invalid",
+      "input_bounds": [
+        13942,
+        13940,
+        13571,
+        15605
+      ]
+    },
+    {
+      "run": "contribos-task65-runtime-replay-v8.json",
+      "state": "succeeded",
+      "error": null,
+      "input_bounds": [
+        13824
+      ]
+    }
+  ],
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 1870,
+    "original_events_unchanged": 1870,
+    "original_artifacts_unchanged": 1072,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "full_regression": {
+    "passed": 1319,
+    "skipped": 43
+  },
+  "final_focused": {
+    "passed": 176,
+    "skipped": 3
+  },
+  "real_container_cases": {
+    "passed": 7,
+    "cases": [
+      "npm locked",
+      "Yarn Classic locked",
+      "Yarn modern locked",
+      "pnpm locked",
+      "Bun ranged locked",
+      "Bun ranged private lock",
+      "npm private lock"
+    ]
+  },
+  "production_preparation_started": false,
+  "real_github_acceptance": false,
+  "native_linux_acceptance": false,
+  "source_hashes": {
+    "app/agent_runtime.py": "52cab6966f564cd957e9a70ca2fbb47e6f0bce31a5d7a07c04779ff6fecc643f",
+    "app/agent_context.py": "c03d5aa1f12c49f0bf0fb62d265040b401cd98c83eaff13f07163795494bd849",
+    "app/environment_resolution.py": "a0ed4988c4a30a46f0d7ba3b3fe9702c870728e1221c842b24269bde24f7d8f9",
+    "app/conversation.py": "15517dd66dbc012fc927a6c170fca1ec8eb46ead40b826dd9573d99c37c0439e",
+    "app/conversation_protocol.py": "e16968da33b6bb059c23c92e3015dc844ee3d90a0608bf4e2a1ed1c85dc07053",
+    "app/conversation_reasoning.py": "247384aba86060179b08b500779a98fb276138c0f76b7e91d05f5ff9834a7d85",
+    "app/contribution_workflow.py": "0990b16cba9cde86d55f7186f3756967986a4d363a686a016c27cf3fa2226bb7",
+    "app/baseline_feedback.py": "23172cf3a857144087d34fdf6859e537bdb4e1511f2653de396082452ccd0e5d",
+    "app/coding.py": "174157b37bf68521ac79929524e2088df605538b4cf426e4acc24286cc4c7586",
+    "app/proposal_recovery.py": "de7f30832699c65e0092866f69062026e23e437023fd78c4c14154ffdbff57ae",
+    "app/execution_outcome.py": "36ca32ca0ba79510ea0c4c86e904dfccb824324e22c08d46a2c45723c6fb3812",
+    "app/execution_preflight.py": "08864e0102f7d2faa3acbf4fd2383de6fc1a9c96bd27da9ead4a83d4430c19f1",
+    "app/node_environments.py": "f57598ac2ec873cab08ca379c3ea6f89c8874486e4adba98ca1e2f7d5f9144a9",
+    "app/planner.py": "aa587d73824063acefcd82e72f2f166a8840294b3897c7dba73161aeb83b7aac",
+    "app/workbench_view.py": "15d1fbfe5ab8c98b5f4a0c86c6e4e3fa921c9eeb2cc2e7f5fd9c4c0b726309a5",
+    "app/verification_commands.py": "6fb7d76622e449d3a72e61879a18c7bb91800e45c80940ba18e591f3fa93823a",
+    "app/sandbox_worker/workspace_jobs.py": "d0679c2d4336360c10e69b68852dd8bb0a36ad5b019b4c9ff476d613eccbdbf5",
+    "app/sandbox_worker/dependencies.py": "f171d669927bef7ef00c5190abb970201ce33eb06ace08676bbcbada2cc40414",
+    "app/sandbox_worker/dependency_diagnostics.py": "f32a69c4df79cd765dbea346c5122d8782a34eee44629819ac7d291fbc08a632",
+    "app/sandbox_worker/node_dependencies.py": "1ff855020e3151181f85ae64a95b1029960a51c4406bebd222ee74e103a1616c",
+    "app/sandbox_worker/node_execution.py": "2156716fdcf8937a2a223c8e33e40e23a343e2d69b22757789f224b70b2d9136",
+    "app/providers/codex_cli.py": "702ccce3aecfc29cb6eef14d968e88623e424553c4623ee4d489f4b856a3b5c2",
+    "app/providers/nvidia_nim.py": "db5ac3842e194d1fa97b673ef7a9cd622e5b2423f782190b2c817e3a6e8f0691",
+    "app/providers/studio.py": "6acb902a43bbc4b8289f6a16a56df7cd998538910ef867527f2dec16b9b0097a",
+    "app/worker.py": "602f6da0eb2294040b4fcedc459ad19bdfd5c9d8bc88e06f2fabf4d39c816b46",
+    "app/workbench_api.py": "7efaabe4ff10c88178d6c2c8892e38733d09fe16ea00736209de2ddf8941e55a",
+    "app/api.py": "5975e78b3c01c61eb4c32ff1d72f79e08ae2f6fce5e8815b3af1d97c01f247d4",
+    "app/static/workbench.js": "9ca504675dd3ff55dda7a77c51feabc6cc7a63462fbebef1892aebeca81a4d9f"
+  },
+  "services_matching_source": 6,
+  "health": {
+    "status": "ok",
+    "database": "ok"
+  },
+  "logs": {
+    "lines": 478,
+    "credential_pattern_matches": 0,
+    "tracebacks": 0
+  }
+}

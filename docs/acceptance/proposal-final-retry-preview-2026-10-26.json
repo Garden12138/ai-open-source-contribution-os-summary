@@ -1,0 +1,31 @@
+{
+  "version": "proposal-final-retry-preview-v1",
+  "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+  "attempt_id": "1c62fbcb-48d4-4cfc-8095-dc09925e3833",
+  "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+  "job_payload_hash": "db9fa14c4e850f6a6ca59d606bd886d881be554f6950539007588f14879f8354",
+  "root_job_id": "80c2d6dd-19a6-4eb3-8c82-13591196cda8",
+  "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+  "plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+  "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+  "rejection_hash": "904bc8498804198ae8c083da6711c1d19fe13a7370dcdfb7b9bd73f1583119ef",
+  "budget_revision": "7d63d9b4df5de696d45607344adbfb876804bbb39fd3cbe58f1fb594c2ad5495",
+  "old_job_attempt_limit": 3,
+  "new_job_attempt_limit": 4,
+  "additional_attempts": 1,
+  "model_calls_used": 5,
+  "model_call_limit": 6,
+  "budget_increase": false,
+  "reset_attempt_count": false,
+  "files_likely_to_change": [
+    "packages/tui/src/prompt/macos-spelling.ts",
+    "packages/tui/test/macos-spelling.test.ts"
+  ],
+  "actions": [
+    "append one exact human-directed retry decision",
+    "raise only this job attempt limit from 3 to 4",
+    "retry the same failed proposal once under the same root and approval"
+  ],
+  "approved": false,
+  "preview_hash": "0c25c33d30fc2da1aad53912a6e240c6c0e318c8e9d785805ecacd7aecc4a3d8"
+}

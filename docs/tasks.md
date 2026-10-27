@@ -33,6 +33,11 @@ Update rules:
 | Last roadmap audit | 2026-09-02 |
 | Feature note | MiniMax-M3 domestic direct access is the settings-page four-stage default after explicit encrypted-key activation; NVIDIA/OpenAI-compatible Profiles remain manual alternatives. Live MiniMax, real Draft PR and Linux platform gates stay unchecked. |
 
+## Optional xcli integration
+
+- [ ] Native `xcli_local` transport and model-settings selection: source applied; native client HTTP acceptance passed, full offline regression 1403 passed/45 skipped, latest source-module regression 504 passed/28 skipped. After explicit user confirmation, image `xcli-integration-75d9cea7fbde` was deployed to all six services; API/Model Gateway/Publisher health checks passed, original volumes preserved, and 200 deployed source files matched that snapshot. ENV-R08 subsequently repaired the omitted runtime component and restored the complete 202-file runtime, retaining the xcli source unchanged. Docker Host Bridge and real Plan/Review remain unverified.
+- [ ] Authenticated container Host Bridge: unimplemented; native loopback transport rejects container execution. P5-G06 and the existing platform gates remain open.
+
 ## Fixed end-to-end chain
 
 ```text
@@ -3681,7 +3686,27 @@ Automatic task context management (2026-10-20, user-requested extension):
 
 - [x] **UXR-T14** Add automatic, source-bound task memory and prompt compression,
   bounded original-text retrieval and truthful budget/status reporting. Full
-  regression, deployment and real frozen-task preview verified below.
+  regression, deployment and real frozen-task preview previously verified below;
+  reopened 2026-10-24 after a live per-request input-budget regression and
+  reverified by the AR runtime admission/replay evidence below.
+- Reopened evidence: task `17f4852b-7b70-443f-8c6e-4395a8241b9e`, events
+  298–305, Job `289324f5-6b26-4bd2-9ad3-41464030f965`. The product-built prompt
+  met its 48,000-byte target at 45,121 bytes, but the provider reported 16,478
+  input tokens and 478 output tokens; the post-call 16,000-input-token check
+  rejected the turn as `conversation_response_budget`. Lifetime input remained
+  below the explicitly configured 3,000,000-token limit. Input budgeting,
+  compaction, schema overhead and useful recovery required a coordinated fix;
+  historical usage, failed receipts and approvals remain
+  intact. See the [cross-task independent-completion audit](autonomous-completion-audit-2026-10-24.md).
+- Reopened again 2026-10-24: task `65bb0e9f-e8b5-4780-8a5e-19469e5e0f46`
+  requests a lockfile search. Its first call was admitted at 15,935; after three
+  reads, the next input was denied at 17,307. The file-list tool ignored queries
+  and returned the captured-entry subset twice rather than searching the real
+  inventory. A source-bound search and sufficient room for evidence are required.
+- Reverified 2026-10-25 by ENV-R04: the same task's isolated real-model replay
+  now succeeds in one call at **13,824 / 16,000**, retaining all **77** original
+  event hashes and original usage. Evidence is shared across one total input
+  allocation, with retrievable originals and source-bound environment facts.
 - Phase 5 remains current; this extends the workbench context boundary, not a
   later phase. Existing `code_compressor` skeletonized background files, but the
   planner pinned every inspected path forever and resent long drafts/status/logs.
@@ -4060,6 +4085,541 @@ No persistent schema change or third-party write was needed. Native Linux
 amd64/Docker P5-G06, ENV-G01 and UXR-G01 remain open; P5-G06 is still the next
 roadmap gate, with no later phase entry or repository-wide completion claimed.
 
+### Conversational task runtime refactor (2026-10-24)
+
+User-approved Phase 5 extension following the
+[cross-task audit](autonomous-completion-audit-2026-10-24.md). The operating model
+and rollback procedure are documented in [agent-runtime.md](agent-runtime.md).
+
+- [x] **AR-T01** Separate current task observation, source-bound dialogue focus,
+  original request and exact authorization; introduce a persistent coordinator
+  entry without replacing existing immutable domain services.
+- [x] **AR-T02** Support progress → detail/history → command interleaving,
+  original-request resume, reply references, clarification interludes and stale
+  command reobservation. Observe turns release the mutation barrier and cannot
+  become commands; stops and confirmation boundaries remain intact.
+- [x] **AR-T03** Reserve one foreground and one background Provider lane. New
+  conversations use four calls, six reads and one correction while preserving
+  lifetime usage. Coding uses direct proposals, durable source-read children
+  and six-call lineages, with the existing two-code-repair limit.
+- [x] **AR-T04** Admit prompt/schema/output budgets before invocation; preserve
+  exact admitted checkpoints and source-bound original retrieval. Keep scope
+  when baseline failures are unrelated, block mandatory failed checks, classify
+  environment failures separately and avoid repairs for byte-identical failures.
+- [x] **AR-T05** Add typed API observation, optional exact reply target and native
+  UI reference/retry/refresh support. Upgrade idle tasks through additive
+  versioned events, retain legacy queued work, and attribute maintenance work.
+- [x] **AR-T06** Six controlled archives pass real MiniMax-M3 coding, isolated OCI
+  preparation/baseline/implementation/verification and independent model review:
+  npm TypeScript, Yarn Classic, Yarn modern, pnpm, declarative Python/local
+  package and dynamic Python/local package. Passing runs used 1–2 code calls
+  plus one review, zero operator patches and zero external writes. Discovery and
+  approved plans are fixtures; this does not close real-GitHub acceptance. The
+  dynamic case identified missing bounded/hash-bound requirement-file discovery,
+  now fixed and verified in the real container path. Full per-sample evidence:
+  [agent-runtime-2026-10-24.json](acceptance/agent-runtime-2026-10-24.json).
+- [x] **AR-T07** Finish isolated replay of the historical input-budget failure,
+  final regression, deployment, historical-chain/artifact and credential checks.
+
+Verification already completed: full deterministic suite **1,302 passed,
+41 skipped**, subsequent conversation/context regression **158 passed**;
+desktop/mobile browser reference/retry tests pass. A real-model compound
+progress/source question completed in **two calls** while its existing
+background job stayed queued; source was actually read, without stopping work
+or granting execution. The idle pre-upgrade backup contains **1,793 events** and
+**874 artifacts** with verified SQLite integrity and foreign keys. Historical
+production tasks are not automatically retried or topped up.
+
+Final evidence: the historical failure's isolated replay preserves its original
+request and **305** event hashes, admits a conservative input upper bound of
+**14,818 / 16,000**, and adds **zero** model calls or production mutations.
+Final full suite **1,302 passed, 41 skipped**; the last background-progress-label
+adjustment additionally passes **110** focused conversation/runtime tests.
+Compileall, JavaScript syntax and diff checks pass. Desktop/mobile browser
+reference/reload/idempotent-retry checks pass. All six services were rebuilt,
+are healthy/running and match the **19** critical source hashes; API/database
+health is `ok`. All seven production chains, **1,793** original events and
+**874** original artifacts are unchanged. Database/artifact checks report zero
+runtime-secret/canary matches; **184** recent log lines have zero credential
+pattern matches and zero tracebacks. No commit, push or third-party write was
+performed. The JSON evidence records controlled/fixture boundaries explicitly.
+
+First failed acceptance runs remain evidence: the Python fixture originally had
+the wrong command directory, dynamic local dependencies were not discovered, and
+conversation correction/evidence duplication caused repeated reads or oversized
+requests. These were corrected and passing samples rerun. They are not counted
+as independent successes. Native Linux **P5-G06**, **UXR-G01** and **ENV-G01**
+remain open; Phase 5 remains current and no later phase entry is claimed.
+
+### Project-derived environment preparation (2026-10-24/25)
+
+User-requested follow-up: environment identification and preparation must derive
+from each project rather than require a fixed repository template. Incident and
+design: [project-environment-resolution.md](project-environment-resolution.md).
+
+- [x] **ENV-R01** Resolve source package/ancestor workspace, actual lock formats,
+  packageManager/engines constraints, runtime files, tool versions and literal CI
+  pins from frozen repository evidence. Bun is recognized as its own toolchain;
+  an unknown driver is an explicit capability gap, not a missing-lock claim.
+- [x] **ENV-R02** Add versioned range-based tool selection in credential-free
+  preparation and private lock generation when a source lock is absent. Freeze
+  exact results, retain source manifests unchanged and build/test offline. Real
+  Bun existing-lock, Bun no-lock and npm no-lock cases pass baseline,
+  implementation and fresh Verify; all four existing npm/Yarn/pnpm cases pass.
+- [x] **ENV-R03** Reopened and reverified 2026-10-26: validate explicit package scripts against inspected metadata;
+  reject nonexistent scripts and installation during verification. Old plans and
+  approvals remain immutable; command corrections need a new plan confirmation.
+  Bun 1.4.4's spaced `--cwd` prefix was accepted but returned only help with
+  exit zero. Require typed working directories, reject unexecuted checks in
+  historical/current outcome projections, and verify real script dispatch.
+- [x] **ENV-R04** Verify real-model lock-search replay of task `65bb0e9f` after
+  full-inventory filtering, bounded pages and shared input-space allocation.
+- [x] **ENV-R05** Finish regression, deployment/source, historical-integrity and
+  credential checks and record exact evidence. Restore from the matched backup
+  at `/data/backups/project-environment-20261024T153414Z` if rollback is needed.
+- [x] **ENV-R06** Reopened action acceptance (2026-10-25): the real follow-up
+  `按你的下一步计划进行` failed at the conversation read limit and never queued
+  planning. R04 proves only readonly diagnosis. Route explicit continuation from
+  actual state, bulk-read required project metadata in Sandbox, and recover the
+  still-current failed request once with its original source/hash. Verify a real
+  child plan and available exact confirmation in production; chat never grants
+  execution consent. Preserve all old failed jobs and immutable plans.
+
+R06 evidence: the real request now produced Sandbox context job
+`67ec4bf3-934c-4725-816a-2b5155dc0e65` (26 metadata files), then two real planning
+turns including one rejected-output repair. Child plan
+`119e2aed-976c-412e-b1c8-6cad1ce64a67` retains the user's option A and exact two
+TUI change paths; its type/lint commands use the inspected package's actual
+`check:types`/`check` scripts. `can_execute=true`, zero readiness blockers, zero
+active jobs and zero execution authorizations. Actual deployed browser checks
+open the exact confirmation on desktop/mobile with an enabled confirmation
+button and zero mutation requests. Implementation/project tests have not run:
+they require fresh exact confirmation of this new plan. This operator-assisted
+recovery is explicitly marked maintenance and does not close UXR-G01.
+Full offline regression: **1,334 passed / 44 skipped**, exit 0; focused
+continuation/conversation/workbench checks **126 passed / 3 skipped**; final
+environment/continuation checks **57 passed / 7 skipped**. Compile/diff checks
+pass; all six services match **29** changed source hashes and are healthy/running.
+All eight task chains, all **1,918** original events and **1,100** original
+artifacts remain intact; runtime-secret/canary matches and log tracebacks are
+zero (647 log lines). Evidence:
+[planning-continuation-2026-10-25.json](acceptance/planning-continuation-2026-10-25.json).
+P5-G06, UXR-G01 and ENV-G01 remain open.
+
+- [ ] **ENV-R07** Reopened execution acceptance (2026-10-25): after exact user
+  confirmation, task `65bb0e9f` acquired Bun dependencies but tests could not
+  load a required native addon. Classify startup/native loader failures as
+  environment blockers before coding. Direct proposal read requests also
+  requested frozen helper source outside the initially captured edit context;
+  return a bounded source-bound read result/diagnostic rather than consuming all
+  three correction attempts with an undifferentiated proposal-format error.
+  Verify real failure recovery and do not count enabled confirmation controls
+  as end-to-end execution acceptance.
+
+R07 verified runtime evidence: native loader failures block coding at admission,
+invocation and coordinator boundaries; supplemental reads retain archive,
+authorization, conversation and editing-view hashes without adding edit paths.
+NAPI platform packages bind exact versions and binary hashes, with private
+scope/entrypoint links only in disposable execution views. Stops, stale inputs,
+unproven recovery, unexpected reads and path escape fail closed. Full final
+offline regression across all 98 test files: **1,391 passed / 45 skipped**;
+final budget/protocol/recovery regression **84 passed**; one controlled real Bun/NAPI
+preparation → baseline → implementation → fresh Verify → independent-review
+contract passes with deterministic model/review/GitHub replies. Real
+frozen-archive reads verify both requested helpers exist.
+
+Correction (2026-10-26): the original task's isolated baseline reported **5/5**
+from exit codes, but two Bun script commands printed only help. Only the three
+test commands demonstrably executed; types and formatting remain unverified. Earlier
+network-failure and loader-path-failure attempts remain recorded. Production
+recovery retains attempt `422a3cef-0663-449d-b405-af918a9e2311`, plan
+`119e2aed-976c-412e-b1c8-6cad1ce64a67`, the exact original approval and consumed
+model calls. The production baseline had the same two unexecuted checks; the retained helper
+read succeeds. Its first subsequent model draft duplicated one approved file;
+the entire draft was rejected. Duplicate paths now receive a correctable
+structural diagnostic, while genuinely unapproved paths remain scope failures.
+The model subsequently requested captured source twice, consuming the remaining
+calls without producing an applicable draft. At the 2026-10-25 checkpoint the
+original lineage was at **6/6**; production Implement, post-change Verify and
+Review had not run. The limit and consumed calls were unchanged at that checkpoint.
+A distinct call-budget diagnostic
+now replaces the misleading size-limit message, exhausted retries are refused,
+and the final admissible call disables further read steps and reports its exact
+remaining allowance. Additional implementation calls require explicit budget
+authorization; **ENV-R07 remains open**. All recovery is attributed to
+maintenance, with no operator-authored business proposal or external write.
+Backup and rollback: `/data/backups/coding-read-recovery-20261025T063740Z`,
+including the matched old service-source archive. Detailed semantics are in
+[project-environment-resolution.md](project-environment-resolution.md).
+2026-10-25 deployment: six services were healthy/running and matched **199** application
+source hashes each; desktop/mobile browser checks have zero errors, overflow or
+mutation requests. SQLite integrity, foreign keys, all eight task chains,
+**1,958** original events and **1,133** original artifacts are verified unchanged.
+The eight current chains contain **1,998** events. Runtime-secret/canary checks have
+zero matches in database/artifacts and **162** recent log lines; no tracebacks.
+Plan, approval, execution-attempt and publication-root counts are unchanged.
+Exact evidence and failed acceptance attempts are retained in
+[execution-read-recovery-2026-10-25.json](acceptance/execution-read-recovery-2026-10-25.json).
+Native Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 remain open.
+
+2026-10-26 continuation and command-evidence correction:
+
+- The user's continuation of the exact two-call proposal was recorded once as
+  maintenance grant `138f3beb`, hash `53f9e4fc725354afd79064697287d15eff8ab7c7b69af2e3bc0deadac77582da`.
+  It binds only the original task/plan/root/context/usage and preserves all six
+  calls. Call **7/8** produced model ChangeSet `c0a87f24f171792af3568d9a09e49aa59a871c6e43e397e16f27a5ded31cd787`.
+  Real Implement, Verify and independent Review ran, followed by the originally
+  authorized two bounded repairs. There are **10** total task coding calls;
+  the original lineage remains **7/8**. No further allowance or repair was added.
+  All three independent reviews block. These runs are failed acceptance evidence.
+- Raw logs and a real Bun 1.4.4 sentinel probe prove the two `--cwd`-prefix script
+  checks only printed help with exit 0. The sentinel is matched as a complete
+  output line, excluding help's script listing. A script that must exit 17
+  actually exits 17 with typed working_directory. R03 was reopened and repaired:
+  plan validation and preflight reject ambiguous Bun script-directory options,
+  while baseline/post-change projections classify known help output as
+  `verification_command_not_executed`. Historical hashes/statuses stay intact;
+  derived baselines are **3/5, environment_blocked**, not passed.
+- Corrected commands really executed against the frozen original source. The
+  default parallel compiler was killed by SIGKILL (exit -9); its cause is not
+  asserted as proven OOM. With official `--singleThreaded`, full types and the
+  declared lint/format/types script both pass within the unchanged **2 GiB**
+  sandbox and without network/credentials. No source or acceptance check was
+  removed. These are diagnostics, not a new approved baseline or a project fix.
+- Maintenance prepared command-only child plan
+  `b81f2268-af55-44c6-a971-d4268a69c121`, hash
+  `350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a`.
+  Its only content changes are two command argv/working directories:
+  `bun run check:types --singleThreaded` and `bun run check --singleThreaded`,
+  both under `packages/tui`. Goal, option A and two source/test edit paths remain
+  exact. The current user's continuation authorizes this local read-only
+  preparation via the existing `user_replan` transition, recorded with
+  maintenance authorship; no synthetic app user message or execution consent
+  was created. Two earlier rejected transition attempts rolled back completely;
+  no trigger, migration or state gate was weakened. Original approvals, locks,
+  attempts and jobs are unchanged. The new plan is **unapproved**; its exact
+  desktop/mobile confirmation is enabled and zero browser mutations occurred.
+- Full offline regression: **1,422 passed / 46 skipped** across **102** files.
+  Policy-focused checks **103 passed / 3 skipped**; UI/budget checks **41 passed**;
+  final changed-command checks **29 passed / 3 skipped**. Real CLI dispatch
+  acceptance **1 passed**. Compile and diff checks pass. All six services are
+  redeployed, healthy/running and match **201** source hashes each.
+  SQLite integrity/foreign keys and eight chains pass; **2,056** original
+  events/**1,184** original artifacts stay intact. Current chains contain
+  **2,061** events. Database/artifact and **222** log-line credential/canary
+  checks are zero; no tracebacks and no active jobs.
+- Matched rollback backup:
+  `/data/backups/verification-command-policy-20261026T014915Z`, including
+  201-file source archive SHA-256
+  `aa448fe7241c1b6791c6611fff416ef12a82e923bb2f2978d6c5b19fe10956a9`.
+  Preserve newer receipts before matched recovery. No SQL schema change.
+  Exact current evidence:
+  [verification-command-policy-2026-10-26.json](acceptance/verification-command-policy-2026-10-26.json).
+
+2026-10-26 later incident: the user confirmed child plan `b81f2268`, creating
+approval-bound attempt `e74948b6-1c0e-4cd8-a0a9-477c28de7b4c` and authorization
+`44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789`.
+Discovery, preparation and coding context completed, but proposal Job
+`c9e4e366-a7e2-4456-89d8-b99558469485` failed before a model call with
+`ModuleNotFoundError`. The later xcli deployment omitted `app/coding_budget.py`
+while retaining lazy imports of it in three modules; five other application
+files also differed from the verified command-policy snapshot. This is a
+deployment completeness failure, not a missing project dependency or exhausted
+coding budget. At failure, the new proposal root had consumed zero model calls.
+
+- [x] **ENV-R08** Restore the complete verified runtime while preserving xcli
+  and existing trust domains. Add a build-time check for missing internal lazy
+  imports, a redacted `worker_runtime_incomplete` diagnostic and explicit
+  rebuild recovery. Verify failure before model usage, same-job recovery,
+  full regression, actual image completeness, deployment/source hashes and
+  preservation of approvals/usage/history. Resume only the still-current failed
+  job under its existing exact authorization; no new budget or plan consent.
+
+R08 verification: **1,426 passed / 46 skipped** across **103** offline test
+files; focused runtime/budget/command/xcli checks **37 passed**. The real built
+image matches all **202** source hashes. A credential-free, networkless image
+probe copies application source into bounded temporary storage, deliberately
+omits `coding_budget.py`, and detects all three actual lazy import sites without
+executing their code. App/Publisher builds now run this guard before install;
+Sandbox Worker inherits the checked app. Six deployed services match all 202
+hashes and are healthy/running; the xcli integration is retained. There is no
+database migration or policy/approval weakening.
+
+Maintenance receipt `5220c05d82bcbd5d53cf10fd0fe22ce0451e7badfe14af21c4c6b2d9ebcb82f6`
+binds regression/image/source proof `ff249eaf2e9e66d59eba55e3a9ad98fe6bb40bb83c878abe39e1605c3c98333f`
+to the original failed Job, plan and authorization. Its zero model calls/zero
+AgentInvocation records were checked before retry. The same Job resumed with
+the existing six-call cap; no usage, approval, plan or attempt count was reset.
+Its immutable failure history is retained. Two real model calls produced
+ChangeSet `b8ae0aaae54d247151681ff7024c581c733d5dd675bffb50e486c4bf5fa44967`.
+Restored dependencies and the genuine **5/5** baseline then led to Implement,
+Verify and independent Review. Verify failed two existing spelling cases;
+Review `ea400c49ae4c4eaad615513b3b484f6304f140e17b4985d0be5b7772a95f2ee9`
+blocks acceptance, and the originally authorized bounded repair loop continues.
+This proves recovery of the deployment failure, not completion of ENV-R07.
+
+Final current state after that first repair: attempt
+`1c62fbcb-48d4-4cfc-8095-dc09925e3833` passed the real **5/5** pre-change baseline.
+Its model draft repeated operations for `packages/tui/test/macos-spelling.test.ts`;
+the service rejected the complete draft. One source read and subsequent
+corrections retained exact hashes, but Job
+`43b7d960-d440-4dc9-b82c-99249ef982c4` ended at its **3/3 format correction**
+limit with `proposal_structure_invalid`. The current root used **5/6** model
+calls; the unused sixth call does not override the separate exhausted Job
+retry limit. Task-wide coding usage is **17**, preserving all earlier usage.
+At that checkpoint no extra retries, budget, plan approvals or source changes
+had been added.
+There are no active jobs. This is a new model-protocol blocker, not a recurrence
+of the missing runtime module, and ENV-R07 remains open.
+
+The exact one-call recovery preview is retained in
+[proposal-final-retry-preview-2026-10-26.json](acceptance/proposal-final-retry-preview-2026-10-26.json),
+hash `0c25c33d30fc2da1aad53912a6e240c6c0e318c8e9d785805ecacd7aecc4a3d8`.
+It proposes only Job `43b7d960`'s attempt limit **3 → 4**, preserving its three
+attempts and using the existing root's sixth and final model call. Same plan,
+authorization, root, failure hash and two edit paths stay bound. Read-only
+preflight passed with transaction rollback and zero mutations. The user's later
+explicit `确认` authorized only that preview. Decision
+`794edd9035488b821f8e1fe7bd24584915fc189ad9bf9fc1a9a12014ac4c6f65`
+records instruction hash `b9efd2390b764e7ff5ea5594982b6c5699cec2a6fc5fc7594201c95527e8118c`.
+The same Job ran its fourth attempt, consuming the root's sixth and final call;
+it was rejected again. No further call is authorized. Rejection
+`ed3d0b4ad052caa14a92b4b50c0f81b3f2781849f1214ea0da06ffb2f653f012`
+retains artifact `16cb265ed1ae6b9a175899c4c20fe10a514a7303baa6e286b35d1328c0c596b7`.
+The reply has three operations: source edit, test edit, and append to that same
+test. The append also supplies an unchanged `executable=false` and empty edits.
+
+- [x] **ENV-R09** Recover this representation failure without another model
+  call or default-validator relaxation. Existing trusted local correction must
+  support v2 direct proposal sessions with no chat turns. A maintenance-only
+  helper may derive one canonical append-with-edits from an adjacent exact
+  edit/plain-append pair, accepting redundant mode only when it equals the
+  frozen mode and treating empty append edits as identity. Prove final bytes,
+  prior hashes and permissions match the sequential model operations; reject
+  all ambiguous or non-equivalent shapes. Bind original AgentInvocation,
+  rejection, raw/normalized proposal and proof hashes atomically. Keep the
+  failed Job/counters intact, mark maintenance, rerun real Implement/Verify/
+  independent Review and preserve all original provenance.
+
+R09 read-only source probe verifies the exact sixth reply normalizes from
+three operations to two with identical file bytes and modes. Raw proposal hash
+`2424b2a39e9ced0872462fa9fec0b3b77108baf59d3b0fa4adc5e194525448f1`
+maps to normalized representation hash
+`2f586f451928de0721bbe3724976c2f21a50308f7867741dc22c20060d977c4a`.
+This does not author or change model code strings, apply fuzzy edits, grant
+model authority or count as independent product-only acceptance. Default
+duplicate-path rejection remains intact. Focused correction/protocol regression
+**54 passed**. Full regression **1,448 passed / 46 skipped** across **104**
+files, compilation/diff checks and the real built-image frozen-reply probe pass.
+All six services were rebuilt, healthy/running and matched **202** application
+source hashes. Normalization receipt
+`e0237e81f40a54f9cfa4be5fad6c489e2ee71210daf3bbef6373c4bc2121e9b7`
+binds proof `bad9bc8617588ba6bb0950c1dedab6eb480dc99ae740bfd25ce32a9b08d74f0b`;
+the existing correction receipt
+`f14e6e056cf075aeca271a8c81a4958be3121351b348e77ba7850a566e5ccf3a`
+binds ChangeSet `175d8deeb15cb058415092f033e3c2431923405d4d0ab50006ef1a4770603e00`.
+The rejected Job stayed **failed, 4/4** and its root stayed **6/6**; the
+maintenance correction added zero model calls. Original plan/authorization and
+all **344** prior task events stayed intact.
+
+Real Implement/Verify/independent Review ran after correction. Verify passed
+**1/5** commands; four unit cases and a newly added test's mock-parameter typing
+failed. Review `55d995c4c13fb470770336c1531929708fc9ff5a6d36c2d46eee0cc48a391733`
+blocked the model's code and triggered the second originally approved repair,
+attempt `697a93e6-7548-4e71-8abf-8ae36b716c24`. This verifies representation
+recovery, not project correctness or autonomous acceptance. The new attempt's
+baseline passes **5/5**; its root has used **2/6** calls. Proposal Job
+`cb6da9cd-1b60-45d7-8b05-7e8563559bdc` failed with `ProviderRunError` at **1/3**
+attempts, but the worker discarded its safe provider code and displayed generic
+`nvidia_coding_failed`. The exact older provider code is unknown and must not be
+fabricated from a later response.
+
+- [x] **ENV-R10** Preserve sanitized ProviderRunError codes/messages and
+  retryability at the coding boundary. Commit a versioned attempt/payload-bound
+  failure event with the failed Job; expose non-retryable and truncated responses
+  truthfully, with no raw exception/provider data. Verify canary redaction and
+  transport/budget recovery contracts, then redeploy and recover the still-current
+  legacy Job once within its existing **3** attempts/**6** root calls. Do not
+  change the frozen profile or invent the original unknown provider diagnostic.
+
+R10 full offline regression: **1,452 passed / 46 skipped** across **105** files;
+final focused runtime/provider/correction/budget checks: **85 passed**. Compilation
+and diff checks pass. The coding boundary now commits its safe provider code,
+message and attempt/payload-bound retry policy with the failed Job. Both blocker
+display and the retry service enforce non-retryable responses; direct retry
+cannot bypass the UI decision. Tests cover truncation/authentication rejection,
+connection/rate-limit recovery and raw-exception canary redaction. There is no
+schema change. Six rebuilt/redeployed services match all **202** source hashes;
+the API health check and desktop/mobile read-only browser checks pass.
+
+Maintenance receipt
+`cead444e4166c93f453fc40219d2bb656b54d33469338dc2d5c3a725c21d4e75`
+binds proof `ea1192850e7ebf260f5f0323d7e3d23389edcefadba4e404c104a719c9b0ff34`
+to one recovery of the original legacy failed Job within its existing limits.
+The next real response reports `minimax_completion_truncated`, non-retryable,
+with recovery `budget/revise_output_budget`. The exact earlier provider code
+remains unknown. Job `cb6da9cd` is now **failed, 2/3**, current root `34f27ab1`
+has used **3/6** calls, and historical task coding usage is **21**. No jobs are
+active, and no further call was made while fixing the direct-retry boundary.
+The frozen implementation profile remains **32,768** output tokens / **360**
+seconds. Unused calls do not override a non-retryable provider diagnosis.
+
+Final R09/R10 integrity verifies all eight append-only task chains and **2,182**
+events. The matching pre-guard backup preserves all **2,182** events / **1,238**
+artifacts at `/data/backups/coding-provider-retry-guard-20261027T011729Z`, with
+202-file source archive SHA-256
+`1323b2a0ca52eb363c3fc8fecad84d1f86d9ff333399b81854c473dfa97d2dfe`.
+SQLite/foreign keys pass; database, artifacts and inspected final/retry logs have
+zero runtime-secret/canary matches. The deployed task page passes at widths
+1440/390 without overflow, page errors or write requests. Exact evidence:
+[proposal-provider-recovery-2026-10-27.json](acceptance/proposal-provider-recovery-2026-10-27.json).
+
+At the R10 checkpoint, the configuration decision was prepared,
+**unapproved and unapplied**, in
+[proposal-output-budget-preview-2026-10-27.json](acceptance/proposal-output-budget-preview-2026-10-27.json),
+hash `222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049`.
+It clones only this task's implementation profile with output **32,768 → 65,536**;
+other fields, stages, global defaults, the two contribution paths and all five
+verification commands remain fixed. MiniMax's
+[official API reference](https://platform.minimax.cn/docs/api-reference/text-chat-openai)
+supports this output limit and advises raising it after a `length` termination;
+success or correct contribution code is not guaranteed. A disposable database
+copy passed profile validation, unchanged-content child-plan saving and fresh
+authorization preflight, with zero production mutations/model calls. The same
+probe verifies that direct retry of the old truncated Job is rejected.
+
+This preview explicitly proposes a **new** authorized execution, at most two
+repairs, six coding calls per attempt (**18** new coding calls total), plus at
+most three independent reviews under the unchanged review profile. It preserves
+all historical usage and failed roots; it does not transfer their unused calls
+or reuse the old approval for changed frozen inputs. The per-implementation-call
+output allowance doubles. Application requires the user's new exact confirmation;
+the frozen profile and all counters remained unchanged at that checkpoint.
+The subsequent confirmed application and real startup result are recorded in R11.
+
+- [x] **ENV-R11** Apply the exact output-budget recovery preview after the user's
+  new confirmation, preserve historical usage, and verify the real startup result.
+  If the upstream base changed, refresh only the read-only frozen context and
+  compare approved targets before proposing another execution. Record any
+  existing upstream fix without claiming model or autonomous acceptance.
+
+The user's reply `继续` to preview `222d8b80...c62049` authorized this exact new
+execution. Consent artifact
+`4e8d6ed1807cd02abfd4be561bab82078b6892ebb90f6e4c26c1d75922370451`
+and decision `fac04d9ef1376fe44b0071ea090fb8eadc5792317e6c71c0ea04f9211d746c86`
+bind the full preview to the new profile and unchanged-content child plan.
+Implementation profile `f88e95f6-4225-4330-9ec4-d71801167828`, hash
+`0a279707ca3cc4fa3ddb4f65f174a3d711cebd63d679f7501f2b03854b356245`,
+allows **65,536** output tokens / **360** seconds. Other stages and global
+defaults are unchanged. Child plan `ac8e24b1-871e-4f7a-80dd-f7f5ccc809f2`, hash
+`f84646e70fedfe424613968f88ff171260051f574a618091ce5ded467bccd7d6`,
+retains the exact two edit paths, five commands and contribution content hash
+`466dc79a12c2e0c8c113b29c7c2cae03fd7d8890d55ecfae6f9efcc36675c14b`.
+New authorization
+`c73967d8a4e0dda9b86c0ce3e4c59df823297f577b910b2519026184bcb38ce9`
+started Job `7aed13fc-d952-406e-a753-389976a16d5f`. Its actual upstream-head check
+failed before creating an ExecutionAttempt or invoking any model. It reports
+`workbench_failed` / `上游提交已变化，请重新读取代码并确认方案`; the new 64K model
+response path therefore remains **unexercised**.
+
+The model-free persistent refresh completed in archive Job `efd098db` and context
+Job `eca01af0`. It froze main commit
+`0838d2ab4407b74e870de07e1a6780a13c7d542c`, archive
+`603f6062742036e31c82f8b6bde3f7d682544b70fc8960d87c208d3e4bae0ebb`,
+context hash `e7e5a67c7d68be3c6f833a5debce79879ce95c625ba17fcc08932df963e4e8f9`.
+This base is 476 commits ahead of the approved old base; package/catalog versions
+and lock data changed. More importantly, the original issue's fix already exists
+in upstream commit
+[`5dcd9fb4548d06c383c7766c50849da0f9b15a6f`](https://github.com/can1357/oh-my-pi/commit/5dcd9fb4548d06c383c7766c50849da0f9b15a6f),
+dated 2026-10-26 11:30:01 UTC. It adds whole-line checking, fragment clipping and
+cursor/prose regression tests. Commit comparison proves that fix is an ancestor
+of the refreshed main. Both approved target files match the exact fix-commit
+blobs byte-for-byte; their frozen SHA-256 values are
+`de98b02948717c0a0391a3b306752d89fde18c3e07cf495d260ab832a4323663`
+and `c79dc7ace7a72826e12461a0bbb4aa01ce830317ae1c49105d46ab4882c91350`.
+The general comparison returned GitHub's 300-file cap and is not treated as an
+exhaustive file list; target equality was verified independently from exact blobs.
+
+Issue [#16821](https://github.com/can1357/oh-my-pi/issues/16821) still reports
+**open**. Associated PR [#16823](https://github.com/can1357/oh-my-pi/pull/16823)
+reports **closed, merged=false**; do not claim it was merged. The actual fix
+commit and its presence in main establish that this contribution is superseded.
+Observation `c1299855545c1a6c703bc8026fc24ed735171ade852db6545cd1fc79637befe8`
+binds proof `1f34dce3fbe40c1cd35e53ded99470f4046d02f0d2cf80c7ae029ecb4a181f92`.
+The task page displays the conclusion; its old plan is stale and cannot execute.
+No fresh plan approval was invented for the changed base, no upstream tests ran,
+and no duplicate contribution was generated.
+
+Final R11 verification: all **2,199** events across eight append-only task chains
+verify; the matched backup retains **2,182** original events / **1,238** artifacts
+at `/data/backups/output-budget-recovery-20261027T021011Z`. Its 202-file source
+archive SHA-256 is
+`ddb7a151bc7859e8d17dcd96fa4dc1e8e6f5290653db19705b8a13560d5ca682`.
+Six services still match the previously tested 202-file runtime, health is OK,
+and desktop/mobile checks verify the visible upstream-fix and output-budget
+reports with no overflow, page errors or mutation requests. SQLite/foreign keys,
+database/artifact canary checks and 531 inspected log lines pass. Source is
+unchanged from the **1,452 passed / 46 skipped** regression; compilation and diff
+checks pass. Exact evidence:
+[proposal-output-budget-application-2026-10-27.json](acceptance/proposal-output-budget-application-2026-10-27.json).
+Historical coding usage stays **21**; this authorization added **zero** coding
+calls, review calls or ExecutionAttempts. No active jobs or third-party writes
+remain. This superseded candidate does **not** close ENV-R07/ENV-G01/UXR-G01 or
+native Linux P5-G06.
+
+Earlier R08 checkpoint integrity: eight append-only task chains, **2,128** events,
+**2,078** original events/**1,191** original artifacts unchanged; SQLite and
+foreign keys pass. Database/artifact runtime-secret/canary matches are zero.
+All **460** post-deployment log lines have zero credential/canary matches,
+tracebacks or ModuleNotFoundError. Desktop/mobile live browser checks pass
+without page errors, overflow or mutation requests. Exact evidence:
+[runtime-integrity-recovery-2026-10-26.json](acceptance/runtime-integrity-recovery-2026-10-26.json).
+
+Pre-recovery backup: `/data/backups/runtime-integrity-repair-20261026T060807Z`,
+including **2,078** events/**1,191** artifacts and the matched 200-file source
+archive SHA-256 `a066329d170494b8addbf2b831f893e83ac968ceb708488dd5b280f1f41bdcc5`.
+That prior image is known incomplete: recovery must leave the affected Worker
+stopped until a complete runtime is installed. Preserve all later receipts
+before any matched database/artifact/source restore.
+
+**Next ENV-R07 prerequisite:** an unsolved opportunity and a fresh frozen plan
+for real baseline → Implement → Verify → independent Review acceptance. The
+user-confirmed 64K recovery was applied, but startup detected a changed base and
+read-only diagnosis proved that this issue's fix is already in upstream main.
+Do not implement the obsolete contribution, reuse the stale authorization for
+the new base, reset historical usage/retries, reuse the exhausted R09 root,
+weaken validation, or edit the model's contribution code during maintenance.
+**ENV-R07,
+ENV-G01, UXR-G01 and native Linux P5-G06 remain open.** Phase 5 is still current.
+
+Earlier R01–R05 evidence, before R06/R07 maintenance recovery: full offline
+regression **1,319 passed / 43 skipped**; final focused
+conversation, workbench and contract regression **176 passed / 3 skipped**.
+All seven real container cases above pass; the task's real-model replay answers
+the original check in **one call**, input upper bound **13,824**, with only an
+actual source-bound environment read. A readonly resume inherits its original
+effect and cannot become a workflow command. The earlier failed isolated replay
+attempts are retained; input denial, tool-limit and mixed read/action failures
+were not counted as successes. All six services are rebuilt and healthy/running;
+**28** source hashes match in each service, API/database health is `ok`. All
+**8** production task chains, **1,870** original events and **1,072** original
+artifacts remain intact, with zero database/artifact runtime-secret/canary
+matches. No production task retry, plan rewrite, approval, commit or third-party
+write was performed. Detailed design and controlled/production evidence
+boundaries are in the linked document.
+Final service-log scan: **478** lines, zero credential-pattern matches and zero
+tracebacks. Machine-readable evidence is retained in
+[project-environment-2026-10-25.json](acceptance/project-environment-2026-10-25.json).
+
+The incident archive really contains `bun.lock` (160,768 bytes) and declares
+`bun@>=1.4`. No npm/Yarn/pnpm source lock should be generated to bypass its tool
+selection. The original plan's `bun run typecheck` command is absent from the
+root package scripts; R06 created a separately confirmed child plan rather than
+silently substituting execution commands. R01–R05 isolated replays left
+production conversation, plan, approvals and usage untouched; the later
+R06/R07 maintenance work and newly consumed calls are recorded above. Native
+Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 stay open.
+
 ## Phase 6 — Independent review and bounded repair
 
 Status: **FUNCTIONAL SLICE IMPLEMENTED (acceptance not done)**
@@ -4432,6 +4992,8 @@ phase retains it as a regression gate.
 | D-008 | Do not fabricate provenance for Phase 1 history; use `legacy_unverified`. | Accepted |
 | D-009 | Use polling for local MVP PR sync; reserve webhooks for deployable v1 modes. | Accepted |
 | D-010 | User-approved 2026-10-12 exception: isolated Publisher may submit only the supported fixed CLA Assistant signature on an existing verified Draft PR after fresh exact human legal consent; generic comments remain excluded. | Accepted |
+| D-011 | User-directed 2026-10-26 continuation of the exact two-call proposal: maintenance may append one bound 6 → 8 proposal-budget decision for task `65bb0e9f`, plan `119e2aed`, root `558bc2a4`, preserving all six consumed calls, approved paths and original execution authority. Other roots retain six calls; this grants no publication or broader write authority. | Accepted |
+| D-012 | User explicitly confirmed exact preview `0c25c33d` on 2026-10-26: only Job `43b7d960` may raise its attempt limit 3 → 4 and consume the existing root `80c2d6dd`'s sixth model call. Preserve all previous attempts and plan `b81f2268`; no further call, scope expansion or publication permission is granted. | Accepted |
 
 ## Known prerequisites and blockers
 

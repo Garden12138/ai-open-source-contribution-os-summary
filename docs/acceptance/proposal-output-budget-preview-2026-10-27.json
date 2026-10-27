@@ -1,0 +1,230 @@
+{
+  "version": "proposal-output-budget-recovery-preview-v1",
+  "date": "2026-10-27",
+  "approved": false,
+  "applied": false,
+  "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+  "repository": "can1357/oh-my-pi",
+  "base_commit_sha": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+  "failed_attempt_id": "697a93e6-7548-4e71-8abf-8ae36b716c24",
+  "failed_attempt_hash": "322d5754ffa824c01b6c26698e17176d5abc1386a6f322600a7a33d7c1ea4bee",
+  "failed_job_id": "cb6da9cd-1b60-45d7-8b05-7e8563559bdc",
+  "failed_job_payload_hash": "5088d42866c5d6afdebb6f90f2cae013f263b8c27d5bb87148695db4b8d6a122",
+  "failure_hash": "5c0e6774af5d6c9d7d74d21dfae2caa88130eb6ee4c5c9d3d2da7e3754e8a4e9",
+  "failure_code": "minimax_completion_truncated",
+  "job_attempt_count": 2,
+  "job_attempt_limit": 3,
+  "root_budget": {
+    "version": "coding-budget-extension-v1",
+    "binding": {
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "root_job_id": "34f27ab1-e46d-4231-81b0-379c7a22f3b3",
+      "root_payload_hash": "b6c971a6870df9d9db3c6df97f1fbaf9334b52e47c37a00e84483e6a089e6f69",
+      "attempt_id": "697a93e6-7548-4e71-8abf-8ae36b716c24",
+      "attempt_hash": "322d5754ffa824c01b6c26698e17176d5abc1386a6f322600a7a33d7c1ea4bee",
+      "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+      "plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+      "context_hash": "ffdace1e75926d28954f017a2bd10c31039950fdc5fddc6303a0e0601c7e8844",
+      "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+    },
+    "limit": 6,
+    "used": 3,
+    "remaining": 3,
+    "grant_hash": null,
+    "revision": "a2f91af925b039b40faf7235c3096782869273061a190d329a60c776bec65e12"
+  },
+  "previous_authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+  "parent_plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+  "parent_plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+  "plan_content_hash": "466dc79a12c2e0c8c113b29c7c2cae03fd7d8890d55ecfae6f9efcc36675c14b",
+  "plan_content": {
+    "schema_version": "1",
+    "goal": "Fix issue #16821 in the TUI (oh-my-pi #16821): macOS typo detection currently checks each rendered fragment as standalone text, so a correctly spelled word split by the cursor cell (e.g. `hello wor|ld`) gets a typo underline on the fragment `wor`. Change `MacOSSpellingProvider` to check the whole logical line exactly once per line and clip the backend ranges back to the requested fragment interval, while keeping the prose gate (slash command / path / identifier exclusion) evaluated per fragment interval against the whole-line prose mask (user-selected option A).",
+    "acceptance_criteria": [
+      "Typo detection checks the whole logical line instead of each rendered fragment: a fragment that is a substring of a correctly spelled word (e.g. `wor` from `world`) is no longer reported as a typo.",
+      "A genuine misspelling that spans the cursor boundary (e.g. `teh` split across the cursor cell) is still detected and the underline covers the whole word.",
+      "Each logical line is checked and cached exactly once, regardless of how many render fragments the line is split into: one backend `checkSpelling` request per line, with the cache key derived from the line text (and line index / cache generation), not from the fragment text.",
+      "The prose gate keeps its per-fragment interval semantics: a fragment range that falls in a non-prose region (slash command, path, identifier, masked markdown) is still skipped, decided with the whole-line prose mask so fenced code spanning multiple lines is honored.",
+      "Typo ranges returned by the backend are clipped to the requested fragment interval, so a typo elsewhere in the line never paints a mark on an unrelated fragment.",
+      "Clipped ranges whose covered text is a path/URL/identifier-like token are dropped, so whole-line checking does not introduce new underlines on path fragments that the old per-fragment model never saw.",
+      "Existing macOS spelling behavior is preserved: typo-detection / autocorrect feature gates, backend availability check, backend timeout that disables the provider, magic-keyword exemption, typing-word suppression, the huge-buffer no-op caps, autocorrect flow, word-replacement flow, and the flat-vs-styled underline selection.",
+      "Existing tests in packages/tui/test/macos-spelling.test.ts keep passing, with only the assertions that encoded the old per-fragment model intentionally updated.",
+      "New regression coverage exists for: cursor inside a correct word, cursor splitting a misspelled word, one backend request per line, and no underline on a path fragment in a line that also contains prose."
+    ],
+    "files_to_inspect": [
+      "packages/tui/src/prompt/macos-spelling.ts",
+      "packages/tui/src/prompt/custom-editor.ts",
+      "packages/tui/test/macos-spelling.test.ts",
+      "packages/tui/test/editor-text-assist.test.ts",
+      "packages/tui/package.json",
+      "package.json"
+    ],
+    "files_likely_to_change": [
+      "packages/tui/src/prompt/macos-spelling.ts",
+      "packages/tui/test/macos-spelling.test.ts"
+    ],
+    "implementation_steps": [
+      "In `packages/tui/src/prompt/macos-spelling.ts`, change the text handed to the spelling backend in `MacOSSpellingProvider.typoRanges(text, context)`: send the whole logical line `context.lines[context.line]` (column offset 0) instead of the render fragment `text`, so a word split by the cursor cell, a selection edge, or a chip is checked as one word.",
+      "Rework the typo cache key so it is derived from the whole line text plus the line index and the cache generation instead of the fragment text; this yields one backend request and one cache entry per line rather than one per fragment. Keep the in-flight de-duplication and the automatic-check queue keyed consistently with the new key.",
+      "After the backend answers for the whole line, clip every range to the requested fragment interval `[context.startCol, context.startCol + text.length)` and drop ranges that do not intersect it, so a typo elsewhere in the line never marks an unrelated fragment. Re-express clipped ranges in fragment-local offsets so `decorateTypos` keeps painting the correct slice.",
+      "Keep the prose gate per fragment: evaluate `ProseSource.isProse(context, startCol, endCol)` with the fragment's own column range (whole-line mask semantics preserved), so slash-command lines, path/identifier-like tokens and masked markdown regions stay excluded exactly as before; only the backend input text changes.",
+      "Add typo-range filtering for whole-line results: drop a clipped range whose covered text looks like a path/URL/identifier (reuse the existing code-ish character rules in `packages/tui/src/prompt/prose-gate.ts`), so whole-line checking does not introduce underlines on path fragments.",
+      "Preserve behaviors that must not regress: magic-keyword exemption, typing-word suppression (`context.typing`), the MAX_PROSE_BUFFER / MAX_PROSE_LINE caps, the backend timeout that disables the provider, the autocorrect flow, the word-replacement flow, and the flat-vs-styled underline selection.",
+      "Update `packages/tui/test/macos-spelling.test.ts`: adjust the existing assertions that encoded the per-fragment model and add regression tests for whole-line checking, per-line request/caching count, path-fragment filtering and the preserved gates.",
+      "Keep all new code comments, test names and explanations in English, matching the repository convention; do not touch unrelated files or the editor rendering code."
+    ],
+    "tests_to_add_or_run": [
+      "Baseline: run the unmodified packages/tui/test/macos-spelling.test.ts before any source change to record the current pass/fail state.",
+      "Regression test: with the cursor inside a correctly spelled word (`hello wor` + `ld`), the fragment `wor` yields no typo range and no underline.",
+      "Regression test: a misspelled word split by the cursor (`te` + `h` of `teh`) is reported as a typo covering the whole word.",
+      "Regression test: multiple fragments of the same line trigger exactly one `checkSpelling` call and reuse the cached result.",
+      "Regression test: a line containing a path plus prose underlines the prose typo but not the path fragment.",
+      "Regression test: slash-command lines, identifier-like tokens and fenced-code regions remain excluded from typo detection.",
+      "Regression test: magic keywords stay exempt from typo underlines and the typing-word suppression still holds off marks on the word being typed.",
+      "Run the updated packages/tui/test/macos-spelling.test.ts and packages/tui/test/editor-text-assist.test.ts after the implementation."
+    ],
+    "commands_to_run": [
+      {
+        "command_id": "baseline-macos-spelling",
+        "purpose": "Baseline before any source change: run the existing macOS spelling test file unchanged to record the current pass/fail state.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/macos-spelling.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "test-macos-spelling",
+        "purpose": "Run the updated macOS spelling tests covering whole-line checking, per-line request/caching count, path-fragment filtering and the preserved gates.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/macos-spelling.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "test-editor-text-assist",
+        "purpose": "Run the editor text-assistance test file to confirm the editor-side assist contract is unaffected by the provider change.",
+        "argv": [
+          "bun",
+          "test",
+          "packages/tui/test/editor-text-assist.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "typecheck-tui",
+        "purpose": "Type-check the touched package using its declared script (`check:types` = tsgo -p tsconfig.json --noEmit) as declared in packages/tui/package.json.",
+        "argv": [
+          "bun",
+          "run",
+          "check:types",
+          "--singleThreaded"
+        ],
+        "working_directory": "packages/tui"
+      },
+      {
+        "command_id": "check-tui",
+        "purpose": "Run the package's full check script (oxlint + oxfmt --check + check:types) to confirm lint, formatting and types are clean after the change.",
+        "argv": [
+          "bun",
+          "run",
+          "check",
+          "--singleThreaded"
+        ],
+        "working_directory": "packages/tui"
+      }
+    ],
+    "risks": [
+      "Whole-line checking means macOS may flag path/URL/identifier tokens elsewhere in the line; mitigated by clipping to the fragment interval plus path/identifier filtering of clipped ranges, but residual false positives inside a fragment remain possible (accepted per the user's option A).",
+      "Changing the cache key from fragment text to line text changes cache-hit behavior; the cache limit (CACHE_LIMIT = 256) now counts lines instead of fragments, which should reduce entries, but eviction behavior must remain correct.",
+      "Existing tests in packages/tui/test/macos-spelling.test.ts encode the old per-fragment model and must be updated carefully so genuine regressions are not masked.",
+      "The projection logic (`#projectTypoRanges`) shifts ranges between cached texts; switching the cached unit from fragment to line changes what it compares, so it must be re-verified against fast-typing scenarios.",
+      "Autocorrect and word-replacement paths share the prose-gate helpers and use line text already; ensure the change does not alter their input text or offsets.",
+      "The editor component source (packages/tui/src/components/editor.ts) is unavailable in this snapshot, so the fix relies only on the documented decoration contract; if the editor passes a different context shape than assumed, the fix may need adjustment at integration time."
+    ],
+    "questions_for_maintainer": []
+  },
+  "current_profile_id": "6565442c-d472-4194-8351-853d4dc83580",
+  "current_profile_hash": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8",
+  "current_task_model_binding_hash": "85971e75a4498896bdc48534a57e76beb2abcd99c1bd4fb35007aa54e78cd811",
+  "proposed_profile_record": {
+    "scope": "profile:output-recovery-65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "sequence": 1,
+    "payload": {
+      "name": "MiniMax-M3",
+      "connection_id": "fdb43f30-749b-410c-820f-5fb03b133037",
+      "model": "MiniMax-M3",
+      "max_tokens": 65536,
+      "timeout_seconds": 360,
+      "temperature": null,
+      "reasoning_effort": null,
+      "structured_output": "tools"
+    },
+    "previous_hash": null
+  },
+  "proposed_profile_hash": "0a279707ca3cc4fa3ddb4f65f174a3d711cebd63d679f7501f2b03854b356245",
+  "profile_changes": {
+    "max_tokens": {
+      "before": 32768,
+      "after": 65536
+    }
+  },
+  "profile_scope": "implementation stage for this task only",
+  "other_task_model_stages": {
+    "analysis": "6565442c-d472-4194-8351-853d4dc83580",
+    "planning": "6565442c-d472-4194-8351-853d4dc83580",
+    "review": "6565442c-d472-4194-8351-853d4dc83580"
+  },
+  "execution_limits": {
+    "max_repairs": 2,
+    "max_code_calls_per_new_attempt": 6,
+    "max_attempts_in_new_authorized_run": 3,
+    "max_new_coding_calls": 18,
+    "max_output_tokens_per_call": 65536,
+    "timeout_seconds_per_call": 360,
+    "max_new_independent_review_calls": 3,
+    "review_max_output_tokens_per_call": 32768,
+    "max_new_implementation_output_tokens": 1179648
+  },
+  "actions": [
+    "create an independent versioned profile with only max_tokens changed",
+    "return stopped task to planning",
+    "bind only this task implementation stage to the proposed profile",
+    "save a child PlanVersion with the exact unchanged contribution content",
+    "record a fresh user authorization bound to this preview and the resulting child plan and profile",
+    "start a new bounded isolated execution with baseline, Implement, Verify and independent Review"
+  ],
+  "authorization_constraints": {
+    "old_job_or_usage_reset": false,
+    "reuse_old_approval_for_new_profile": false,
+    "reuse_exhausted_root": false,
+    "global_defaults_changed": false,
+    "publication_or_other_github_writes": false,
+    "auto_acceptance": false
+  },
+  "limitations": [
+    "Higher output allowance does not establish code correctness or guarantee completion.",
+    "The maximum output allowance per implementation call doubles; actual billing depends on returned usage.",
+    "New execution allocates explicitly authorized new roots; all 21 historical coding calls and failed attempts remain recorded.",
+    "No native Linux acceptance is supplied by this recovery."
+  ],
+  "official_reference": {
+    "url": "https://platform.minimax.cn/docs/api-reference/text-chat-openai",
+    "verified_on": "2026-10-27",
+    "parameter": "max_completion_tokens",
+    "recommended_m3": 131072,
+    "maximum_m3": 524288,
+    "application_maximum": 65536
+  },
+  "preflight": {
+    "typed_profile_valid": true,
+    "contribution_content_valid": true,
+    "current_failure_bound": true,
+    "production_mutations": 0,
+    "model_calls": 0
+  },
+  "preview_hash": "222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049"
+}

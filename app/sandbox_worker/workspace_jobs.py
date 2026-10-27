@@ -133,9 +133,11 @@ def enqueue_cached_rebaseline(wb: Workbench, attempt_id: str, settings: Settings
         "replaces_baseline_hash": receipt.record_hash, "reuse_dependency_hash": dependency.result.result_hash,
         "reuse_allocation_hash": allocation.record_hash, "runtime_rebaseline_proof_hash": proof_hash},
         key="cached-rebaseline:" + receipt.id, timeout_seconds=1800, commit=False)
-    wb.append(attempt.task_id, "runtime_rebaseline_requested", {"attempt_id": attempt_id,
+    maintenance = wb.append(attempt.task_id, "runtime_rebaseline_requested", {"attempt_id": attempt_id,
         "stage_hash": stage.record_hash, "proof_hash": proof_hash, "authorization_hash": authorization.record_hash},
         key="cached-rebaseline:" + receipt.id, actor="orchestrator", job_id=job.id, commit=False)
+    from app.agent_runtime import mark_maintenance
+    mark_maintenance(wb, attempt.task_id, maintenance, reason="operator_runtime_rebaseline")
     blocker = wb.active_blocker(attempt.task_id)
     if blocker and blocker.payload.get("reason_code") == "environment_blocked":
         _resume_blocker(wb, attempt, authorization, job, stage)
@@ -300,6 +302,27 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                         declared = list(metadata.get("project", {}).get("dependencies", []))
                         if selected.get("preparation_version") in {"python-workspace-preparation-v2", "python-workspace-preparation-v3"}:
                             declared += python_development_requirements(metadata)
+                        from app.execution_preflight import python_dynamic_requirement_files, python_requirement_error
+                        try:
+                            dynamic_files = python_dynamic_requirement_files(metadata, manifest_path)
+                        except ValueError:
+                            raise WorkbenchError("动态依赖文件声明不安全或超过预算", code="environment_manifest_unsupported") from None
+                        for path in dynamic_files:
+                            if path not in inventory or (path not in selected["manifests"] and len(selected["manifests"]) >= 16):
+                                raise WorkbenchError("动态依赖文件缺失或超出准备预算", code="environment_manifest_unavailable")
+                            if path not in entries:
+                                extra = await inspector.inspect(archive=archive, image_digest=attempt.runner_image_digest,
+                                    policy=policy, query="", paths=(path,))
+                                entries.update({e["path"]:e for e in extra["entries"] if e.get("content") is not None})
+                            if path not in entries:
+                                raise WorkbenchError("动态依赖文件不可读取", code="environment_manifest_unavailable")
+                            requirements = [line.split(" #", 1)[0].strip() for line in entries[path]["content"].splitlines()
+                                            if line.strip() and not line.lstrip().startswith("#")]
+                            if any(python_requirement_error(r) for r in requirements):
+                                raise WorkbenchError("动态依赖文件含不支持的声明", code="environment_manifest_unsupported")
+                            declared += requirements
+                            if path not in selected["manifests"]:
+                                selected["manifests"].append(path)
                         if multi_package:
                             from app.execution_preflight import python_project_error
                             error = python_project_error(metadata, allow_dynamic=True, include_development=True)
@@ -349,7 +372,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     project_directories=tuple(selected.get("project_directories", ())),
                     node_environment=selected.get("node_environment"))
                 environment_spec = plan.to_wire()
-                if job.payload.get("recovery_stage_hash"):
+                if job.payload.get("recovery_stage_hash") or (job.payload.get("runtime_repair_hash") and job.payload.get("replaces_baseline_hash")):
                     previous = next(e for e in wb.history(attempt.task_id)
                                     if e.record_hash == job.payload["replaces_baseline_hash"])
                     previous_baseline = wb.read(previous.payload["result_hash"])

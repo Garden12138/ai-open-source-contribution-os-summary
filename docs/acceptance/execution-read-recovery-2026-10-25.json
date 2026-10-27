@@ -1,0 +1,351 @@
+{
+  "version": "env-r07-acceptance-v1",
+  "date": "2026-10-25",
+  "phase": 5,
+  "task_complete": false,
+  "backup": {
+    "path": "/data/backups/coding-read-recovery-20261025T063740Z",
+    "events": 1958,
+    "artifacts": 1133,
+    "source_archive": {
+      "source_backup": "/data/backups/coding-read-recovery-20261025T063740Z/service-sources.tar",
+      "files": 198,
+      "sha256": "ca16d228c69db005bdcd43ed6211e3c64430cb27736e210f18825d031cd429a2"
+    }
+  },
+  "full_regression": {
+    "passed": 1391,
+    "skipped": 45,
+    "failed": 0,
+    "exit_code": 0,
+    "test_files": 98,
+    "testcases": 1436,
+    "shards": [
+      {
+        "tests": 845,
+        "skipped": 33,
+        "failed": 0,
+        "errors": 0,
+        "report_hash": "7a0c8397c5845bc81d75c454591f31374d8697eafcd4d52c68d143cb13a0f640"
+      },
+      {
+        "tests": 591,
+        "skipped": 12,
+        "failed": 0,
+        "errors": 0,
+        "report_hash": "0a213a592bb38fce504ccd23aa5094e2f39de46bce4befd843ddf51e32684a6f"
+      }
+    ]
+  },
+  "focused_budget_protocol": {
+    "passed": 84,
+    "failed": 0,
+    "skipped": 0
+  },
+  "controlled_native": {
+    "classification": "controlled_archive_real_sandbox_fake_model_and_github",
+    "passed": 1,
+    "failed": 0,
+    "source_workspace_loader": true,
+    "private_scope": true,
+    "fresh_verification": true,
+    "external_writes": 0
+  },
+  "frozen_incident_source_read": {
+    "classification": "real_frozen_archive_readonly_sandbox",
+    "archive_hash": "7ee697b1908313f50962e27cf98f37a1386bc2689977e32dcc3290d7ac35c8ea",
+    "base_sha": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+    "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+    "entries": [
+      {
+        "path": "packages/tui/src/prompt/macos-spelling.ts",
+        "found": true,
+        "content_hash": "dfe8bf1ff9afde033384c56cb4d38715877797d9c9a210b85e02f218b1328a19",
+        "bytes": 14496
+      },
+      {
+        "path": "packages/tui/src/prompt/prose-gate.ts",
+        "found": true,
+        "content_hash": "d28644b7058da0027608daaf9bac5b6a5b875f25bca84e94a67e0c78ff01ffd7",
+        "bytes": 3597
+      },
+      {
+        "path": "packages/tui/src/prompt/markdown-prose.ts",
+        "found": true,
+        "content_hash": "4f58f9060bbd5d11d114c4f369064d765570c482d09246590503ee7ec93e3c30",
+        "bytes": 7254
+      },
+      {
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "found": true,
+        "content_hash": "642c36f681a318a7a795815f0afb1551f4d69e68bf9c3d8720d989f3a4d4ec71",
+        "bytes": 16219
+      }
+    ],
+    "directory_inventory": [
+      "packages/tui/src/prompt/attachment-chips.ts",
+      "packages/tui/src/prompt/composer-attachments.ts",
+      "packages/tui/src/prompt/composer-cache.ts",
+      "packages/tui/src/prompt/composer-hints.ts",
+      "packages/tui/src/prompt/composer.ts",
+      "packages/tui/src/prompt/custom-editor.ts",
+      "packages/tui/src/prompt/data/emojis.json",
+      "packages/tui/src/prompt/editor-top-gap.ts",
+      "packages/tui/src/prompt/emoji-autocomplete.ts",
+      "packages/tui/src/prompt/github-ref-autocomplete.ts",
+      "packages/tui/src/prompt/gradient-highlight.ts",
+      "packages/tui/src/prompt/image-format.ts",
+      "packages/tui/src/prompt/image-references.ts",
+      "packages/tui/src/prompt/image-source.ts",
+      "packages/tui/src/prompt/interactive-context-helpers.ts",
+      "packages/tui/src/prompt/internal-url-autocomplete.ts",
+      "packages/tui/src/prompt/macos-spelling.ts",
+      "packages/tui/src/prompt/magic-keywords.ts",
+      "packages/tui/src/prompt/markdown-prose.ts",
+      "packages/tui/src/prompt/model-mention-autocomplete.ts",
+      "packages/tui/src/prompt/model-mention-syntax.ts",
+      "packages/tui/src/prompt/prompt-action-autocomplete.ts",
+      "packages/tui/src/prompt/prose-gate.ts",
+      "packages/tui/src/prompt/queue-input.ts",
+      "packages/tui/src/prompt/queued-messages.ts",
+      "packages/tui/src/prompt/skill-tokens.ts",
+      "packages/tui/src/prompt/tips.txt",
+      "packages/tui/src/prompt/tools-markdown.ts",
+      "packages/tui/src/prompt/typing-word.ts",
+      "packages/tui/src/prompt/usage-amounts.ts",
+      "packages/tui/src/prompt/video.ts",
+      "packages/tui/src/prompt/welcome.ts",
+      "packages/tui/src/prompt/word-completion.ts"
+    ],
+    "production_mutations": 0,
+    "model_calls": 0,
+    "third_party_writes": 0
+  },
+  "isolated_incident_history": [
+    {
+      "root": "/var/lib/docker/volumes/contribos-local-data/_data/acceptance/r07-native-baseline-20261025T115117Z",
+      "job_state": "failed",
+      "error_code": "environment_node_preparation_failed",
+      "baseline_replaced": false,
+      "baseline_status": "environment_blocked",
+      "passed_commands": 2,
+      "total_commands": 5,
+      "diagnostic": "network_unavailable",
+      "production_mutations": 0
+    },
+    {
+      "root": "/var/lib/docker/volumes/contribos-local-data/_data/acceptance/r07-native-baseline-20261025T115239Z",
+      "job_state": "succeeded",
+      "error_code": null,
+      "baseline_replaced": true,
+      "baseline_status": "environment_blocked",
+      "passed_commands": 2,
+      "total_commands": 5,
+      "diagnostic": "workspace_loader_path_unavailable",
+      "production_mutations": 0
+    },
+    {
+      "root": "/var/lib/docker/volumes/contribos-local-data/_data/acceptance/r07-native-baseline-20261025T115743Z",
+      "job_state": "succeeded",
+      "error_code": null,
+      "baseline_replaced": true,
+      "baseline_status": "passed",
+      "passed_commands": 5,
+      "total_commands": 5,
+      "diagnostic": null,
+      "production_mutations": 0
+    }
+  ],
+  "production_result": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+    "plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+    "events": 205,
+    "authorization_hash": "038870bb55d1362b59fedbdec90ae0559afc83b98a210ce7d14d92f23d7c1b75",
+    "stage": "explore",
+    "stage_status": "succeeded",
+    "baseline": {
+      "status": "passed",
+      "passed": 5,
+      "total": 5,
+      "missing_dependencies": []
+    },
+    "blocker": {
+      "reason_code": "proposal_call_budget_exceeded",
+      "reason": "本提案链的模型调用预算已用尽，尚未修改代码；继续实施需要明确的追加预算授权。",
+      "retryable": false,
+      "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+      "used_calls": 6,
+      "call_limit": 6,
+      "recovery": {
+        "category": "budget",
+        "action": "requires_budget_authorization",
+        "uses_code_repair": false
+      }
+    },
+    "active_jobs": [],
+    "recent_jobs": [
+      {
+        "id": "e796bd08-eb64-4fe1-9987-9d3e0bb361e1",
+        "kind": "execution_prepare",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "c45702c9-b907-4bd7-a97c-a21b3cc061f6",
+        "kind": "coding_context",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+        "kind": "change_set_proposal",
+        "state": "failed",
+        "error_code": "proposal_structure_invalid"
+      },
+      {
+        "id": "c6957a46-a968-41ab-845e-d637b635fc48",
+        "kind": "execution_prepare",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "5d246bb7-27d4-4800-862b-6268222a866f",
+        "kind": "coding_source_read",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "37fc560d-db54-47e2-b52f-e16f4a4e846b",
+        "kind": "change_set_proposal",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "18057c9e-155c-4ee6-96dd-15744fadd875",
+        "kind": "coding_source_read",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "173df74a-09fd-4363-8341-d9d0660f1669",
+        "kind": "change_set_proposal",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "7a093726-45db-4fb2-9376-944c2310400f",
+        "kind": "coding_source_read",
+        "state": "succeeded",
+        "error_code": null
+      },
+      {
+        "id": "a80d6c60-9cde-4586-8209-ccfc3f321e7f",
+        "kind": "change_set_proposal",
+        "state": "failed",
+        "error_code": "proposal_budget_exceeded"
+      }
+    ],
+    "code_calls": 6,
+    "source_reads": 3,
+    "maintenance_count": 3,
+    "awaiting_acceptance": false,
+    "review": null,
+    "verification": {
+      "status": "not_run",
+      "passed": 0,
+      "total": 0,
+      "failures": [],
+      "missing_dependencies": []
+    },
+    "publication_completed": false
+  },
+  "preserved_domain_records": {
+    "before": {
+      "plan_versions": 44,
+      "plan_approvals": 26,
+      "execution_attempts": 43,
+      "draft_pull_requests": 4,
+      "publish_intents": 4
+    },
+    "after": {
+      "plan_versions": 44,
+      "plan_approvals": 26,
+      "execution_attempts": 43,
+      "draft_pull_requests": 4,
+      "publish_intents": 4
+    },
+    "unchanged": true
+  },
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 1998,
+    "original_events_unchanged": 1958,
+    "original_artifacts_unchanged": 1133,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "logs": {
+    "lines": 162,
+    "credential_or_canary_matches": 0,
+    "tracebacks": 0
+  },
+  "browser": {
+    "real_deployed_task": true,
+    "widths": [
+      1440,
+      390
+    ],
+    "horizontal_overflow": false,
+    "page_errors": 0,
+    "mutation_requests": 0
+  },
+  "deployment": {
+    "services": 6,
+    "matching_app_source_files_per_service": 199,
+    "mismatches": 0,
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "critical_source_hashes": {
+      "app/coding.py": "ac0f176e2fd787b9b84d1760b4bd2bc289af2d0a55f8431f74b118871b0f1d3e",
+      "app/coding_reads.py": "d2edb1bf62e283d865f4e5344460d26917ca4a58c6f27af76178b57c1492257f",
+      "app/execution_outcome.py": "7281bb7bbb233400739bc4915ef73de7a9c7d250776a90804573cb33c570201e",
+      "app/execution_recovery.py": "b5000e1ea4ca46cc527c574ece639892bc1354af0f5dfdfce75c11e02b288e3e",
+      "app/proposal_validation.py": "fe2c9e9c8d94f78369c4392489fad47c9fb8185145cedd09a2e58d99f37b4857",
+      "app/contribution_workflow.py": "6af1ec3530c0561908476e60f699993bee7f71401fc93ad0fcef26d6bf57e852",
+      "app/node_environments.py": "42ad84cb70b48f475377cc44679a6dfc1db94b1ff6469224532ea36fead7faf8",
+      "app/sandbox_worker/node_execution.py": "08ca3804b981f0c9f8b9362e3587326687aba1fc27788d8f04cbcc232ed34681",
+      "app/sandbox_worker/node_dependencies.py": "d798e1db82002050741ea9429b974abd563cbcc802e5591e671feeb0495511fd",
+      "app/sandbox_worker/verification.py": "532f5e9a5018dd8db5ed8472dc7ce265acdd22190396b24f6ec2eba94aad193c"
+    }
+  },
+  "boundaries": {
+    "operator_authored_proposals": 0,
+    "new_execution_approvals": 0,
+    "new_execution_attempts": 0,
+    "third_party_writes": 0,
+    "automatic_budget_increase": false,
+    "production_post_change_verification": "not_run",
+    "production_independent_review": "not_run"
+  },
+  "remaining_acceptance": [
+    "ENV-R07",
+    "P5-G06",
+    "UXR-G01",
+    "ENV-G01"
+  ],
+  "next_prerequisite": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+    "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+    "used_calls": 6,
+    "current_limit": 6,
+    "proposed_extra_calls": 2,
+    "requires_explicit_budget_decision": true
+  }
+}

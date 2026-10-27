@@ -1,0 +1,430 @@
+{
+  "version": "worker-runtime-integrity-acceptance-v1",
+  "date": "2026-10-26",
+  "phase": 5,
+  "tasks": {
+    "ENV-R08": "verified",
+    "ENV-R07": "blocked_model_proposal_format_corrections_exhausted",
+    "P5-G06": "native_linux_unverified"
+  },
+  "original_incident": {
+    "failed_job_id": "c9e4e366-a7e2-4456-89d8-b99558469485",
+    "attempt_id": "e74948b6-1c0e-4cd8-a0a9-477c28de7b4c",
+    "exception_type": "ModuleNotFoundError",
+    "missing_module": "app.coding_budget",
+    "deployed_source_files": 200,
+    "missing_import_sources": [
+      "app/coding.py",
+      "app/contribution_workflow.py",
+      "app/execution_outcome.py"
+    ],
+    "additional_files_differing_from_verified_snapshot": [
+      "app/coding.py",
+      "app/execution_outcome.py",
+      "app/execution_preflight.py",
+      "app/verification_commands.py",
+      "app/workbench_view.py"
+    ],
+    "zero_usage_proof": {
+      "failed_job_id": "c9e4e366-a7e2-4456-89d8-b99558469485",
+      "job_attempt_count": 1,
+      "max_attempts": 3,
+      "root_code_calls": 0,
+      "agent_invocations": 0,
+      "total_task_code_calls": 10,
+      "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+      "total_task_events": 285
+    }
+  },
+  "fix": {
+    "guard": "static internal imports including functions; no business/source execution",
+    "build_targets": [
+      "app",
+      "publisher",
+      "sandbox-worker inherits checked app"
+    ],
+    "reason_code": "worker_runtime_incomplete",
+    "recovery": "platform/rebuild_runtime",
+    "raw_exception_in_public_message": false,
+    "code_repair_round_used_for_runtime": false,
+    "xcli_source_preserved": true,
+    "schema_change": false
+  },
+  "tests": {
+    "full": {
+      "summary": {
+        "tests": 1472,
+        "passed": 1426,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 46
+      },
+      "shards": [
+        {
+          "tests": 664,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 22,
+          "passed": 642
+        },
+        {
+          "tests": 808,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 24,
+          "passed": 784
+        }
+      ]
+    },
+    "focused": {
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 37
+    },
+    "real_built_image": {
+      "classification": "real_built_image_import_integrity",
+      "source_hashes_checked": 202,
+      "complete_image": "passed",
+      "controlled_omission": "rejected",
+      "missing_module": "app.coding_budget",
+      "lazy_import_sources": [
+        "coding.py",
+        "contribution_workflow.py",
+        "execution_outcome.py"
+      ],
+      "model_calls": 0,
+      "production_mutations": 0,
+      "untrusted_repository_execution": false
+    },
+    "compileall": "passed",
+    "diff_check": "passed"
+  },
+  "deployment": {
+    "services": [
+      {
+        "service": "api",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "provider-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "sandbox-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "publisher",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "model-gateway",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      }
+    ],
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "recovery": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "attempt_id": "e74948b6-1c0e-4cd8-a0a9-477c28de7b4c",
+    "job_id": "c9e4e366-a7e2-4456-89d8-b99558469485",
+    "job_state": "queued",
+    "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+    "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+    "receipt_hash": "5220c05d82bcbd5d53cf10fd0fe22ce0451e7badfe14af21c4c6b2d9ebcb82f6",
+    "proof_hash": "ff249eaf2e9e66d59eba55e3a9ad98fe6bb40bb83c878abe39e1605c3c98333f",
+    "original_events_unchanged": 285,
+    "model_calls_before": 0,
+    "call_limit": 6,
+    "new_approval": false,
+    "budget_reset": false,
+    "third_party_writes": 0
+  },
+  "real_attempts": [
+    {
+      "id": "e74948b6-1c0e-4cd8-a0a9-477c28de7b4c",
+      "number": 4,
+      "baseline": {
+        "status": "passed",
+        "passed": 5,
+        "total": 5
+      },
+      "verification": {
+        "status": "failed",
+        "passed": 3,
+        "total": 5,
+        "result_hash": "c91e18b9d01286f2b556cbfbd8fa08e685405a9ef596f8c5b4243bcb9dfbfb90"
+      },
+      "reviews": [
+        {
+          "id": "adb60f32-66a6-40b5-954d-97b704a80e64",
+          "hash": "ea400c49ae4c4eaad615513b3b484f6304f140e17b4985d0be5b7772a95f2ee9",
+          "verdict": "block"
+        }
+      ]
+    },
+    {
+      "id": "1c62fbcb-48d4-4cfc-8095-dc09925e3833",
+      "number": 5,
+      "baseline": {
+        "status": "passed",
+        "passed": 5,
+        "total": 5
+      },
+      "verification": {
+        "status": "not_run",
+        "passed": 0,
+        "total": 0,
+        "result_hash": null
+      },
+      "reviews": []
+    }
+  ],
+  "current_state": {
+    "attempt_id": "1c62fbcb-48d4-4cfc-8095-dc09925e3833",
+    "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+    "latest_plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+    "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+    "stage": "explore",
+    "stage_status": "succeeded",
+    "baseline": {
+      "status": "passed",
+      "passed": 5,
+      "total": 5,
+      "missing_dependencies": []
+    },
+    "blocker": {
+      "recovery": {
+        "version": "agent-runtime-v1",
+        "category": "protocol",
+        "action": "inspect_diagnostic",
+        "reason_code": "proposal_structure_invalid",
+        "uses_code_repair": false
+      },
+      "reason_code": "proposal_structure_invalid",
+      "retryable": false,
+      "reason": "子任务 change_set_proposal 失败: 修改草案格式未通过校验，尚未修改代码。自动修正次数已用尽，完整证据已保存。"
+    },
+    "active_jobs": [],
+    "code_calls": 17,
+    "current_proposal_budgets": [
+      {
+        "binding": {
+          "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+          "root_job_id": "80c2d6dd-19a6-4eb3-8c82-13591196cda8",
+          "root_payload_hash": "3dc930ba85d5a758c9c9f3b091a2da2c61f0130ad4ec9e6d100d6a28a44d8efc",
+          "attempt_id": "1c62fbcb-48d4-4cfc-8095-dc09925e3833",
+          "attempt_hash": "f31b7a87976741a1c4a3091d5690125ce3557b5d7097c6dbbab754701259a18c",
+          "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+          "plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+          "context_hash": "c545e90f503e26f1b6d3c4be76c4c26ec328727aa0014971a8feaa686d1d1753",
+          "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+        },
+        "limit": 6,
+        "used": 5,
+        "remaining": 1,
+        "grant_hash": null,
+        "revision": "7d63d9b4df5de696d45607344adbfb876804bbb39fd3cbe58f1fb594c2ad5495"
+      }
+    ],
+    "original_lineage_budget": {
+      "version": "coding-budget-extension-v1",
+      "binding": {
+        "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+        "root_job_id": "558bc2a4-1554-4af5-99d5-d2bc48c2d314",
+        "root_payload_hash": "fedcf37fcfe764c93980e71b2b1e697ce784bfe89837f81ae826ea08c62b18ad",
+        "attempt_id": "422a3cef-0663-449d-b405-af918a9e2311",
+        "attempt_hash": "52407eac46a5ca89f968b366be7e1c6c01adff953c04cf1d49bdb53e24c81a6b",
+        "plan_id": "119e2aed-976c-412e-b1c8-6cad1ce64a67",
+        "plan_hash": "f6c7a2d33ca7ac641d8a55b67eb1fd17a10eb3045d0def139c38891938054e4b",
+        "context_hash": "41a3fdbf55e8a3e3d0f9559a77e7196686d79eb44262c576776d617ddb7bcd3c",
+        "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+      },
+      "limit": 8,
+      "used": 7,
+      "remaining": 1,
+      "grant_hash": "53f9e4fc725354afd79064697287d15eff8ab7c7b69af2e3bc0deadac77582da",
+      "revision": "f07fae7e450af99b0ac1864218054fe24f9cd0d51dcc32f7656c3859e78b0802"
+    },
+    "publication_completed": false
+  },
+  "proposal_diagnostics": [
+    {
+      "sequence": 292,
+      "kind": "agent_code_tool_result",
+      "job_id": "b66bcd6c-dd03-4dd8-bd73-b384c077c95d",
+      "paths": [
+        "packages/tui/src/prompt/prose-gate.ts",
+        "packages/tui/src/prompt/markdown-prose.ts"
+      ]
+    },
+    {
+      "sequence": 316,
+      "kind": "proposal_rejected",
+      "job_id": "80c2d6dd-19a6-4eb3-8c82-13591196cda8",
+      "diagnostic": {
+        "anchor_hash": null,
+        "code": "proposal_structure_invalid",
+        "edit_index": null,
+        "match_count": null,
+        "operation_index": 2,
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "version": "proposal-validation-v1"
+      }
+    },
+    {
+      "sequence": 321,
+      "kind": "agent_code_tool_result",
+      "job_id": "ba3e6c62-191e-47a5-bc02-b23a167e4266",
+      "paths": [
+        "packages/tui/src/prompt/macos-spelling.ts",
+        "packages/tui/test/macos-spelling.test.ts",
+        "packages/tui/src/prompt/prose-gate.ts"
+      ]
+    },
+    {
+      "sequence": 324,
+      "kind": "proposal_rejected",
+      "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+      "diagnostic": {
+        "anchor_hash": null,
+        "code": "proposal_structure_invalid",
+        "edit_index": null,
+        "match_count": null,
+        "operation_index": 2,
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "version": "proposal-validation-v1"
+      }
+    },
+    {
+      "sequence": 327,
+      "kind": "proposal_rejected",
+      "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+      "diagnostic": {
+        "anchor_hash": null,
+        "code": "proposal_structure_invalid",
+        "edit_index": null,
+        "match_count": null,
+        "operation_index": 2,
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "version": "proposal-validation-v1"
+      }
+    },
+    {
+      "sequence": 330,
+      "kind": "proposal_rejected",
+      "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+      "diagnostic": {
+        "anchor_hash": null,
+        "code": "proposal_structure_invalid",
+        "edit_index": null,
+        "match_count": null,
+        "operation_index": null,
+        "path": null,
+        "version": "proposal-validation-v1"
+      }
+    }
+  ],
+  "current_scope": "same approved plan b81f2268, two TUI source/test paths",
+  "remaining_constraints": {
+    "failed_job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+    "job_format_attempts_used": 3,
+    "job_format_attempt_limit": 3,
+    "lineage_model_calls_used": 5,
+    "lineage_model_call_limit": 6,
+    "remaining_model_call": 1,
+    "extra_retry_or_budget_granted": false,
+    "requires": "explicit bounded recovery decision or separately approved plan revision; do not bypass exhausted format retry limit"
+  },
+  "browser": {
+    "real_deployed_task": true,
+    "widths": [
+      1440,
+      390
+    ],
+    "horizontal_overflow": false,
+    "page_errors": 0,
+    "mutation_requests": 0
+  },
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 2128,
+    "original_events_unchanged": 2078,
+    "original_artifacts_unchanged": 1191,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "logs": {
+    "lines": 460,
+    "runtime_secret_or_canary_matches": 0,
+    "credential_pattern_matches": 0,
+    "tracebacks": 0,
+    "module_not_found": 0
+  },
+  "backup": {
+    "backup": "/data/backups/runtime-integrity-repair-20261026T060807Z",
+    "events": 2078,
+    "artifacts": 1191,
+    "sqlite_integrity": "ok",
+    "active_jobs": 0
+  },
+  "source_backup": {
+    "path": "/data/backups/runtime-integrity-repair-20261026T060807Z/service-sources.tar",
+    "files": 200,
+    "sha256": "a066329d170494b8addbf2b831f893e83ac968ceb708488dd5b280f1f41bdcc5"
+  },
+  "external_writes": 0,
+  "repository_goal_complete": false,
+  "pending_retry_preview": {
+    "file": "proposal-final-retry-preview-2026-10-26.json",
+    "hash": "0c25c33d30fc2da1aad53912a6e240c6c0e318c8e9d785805ecacd7aecc4a3d8",
+    "approved": false,
+    "readonly_preflight": {
+      "status": "ready",
+      "preview_hash": "0c25c33d30fc2da1aad53912a6e240c6c0e318c8e9d785805ecacd7aecc4a3d8",
+      "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+      "old_limit": 3,
+      "new_limit": 4,
+      "model_limit": 6,
+      "model_calls_used": 5,
+      "production_mutations": 0,
+      "consent_applied": false
+    }
+  }
+}

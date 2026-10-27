@@ -184,6 +184,7 @@ class CodexExecInvocation:
     prompt: str
     output_schema: Mapping[str, JSONValue]
     model: str
+    output_token_limit: int | None = None
 
     def __post_init__(self) -> None:
         for value, name in (
@@ -200,6 +201,9 @@ class CodexExecInvocation:
         if not self.model.strip():
             raise ProviderContractError("Codex model must not be empty")
         canonical_json(self.output_schema)
+        if self.output_token_limit is not None and (type(self.output_token_limit) is not int
+                or not 1 <= self.output_token_limit <= 65_536):
+            raise ProviderContractError("Provider output token limit is invalid")
         ensure_no_sensitive_data(self.prompt, context="Codex provider prompt")
 
 

@@ -25,6 +25,16 @@ from app.schemas import JobResponse
 from app.models import ModelConfigVersion
 
 
+def configured_xcli_endpoint() -> str | None:
+    import os
+    from app.providers.xcli_local import registered_endpoint, native_runtime
+    value = os.environ.get("CONTRIBOS_XCLI_LOCAL_ENDPOINT", "")
+    try:
+        return registered_endpoint(value) if value and native_runtime() else None
+    except ValueError:
+        return None
+
+
 class ModelVersionResponse(BaseModel):
     id: str
     scope: str
@@ -40,6 +50,7 @@ class ModelSettingsResponse(BaseModel):
     profiles: list[ModelVersionResponse]
     presets: list[dict[str, Any]]
     credential_management_available: bool
+    xcli_local_endpoint: str | None = None
 
 
 class CredentialGrantResponse(BaseModel):
@@ -141,6 +152,7 @@ def register_model_settings_routes(app, get_session, require_mutation_access) ->
             "connections": [serialize(r) for r in service.list_kind("connection")],
             "profiles": [serialize(r) for r in service.list_kind("profile")],
             "presets": model_presets(),
+            "xcli_local_endpoint": configured_xcli_endpoint(),
             "credential_management_available": bool(
                 request.app.state.settings.model_gateway_management_key
             ),

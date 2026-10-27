@@ -59,6 +59,7 @@ class WorkbenchJobWorker:
                         error_code=exc.code if isinstance(exc, ProviderRunError) else "model_connection_failed",
                         error_message=exc.safe_message if isinstance(exc, ProviderRunError) else "连接测试失败，请检查配置或手动填写模型 ID")
                 error_code, error_message = {
+                    "coding_source_read": ("coding_read_invalid", "实施辅助源码读取未完成，冻结来源和已批准修改范围保留。"),
                     "execution_prepare": ("environment_preparation_failed", "沙箱环境准备或修改前基线未完成；代码尚未修改，请查看环境诊断。"),
                     "execution_dependencies": (
                         "environment_preparation_failed",
@@ -100,7 +101,7 @@ class WorkbenchJobWorker:
                 elif isinstance(exc, OSError) and getattr(exc, "errno", None) == errno.ENOSPC:
                     if job.kind == "planning_archive":
                         error_message = "下载仓库归档失败，存储空间不足，请清理后重试。"
-                elif isinstance(exc, WorkbenchError) and (exc.code == "planning_budget_exceeded" or job.kind in {"native_resource_download", "conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}):
+                elif isinstance(exc, WorkbenchError) and (exc.code == "planning_budget_exceeded" or job.kind in {"coding_source_read", "native_resource_download", "conversation_intent", "publication_requirements", "publication_document", "publication_prepare", "publication_write", "cla_prepare", "cla_write", "cla_check", "pr_update_read", "pr_update_document", "pr_update_write", "pr_update_check", "pr_ready_prepare", "pr_ready_write", "pr_followup"}):
                     error_code = exc.code
                 # Never log exception text, model output, validation inputs or
                 # arbitrary field names. Error types suffice to diagnose schemas.

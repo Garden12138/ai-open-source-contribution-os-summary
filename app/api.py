@@ -1326,6 +1326,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 task = service.create_from_snapshot(snapshot_id=payload.snapshot_id, idempotency_key=key)
             else:
                 task = service.create(analysis_version_id=payload.analysis_version_id, idempotency_key=key)
+            from app.agent_runtime import activate
+            from app.workbench import Workbench
+            activate(Workbench(session, app.state.settings.artifact_root), task.id)
+            session.commit()
         except ContributionTaskNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ContributionTaskConflictError as exc:

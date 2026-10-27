@@ -102,7 +102,7 @@ def authorize_execution(
     evidence = wb.read(context.payload["artifact_id"])
     from app.plans import PlanVersionService
     content = PlanVersionService._validated_content(plan)
-    if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change)):
+    if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change), evidence):
         raise WorkbenchError("方案中的验证命令需要修订：依赖准备必须独立，路径必须存在。", code="verification_commands_invalid")
     environment = task_environment(wb, task_id)
     if environment["status"] == "unsupported":
@@ -388,13 +388,16 @@ def advance_workflows(database, settings: Settings) -> None:
                     wb.append(task_id, "workflow_diagnostic", {"artifact_id": diagnostic_hash},
                               key="diagnostic:" + latest.id + ":" + (resumed.id if resumed else "initial"))
                     failed_job = session.get(Job, exc.job_id) if getattr(exc, "job_id", None) else None
+                    from app.agent_runtime import recovery
                     wb.append(
                         task_id,
                         "automation_blocked",
                         {
+                            "recovery": recovery(
+                                getattr(exc, "code", "workflow_failed"),
+                                remaining=bool(failed_job and failed_job.attempt_count < failed_job.max_attempts)),
                             "reason_code": getattr(exc, "code", "workflow_failed"),
-                            "retryable": bool(failed_job and failed_job.kind in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"}
-                                              and failed_job.attempt_count < failed_job.max_attempts),
+                            "retryable": _failed_subtask_retryable(wb, task_id, failed_job),
                             "reason": (
                                 str(exc)
                                 if isinstance(exc, WorkbenchError)
@@ -406,6 +409,27 @@ def advance_workflows(database, settings: Settings) -> None:
                             if wb.latest(task_id, "automation_resumed") else "initial"),
                         job_id=getattr(exc, "job_id", None),
                     )
+
+
+def _failed_subtask_retryable(wb: Workbench, task_id: str, job: Job | None) -> bool:
+    if (job is None or job.kind not in {"coding_turn", "change_set_proposal", "provider_review", "baseline_diagnosis"}
+            or job.attempt_count >= job.max_attempts or job.error_code == "worker_runtime_incomplete"):
+        return False
+    return _provider_failure_retryable(wb, task_id, job)
+
+
+def _provider_failure_retryable(wb: Workbench, task_id: str, job: Job) -> bool:
+    if (job.error_code or "").endswith("_completion_truncated"):
+        return False
+    failure = next((e for e in reversed(wb.history(task_id)) if e.kind == "coding_provider_failed"
+        and e.actor_id == "orchestrator" and e.job_id == job.id
+        and e.payload.get("job_attempt") == job.attempt_count), None)
+    if failure:
+        return (failure.payload.get("version") == "coding-provider-failure-v1"
+            and failure.payload.get("job_payload_hash") == job.payload_hash
+            and failure.payload.get("code") == job.error_code
+            and failure.payload.get("retryable") is True)
+    return True
 
 
 def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commit: bool = True) -> Job:
@@ -420,6 +444,8 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
     attempts = ExecutionAttemptService(wb.session)
     attempt = attempts.get_verified(job.payload["execution_attempt_id"])
     task_id = attempt.task_id
+    if job.state == "failed" and not _provider_failure_retryable(wb, task_id, job):
+        raise JobTransitionError("模型诊断禁止直接重试，请处理诊断并重新确认受影响的冻结配置。")
     events = wb.history(task_id)
     start = wb.latest(task_id, "automation_started")
     auth = wb.latest(task_id, "execution_authorized")
@@ -452,11 +478,17 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
         conversation = CodingConversationService(wb.session, artifact_root=str(wb.artifacts.root))
         coding = conversation.require_session(attempt.id)
         turns = conversation.turns(coding.id)
-        if job.payload.get("context_hash") != coding.context_hash or not turns:
+        direct = job.payload.get("version") == "change-set-proposal-job-v2"
+        if direct:
+            root = job.payload.get("root_job_id", job.id)
+            from app.coding_budget import proposal_budget
+            if proposal_budget(wb, task_id, root)["remaining"] == 0:
+                raise JobTransitionError("提案调用预算已用尽，重试不会增加调用额度；需要明确的追加预算授权。")
+        if job.payload.get("context_hash") != coding.context_hash or (not turns and not direct):
             raise JobTransitionError("Coding Job context is stale")
         if job.kind == "change_set_proposal" and (
                 job.payload.get("conversation_hash") != coding_conversation_hash(turns)
-                or job.payload.get("latest_turn_hash") != turns[-1].record_hash):
+                or job.payload.get("latest_turn_hash") != (turns[-1].record_hash if turns else content_hash([]))):
             raise JobTransitionError("Proposal Job conversation is stale")
         if job.kind == "coding_turn" and job.payload.get("user_turn_id") != turns[-1].id:
             raise JobTransitionError("Coding turn Job conversation is stale")
@@ -468,8 +500,12 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
         raise JobTransitionError("Coding Job is not retryable")
     if blocked is None:
         return JobService(wb.session).retry(job_id, commit=commit)
+    superseded = {identifier for e in events
+        if e.kind in {"preparation_runtime_retry_requested", "verification_environment_restored"}
+        and e.actor_id == "orchestrator" and e.payload.get("attempt_id") == attempt.id
+        for identifier in e.payload.get("superseded_preparation_job_ids", [])}
     failures = [j for j in wb.jobs(task_id) if j.payload.get("execution_attempt_id") == attempt.id
-                and j.state in {"failed", "cancelled", "timed_out"}]
+                and j.state in {"failed", "cancelled", "timed_out"} and j.id not in superseded]
     if {j.id for j in failures} != {job.id} or job.state != "failed":
         raise JobTransitionError("存在其他失败或取消的子任务，不能自动恢复")
     # The event and retry share one transaction. Unique event sequence/key prevents
@@ -520,6 +556,9 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             planner.request(task_id, text=change.payload["text"], parent_id=latest.id if latest else None,
                 expected_hash=latest.record_hash if latest else None, key="change-plan:" + change.id)
         return
+    from app.agent_runtime import enabled, blocking_messages
+    if enabled(wb, task_id) and blocking_messages(wb, task_id):
+        return
     if latest_auth and start and latest_auth.sequence > start.sequence:
         return
     if not start or any(
@@ -555,6 +594,12 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
         return
     from app.baseline_feedback import advance_feedback
     if advance_feedback(wb, attempt, settings):
+        return
+    from app.execution_outcome import reconcile_baseline_blocker
+    if reconcile_baseline_blocker(wb, attempt):
+        return
+    from app.execution_outcome import reconcile_proposal_budget_blocker
+    if reconcile_proposal_budget_blocker(wb, attempt):
         return
     blocked = wb.active_blocker(task_id)
     if blocked:
@@ -646,7 +691,14 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             wb.session, artifact_root=settings.artifact_root
         )
         turns = conversation.turns(context.id)
-        if not turns:
+        from app.agent_runtime import enabled
+        direct = enabled(wb, task_id)
+        if direct and not conversation.proposals(context.id):
+            job, _ = conversation.request_proposal(attempt.id,
+                idempotency_key="auto-proposal:" + attempt.id, direct=True)
+            track(wb, task_id, job)
+            return
+        if not turns and not direct:
             prior_reviews = list(
                 wb.session.scalars(
                     select(ReviewRun)
@@ -762,6 +814,14 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                 key="acceptance:" + review.id,
             )
             return
+        if enabled(wb, task_id) and outcome["status"] == "failed":
+            from app.execution_outcome import unchanged_baseline_failures
+            from app.sandbox_worker.workspace_jobs import preparation_receipt
+            baseline = preparation_receipt(wb, attempt.id)
+            if baseline and unchanged_baseline_failures(wb.read(baseline.payload["result_hash"]),
+                    wb.read(outcome["result_hash"])):
+                raise WorkbenchError("原 issue 的修改和独立审查证据已保留，但必需检查仍出现与修改前完全相同的失败。不会扩大修改范围或消耗代码修复次数；请修订方案处理该检查，再重新验证。",
+                    code="baseline_failures_remaining")
         if (
             attempt.attempt_number
             - attempts.get_verified(start.payload["attempt_id"]).attempt_number

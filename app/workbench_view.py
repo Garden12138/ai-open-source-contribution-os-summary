@@ -65,8 +65,14 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
         if context:
             evidence = wb.read(context.payload["artifact_id"])
             content = PlanVersionService._validated_content(plan)
-            if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change)):
-                blockers.append({"code": "verification_commands_invalid", "message": "验证命令包含安装操作或不存在的路径，请修订方案。"})
+            command_error=verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change), evidence)
+            if command_error:
+                message=("验证命令引用了项目里不存在的脚本："+command_error["script"]+"。请修订方案。"
+                    if command_error.get("constraint")=="project_script_missing" else
+                    "Bun 脚本须使用明确的工作目录；当前目录参数可能仅显示帮助，不能作为检查通过的证据。请保存修订方案并重新确认。"
+                    if command_error.get("constraint")=="bun_script_directory_requires_working_directory" else
+                    "验证命令未通过脚本、路径或工作目录校验，请修订方案。")
+                blockers.append({"code": "verification_commands_invalid", "message": message})
     if environment["status"] == "pending":
         blockers.append({"code": "environment_unsupported" if environment["status"] == "unsupported" else "context_pending",
                          "message": environment["reason"]})

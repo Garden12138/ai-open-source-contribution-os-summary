@@ -1,0 +1,258 @@
+{
+  "version": "agent-runtime-acceptance-v1",
+  "controlled_samples": [
+    {
+      "sample": "npm-typescript",
+      "task_id": "effafc1d-b119-4d7f-90de-40de6fb44957",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 1,
+      "review_calls": 1,
+      "input_tokens": 6264,
+      "output_tokens": 965,
+      "review_hash": "54f635f1518b5795008ac07a0ac1c1333ead085f3083878dd469c5f9be450bde",
+      "acceptance_hash": "ffe54f3444c31b35ba4fddaeae7d6ebfdac423138259514e3b721de4fea56d92",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "ff34dca7dc3fff9c5e1b4b625d8789c003105eb20beecbe160239e051ef8d88e"
+    },
+    {
+      "sample": "pnpm",
+      "task_id": "9362fbea-99b3-4414-976d-033ead06625a",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 1,
+      "review_calls": 1,
+      "input_tokens": 6366,
+      "output_tokens": 1150,
+      "review_hash": "c7ca56a7a51958b219a30e8269947abc6733a49b915a824f8eee207b7e3a8b04",
+      "acceptance_hash": "84aee5b5eaca596b3298394e3a9c19dcb731f2a4488fd5d05949a20b8357f052",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "703510a9da6a3bd93f87d34d122e23df0ef9043b9e783f5e242cd3a152e4885c"
+    },
+    {
+      "sample": "python-declarative",
+      "task_id": "764a942a-54b3-461e-a399-5b3fbe143839",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 1,
+      "review_calls": 1,
+      "input_tokens": 5479,
+      "output_tokens": 707,
+      "review_hash": "5c728573a0d780e2c0f572fe028a7faf831693f5dc07e2d9cf079069873a2577",
+      "acceptance_hash": "72ac2c48bef735fc4857e3c03c2b6231fa14f140e3a07e304dc5d11b4e295dc6",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "83ab81de817348e3a2b785eee76a1c2ad5eb63a4d5193a25153914e1201534b4"
+    },
+    {
+      "sample": "python-dynamic",
+      "task_id": "8440daac-c053-4829-964f-a53403b0e157",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 1,
+      "review_calls": 1,
+      "input_tokens": 5486,
+      "output_tokens": 828,
+      "review_hash": "30e3f96334513c54f5b27a885998c542b7c646fdd50a3f22dd6768f581c4f651",
+      "acceptance_hash": "c5c9c8904bd1c03d5b4313b024264d3b09ed5126ace35a73ba1bc2c673a7c4d4",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "7c44acb1a5eade7e95c5b767a5ab223889e77de9a16103dd1eda7b43a785df29"
+    },
+    {
+      "sample": "yarn-classic",
+      "task_id": "5d812fe2-e0f8-42c4-8205-be80bf2ee87f",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 1,
+      "review_calls": 1,
+      "input_tokens": 6108,
+      "output_tokens": 913,
+      "review_hash": "23c9501e63d5e7a5441c7f65e94c45ed060e3b90a45530bef7f0a458b54e7c9d",
+      "acceptance_hash": "8a9866b1a22be0c0b2c2b4b63e3f2fa594ca850425f653f7e7f5d3cae2a82d07",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "8da5a32ede7d8560b9119a6b650db9eb684dc82012550bb3f895922cab351c0c"
+    },
+    {
+      "sample": "yarn-modern",
+      "task_id": "ba3c7156-09f4-4a6f-bd0f-b3b9c57e0146",
+      "classification": "controlled_archive_real_model_real_docker",
+      "discovery": "fixture",
+      "plan": "approved_fixture",
+      "external_writes": 0,
+      "code_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "review_model": {
+        "provider": "minimax",
+        "adapter_version": "studio-model-v1",
+        "model": "MiniMax-M3",
+        "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+      },
+      "code_calls": 2,
+      "review_calls": 1,
+      "input_tokens": 9427,
+      "output_tokens": 1112,
+      "review_hash": "1f634b529f338bed26788178ecf7faf2d50cee1dd6ef51a07d26ca98e250417d",
+      "acceptance_hash": "5bad47c38d9bcd27051a8b90c8831d1f46fa9189a60eb6a68e7509eca68a377d",
+      "maintenance_records": 0,
+      "runner_image": "sha256:447269c1493db7a935cc1f40ae8977db54bdf40afd1023a9748ed11401a7386b",
+      "report_hash": "0f7b7132bbdebd03014e1440b1db4eb48afba1bd50d130ddc624d066c4d1d9f2"
+    }
+  ],
+  "real_github_acceptance": false,
+  "native_linux_acceptance": false,
+  "dialogue_acceptance": {
+    "classification": "real_model_readonly_dialogue_controlled_task",
+    "model": {
+      "provider": "minimax",
+      "adapter_version": "studio-model-v1",
+      "model": "MiniMax-M3",
+      "model_version": "c201925444c7a37135236b605f248a32aa0672269e19e55d4ce757b42d8593c8"
+    },
+    "calls": 2,
+    "background_unchanged": true,
+    "source_read": true,
+    "answer": "当前进度：任务仍处于「规划」阶段，状态标记为忙碌（正在处理补充信息），可继续接收补充说明。现阶段只有仓库代码被读取，还没有生成实施计划、代码改动、测试结果或评审结论；有一个后台测试任务处于排队中，尚未产出可核验的结果。执行前置检查状态为「未规划」，因此现在还不能实施或验收。\n\napp/plans.py 的实际内容（完整文件，仅 2 行）：\n\n```python\ndef add(a, b):\n    return a + b\n```\n\n也就是说，该文件目前只是一个示例级的加法函数，没有类、配置或业务逻辑，也不包含任何与「计划」相关的实现。\n\n本次仅做观察和读取，未修改任何文件、未停止现有工作。",
+    "external_writes": 0
+  },
+  "historical_replay": {
+    "classification": "historical_failure_isolated_replay_no_model",
+    "task_id": "17f4852b-7b70-443f-8c6e-4395a8241b9e",
+    "source_records": 305,
+    "original_records_unchanged": true,
+    "original_request_preserved": true,
+    "input_upper_bound": 14818,
+    "input_limit": 16000,
+    "output_limit": 4096,
+    "model_calls_added": 0,
+    "production_database_modified": false
+  },
+  "deployment_integrity": {
+    "task_chains": 7,
+    "original_events_unchanged": 1793,
+    "original_artifacts_unchanged": 874,
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "source_hashes": {
+    "app/agent_runtime.py": "88309c4ca7731c4254bad9c1938bd375a832afd85946c4689f757250103953c5",
+    "app/agent_context.py": "6c0f8eb47fc3af5880b7e0e8792fb0abdeef3c51d5f560714ba8779822a88c20",
+    "app/conversation.py": "15517dd66dbc012fc927a6c170fca1ec8eb46ead40b826dd9573d99c37c0439e",
+    "app/conversation_protocol.py": "e8f7bf7b9e3c9b4e2757598de617033cadb919d78ff782368f79b9d819b8a58a",
+    "app/conversation_reasoning.py": "f34d31a95fc897d67f838b1aac2259c5c841a6315b0ba552c88d4fda3947835a",
+    "app/contribution_workflow.py": "6fd4a5f07146d60fab4c66d7d9c3ce9cf1cf0ab9f7b436efacd55c2da5c0b1f2",
+    "app/baseline_feedback.py": "23172cf3a857144087d34fdf6859e537bdb4e1511f2653de396082452ccd0e5d",
+    "app/coding.py": "174157b37bf68521ac79929524e2088df605538b4cf426e4acc24286cc4c7586",
+    "app/proposal_recovery.py": "de7f30832699c65e0092866f69062026e23e437023fd78c4c14154ffdbff57ae",
+    "app/execution_outcome.py": "36ca32ca0ba79510ea0c4c86e904dfccb824324e22c08d46a2c45723c6fb3812",
+    "app/execution_preflight.py": "08864e0102f7d2faa3acbf4fd2383de6fc1a9c96bd27da9ead4a83d4430c19f1",
+    "app/sandbox_worker/workspace_jobs.py": "d0679c2d4336360c10e69b68852dd8bb0a36ad5b019b4c9ff476d613eccbdbf5",
+    "app/providers/codex_cli.py": "702ccce3aecfc29cb6eef14d968e88623e424553c4623ee4d489f4b856a3b5c2",
+    "app/providers/nvidia_nim.py": "db5ac3842e194d1fa97b673ef7a9cd622e5b2423f782190b2c817e3a6e8f0691",
+    "app/providers/studio.py": "6acb902a43bbc4b8289f6a16a56df7cd998538910ef867527f2dec16b9b0097a",
+    "app/worker.py": "602f6da0eb2294040b4fcedc459ad19bdfd5c9d8bc88e06f2fabf4d39c816b46",
+    "app/workbench_api.py": "7efaabe4ff10c88178d6c2c8892e38733d09fe16ea00736209de2ddf8941e55a",
+    "app/api.py": "5975e78b3c01c61eb4c32ff1d72f79e08ae2f6fce5e8815b3af1d97c01f247d4",
+    "app/static/workbench.js": "9ca504675dd3ff55dda7a77c51feabc6cc7a63462fbebef1892aebeca81a4d9f"
+  },
+  "verification": {
+    "offline_full": {
+      "passed": 1302,
+      "skipped": 41
+    },
+    "final_focused": {
+      "passed": 110
+    },
+    "browser": "passed desktop/mobile references, reload and retry",
+    "compileall": "passed",
+    "javascript_syntax": "passed",
+    "diff_check": "passed",
+    "services_matching_source": 6,
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "recent_log_lines": 184,
+    "recent_log_credential_pattern_matches": 0,
+    "recent_log_tracebacks": 0
+  }
+}

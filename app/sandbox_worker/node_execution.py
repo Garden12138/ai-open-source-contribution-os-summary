@@ -1,14 +1,14 @@
 """Fresh Node execution views over immutable source and frozen dependencies."""
 from __future__ import annotations
 
-from app.node_environments import validate_node_recipe
+from app.node_environments import validate_node_recipe, validate_node_receipt
 
 
 def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe: dict, base_environment: dict) -> tuple[str, dict, list]:
     import hashlib
     import json
     import os
-    from pathlib import Path
+    from pathlib import Path, PurePosixPath
     import shutil
     import subprocess
 
@@ -17,10 +17,10 @@ def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe:
     receipt_file = output / "node-environment.json"
     if receipt_file.is_symlink():
         raise ValueError("Invalid Node environment receipt")
-    receipt = json.loads(receipt_file.read_text())
-    if (receipt.get("version") != "node-environment-result-v1" or receipt.get("recipe") != recipe
+    receipt = validate_node_receipt(json.loads(receipt_file.read_text()), recipe)
+    if (receipt.get("version") not in {"node-environment-result-v1","node-environment-result-v2"} or receipt.get("recipe") != recipe
             or receipt.get("built_offline") is not True
-            or receipt.get("manager_version") != recipe["manager_version"]):
+            or recipe["version"] == "node-environment-v1" and receipt.get("manager_version") != recipe["manager_version"]):
         raise ValueError("Node environment does not match execution")
     runtime_bin = receipt.get("runtime_bin")
     if runtime_bin not in {"/usr/local/bin", str(output / "runtime/node_modules/node-linux-arm64/bin"),
@@ -60,8 +60,52 @@ def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe:
                     raise ValueError("Node module view exceeds package budget")
                 if entry.name in {".vite", ".vite-temp", ".cache"}:
                     continue
-                (destination / entry.name).symlink_to(entry)
+                if entry.name.startswith("@") and entry.is_dir():
+                    # A native platform package may share this scope. Keep its
+                    # parent private so adding a link cannot write into the
+                    # frozen dependency volume through a scope-directory link.
+                    scope = destination / entry.name
+                    scope.mkdir()
+                    for scoped_count, package in enumerate(sorted(entry.iterdir(), key=lambda p: p.name)):
+                        if scoped_count >= 10000:
+                            raise ValueError("Node scope view exceeds package budget")
+                        (scope / package.name).symlink_to(package)
+                else:
+                    (destination / entry.name).symlink_to(entry)
     prefix = "" if recipe["project_directory"] == "." else recipe["project_directory"]
+    for native in receipt.get("native_packages", []):
+        package = output / "native/node_modules" / native["package"]
+        binary = package / native["main"]
+        if binary.is_symlink() or not binary.is_file() or hashlib.sha256(binary.read_bytes()).hexdigest()!=native["binary_hash"]:
+            raise ValueError("Frozen native package changed")
+        destination = target / prefix / "node_modules" / native["package"]
+        if destination.exists() or destination.is_symlink():
+            raise ValueError("Native package conflicts with declared dependencies")
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        destination.symlink_to(package)
+        workspace = target / native["workspace_directory"]
+        metadata = json.loads((workspace / "package.json").read_text())
+        if (metadata.get("name") != native["package"].rsplit("-linux-", 1)[0]
+                or metadata.get("version") != native["version"]
+                or metadata.get("napi", {}).get("binaryName") != native["binary_name"]):
+            raise ValueError("Native workspace no longer matches frozen package")
+        # Source-workspace loaders can load beside their declared entrypoint
+        # instead of resolving an optional platform package through node_modules.
+        # Supply the same frozen binary in the disposable view only.
+        main = metadata.get("main")
+        if main is not None:
+            if not isinstance(main, str):
+                raise ValueError("Invalid native workspace entrypoint")
+            main = main.removeprefix("./")
+            if (not main or PurePosixPath(main).is_absolute()
+                    or any(p in {"", ".", "..", "node_modules", ".git"} for p in main.split("/"))
+                    or "\\" in main or PurePosixPath(main).suffix not in {".js", ".cjs", ".mjs"}
+                    or not (workspace / main).is_file()):
+                raise ValueError("Invalid native workspace entrypoint")
+            local_binary = workspace / PurePosixPath(main).parent / native["main"]
+            if local_binary.exists() or local_binary.is_symlink():
+                raise ValueError("Native binary conflicts with frozen source")
+            local_binary.symlink_to(binary)
     for name in (".pnp.cjs", ".pnp.loader.mjs", ".pnp.data.json"):
         prepared = project / prefix / name
         destination = target / prefix / name
@@ -89,6 +133,8 @@ def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe:
            "npm_config_offline": "true", "NPM_CONFIG_USERCONFIG": "/dev/null",
            "npm_config_userconfig": "/dev/null", "npm_config_audit": "false", "npm_config_fund": "false"}
     env["npm_config_nodedir"] = str(Path(runtime_bin).parent)
+    if recipe["manager"] == "bun":
+        env.update(BUN_CONFIG_SKIP_AUTO_INSTALL="1", BUN_INSTALL_CACHE_DIR=str(output / "cache"))
     pnp = target / prefix / ".pnp.cjs"
     if recipe["linker"] == "pnp":
         if not pnp.is_file():

@@ -472,7 +472,7 @@ def test_minimax_profile_maps_official_m3_request_parameters(tmp_path):
     assert captured["credential"] == CANARY
     request = captured["payload"]
     assert request["model"] == MINIMAX_MODEL
-    assert request["max_completion_tokens"] == profile["max_tokens"]
+    assert request["max_completion_tokens"] == payload["max_tokens"]
     assert request["thinking"] == {"type": "adaptive"}
     assert request["reasoning_split"] is True
     assert "max_tokens" not in request

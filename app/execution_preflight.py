@@ -17,6 +17,46 @@ PYTHON_PREPARATION_VERSION = "python-workspace-preparation-v2"
 MULTIPACKAGE_PREPARATION_VERSION = "python-workspace-preparation-v3"
 
 
+def python_dynamic_requirement_files(metadata: dict, manifest_path: str) -> list[str]:
+    """Read setuptools file declarations as data for local-package discovery.
+
+    Wheel metadata remains authoritative. This does not evaluate attr, hooks or
+    arbitrary backend configuration, and never permits escaping the project.
+    """
+    from pathlib import PurePosixPath
+    tool = metadata.get("tool", {})
+    if not isinstance(tool, dict) or not isinstance(tool.get("setuptools", {}), dict):
+        raise ValueError("Invalid dynamic metadata")
+    configuration = tool.get("setuptools", {}).get("dynamic", {})
+    if not isinstance(configuration, dict):
+        raise ValueError("Invalid dynamic metadata")
+    groups = [configuration.get("dependencies", {})]
+    optional = configuration.get("optional-dependencies", {})
+    if not isinstance(optional, dict):
+        raise ValueError("Invalid dynamic metadata")
+    groups += list(optional.values())
+    paths = []
+    for group in groups:
+        if not isinstance(group, dict) or "file" not in group:
+            continue
+        files = group["file"]
+        if isinstance(files, str):
+            files = [files]
+        if not isinstance(files, list):
+            raise ValueError("Invalid dynamic requirement files")
+        for name in files:
+            if (not isinstance(name, str) or not name or len(name) > 300 or "\\" in name
+                    or PurePosixPath(name).is_absolute() or any(p in {"", ".", ".."} for p in name.split("/"))
+                    or not name.endswith((".txt", ".lock"))):
+                raise ValueError("Unsafe dynamic requirement path")
+            path = str(PurePosixPath(manifest_path).parent / name)
+            if path not in paths:
+                paths.append(path)
+            if len(paths) > 8:
+                raise ValueError("Dynamic requirement file limit")
+    return paths
+
+
 def python_development_requirements(metadata: dict) -> list[str]:
     """Read bounded test/development groups, never evaluate group contents."""
     groups = metadata.get("dependency-groups", {})
@@ -171,15 +211,14 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
         if changed_manifests and selected.get("mode") == "workspace-v2":
             issues.append({"code": "environment_manifest_change_unsupported", "stage": "prepare", "paths": changed_manifests,
                 "message": "方案将修改用于冻结环境的清单；当前流程会按完整文件哈希核对，不能用旧环境实施后再静默忽略清单变化。请先修订为源码修复，或完成独立的环境变更适配。"})
-        if selected.get("project_directories"):
-            from app.verification_commands import verification_command_error
-            from app.plans import PlanVersionService
-            error = verification_command_error(PlanVersionService._validated_content(plan).commands_to_run,
-                                               known, set(plan.files_likely_to_change))
-            if error:
-                issues.append({"code": "verification_commands_invalid", "stage": "prepare",
-                               "message": "每个所选包都需要在自身目录运行既有 pytest 基线；仅新增测试或仅收集测试不能覆盖修改前验证。",
-                               "reason_code": error["constraint"], "paths": error.get("paths", [])})
+        from app.verification_commands import verification_command_error
+        from app.plans import PlanVersionService
+        error = verification_command_error(PlanVersionService._validated_content(plan).commands_to_run,
+                                           known, set(plan.files_likely_to_change), evidence)
+        if error:
+            issues.append({"code": "verification_commands_invalid", "stage": "prepare",
+                           "message": "验证命令未通过校验；请使用已读取的项目脚本及明确的工作目录，保存修订方案后重新确认。",
+                           "reason_code": error["constraint"], "paths": error.get("paths", [])})
         environment_hash = environment_inputs_hash(context,selected)
         original_environment_hash = environment_inputs_hash(context, {k:v for k,v in selected.items() if k != "native_resource"})
         events = wb.history(task_id)

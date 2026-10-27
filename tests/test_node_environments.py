@@ -233,7 +233,8 @@ def test_fresh_execution_view_preserves_source_and_receipt_and_detects_source_ch
     (output / "project/node_modules/some-package/index.js").write_text("frozen package")
     (output / "node-environment.json").write_text(json.dumps({"version": "node-environment-result-v1",
         "recipe": recipe, "runtime_version": "22.0.0", "runtime_bin": "/usr/local/bin",
-        "manager_version": recipe["manager_version"], "built_offline": True}))
+        "manager_version": recipe["manager_version"], "built_offline": True,
+        "manifest_hashes": {}, "execution_image_digest": "sha256:" + "a" * 64}))
     directory, environment, originals = prepare_node_execution(str(source), str(output), str(scratch), recipe, {})
     assert Path(directory, "node_modules").is_dir() and not Path(directory, "node_modules").is_symlink()
     assert Path(directory, "node_modules/some-package").is_symlink()

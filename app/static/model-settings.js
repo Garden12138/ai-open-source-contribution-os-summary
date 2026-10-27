@@ -59,12 +59,13 @@ export function mountModelSettings(root,options) {
     const c=connectionEdit?.payload || {};
     const scopeId=connectionEdit?.scope.split(":").slice(1).join(":") || crypto.randomUUID();
     const name=field(form,"name","连接名称","text",c.name || ""); name.required=true; name.placeholder="例如：我的模型服务";
-    const provider=selectField(form,"provider","接口类型",[["minimax","MiniMax 官方（国内）"],["openai_compatible","OpenAI 兼容 API"],["nvidia_nim","NVIDIA NIM"]],c.provider || "openai_compatible");
+    const provider=selectField(form,"provider","接口类型",[["minimax","MiniMax 官方（国内）"],["openai_compatible","OpenAI 兼容 API"],["nvidia_nim","NVIDIA NIM"],...(data.xcli_local_endpoint || c.provider==="xcli_local" ? [["xcli_local","xcli 本机网关（上游可能在云端）"]] : [])],c.provider || "openai_compatible");
     const url=field(form,"base_url","Base URL","url",c.base_url || ""); url.required=true; url.placeholder="https://api.example.com/v1";
     const syncEndpoint=()=>{
       if(provider.value==="nvidia_nim") url.value="https://integrate.api.nvidia.com/v1";
       if(provider.value==="minimax") url.value="https://api.minimax.cn/v1";
-      url.readOnly=["nvidia_nim","minimax"].includes(provider.value);
+      if(provider.value==="xcli_local") url.value=data.xcli_local_endpoint || c.base_url || "";
+      url.readOnly=["nvidia_nim","minimax","xcli_local"].includes(provider.value);
     };
     provider.addEventListener("change",syncEndpoint);syncEndpoint();
     const secret=field(form,"secret","API Key","password"); secret.autocomplete="new-password";
@@ -76,6 +77,7 @@ export function mountModelSettings(root,options) {
     let pendingEnvelope=null;
     secret.addEventListener("input",()=>{pendingEnvelope=null;});
     form.addEventListener("submit",event=>{event.preventDefault(); run(save,async()=>{
+      if(c.provider!==provider.value && [c.provider,provider.value].includes("xcli_local") && !secret.value && !pendingEnvelope) throw new Error("切换 xcli 连接必须填写独立应用 Token。");
       let reference=c.credential_ref || null;
       if(secret.value || pendingEnvelope) {
         if(!pendingEnvelope) { const grant=await mutate("/api/v1/model-connections/credential-grants",{connection_id:scopeId}); pendingEnvelope=await sealCredential(secret.value.trim(),grant); secret.value=""; }

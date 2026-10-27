@@ -1,0 +1,525 @@
+{
+  "version": "output-budget-application-and-upstream-audit-v1",
+  "date": "2026-10-27",
+  "phase": 5,
+  "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+  "status": "original_contribution_superseded_by_upstream_fix",
+  "profile_preview_approved": true,
+  "profile_preview_applied": true,
+  "consent": {
+    "version": "exact-output-budget-user-consent-v1",
+    "source": "explicit_user_reply_to_exact_preview",
+    "user_text": "继续",
+    "preview_hash": "222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049",
+    "scope": "apply_preview_and_start_new_bounded_isolated_execution",
+    "date": "2026-10-27"
+  },
+  "application": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "preview_hash": "222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049",
+    "consent_hash": "4e8d6ed1807cd02abfd4be561bab82078b6892ebb90f6e4c26c1d75922370451",
+    "decision_hash": "fac04d9ef1376fe44b0071ea090fb8eadc5792317e6c71c0ea04f9211d746c86",
+    "profile_id": "f88e95f6-4225-4330-9ec4-d71801167828",
+    "profile_hash": "0a279707ca3cc4fa3ddb4f65f174a3d711cebd63d679f7501f2b03854b356245",
+    "model_binding_hash": "654c8b150ca6ca806af5b8d05f0a2fb8d185b01c60b9a92d815b5754ae936df0",
+    "parent_plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+    "plan_id": "ac8e24b1-871e-4f7a-80dd-f7f5ccc809f2",
+    "plan_hash": "f84646e70fedfe424613968f88ff171260051f574a618091ce5ded467bccd7d6",
+    "plan_content_hash": "466dc79a12c2e0c8c113b29c7c2cae03fd7d8890d55ecfae6f9efcc36675c14b",
+    "authorization_hash": "c73967d8a4e0dda9b86c0ce3e4c59df823297f577b910b2519026184bcb38ce9",
+    "job_id": "7aed13fc-d952-406e-a753-389976a16d5f",
+    "job_state_at_receipt": "queued",
+    "old_task_events_preserved": 389,
+    "historical_coding_calls_preserved": 21,
+    "old_root_used_calls": 3,
+    "old_root_call_limit": 6,
+    "output_tokens": 65536,
+    "timeout_seconds": 360,
+    "execution_limits": {
+      "max_repairs": 2,
+      "max_code_calls_per_new_attempt": 6,
+      "max_attempts_in_new_authorized_run": 3,
+      "max_new_coding_calls": 18,
+      "max_output_tokens_per_call": 65536,
+      "timeout_seconds_per_call": 360,
+      "max_new_independent_review_calls": 3,
+      "review_max_output_tokens_per_call": 32768,
+      "max_new_implementation_output_tokens": 1179648
+    },
+    "global_defaults_changed": false,
+    "old_job_or_usage_reset": false,
+    "third_party_writes": 0
+  },
+  "startup_result": {
+    "id": "7aed13fc-d952-406e-a753-389976a16d5f",
+    "kind": "contribution_start",
+    "state": "failed",
+    "attempt_count": 1,
+    "error_code": "workbench_failed",
+    "error_message": "上游提交已变化，请重新读取代码并确认方案"
+  },
+  "read_only_refresh": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "job_id": "efd098db-79d8-4175-9d04-d963449eeaa7",
+    "receipt_hash": "3f91e3825bc657f545906cf25e3a0140a31c002c03391178845d89ad7ae53b44",
+    "old_context_hash": "3083871c8443986be1369aeb0bb397ed877ea1e62da234d4d3090952ff5dfd7d",
+    "old_base_sha": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+    "read_only": true,
+    "new_model_calls": 0,
+    "new_execution_authorized": false
+  },
+  "upstream_proof": {
+    "version": "upstream-fix-present-proof-v1",
+    "date": "2026-10-27",
+    "repository": "can1357/oh-my-pi",
+    "issue": {
+      "url": "https://github.com/can1357/oh-my-pi/issues/16821",
+      "state": "open",
+      "updated_at": "2026-10-23T02:05:01Z"
+    },
+    "upstream_base_before": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
+    "upstream_base_after": "0838d2ab4407b74e870de07e1a6780a13c7d542c",
+    "old_context_hash": "3083871c8443986be1369aeb0bb397ed877ea1e62da234d4d3090952ff5dfd7d",
+    "new_context_hash": "e7e5a67c7d68be3c6f833a5debce79879ce95c625ba17fcc08932df963e4e8f9",
+    "new_archive_hash": "603f6062742036e31c82f8b6bde3f7d682544b70fc8960d87c208d3e4bae0ebb",
+    "fix_commit": {
+      "sha": "5dcd9fb4548d06c383c7766c50849da0f9b15a6f",
+      "message": "fix(tui): checked spelling across cursor render segments (#16823)",
+      "created_at": "2026-10-26T11:30:01Z",
+      "url": "https://github.com/can1357/oh-my-pi/commit/5dcd9fb4548d06c383c7766c50849da0f9b15a6f"
+    },
+    "fix_is_ancestor_of_current_head": true,
+    "ancestor_comparison": {
+      "status": "ahead",
+      "ahead_by": 126,
+      "behind_by": 0,
+      "merge_base_sha": "5dcd9fb4548d06c383c7766c50849da0f9b15a6f"
+    },
+    "associated_pr": {
+      "url": "https://github.com/can1357/oh-my-pi/pull/16823",
+      "number": 16823,
+      "state": "closed",
+      "merged": false,
+      "closed_at": "2026-10-26T15:17:09Z",
+      "merged_at": null,
+      "head_sha": "997197203abffb2275e02ff11cfc9b6805bd500e"
+    },
+    "target_files": [
+      {
+        "path": "packages/tui/src/prompt/macos-spelling.ts",
+        "fix_commit_blob_sha": "2d841e06a221a1fb815e474c1652116cfebe750a",
+        "current_main_sha256": "de98b02948717c0a0391a3b306752d89fde18c3e07cf495d260ab832a4323663",
+        "current_main_matches_fix": true
+      },
+      {
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "fix_commit_blob_sha": "0b1e6b3e9fbebcbde6b9b60f1f3c05194b5c1023",
+        "current_main_sha256": "c79dc7ace7a72826e12461a0bbb4aa01ce830317ae1c49105d46ab4882c91350",
+        "current_main_matches_fix": true
+      }
+    ],
+    "file_comparison": [
+      {
+        "path": ".github/workflows/bun-cache-warm.yml",
+        "old_hash": "7422bde27d4fe293c32c696a8f0b8987ebbf67fc89f9e8bbbc352519d92bc624",
+        "new_hash": "7422bde27d4fe293c32c696a8f0b8987ebbf67fc89f9e8bbbc352519d92bc624",
+        "status": "unchanged"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "old_hash": "5e69ebfc8a55faa12220bb74a6f9c813ff0103687cc768a487e6c87e63e53920",
+        "new_hash": "f4be00f1a38dcd2445c2c9e8833d205a920433e9c38960c0c616293e230f3cf3",
+        "status": "changed"
+      },
+      {
+        "path": ".github/workflows/nix.yml",
+        "old_hash": "8264c09b347d3894f68405519af5d2f97d2760856a059b788d1f5f248f31d98c",
+        "new_hash": "8264c09b347d3894f68405519af5d2f97d2760856a059b788d1f5f248f31d98c",
+        "status": "unchanged"
+      },
+      {
+        "path": ".omp/tools/package.json",
+        "old_hash": "e4e5f5b574acedd1f13ea454b3484ccf7a4c7a1990c75f80ef5c97f539b4e426",
+        "new_hash": "e4e5f5b574acedd1f13ea454b3484ccf7a4c7a1990c75f80ef5c97f539b4e426",
+        "status": "unchanged"
+      },
+      {
+        "path": "bun.lock",
+        "old_hash": null,
+        "new_hash": "97b11d00592a8fb6dbe3f4592df25c0a960fa34190f876fa1056cc5f09e031c7",
+        "status": "unread"
+      },
+      {
+        "path": "bunfig.toml",
+        "old_hash": "fe892373789adbdec4e671de23da683b63499f00126cdb701df7e7b03788f4cb",
+        "new_hash": "fe892373789adbdec4e671de23da683b63499f00126cdb701df7e7b03788f4cb",
+        "status": "unchanged"
+      },
+      {
+        "path": "docs/skills/examples/hello-extension/package.json",
+        "old_hash": "b07bc23bc3b9b6702b91ae2e0747c07ac6d1106d0d75e9ce6f30fcd74f2821b1",
+        "new_hash": "b07bc23bc3b9b6702b91ae2e0747c07ac6d1106d0d75e9ce6f30fcd74f2821b1",
+        "status": "unchanged"
+      },
+      {
+        "path": "docs/skills/examples/mini-marketplace/my-plugin/package.json",
+        "old_hash": "af9e64331e5ef9e380cc5834563cfaee117232badcdca95d86d902b82a12762d",
+        "new_hash": "af9e64331e5ef9e380cc5834563cfaee117232badcdca95d86d902b82a12762d",
+        "status": "unchanged"
+      },
+      {
+        "path": "docs/skills/examples/safety-hook/package.json",
+        "old_hash": "b787968fd509a49a314f2ad2171e44eccd643d8f67c9d27f20f14648bfcb3317",
+        "new_hash": "b787968fd509a49a314f2ad2171e44eccd643d8f67c9d27f20f14648bfcb3317",
+        "status": "unchanged"
+      },
+      {
+        "path": "package.json",
+        "old_hash": "9e6950d989ddaca26c58f3417273b353355d56235eff61697ccf2e1f7d90a5ba",
+        "new_hash": "7a3bdc8998b9e9e01bb4300c3e4a42123ac9b393f16225d7a1be842b74279ad3",
+        "status": "changed"
+      },
+      {
+        "path": "packages/agent/package.json",
+        "old_hash": "c321f224531e2d475b719f03da3909e27afe07ecf3a9860c14083352abfdd807",
+        "new_hash": "6c4efaec89af4a6afd44c394b3ba85e0c7fd16281bff2df07a602ebf3da9bcfd",
+        "status": "changed"
+      },
+      {
+        "path": "packages/ai/package.json",
+        "old_hash": "e00021db3c1e615235c5e356f7f912b1eec534d7eeb5f87aaed1a7cfafe32762",
+        "new_hash": "5ea6a868c0a2cb5f1473ce5f76ff21826c9e501443b9722f0d63c8cc61f7c6ac",
+        "status": "changed"
+      },
+      {
+        "path": "packages/browser-relay/package.json",
+        "old_hash": "77f6bf7ce961ad757012a4be06574e336ce7896deaf5be32df3298bf9328bcf8",
+        "new_hash": "77f6bf7ce961ad757012a4be06574e336ce7896deaf5be32df3298bf9328bcf8",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/catalog/package.json",
+        "old_hash": "4700f9652f97890a312413a5ca1e2755d03998451940fe48404a9df93d544eff",
+        "new_hash": "0a2ba8f905ce407cd093538c5f4976bb2d10d14fdfc50700f2bfdc8e0e862c89",
+        "status": "changed"
+      },
+      {
+        "path": "packages/coding-agent/examples/extensions/with-deps/package.json",
+        "old_hash": "6d99406b9e4d718ed26744905106a1338f80a17ad7b6f279a37d9d3ded455739",
+        "new_hash": "6d99406b9e4d718ed26744905106a1338f80a17ad7b6f279a37d9d3ded455739",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/coding-agent/package.json",
+        "old_hash": "83c96c5097f69c0b6f13b7fb9a9b940d7f9078136154518243746765628d057b",
+        "new_hash": "e103f41c9531b22a2936eceac2a32a21b37ff9e9c4901cae5df4c3ad146a3ec0",
+        "status": "changed"
+      },
+      {
+        "path": "packages/collab-web/package.json",
+        "old_hash": "25af7026f14afc9eb5f0eed00efde1335652f7cb15ff04fcb351ed7752bb4674",
+        "new_hash": "25af7026f14afc9eb5f0eed00efde1335652f7cb15ff04fcb351ed7752bb4674",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/metaharness/package.json",
+        "old_hash": "af95d43df17af1301e48c7eccf3c992016f79565cb551b362a1b75b632ed1c2c",
+        "new_hash": "af95d43df17af1301e48c7eccf3c992016f79565cb551b362a1b75b632ed1c2c",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/mnemopi/package.json",
+        "old_hash": "c4315db60229600fb71e2dad15ee6bb9e4292fe089b4a8bb64b397c3b0c9437b",
+        "new_hash": "044ec1689845134f0f56e43b16dbc9042b4fb614b0c57854ac0baa3a8d8047fb",
+        "status": "changed"
+      },
+      {
+        "path": "packages/natives/package.json",
+        "old_hash": "4b649effe5cf546c88d2e43202fd86924d23aacfb053c136986c0d5aa6d75de0",
+        "new_hash": "50cd5ad3132b23f5bc1d1ffca1511ab8cc579d7dfc84cdd39d82ebe65876594e",
+        "status": "changed"
+      },
+      {
+        "path": "packages/omptype/package.json",
+        "old_hash": "acdc9b3ff7c37f0b98f585a2a37788fe523b5610a6189115f4ee80e34a0456c4",
+        "new_hash": "1d2019397fb4e0fecff931bd5df707d66442aa346d21354ff8a49c20ffcb5d33",
+        "status": "changed"
+      },
+      {
+        "path": "packages/snapcompact/package.json",
+        "old_hash": "cf7cccb9f544b2d4322d51af2d9dc56e5b555fb3138cf6a491f1a5d4477cbef2",
+        "new_hash": "a6fc56334c678beb16363bcad5a9d7c815d3b6479314b558b510d3abc7dd23c8",
+        "status": "changed"
+      },
+      {
+        "path": "packages/stats/package.json",
+        "old_hash": "ea7c6829a0b345f4048f67c05e2d76d28c3108e8f86dde8ec772499ac47f9c8e",
+        "new_hash": "9aa03c43efe71a714eb240b1b9ff8fec10f5ba3bb58459ea1bdae157e54399bc",
+        "status": "changed"
+      },
+      {
+        "path": "packages/tui/package.json",
+        "old_hash": "659d778c3323eedc6c26f4dc60b858e76164d9ae378a292439a84d96ab2bf8e8",
+        "new_hash": "4ed06f6eef3a1f81e1d71ed179c599865d1d6162bc7bf13b3e88d2d8ac44a763",
+        "status": "changed"
+      },
+      {
+        "path": "packages/tui/src/prompt/custom-editor.ts",
+        "old_hash": "bd7704a93644e27534dc131d8d2dd67663061d89a47127711607881894bc63f9",
+        "new_hash": "bd7704a93644e27534dc131d8d2dd67663061d89a47127711607881894bc63f9",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/tui/src/prompt/macos-spelling.ts",
+        "old_hash": "dfe8bf1ff9afde033384c56cb4d38715877797d9c9a210b85e02f218b1328a19",
+        "new_hash": "de98b02948717c0a0391a3b306752d89fde18c3e07cf495d260ab832a4323663",
+        "status": "changed"
+      },
+      {
+        "path": "packages/tui/test/editor-text-assist.test.ts",
+        "old_hash": "be3d8c1a23cf7363eaa321326a92bc2605c2ce088dd34fde90a2c61fb91fcda6",
+        "new_hash": "be3d8c1a23cf7363eaa321326a92bc2605c2ce088dd34fde90a2c61fb91fcda6",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/tui/test/macos-spelling.test.ts",
+        "old_hash": "642c36f681a318a7a795815f0afb1551f4d69e68bf9c3d8720d989f3a4d4ec71",
+        "new_hash": "c79dc7ace7a72826e12461a0bbb4aa01ce830317ae1c49105d46ab4882c91350",
+        "status": "changed"
+      },
+      {
+        "path": "packages/typescript-edit-benchmark/package.json",
+        "old_hash": "c479572039ac6b3608cf36f46a38931f80bcd3b85642f6a5b0f00d6a1fdbdb55",
+        "new_hash": "c479572039ac6b3608cf36f46a38931f80bcd3b85642f6a5b0f00d6a1fdbdb55",
+        "status": "unchanged"
+      },
+      {
+        "path": "packages/utils/package.json",
+        "old_hash": "0fba6cd4bf46ae494b2e061975080677f04844d16c1f80ecbc637fe41be2df1b",
+        "new_hash": "cd3d01ea47ec8193980c91e12574c130e321097f15918630009c06280096a5e9",
+        "status": "changed"
+      },
+      {
+        "path": "packages/wire/package.json",
+        "old_hash": "8e268fde43d456b232071556be9b7e5f9e30ffe4bda682a1aefe632468b69b1a",
+        "new_hash": "a516b24522a560fb36508a32e636e463cf7dcf622f4f465599cdc21ec691facf",
+        "status": "changed"
+      },
+      {
+        "path": "python/robomp/web/package.json",
+        "old_hash": "250a1af6d67992fc3b2a0f981cf26ca8361557a86ce2ab214fefa1b708887357",
+        "new_hash": "250a1af6d67992fc3b2a0f981cf26ca8361557a86ce2ab214fefa1b708887357",
+        "status": "unchanged"
+      }
+    ],
+    "main_comparison": {
+      "ahead_by": 476,
+      "behind_by": 0,
+      "returned_file_count": 300,
+      "file_list_complete": false,
+      "note": "GitHub comparison returned its 300-file cap. Target byte equality is independently verified against frozen context and exact commit blobs."
+    },
+    "observed_behavior_in_source": [
+      "backend checks full logical line and caches by full-line text",
+      "backend typo ranges are clipped to render segment bounds",
+      "regression tests cover cursor seams and whole-token prose filtering"
+    ],
+    "upstream_code_tests_executed_by_us": false,
+    "model_calls_added": 0,
+    "conclusion": "approved_contribution_superseded_by_existing_upstream_fix",
+    "limitations": [
+      "Issue metadata remains open.",
+      "Associated PR metadata says closed and merged=false; the fix commit itself is verified in main.",
+      "This is source/provenance verification, not a new runtime or independent autonomous acceptance pass."
+    ]
+  },
+  "upstream_observation": {
+    "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+    "event_hash": "c1299855545c1a6c703bc8026fc24ed735171ade852db6545cd1fc79637befe8",
+    "proof_hash": "1f34dce3fbe40c1cd35e53ded99470f4046d02f0d2cf80c7ae029ecb4a181f92",
+    "plan_id": "ac8e24b1-871e-4f7a-80dd-f7f5ccc809f2",
+    "context_hash": "e7e5a67c7d68be3c6f833a5debce79879ce95c625ba17fcc08932df963e4e8f9",
+    "upstream_fix": "5dcd9fb4548d06c383c7766c50849da0f9b15a6f",
+    "base_sha": "0838d2ab4407b74e870de07e1a6780a13c7d542c",
+    "old_task_events_preserved": 403,
+    "historical_coding_calls": 21,
+    "new_execution_attempts": 0,
+    "new_review_runs": 0,
+    "new_model_calls": 0,
+    "plan_stale": true,
+    "can_execute": false,
+    "active_jobs": 0,
+    "third_party_writes": 0
+  },
+  "new_execution": {
+    "attempts_created": 0,
+    "coding_calls": 0,
+    "review_calls": 0,
+    "baseline": "not_run",
+    "implement": "not_run",
+    "verify": "not_run",
+    "review": "not_run",
+    "64k_provider_response": "not_exercised",
+    "autonomous_acceptance": false
+  },
+  "runtime_verification": {
+    "source_matches_prior_regression": true,
+    "prior_regression_evidence": "proposal-provider-recovery-2026-10-27.json",
+    "passed": 1452,
+    "skipped": 46,
+    "source_files": 202,
+    "source_checks": [
+      {
+        "service": "api",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "provider-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "sandbox-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "publisher",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "model-gateway",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      }
+    ],
+    "services": [
+      {
+        "Service": "api",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "provider-worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "publisher",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-publisher:0.1.0"
+      },
+      {
+        "Service": "sandbox-worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-sandbox-worker:0.1.0"
+      },
+      {
+        "Service": "worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "model-gateway",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-local:0.1.0"
+      }
+    ],
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "browser": {
+      "real_deployed_task": true,
+      "upstream_fix_report_visible": true,
+      "output_budget_report_visible": true,
+      "widths": [
+        1440,
+        390
+      ],
+      "horizontal_overflow": false,
+      "page_errors": 0,
+      "mutation_requests": 0
+    }
+  },
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 2199,
+    "original_events_unchanged": 2182,
+    "original_artifacts_unchanged": 1238,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "logs": [
+    {
+      "file": "contribos-output-budget-final-logs.txt",
+      "lines": 531,
+      "runtime_secret_or_canary_matches": 0,
+      "credential_shaped_lines": 0,
+      "tracebacks": 0,
+      "missing_modules": 0
+    }
+  ],
+  "backup": {
+    "backup": "/data/backups/output-budget-recovery-20261027T021011Z",
+    "events": 2182,
+    "artifacts": 1238,
+    "sqlite_integrity": "ok",
+    "active_jobs": 0
+  },
+  "source_backup": {
+    "path": "/data/backups/output-budget-recovery-20261027T021011Z/service-sources.tar",
+    "files": 202,
+    "sha256": "ddb7a151bc7859e8d17dcd96fa4dc1e8e6f5290653db19705b8a13560d5ca682"
+  },
+  "open_gates": [
+    "ENV-R07",
+    "ENV-G01",
+    "UXR-G01",
+    "P5-G06"
+  ],
+  "next_acceptance_prerequisite": "an unsolved opportunity with a fresh immutable plan and execution approval; native Linux amd64/Docker Engine remains independently required",
+  "third_party_writes": 0,
+  "git_commits": 0,
+  "limitations": [
+    "The current contribution is superseded by a verified upstream source fix, not a successful model contribution.",
+    "No new runtime verification of upstream code was executed.",
+    "Issue remains open and the associated PR is closed with merged=false; fix commit ancestry and exact target blobs establish presence in main.",
+    "Increasing output allowance has been applied but was not exercised by a model request.",
+    "All old failure, usage, plan and authorization records remain intact."
+  ]
+}

@@ -49,6 +49,18 @@ export function mountContributionWorkbench(root, taskId, options) {
   const fresh = button("有新消息 ↓", () => { messages.scrollTop = messages.scrollHeight; fresh.hidden = true; });
   fresh.classList.add("conversation-new-messages"); fresh.hidden = true;
   const form = node("form", "", "conversation-agent-composer");
+  let replyTarget = null;
+  try { replyTarget = JSON.parse(sessionStorage.getItem(`${draftKey}:reply`) || "null"); } catch { /* Optional reference. */ }
+  const replyContext = node("div", "", "conversation-reply-context");
+  replyContext.setAttribute("role", "status");
+  function updateReplyTarget() {
+    replyContext.replaceChildren(); replyContext.hidden = !replyTarget;
+    if (replyTarget) replyContext.append(node("span", `正在询问：${replyTarget.label}`), button("取消引用", () => {
+      replyTarget = null; updateReplyTarget();
+    }));
+    try { sessionStorage.setItem(`${draftKey}:reply`, JSON.stringify(replyTarget)); } catch { /* Memory remains usable. */ }
+  }
+  updateReplyTarget();
   const input = node("textarea"); input.rows = 2; input.maxLength = 8000; input.required = true;
   input.placeholder = "说明你的要求，也可以随时补充信息…";
   input.setAttribute("aria-label", "发送给贡献助手的消息");
@@ -67,7 +79,7 @@ export function mountContributionWorkbench(root, taskId, options) {
   budgetControl.append(budgetLabel, budgetSelect, budgetUsage);
   const stop = button("停止", () => act(() => post("/conversation/messages", {text:"停止"}))); stop.hidden = true;
   const send = button("发送 ↑", () => {}, true); send.type = "submit"; send.setAttribute("aria-label", "发送");
-  toolbar.append(hint, stop, send); form.append(input, budgetControl, toolbar);
+  toolbar.append(hint, stop, send); form.append(replyContext, input, budgetControl, toolbar);
   shell.append(header, error, messages, fresh, form); root.replaceChildren(shell);
   const viewport = window.visualViewport;
   function fitKeyboard() {
@@ -117,7 +129,7 @@ export function mountContributionWorkbench(root, taskId, options) {
         || el.dataset.budgetSave !== data.execution.planning_budget.revision;
     for (const el of shell.querySelectorAll("[data-start-planning]")) el.disabled = sending || !!data?.busy;
     for (const el of shell.querySelectorAll("[data-confirmation]")) {
-      el.disabled = sending || !!data?.conversation?.pending_count || !!data?.conversation?.paused || !!data?.busy || el.dataset.valid !== "true" || (el.validate && !el.validate());
+      el.disabled = sending || !!(data?.conversation?.blocking_count ?? data?.conversation?.pending_count) || !!data?.conversation?.paused || !!data?.busy || el.dataset.valid !== "true" || (el.validate && !el.validate());
     }
     for (const el of drawerBody.querySelectorAll("[data-preview-status]")) el.update();
     for (const entry of entries.values()) entry.updateQuestions?.();
@@ -201,11 +213,14 @@ export function mountContributionWorkbench(root, taskId, options) {
   });
   form.addEventListener("submit", event => {
     event.preventDefault(); const text = input.value.trim(); if (!text || sending) return;
-    if (!requestAttempt || requestAttempt.text !== text) requestAttempt = {text, key:crypto.randomUUID()};
+    const body = {text, ...(replyTarget ? {reply_to_message_id:replyTarget.id, reply_to_message_hash:replyTarget.hash} : {})};
+    const signature = JSON.stringify(body);
+    if (!requestAttempt || requestAttempt.signature !== signature) requestAttempt = {text, signature, body, key:crypto.randomUUID()};
     const attempt = requestAttempt;
     act(async () => {
-      await post("/conversation/messages", {text}, attempt.key);
+      await post("/conversation/messages", attempt.body, attempt.key);
       if (input.value.trim() === text) { input.value = ""; persistDraft(); }
+      replyTarget = null; updateReplyTarget();
       requestAttempt = null;
     });
   });
@@ -214,11 +229,12 @@ export function mountContributionWorkbench(root, taskId, options) {
     const c = data?.conversation;
     return c?.pending_action?.kind === "answer" && c.pending_action.source_id === item.id
       && latest("assistant_message")?.id === item.id
-      && !(c.messages || []).some(message => message.sequence > item.sequence);
+      && !(c.messages || []).some(message => message.sequence > item.sequence &&
+        (!c.observation || message.question_source?.id === item.id));
   }
   function questionsEnabled(item) {
     return questionsCurrent(item) && !sending && !data.busy
-      && !data.conversation.pending_count && !data.conversation.paused;
+      && !(data.conversation.blocking_count ?? data.conversation.pending_count) && !data.conversation.paused;
   }
   function showQuestions(entry, item) {
     const questions = item.questions;
@@ -567,6 +583,13 @@ export function mountContributionWorkbench(root, taskId, options) {
       entry.role.textContent = item.user ? "你" : "贡献助手" + (item.origin?.label ? " · " + item.origin.label : "");
       entry.updateQuestions = null;
       renderMarkdown(entry.body, item.user ? item.text : friendly(item.text));
+      const sourceHash = item.record_hash || item.questionHash;
+      if (!item.user && sourceHash && data.conversation?.observation) {
+        entry.actions.append(button("询问这条结果", () => {
+          replyTarget = {id:item.id, hash:sourceHash, label:friendly(item.text || "这条结果").slice(0, 72)};
+          updateReplyTarget(); input.focus();
+        }));
+      }
       for (const reference of item.references || []) {
         if (!["publication_preview", "ready_preview"].includes(reference.name)) continue;
         const kind = reference.name === "ready_preview" ? "ready" : "publication";

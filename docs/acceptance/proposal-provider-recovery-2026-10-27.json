@@ -1,0 +1,719 @@
+{
+  "version": "proposal-provider-recovery-acceptance-v1",
+  "date": "2026-10-27",
+  "phase": 5,
+  "tasks": {
+    "ENV-R09": "verified_representation_recovery",
+    "ENV-R10": "verified_safe_provider_diagnostic_and_retry_enforcement",
+    "ENV-R07": "blocked_minimax_output_truncation",
+    "ENV-G01": "open",
+    "UXR-G01": "open",
+    "P5-G06": "native_linux_unverified"
+  },
+  "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+  "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+  "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+  "R09": {
+    "tests": {
+      "full": {
+        "summary": {
+          "tests": 1494,
+          "passed": 1448,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 46
+        },
+        "shards": [
+          {
+            "tests": 675,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 21,
+            "passed": 654
+          },
+          {
+            "tests": 819,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 25,
+            "passed": 794
+          }
+        ]
+      },
+      "focused": {
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 54
+      },
+      "image_probe": {
+        "classification": "real_image_frozen_model_output_representation_probe",
+        "source_hashes_checked": 202,
+        "proof": {
+          "version": "edit-append-format-normalization-v1",
+          "raw_proposal_hash": "2424b2a39e9ced0872462fa9fec0b3b77108baf59d3b0fa4adc5e194525448f1",
+          "normalized_proposal_hash": "2f586f451928de0721bbe3724976c2f21a50308f7867741dc22c20060d977c4a",
+          "raw_operation_count": 3,
+          "normalized_operation_count": 2,
+          "pairs": [
+            {
+              "path": "packages/tui/test/macos-spelling.test.ts",
+              "edit_operation_index": 1,
+              "append_operation_index": 2
+            }
+          ],
+          "field_normalizations": [
+            {
+              "operation_index": 0,
+              "field": "executable",
+              "rule": "preserve_existing_mode"
+            },
+            {
+              "operation_index": 1,
+              "field": "executable",
+              "rule": "preserve_existing_mode"
+            },
+            {
+              "operation_index": 2,
+              "field": "executable",
+              "rule": "preserve_existing_mode"
+            },
+            {
+              "operation_index": 2,
+              "field": "edits",
+              "rule": "empty_edits_are_identity"
+            }
+          ],
+          "byte_equivalence_verified": true,
+          "model_calls_added": 0
+        },
+        "untrusted_repository_execution": false,
+        "production_mutations": 0,
+        "model_calls": 0
+      }
+    },
+    "recovery": {
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "attempt_id": "1c62fbcb-48d4-4cfc-8095-dc09925e3833",
+      "job_id": "43b7d960-d440-4dc9-b82c-99249ef982c4",
+      "receipt_hash": "f14e6e056cf075aeca271a8c81a4958be3121351b348e77ba7850a566e5ccf3a",
+      "change_set_hash": "175d8deeb15cb058415092f033e3c2431923405d4d0ab50006ef1a4770603e00",
+      "normalization_hash": "e0237e81f40a54f9cfa4be5fad6c489e2ee71210daf3bbef6373c4bc2121e9b7",
+      "proof_hash": "bad9bc8617588ba6bb0950c1dedab6eb480dc99ae740bfd25ce32a9b08d74f0b",
+      "proof": {
+        "agent_invocation_hash": "379e78eaf77afbb1ad7b5d46528606d166a9dff110bf28e8e159339f2b9e29f1",
+        "byte_equivalence_verified": true,
+        "editing_context_hash": "ca2c2465ec0e536fd86311f2dd11db60e938793d0ebfac382205596c30ad2f28",
+        "field_normalizations": [
+          {
+            "field": "executable",
+            "operation_index": 0,
+            "rule": "preserve_existing_mode"
+          },
+          {
+            "field": "executable",
+            "operation_index": 1,
+            "rule": "preserve_existing_mode"
+          },
+          {
+            "field": "executable",
+            "operation_index": 2,
+            "rule": "preserve_existing_mode"
+          },
+          {
+            "field": "edits",
+            "operation_index": 2,
+            "rule": "empty_edits_are_identity"
+          }
+        ],
+        "model_calls_added": 0,
+        "normalized_operation_count": 2,
+        "normalized_proposal_hash": "2f586f451928de0721bbe3724976c2f21a50308f7867741dc22c20060d977c4a",
+        "pairs": [
+          {
+            "append_operation_index": 2,
+            "edit_operation_index": 1,
+            "path": "packages/tui/test/macos-spelling.test.ts"
+          }
+        ],
+        "raw_operation_count": 3,
+        "raw_proposal_hash": "2424b2a39e9ced0872462fa9fec0b3b77108baf59d3b0fa4adc5e194525448f1",
+        "rejection_hash": "ed3d0b4ad052caa14a92b4b50c0f81b3f2781849f1214ea0da06ffb2f653f012",
+        "version": "edit-append-format-normalization-v1"
+      },
+      "original_events_unchanged": 344,
+      "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+      "job_state": "failed",
+      "attempt_count": 4,
+      "max_attempts": 4,
+      "root_used_calls": 6,
+      "root_call_limit": 6,
+      "model_calls_added": 0,
+      "third_party_writes": 0
+    },
+    "backup": {
+      "backup": "/data/backups/proposal-format-correction-20261026T072020Z",
+      "events": 2137,
+      "artifacts": 1217,
+      "sqlite_integrity": "ok",
+      "active_jobs": 0
+    },
+    "source_backup": {
+      "path": "/data/backups/proposal-format-correction-20261026T072020Z/service-sources.tar",
+      "files": 202,
+      "sha256": "7bf31a2648d9c6a5f8034da51aa005475d12f9dc43e5ddb757c11bb3070b9a36"
+    },
+    "real_baseline": {
+      "status": "passed",
+      "passed": 5,
+      "total": 5
+    },
+    "real_verification": {
+      "status": "failed",
+      "passed": 1,
+      "total": 5
+    },
+    "failed_command_ids": [
+      "baseline-macos-spelling",
+      "test-macos-spelling",
+      "typecheck-tui",
+      "check-tui"
+    ],
+    "review_hash": "55d995c4c13fb470770336c1531929708fc9ff5a6d36c2d46eee0cc48a391733",
+    "review_verdict": "block",
+    "independent_autonomous_acceptance": false
+  },
+  "R10": {
+    "original_failure_code": "nvidia_coding_failed",
+    "original_exception_type": "ProviderRunError",
+    "original_provider_code": "unknown",
+    "original_safe_diagnostic_not_retroactively_invented": true,
+    "recovery": {
+      "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+      "attempt_id": "697a93e6-7548-4e71-8abf-8ae36b716c24",
+      "job_id": "cb6da9cd-1b60-45d7-8b05-7e8563559bdc",
+      "state": "queued",
+      "receipt_hash": "cead444e4166c93f453fc40219d2bb656b54d33469338dc2d5c3a725c21d4e75",
+      "proof_hash": "ea1192850e7ebf260f5f0323d7e3d23389edcefadba4e404c104a719c9b0ff34",
+      "authorization_hash": "44bcd2de15431554d894b7af930dfd2f64bc81266f4b800c0f0e0c38aeaef789",
+      "original_events_unchanged": 380,
+      "model_calls_before": 2,
+      "model_call_limit": 6,
+      "max_attempts": 3,
+      "new_approval": false,
+      "budget_reset": false,
+      "third_party_writes": 0
+    },
+    "failure_event_hash": "5c0e6774af5d6c9d7d74d21dfae2caa88130eb6ee4c5c9d3d2da7e3754e8a4e9",
+    "real_new_provider_code": "minimax_completion_truncated",
+    "retryable": false,
+    "recovery_action": {
+      "version": "agent-runtime-v1",
+      "category": "budget",
+      "action": "revise_output_budget",
+      "reason_code": "minimax_completion_truncated",
+      "uses_code_repair": false
+    },
+    "direct_retry_service_enforces_provider_policy": true,
+    "retry_policy_cases": [
+      "truncated_nonretryable",
+      "connection_retryable",
+      "authentication_nonretryable",
+      "rate_limit_retryable"
+    ],
+    "schema_change": false,
+    "frozen_profile_changed": false
+  },
+  "tests": {
+    "full": {
+      "tests": 1498,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 46,
+      "passed": 1452
+    },
+    "shards": [
+      {
+        "tests": 673,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 21,
+        "passed": 652
+      },
+      {
+        "tests": 825,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 25,
+        "passed": 800
+      }
+    ],
+    "files": 105,
+    "focused": {
+      "tests": 85,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 85
+    },
+    "compileall": "passed",
+    "git_diff_check": "passed",
+    "real_built_image_probe": {
+      "classification": "real_image_provider_failure_contract_probe",
+      "runtime_imports": "ok",
+      "reason_code": "minimax_completion_truncated",
+      "retryable": false,
+      "recovery": {
+        "version": "agent-runtime-v1",
+        "category": "budget",
+        "action": "revise_output_budget",
+        "reason_code": "minimax_completion_truncated",
+        "uses_code_repair": false
+      },
+      "model_calls": 0,
+      "production_mutations": 0
+    },
+    "disposable_database_preflight": {
+      "classification": "disposable_database_preflight_only",
+      "source_database": "read_only",
+      "new_profile_hash": "0a279707ca3cc4fa3ddb4f65f174a3d711cebd63d679f7501f2b03854b356245",
+      "plan_content_hash": "466dc79a12c2e0c8c113b29c7c2cae03fd7d8890d55ecfae6f9efcc36675c14b",
+      "parent_plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+      "child_plan_saved": true,
+      "fresh_authorization_simulated": true,
+      "implementation_tokens": 65536,
+      "max_repairs": 2,
+      "review_profile_unchanged": true,
+      "same_profile_retry_rejected": true,
+      "production_mutations": 0,
+      "model_calls": 0,
+      "third_party_writes": 0
+    }
+  },
+  "deployment": {
+    "rebuilt_and_redeployed": true,
+    "source_hashes": {
+      "app/__init__.py": "13c61ea15cd385bb1deb9c15130f4a23abb7aab68a475c1843224d471396ac75",
+      "app/__main__.py": "c5aed5906521bc493fa7565d17eb1f7e2c2109777b15376c700264e57bec5aa2",
+      "app/agent_context.py": "c03d5aa1f12c49f0bf0fb62d265040b401cd98c83eaff13f07163795494bd849",
+      "app/agent_runtime.py": "9ec491ebc91cc654e3a7541114d42795fd5ace28448ec9f640e65bf16fdcb6e5",
+      "app/api.py": "5975e78b3c01c61eb4c32ff1d72f79e08ae2f6fce5e8815b3af1d97c01f247d4",
+      "app/approvals.py": "742d26c2d9a5eb25c52d7bf159c29e7bac1de7dc07cbe057c61db26f498a6a01",
+      "app/archives.py": "32f250f9d2cb071a96d6954f4c4e7026eafbc2e16efb2b6fd1f131b8dd7bcd38",
+      "app/artifacts.py": "202a3c2c6dd7e839739ff19fbea47baed4a1d1dcbd0e4d329b9931efe9356888",
+      "app/audit.py": "6b1dbf6e4cd77fe427bb54bbce9f8a71926661fba6d8c438a14af7b08d469d83",
+      "app/authorizations.py": "a1e7049fc5f9fbdd8bc3089981113be34428f7be28bfa44d7fe5e71f7a23731f",
+      "app/baseline_feedback.py": "23172cf3a857144087d34fdf6859e537bdb4e1511f2653de396082452ccd0e5d",
+      "app/baseline_metadata.py": "de7a8eab9be764133ac8a6e94b0e671137afd16c7e66229c7a4fd3d5063106ee",
+      "app/change_scope.py": "c45d864859a4d43780858b5d67ccfaeb60a2a31127ba0f71058b16e9b0781706",
+      "app/changesets.py": "e6380b969247797c315b672897de46178759c81252772318b9bdb50031735225",
+      "app/cla.py": "bf9466b2e153daa5624aa77492b599228d392ab94d74df09bca92e0f1b030747",
+      "app/cli.py": "aebb52f61238b1b6d85635840afe269a8581a3d45b45c56ab8d04ce079684df3",
+      "app/code_compressor.py": "dd94e5b5e6dfef73526c3d1c2ab1808e599d8368bbecfc0e4cd1493d4d0b0fa6",
+      "app/coding.py": "464731a77d4efc66358fe08d079bb96eef994134f1f3f532b6e74ac3fa04e71c",
+      "app/coding_budget.py": "c41b1f7eed390fc6e7991d490a9e65880df0cf1aa70b24bba517f3fa6241953c",
+      "app/coding_reads.py": "50a1382b2c1f422c7b9d349858bf455fdf891536f4e106fb411631fc5a2d48dd",
+      "app/coding_repair.py": "754e86c5f7c6df0418d01796e59abfdca14c0e24c18f4af103d8faa110601b9f",
+      "app/config.py": "541223d719e867f16680f9bb1428c8b426ed902bf0a5e88528e474faefb8e0af",
+      "app/context_compaction.py": "97e6d4cfd3d4929a196b2611c31be4d0217c874f1db3a3196bbe77dee88b7d62",
+      "app/context_limits.py": "3ac8ded6d2bc039f6586b9348c7632c7abdca0b9b0c84fbb33ea17a557bcbc84",
+      "app/contribution_workflow.py": "2fe347c245352b9cd596ff6158cc808040e4fb6a14a67e2c06b9e2b120ce6129",
+      "app/conversation.py": "5950dbc68c850811a484faf06e92fa8523991981fe8f88ba57252f795c904275",
+      "app/conversation_continuations.py": "cfdbfc58130a8244b108f807b51680019a011d35e92ad271257dd0d9d49a7a0d",
+      "app/conversation_protocol.py": "e16968da33b6bb059c23c92e3015dc844ee3d90a0608bf4e2a1ed1c85dc07053",
+      "app/conversation_reasoning.py": "247384aba86060179b08b500779a98fb276138c0f76b7e91d05f5ff9834a7d85",
+      "app/dashboard.py": "af1843080fb08817264bb8dcea54124a981e8504d30e60e55a831e0df49a88d9",
+      "app/database.py": "f1c6ae480088b639a634b0bdf669a23263c3efcf6ff4f4ded2fd2cf09927d221",
+      "app/domain.py": "95af6a92e0c166bc85020194f9f892879f0e4c37419748b4b1bdc0af65c964f7",
+      "app/environment_resolution.py": "a0ed4988c4a30a46f0d7ba3b3fe9702c870728e1221c842b24269bde24f7d8f9",
+      "app/execution_acceptance.py": "c146d66dda3b35038d17676bcb8369d590bc9dcd125f44e972567b546c8b2ee7",
+      "app/execution_chat.py": "3ef76964b736a5eb69ff760c43a119e80fb7c290c2b68bca6fba8781ee0a6848",
+      "app/execution_control.py": "3f91de93bb2e755690b7abe010b5e489aa571cd0cc54018e00f13e2834ecf73f",
+      "app/execution_environment.py": "14e177da957fdb876c3fc19a826d88b8cca885ccf79cd2ffbd682f0ae3040388",
+      "app/execution_outcome.py": "064cde5c1bd9225d96a1a0ee675082dea0722a194a1b437c77ed982e9871e1a1",
+      "app/execution_preflight.py": "3e3844beeb9a724bf20a724023ffa496d1240eed12a2c85ca26be24bf47e528c",
+      "app/execution_readiness.py": "88e80cc65399b278e8f8692ae52468cf9ec0312df365190e5239264b27ab2c75",
+      "app/execution_recovery.py": "b5000e1ea4ca46cc527c574ece639892bc1354af0f5dfdfce75c11e02b288e3e",
+      "app/execution_worker.py": "039e0fc5d3d63d803091e1726315128397397b2a8f2df52f45a77fe5a6634204",
+      "app/executions.py": "9ad9bedf5f366fd84c998108783340d7e8902fd7507a1367013514e912241939",
+      "app/github.py": "98fb106669e0b4f2f3b0e6ab3733c5cbe3850ebd72474d27c6543e041ab2d77d",
+      "app/jobs.py": "2ac67923aa6a78ee6f092e224206576340460d0b83955836ec361ffd6fc0f35a",
+      "app/lifecycle.py": "ff17cbb8c0df85b219d8845cfd10ef47faf2e2b7320d4cc035cee5344eb7b868",
+      "app/migrations/__init__.py": "24333c2d675e4832381e6650af1963c1550913ff9d6b19abf37a67d6c4458422",
+      "app/migrations/core.py": "e3c71c0287416f4a45dea3a20e6c71802f99cbc053fe28c232b3033d5c57b0a0",
+      "app/migrations/versions/__init__.py": "288382aad1657e101975f1f162ff4870569b197b51e07b7ee805f332f691b18e",
+      "app/migrations/versions/v0001_phase1.py": "047b4b46a67c943a54676c89ea5a7d011db8b544c3c71af928103bc9e020e24a",
+      "app/migrations/versions/v0002_provenance.py": "77d5a8d92015f796eceeb8ffd2d4ef081e446c56e902930d91c043619ff9b494",
+      "app/migrations/versions/v0003_jobs.py": "bc99b6a24ca05f13d9502b6ab5cb27d36e87d87348539a2c3d8c28d72a229021",
+      "app/migrations/versions/v0004_artifacts_audit.py": "d02a639184580047b9e610e4934a291aed8abf3f91f8ac81ce80273d2b658680",
+      "app/migrations/versions/v0005_scan_selection_date.py": "6ca065b47b65ac789973fbefb7b904d3b11c450219f21ca1387b301376363cd6",
+      "app/migrations/versions/v0006_provider_invocations.py": "66304d7fdc15ea198fac08361d15cac3fd70eb2b3f95aa5e495f87607104277b",
+      "app/migrations/versions/v0007_analysis_versions.py": "3ad936b3dbbbcfa5b5a5621305572fb9adb44f8f5980ef9b61e05f09ef8fa6cb",
+      "app/migrations/versions/v0008_final_score_versions.py": "ed5b6cfab4e7eb682df0c77b999118bd98e84274c2289402b70af4f0136b5f94",
+      "app/migrations/versions/v0009_contribution_tasks.py": "d7cb07b14ffe39eefc54f72987558e3c802fd48a1e11e072dd82dcb1882e7761",
+      "app/migrations/versions/v0010_contribution_task_states.py": "da1cbf521e9a9273a5e6b5fe04378acf66ba9f7d953cf93c2884063e9daa6be8",
+      "app/migrations/versions/v0011_plan_versions.py": "f50c4042d3f51683c2dc8c1000e40cabb75f1e43f131f4c66df76459817005f1",
+      "app/migrations/versions/v0012_plan_revision_links.py": "d174b009bc1c9c587e349eb1b50438d4f6f38de58d824da817ae1bbf5ecf776c",
+      "app/migrations/versions/v0013_plan_locks.py": "a5208ca28ca57520a48fb00d89188837be557d79bd99d6cd7ba167db420a8e92",
+      "app/migrations/versions/v0014_plan_approvals.py": "014b60a86f849bd391731dc8136274e1dfa81438bba5b721c25febc50bff3bed",
+      "app/migrations/versions/v0015_plan_conversations.py": "6dc4e7ba93f40fcf0d7430b4855db05089da5ba8e621309e8a1cadb7b432e528",
+      "app/migrations/versions/v0016_execution_attempts.py": "50ce5c8af095766975768d1265ebb7960e2b9f99ab51b14825a5d1c362c516cc",
+      "app/migrations/versions/v0017_execution_stage_runs.py": "7406b952052ce2efda45ce2d757ea5727742a4968e420d30f4cdd47e44b32048",
+      "app/migrations/versions/v0018_dependency_verify_inputs.py": "ba86bfaa6a455d5a8b8e6b48f119170ab8b22a47ab4e934138598c3762a318dd",
+      "app/migrations/versions/v0019_execution_artifact_manifests.py": "571276e2ceaa87408f26d637aeac113d6b944032be218df78c86f7e48a93ce37",
+      "app/migrations/versions/v0020_execution_workspace_disposals.py": "74096e1065215247eab9e9a29bd0faaf3bd3ac107e98f9959ba33b3f0f8dc808",
+      "app/migrations/versions/v0021_review_runs.py": "9f874146adb350d1e7aa5a0f5e156123ec45a7a09f01c6b2757be76310df6610",
+      "app/migrations/versions/v0022_publish_intents.py": "ecc87ec04c3226e41bf2fe90b33367e67fba18368f97c95a53d9e25a4c967426",
+      "app/migrations/versions/v0023_pull_request_events.py": "1d45292fa6e344bd0ea3502c62f461cbb0af1b586285e79a01774713cefdfc5e",
+      "app/migrations/versions/v0024_task_side_states.py": "d3192255af4dc8120789ee94c6466dd6d011fb620b1830099964361c1935fd9f",
+      "app/migrations/versions/v0025_product_experience.py": "7c66add088ad7df98562686da9eef9c9623408a940dc57a80b7f7fea30936200",
+      "app/migrations/versions/v0026_review_artifact_bindings.py": "adb8be70358396418eac8752900f72b787ffaa329088fe21d9b41da86166b8b4",
+      "app/migrations/versions/v0027_nvidia_agent_workflows.py": "8bb718640aeb23e9d948ad225cde0f7a03fc45bbd0283cea5550aa9c7ae2e6fc",
+      "app/migrations/versions/v0028_nvidia_review_runs.py": "13619a1dc56c6a7015614d8460b7af258d05c460c6d490dd6af42eb25e4aa93a",
+      "app/migrations/versions/v0029_workbench.py": "03654d98d37e7486d012255bef0d0d874302ba4282d734484bc07428f64df889",
+      "app/migrations/versions/v0030_model_settings.py": "2668c4976b9fed8719c36dd8d6932fe49639d04ff702c01b6702a25e0f2dd731",
+      "app/migrations/versions/v0031_task_visibility.py": "9f1bfdc135884f7b7ea8f03dbf7c65765e47a214beafe5b304b65c73d8841c41",
+      "app/migrations/versions/v0032_minimax_reviews.py": "1857e7f3623960425e3eeb72f6b6d04d601ef00db52f3fee6ea7df6e325a0c7f",
+      "app/migrations/versions/v0033_snapshot_assessments.py": "7f41005e49552e428cd9c036807d0eb149147029793ac7a04ec6084b92707539",
+      "app/migrations/versions/v0034_execution_baselines.py": "2ef27055c2f298b7a55fca1a36ea3150a44ae5948578527c6ddc6bcf95466c32",
+      "app/migrations/versions/v0035_workspace_scopes.py": "7a6a0a3440419b50c4fae3741a59d2e5bd5119b950a846b6b6a79b85ce6681b2",
+      "app/migrations/versions/v0036_verification_environment_recovery.py": "7f34c8898f1cc3a687fe8000dd0561cabd81e1b303640a9eca322ba45d2c2713",
+      "app/migrations/versions/v0037_baseline_feedback.py": "138fa0ec6497326ee7066c72afc126bfc6aa970f72d67563c215fc6ecfeabcb5",
+      "app/model_settings.py": "28e38fb83867bab0de4ed6f51e5e063357b7d8cb9874eff4c47dcada4e07787d",
+      "app/model_settings_api.py": "b9788e855cf1821b01ea98ca12f4ec4167ec109035161f026e8727600658a239",
+      "app/model_test_worker.py": "264771d175ecc79886702190f791cdc770ea61c80db018fac8242e25e1696cde",
+      "app/models.py": "8311f9f3d0d59affa39c94ef1c0df1aebab5cb5a563fd0ebc3f5da2c678f895b",
+      "app/native_resources.py": "07a02da579cfc93310750cf93f19a93b7458f3e7a2a33230011228e8c0796ee7",
+      "app/node_environments.py": "42ad84cb70b48f475377cc44679a6dfc1db94b1ff6469224532ea36fead7faf8",
+      "app/plan_conversations.py": "ccdefb04e75a5782bce26e1dbb3b7a10620dc7ed89c0490347234546ec3aa750",
+      "app/plan_locks.py": "baf4d6fc669714b487e29cc2bbb131d0d45a6f5dac0b0880172005ed382c96ec",
+      "app/planner.py": "4947dbfba556e851a6f4c805361dc571772f9f559773d60fdb0dbe11fd521854",
+      "app/planning.py": "415f476b3a2dfc9d75b8fc38069c0c3946eca3d5238e1b5809d8503c67ac4102",
+      "app/planning_budget.py": "ec52d0321f37867455a61a2dc4298594e2177b5e2ac91d309be006cfd4eefa1e",
+      "app/planning_continuation.py": "29f14d37f85394d1c57672dbd841e6d68b94a06e5c4b81cdf2e9b7d1806d98cd",
+      "app/planning_diagnostics.py": "8065f3ceee5e1f2eeccfc2e987f6968a30d1fc0e9d99a1f6ef9b01fdcf8868ab",
+      "app/planning_reads.py": "0125b340fa4314d37b6d43ca476aa4ff0c0a1c0d3d657e7a8231466bd1d1f881",
+      "app/plans.py": "190bc76a53657ead54a9a7f9f6de58eb2b5d5bbd52a32ef009a7b4cea9262530",
+      "app/post_publication.py": "33a895440a0558ac8a7f4065343ece15254f2f4a89c50d04464d91629d3cfe00",
+      "app/pr_freshness.py": "45743209364f04e610dbdff009eacb1a8261578100dcb786e8424ea5c4cd18bc",
+      "app/pr_lifecycle.py": "b3657803a430c8d755936111d22c2ef93119dc8bb512e7dec5ab9cdfb65be887",
+      "app/pr_updates.py": "b877bf1338f69e5897af1850d55964028342e243754d8ee1a8a7ef5d9fc2ffa1",
+      "app/product_experience.py": "fc6890d6fe2e4d76b02f44456bca98ee170b10f8c8831f860aa34fce386457e5",
+      "app/proposal_recovery.py": "c8ec81aca6151e8e265105faa85db2f76ea092b731faf25310f584f96f3f0097",
+      "app/proposal_validation.py": "fe2c9e9c8d94f78369c4392489fad47c9fb8185145cedd09a2e58d99f37b4857",
+      "app/provenance.py": "cfdb2701b1f895e090cd1594a0ea33652de5a159c38de9fcef2104f8470343cd",
+      "app/providers/__init__.py": "8a6210295ad684feb0315a2a83f2902ff818b1df404a8e1e9ef7eb29f2b07eec",
+      "app/providers/analysis_documents.py": "c12fe1cf0b90000e1109e5a4712e3e595001d67f3f7f747e148c19fac25c4d90",
+      "app/providers/analysis_schema.py": "4dec7070478be9fbd4029cf5837217b68bf9aaae10b2f13bd01a9a1063664eeb",
+      "app/providers/analysis_wire.py": "bd61f980bdad7fe78c6e8a7d3d26e9dad542edff54b8f2f2bd15774b1cfb435e",
+      "app/providers/availability.py": "6c2583b7ca3e0abfa3bd2f6a874ae6b29bee8fd49cffe6acc10c0112c29ba849",
+      "app/providers/budgets.py": "ba0415641fa628faa28597881adb89f0ece099c29ad8ce05d07c129296ef7381",
+      "app/providers/calibration.py": "4796b165155cd2394ee4b199570b282f15971cb7601a6fa82328bf2876622c47",
+      "app/providers/codex_cli.py": "702ccce3aecfc29cb6eef14d968e88623e424553c4623ee4d489f4b856a3b5c2",
+      "app/providers/contracts.py": "9b2955cdc6a7f120c4187bcc9d62a85b904ccc125aa6957587905d1380731c71",
+      "app/providers/evidence.py": "72145e4f2740aba4038dc86a649709ecdd7e810a952629057f97c4c5caa3cd0e",
+      "app/providers/fake.py": "7cf91e0013ae78acc5dcdd40127eebd87a0ec63d34c22f61e83be50020254b85",
+      "app/providers/gateway.py": "eaae48a0bab55624d68b2219c1d7a6b8369f982f50dc69724090b03aae1d3ca8",
+      "app/providers/gateway_http.py": "9ed8b94a4515b6f92fe2380a8a0f74a73e845cf046653420fc6f820e6ee75858",
+      "app/providers/history.py": "b44713539f4757913778d40651f486f127d576e993373182c9c1f875d4eee67f",
+      "app/providers/invocations.py": "13c276d1fc684474ea14330634b50d8dbf55526e0fc90fb71c51c9e39e9de8b9",
+      "app/providers/jobs.py": "d7678c7ade10f641a08f69a3bc29775e3171dd683c43c87ef98c914a51637d2c",
+      "app/providers/model_secrets.py": "4b6077431339d226a0d14d296a545097682d5ef0fbc4a11d1f80185f0b78bcf8",
+      "app/providers/nvidia_nim.py": "db5ac3842e194d1fa97b673ef7a9cd622e5b2423f782190b2c817e3a6e8f0691",
+      "app/providers/progress.py": "0879b3680703210fbdaa07b2eb41ceed07590212df51d89262a337182f6fbb1b",
+      "app/providers/runtime.py": "c6767b88b056bdbaf0f09878617b9a45e887b661ed0843f5438c1c9c41ae8673",
+      "app/providers/snapshot_assessment.py": "50f33b5c35343593073ade9688688c4b038b43f7780b744ad4f5e79ec36eeaf2",
+      "app/providers/studio.py": "0854e825924f48190e1a8a2e33408fc5881cff177ff49690fd86c2c83791b75c",
+      "app/providers/versions.py": "ed34e9a629f388b6183fd8e50293a700f7d11cf29b53c56732905e853ede7854",
+      "app/providers/workflow.py": "e0474c71c2da7492073a0e4ebc7468f767ce86e0e4c1cb79117e5ae71a3500c9",
+      "app/providers/xcli_local.py": "1e99d3ec0da6a8e0ad222feb89485e6703fb3dfa6b83b8be5501af7b981045a5",
+      "app/publication.py": "2ddc5adc030bb444ef7be39c9a98088445016527ec86b71d770711e21ce1822a",
+      "app/publication_documents.py": "512d40b598f87b5f50564e2b20c3d2097afb12f940c75be14e06687b09e83a0d",
+      "app/publication_requirements.py": "fcb50f9369764bf832ed5976ac97dc04c5b8c146c486cf16412bc5f6256f59e0",
+      "app/publish_intents.py": "77a321b4f3cfeab7fedbcf0d1f754ffd22080d2eb9fb1f1c1095125526aea6c6",
+      "app/publisher_accounts.py": "580e3094e1cf128b8787b5dec7fb63262c78f781fa0c30897e3d6aed9c47a215",
+      "app/publisher_service.py": "d008fc9ac62f330071071f06c3bbe80e55dff969e281cd8a35d1ae0d8d1265b2",
+      "app/publisher_settings_api.py": "47eeb40cd7058c33d5a99f7539eb337f440a89bdccd30492b06a5c037927a58e",
+      "app/publishers.py": "2895b927bd29819360a9aa43da4d36cb781715e484893fee17baa63e4610648f",
+      "app/pull_request_events.py": "447bb08755fa9c4a20c053c5a91edc486db6cbe2ffe5efc4a88b08a1e678dfee",
+      "app/review_provider.py": "8cf643c369797084c0882ea20b763cc76b8208665979549bcd011671f98fcc61",
+      "app/reviews.py": "cefb0e6683a9a1af83ca9889352630793b85174425b5e8974d580b8cdc2a2463",
+      "app/runtime_integrity.py": "2d4ca02d809d0d96b091b34ba3465cb08bbd439bd7df202750f8fc187e885cf2",
+      "app/sandbox_worker/__init__.py": "cf974a8b6832b6796c683263f8f45192730ae41abc7d4928638d3372b827392d",
+      "app/sandbox_worker/__main__.py": "ab7b058be064feb7eedaa45e7ef178e28638e668cb66d197768a04db1d280233",
+      "app/sandbox_worker/client.py": "319592be95becccbcc843b1f5ac4d6c6ffd6a66603e146bfcbb12c3b25a8d276",
+      "app/sandbox_worker/coding_context.py": "0f5fa9844c8f4bd5ca9c2f003266ee2cb8bbb7badb405376e5932c7d2e95876f",
+      "app/sandbox_worker/container.py": "371ea645b104e96558dbb82c8bc2531d0d00aedca59942ac6f129eef78b44605",
+      "app/sandbox_worker/contracts.py": "8b7f984751e1e46671aa375d491e7a19444efb3cc298dec76bc656f8d88dce15",
+      "app/sandbox_worker/dependencies.py": "f171d669927bef7ef00c5190abb970201ce33eb06ace08676bbcbada2cc40414",
+      "app/sandbox_worker/dependency_diagnostics.py": "760eeb59369ce82794878fbcc9e5bcca715f493a62288a608429247776ff6aa3",
+      "app/sandbox_worker/dependency_jobs.py": "6c3fcc9e58720d59fe35bc2470d24388ea6cdff580d21d2deb79cc3d9b5fd3c9",
+      "app/sandbox_worker/doctor.py": "b7e6952c4a6d59a57d96b6ad4fd4ee9416ec974e7495d6e473d220967c534116",
+      "app/sandbox_worker/explore.py": "4ece9d6cb5aebcf08ce9d0a1a0382c943e72ebd03ce50aed2426bad71a0a897f",
+      "app/sandbox_worker/fake.py": "66753468f5b470b0f22315b4a04c946a2948ce2df1086a0f76548104c9eee1e6",
+      "app/sandbox_worker/git_safety.py": "84f79fdd2771e2fae7c179056951385837f4271a671eed64603ce3951c292213",
+      "app/sandbox_worker/implementation.py": "37d15f2bc009330f9171379ae96aa1fe0b3f2e7b551d9c1933f6bf42fc4354ce",
+      "app/sandbox_worker/import_metadata.py": "6a96363c61148729175179159c9cacb6026370832e3a6e11141b04a22da7284b",
+      "app/sandbox_worker/native_resources.py": "58811cb2baecffe604bcae3c2a42397f1a6d26da328b2e65b0ec4a312a7fbd27",
+      "app/sandbox_worker/node_dependencies.py": "d798e1db82002050741ea9429b974abd563cbcc802e5591e671feeb0495511fd",
+      "app/sandbox_worker/node_execution.py": "08ca3804b981f0c9f8b9362e3587326687aba1fc27788d8f04cbcc232ed34681",
+      "app/sandbox_worker/package_dns.py": "ec89d7544e24d0614e5c52f4924589e8dafaf9209f7c10663e9167905e1d4364",
+      "app/sandbox_worker/package_environments.py": "cca1eaa7d5e96f4f6adf360abce565116e5c27aa5f3c8aab10db133c9c1cabd7",
+      "app/sandbox_worker/planning_context.py": "e4ec143fe8b5f496e0df59f10bf7ba1908ed2ae84679c0fca6ff5f8773d940f1",
+      "app/sandbox_worker/python_dependency_check.py": "fb0f5ba25efd78bb49d7f89c1c4b87dd312eab09edba6e50c2bfccafaf548994",
+      "app/sandbox_worker/python_sources.py": "604f83ba2f29fa054824e5706d60a68010cb9c28ad76c6085d7ddf0caee2394d",
+      "app/sandbox_worker/runtime.py": "378b7574ab451a79a0aad3c014fca1f840f6afea323a5feda9fe40b61bc37c2c",
+      "app/sandbox_worker/server.py": "3b6cceb0d3628d8941d9315c2ee487e002b0979d569f7076f0b495aeb386fbac",
+      "app/sandbox_worker/source_wheels.py": "7c3d053a943958b642ef21e4fa9767c9bcc549b4e91573c55f1659adabe96d5b",
+      "app/sandbox_worker/specs.py": "5ea772d1d9836289c858cc2df2fe5b552f047b47227ff2d509ff0655786f9395",
+      "app/sandbox_worker/verification.py": "532f5e9a5018dd8db5ed8472dc7ce265acdd22190396b24f6ec2eba94aad193c",
+      "app/sandbox_worker/workspace_dependencies.py": "c3c181fcb95c9d0b32e0f916c89438b90d88fe2b798ad9ff8a0cf8f8136c0c3c",
+      "app/sandbox_worker/workspace_jobs.py": "a38401fb788d83d52d6ac6a95f62ce68af274a8f664ba39ee3a9c4920dba820f",
+      "app/schemas.py": "ba2721ab8336573d6e103726d02b91ce7413b85f0e2a6846dc6b8e11d2ebd196",
+      "app/scoring.py": "a67589922e40a26aa2d202a8bf103df2e6866e57b1e4d499a0d1cbe52958ab72",
+      "app/security.py": "661f47c3b28447cc9f924cea62aff3a14bf88a639e5cb67490b1faf96a96519a",
+      "app/service.py": "5b2fae95112fafb71074ede0107d45a4cf95caa3ceb28db9ef03a2073c08498b",
+      "app/static/api.js": "2b86171b73ba7a7d4302984815aca91c6000d708580c5eb666190b52607e970d",
+      "app/static/app.js": "3b8665b143e0bd30bd714a3265112ab14d55d7b110751c71ba2245decf817af5",
+      "app/static/execution-changes.css": "0fd3d4f134b9d1a3b0b09686c2731f13769a77e3acf13cf8fd68343735b70676",
+      "app/static/execution-changes.js": "82c734f4599d00cdd4e1d5e8b5c33ee640e0c3a887e5c99908fc514f9e753168",
+      "app/static/index.html": "6692b7904a24400cdb9d8d7919cfa00dbe2e6b3d9e15a1fccdbe091af7080fc6",
+      "app/static/model-settings.js": "b7402050e0dae676ee5320cdb978db8f740942b7b7bac92347532f592721a270",
+      "app/static/publisher-settings.js": "db8201bb4af35df67009b081e43c582ce9e0e301ef91520dbaeff89b587b82e3",
+      "app/static/studio.css": "dff414827026b01bc2c327747047bc287f47644c385f9f0ec53bd77cb17313d4",
+      "app/static/studio.js": "dbae5298ca62ca67ca3efba38d3e937e35a514bf22395816fb91bf363b323b9b",
+      "app/static/styles.css": "e05cd1375ec8831fce12e6ee9851e7e3b7818aa858478f0cc02269639816b797",
+      "app/static/workbench.js": "9ca504675dd3ff55dda7a77c51feabc6cc7a63462fbebef1892aebeca81a4d9f",
+      "app/task_erasure.py": "7b4c96e4da907da1d01835784b6b82c9e208610b886e4254f3c120307043a43d",
+      "app/task_states.py": "4d734e736d8b91877ae3b69278d7b2c3680a77264dce95dff2a1d55c6b276b39",
+      "app/task_visibility.py": "809ce429c56385772c08b0ad26abde71631c53da31d544a85f1331fa492e0658",
+      "app/verification_commands.py": "0dd1f04b1f1a247662be443a26b487b8f553437086634b580b6d9a0ed5307fde",
+      "app/workbench.py": "ebe7156ff86f461080a2102560b23cb2250d235943d575def2f7c55fb4382e5c",
+      "app/workbench_api.py": "7efaabe4ff10c88178d6c2c8892e38733d09fe16ea00736209de2ddf8941e55a",
+      "app/workbench_view.py": "91f2c374fdcc026a4fdec260e8017e718ef35c5a5445536b12ddbe3486413bbd",
+      "app/workbench_worker.py": "9bbdaeff57f942276448da3d92a6c39f10a461c4178b80be173907658dec409b",
+      "app/worker.py": "602f6da0eb2294040b4fcedc459ad19bdfd5c9d8bc88e06f2fabf4d39c816b46",
+      "app/workspace_disposals.py": "e916f8b2dd5267b963765c9c1e31fc659329046459b08670d27e53478a701a0a",
+      "app/workspace_scope.py": "b1979e358296a313732cafceba8590d71392c4fb5348e09f57e632db4b03e508"
+    },
+    "source_checks": [
+      {
+        "service": "api",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "provider-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "sandbox-worker",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "publisher",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      },
+      {
+        "service": "model-gateway",
+        "exit_code": 0,
+        "report": {
+          "checked": 202,
+          "mismatches": []
+        }
+      }
+    ],
+    "services": [
+      {
+        "Service": "api",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "provider-worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "publisher",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-publisher:0.1.0"
+      },
+      {
+        "Service": "sandbox-worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-sandbox-worker:0.1.0"
+      },
+      {
+        "Service": "worker",
+        "State": "running",
+        "Health": "",
+        "Image": "contribos-local:0.1.0"
+      },
+      {
+        "Service": "model-gateway",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "contribos-local:0.1.0"
+      }
+    ],
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "browser": {
+      "real_deployed_task": true,
+      "widths": [
+        1440,
+        390
+      ],
+      "horizontal_overflow": false,
+      "page_errors": 0,
+      "mutation_requests": 0
+    }
+  },
+  "integrity": {
+    "sqlite_integrity": "ok",
+    "foreign_keys": "ok",
+    "task_chains": 8,
+    "events_verified": 2182,
+    "original_events_unchanged": 2182,
+    "original_artifacts_unchanged": 1238,
+    "database_runtime_secret_or_canary_matches": 0,
+    "artifact_runtime_secret_or_canary_matches": 0,
+    "active_jobs": 0
+  },
+  "logs": [
+    {
+      "file": "contribos-provider-final-logs.txt",
+      "lines": 79,
+      "runtime_secret_or_canary_matches": 0,
+      "credential_shaped_lines": 0,
+      "tracebacks": 0,
+      "missing_modules": 0
+    },
+    {
+      "file": "contribos-provider-retry-logs.txt",
+      "lines": 2,
+      "runtime_secret_or_canary_matches": 0,
+      "credential_shaped_lines": 0,
+      "tracebacks": 0,
+      "missing_modules": 0
+    }
+  ],
+  "backups": {
+    "before_provider_diagnostic": {
+      "backup": "/data/backups/coding-provider-error-20261026T234141Z",
+      "events": 2173,
+      "artifacts": 1236,
+      "sqlite_integrity": "ok",
+      "active_jobs": 0
+    },
+    "before_provider_diagnostic_sources": {
+      "path": "/data/backups/coding-provider-error-20261026T234141Z/service-sources.tar",
+      "files": 202,
+      "sha256": "d132f55d9ad26ad040084f89d60f3699bad812a8fda207d52653077a7df93c0b"
+    },
+    "before_retry_guard": {
+      "backup": "/data/backups/coding-provider-retry-guard-20261027T011729Z",
+      "events": 2182,
+      "artifacts": 1238,
+      "sqlite_integrity": "ok",
+      "active_jobs": 0
+    },
+    "before_retry_guard_sources": {
+      "path": "/data/backups/coding-provider-retry-guard-20261027T011729Z/service-sources.tar",
+      "files": 202,
+      "sha256": "1323b2a0ca52eb363c3fc8fecad84d1f86d9ff333399b81854c473dfa97d2dfe"
+    }
+  },
+  "current_task": {
+    "attempt_id": "697a93e6-7548-4e71-8abf-8ae36b716c24",
+    "baseline": {
+      "status": "passed",
+      "passed": 5,
+      "total": 5,
+      "missing_dependencies": []
+    },
+    "blocker": {
+      "recovery": {
+        "version": "agent-runtime-v1",
+        "category": "budget",
+        "action": "revise_output_budget",
+        "reason_code": "minimax_completion_truncated",
+        "uses_code_repair": false
+      },
+      "reason_code": "minimax_completion_truncated",
+      "retryable": false,
+      "reason": "子任务 change_set_proposal 失败: MiniMax completion exhausted its output-token budget"
+    },
+    "active_jobs": [],
+    "code_calls": 21,
+    "current_proposal_budgets": [
+      {
+        "binding": {
+          "task_id": "65bb0e9f-e8b5-4780-8a5e-19469e5e0f46",
+          "root_job_id": "34f27ab1-e46d-4231-81b0-379c7a22f3b3",
+          "root_payload_hash": "b6c971a6870df9d9db3c6df97f1fbaf9334b52e47c37a00e84483e6a089e6f69",
+          "attempt_id": "697a93e6-7548-4e71-8abf-8ae36b716c24",
+          "attempt_hash": "322d5754ffa824c01b6c26698e17176d5abc1386a6f322600a7a33d7c1ea4bee",
+          "plan_id": "b81f2268-af55-44c6-a971-d4268a69c121",
+          "plan_hash": "350099e398426d250720ccce7a7ce0fa04f2adfe4d26b3f72c7fced53d352d0a",
+          "context_hash": "ffdace1e75926d28954f017a2bd10c31039950fdc5fddc6303a0e0601c7e8844",
+          "conversation_hash": "9b40cc49d380f817b96151ac34ca08a70e932c0c66c4d4b041949c6ce86ef8d0"
+        },
+        "limit": 6,
+        "used": 3,
+        "remaining": 3,
+        "grant_hash": null,
+        "revision": "a2f91af925b039b40faf7235c3096782869273061a190d329a60c776bec65e12"
+      }
+    ],
+    "awaiting_acceptance": false,
+    "publication_completed": false
+  },
+  "next_preview": {
+    "path": "proposal-output-budget-preview-2026-10-27.json",
+    "hash": "222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049",
+    "approved": false,
+    "applied": false
+  },
+  "limitations": [
+    "Recovery is attributed to trusted maintenance and does not satisfy product-only autonomous acceptance.",
+    "The real model contribution failed Verify and Review; the latest repair has no completed proposal.",
+    "The frozen 32768-token profile remains unchanged; truncation does not authorize retry, a different profile or new budgets.",
+    "Higher output allowance does not guarantee valid or correct code.",
+    "Native Linux amd64/Docker Engine acceptance is unavailable."
+  ],
+  "additional_model_calls_during_final_guard_fix": 0,
+  "third_party_writes": 0,
+  "git_commits": 0
+}

@@ -293,10 +293,14 @@ class DependencyPreparationPlan:
                 if any(("" if p == "." else p + "/") + "pyproject.toml" not in paths for p in self.project_directories):
                     raise ValueError("Selected workspace projects require frozen manifests")
             elif node:
-                lock = {"npm": "package-lock.json", "yarn": "yarn.lock", "pnpm": "pnpm-lock.yaml"}[self.node_environment["manager"]]
-                if (prefix + "package.json" not in paths or prefix + lock not in paths
+                modern = self.node_environment["version"] == "node-environment-v2"
+                lock = self.node_environment["lockfile"] if modern else prefix + {"npm": "package-lock.json", "yarn": "yarn.lock", "pnpm": "pnpm-lock.yaml"}[self.node_environment["manager"]]
+                allowed_names = {"package.json", ".nvmrc", ".node-version", ".bun-version", ".tool-versions", ".yarnrc.yml", "pnpm-workspace.yaml", "bunfig.toml"}
+                if lock: allowed_names.add(PurePosixPath(lock).name)
+                if (prefix + "package.json" not in paths or lock is not None and lock not in paths
                         or any(prefix and not p.startswith(prefix) for p in paths)
-                        or any(PurePosixPath(p).name not in {"package.json", lock, ".nvmrc", ".node-version", ".yarnrc.yml", "pnpm-workspace.yaml"} for p in paths)
+                        or any(PurePosixPath(p).name not in allowed_names
+                               and not (p.startswith(prefix+".github/workflows/") and p.endswith((".yml",".yaml"))) for p in paths)
                         or any(("" if p == "." else p + "/") + "package.json" not in paths for p in self.node_environment["package_roots"])):
                     raise ValueError("Node workspace manifest binding is invalid")
             elif paths != tuple(sorted((prefix + "package-lock.json", prefix + "package.json"))):

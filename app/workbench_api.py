@@ -14,6 +14,7 @@ from app.workbench import Workbench, WorkbenchError
 from app.security import SensitiveDataError
 from app.planning_budget import PlanningBudgetRequest
 from app.contribution_workflow import authorize_execution, stop_workflow, _advance
+from app.agent_runtime import TaskObservation
 
 
 class PlanningMessageRequest(BaseModel):
@@ -41,11 +42,15 @@ class ConversationMessageRequest(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
     question_source_id: str | None = Field(default=None, min_length=1, max_length=128)
     question_source_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    reply_to_message_id: str | None = Field(default=None, min_length=1, max_length=128)
+    reply_to_message_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @model_validator(mode="after")
     def require_question_binding(self) -> ConversationMessageRequest:
         if (self.question_source_id is None) != (self.question_source_hash is None):
             raise ValueError("Question source ID and hash must be supplied together")
+        if (self.reply_to_message_id is None) != (self.reply_to_message_hash is None):
+            raise ValueError("Reply source ID and hash must be supplied together")
         return self
 
 
@@ -100,6 +105,18 @@ class PlanningBudgetResponse(BaseModel):
     configurable: bool
 
 
+class ConversationResponse(BaseModel):
+    version: str
+    user_state: dict[str, Any]
+    pending_action: dict[str, Any] | None
+    paused: bool
+    pending_count: int
+    blocking_count: int = 0
+    messages: list[dict[str, Any]]
+    results: list[dict[str, Any]]
+    observation: TaskObservation | None = None
+
+
 class WorkbenchResponse(BaseModel):
     task_id: str
     state: str
@@ -121,7 +138,7 @@ class WorkbenchResponse(BaseModel):
     pr_update: dict[str, Any] = Field(default_factory=dict)
     pr_update_available: bool = False
     pr_lifecycle: dict[str, Any] = Field(default_factory=dict)
-    conversation: dict[str, Any] = Field(default_factory=dict)
+    conversation: ConversationResponse
     native_resources: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -253,7 +270,10 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             return receive_message(Workbench(session, request.app.state.settings.artifact_root), task_id,
                                    text=payload.text, key=key, settings=request.app.state.settings,
                                    question_source_id=payload.question_source_id,
-                                   question_source_hash=payload.question_source_hash)
+                                   question_source_hash=payload.question_source_hash,
+                                   reply_to_message_id=payload.reply_to_message_id,
+                                   reply_to_message_hash=payload.reply_to_message_hash,
+                                   enable_runtime=True)
         except IntegrityError:
             session.rollback()
             raise WorkbenchError("另一条消息正在保存，请重新发送。", code="conversation_conflict") from None

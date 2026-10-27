@@ -629,7 +629,7 @@ class NvidiaNimGatewayRunner:
                 },
             ],
             "temperature": self.parameters.temperature,
-            "max_tokens": self.parameters.max_tokens,
+            "max_tokens": min(self.parameters.max_tokens, invocation.output_token_limit or self.parameters.max_tokens),
             "stream": self.parameters.stream,
         }
         if nemotron_structured_mode:

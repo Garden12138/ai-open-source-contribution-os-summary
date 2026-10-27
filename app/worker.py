@@ -299,10 +299,8 @@ class ContribOSWorker:
         if erased is not None:
             return erased
         self._sync_product_experience(now=now)
-        from app.contribution_workflow import advance_workflows
-        advance_workflows(self.database, self.settings)
-        from app.conversation import advance_conversations
-        advance_conversations(self.database, self.settings)
+        from app.agent_runtime import advance_tasks
+        advance_tasks(self.database, self.settings)
         for worker in (self.planning_archive, self.contribution_start):
             completed = await worker.run_once(now=now)
             if completed is not None:
@@ -501,12 +499,31 @@ class ContribOSProviderWorker:
             return await self.review.run_once(now=now)
         return None
 
+    async def _run_lane(self, workers: tuple, interval: float) -> None:
+        while True:
+            completed = None
+            for worker in workers:
+                if worker is not None:
+                    completed = await worker.run_once()
+                    if completed is not None:
+                        break
+            if completed is None:
+                await asyncio.sleep(interval)
+
     async def run_forever(self, *, poll_interval_seconds: float = 2) -> None:
         interval = max(0.1, poll_interval_seconds)
-        while True:
-            job = await self.run_once()
-            if job is None:
-                await asyncio.sleep(interval)
+        # Two disjoint worker sets: a slow implementation/review must not occupy
+        # the foreground question slot. Domain effects still serialize via CAS.
+        lanes = [asyncio.create_task(self._run_lane(workers, interval)) for workers in (
+            (self.conversation_intent, self.execution_chat),
+            (self.model_test, self.publication_document, self.planning, self.analysis, self.coding, self.review),
+        )]
+        try:
+            await asyncio.gather(*lanes)
+        finally:
+            for lane in lanes:
+                lane.cancel()
+            await asyncio.gather(*lanes, return_exceptions=True)
 
 
 class ContribOSSandboxWorker:

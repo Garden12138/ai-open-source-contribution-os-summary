@@ -4,9 +4,9 @@ from __future__ import annotations
 import re
 from app.security import ensure_no_sensitive_data
 
-PHASES = {"node_tools", "node_runtime", "node_resolve", "node_build", "create_venv", "build_tools_resolve", "build_tools_install", "project_metadata",
+PHASES = {"node_tools", "node_runtime", "node_resolve", "node_build", "node_native", "create_venv", "build_tools_resolve", "build_tools_install", "project_metadata",
           "runtime_resolve", "runtime_install", "project_build", "project_install", "dependency_check", "upstream_source_build", "source_acquire", "baseline_verify"}
-REASONS = {"package_tls_failed", "package_integrity_failed", "package_write_denied", "memory_exhausted", "dependency_integrity_changed", "no_matching_distribution", "dependency_conflict", "proxy_denied", "network_unavailable",
+REASONS = {"toolchain_version_unavailable", "package_tls_failed", "package_integrity_failed", "package_write_denied", "memory_exhausted", "dependency_integrity_changed", "no_matching_distribution", "dependency_conflict", "proxy_denied", "network_unavailable",
            "disk_exhausted", "subprocess_failed", "build_tool_unavailable", "native_tool_unavailable", "source_distribution_missing", "source_hash_mismatch", "source_archive_invalid", "source_metadata_invalid"}
 
 
@@ -16,7 +16,9 @@ def summarize_dependency_failure(phase: str, exit_code: int, output: str) -> dic
     output = output[-65536:]
     lower = output.lower()
     reason = "subprocess_failed"
-    if "no space left on device" in lower:
+    if "no matching toolchain version" in lower or "no matching runtime version" in lower:
+        reason = "toolchain_version_unavailable"
+    elif "no space left on device" in lower:
         reason = "disk_exhausted"
     elif any(v in lower for v in ("enomem", "heap out of memory", "allocation failed")):
         reason = "memory_exhausted"
@@ -63,11 +65,11 @@ def validate_dependency_diagnostic(value: object) -> dict:
 
 def dependency_diagnostic_message(value: dict) -> str:
     value = validate_dependency_diagnostic(value)
-    phases = {"node_tools":"Node 包管理器准备", "node_runtime":"Node 版本选择", "node_resolve":"Node 工作区依赖解析", "node_build":"Node 依赖离线构建", "baseline_verify":"修改前离线测试", "source_acquire":"依赖源码获取", "upstream_source_build":"上游依赖离线编译", "build_tools_resolve":"构建工具 wheel 解析", "runtime_resolve":"运行和测试依赖 wheel 解析",
+    phases = {"node_native":"原生工作区平台包准备", "node_tools":"Node 包管理器准备", "node_runtime":"Node 版本选择", "node_resolve":"Node 工作区依赖解析", "node_build":"Node 依赖离线构建", "baseline_verify":"修改前离线测试", "source_acquire":"依赖源码获取", "upstream_source_build":"上游依赖离线编译", "build_tools_resolve":"构建工具 wheel 解析", "runtime_resolve":"运行和测试依赖 wheel 解析",
               "project_metadata":"项目元数据构建", "create_venv":"隔离环境创建",
               "build_tools_install":"构建工具安装", "runtime_install":"冻结依赖安装",
               "project_build":"项目 wheel 构建", "project_install":"项目 wheel 安装", "dependency_check":"依赖一致性检查"}
-    reasons = {"package_tls_failed":"包服务 TLS 证书校验未通过", "package_integrity_failed":"下载包的完整性校验未通过",
+    reasons = {"toolchain_version_unavailable":"允许的包来源中没有满足项目声明的工具链版本", "package_tls_failed":"包服务 TLS 证书校验未通过", "package_integrity_failed":"下载包的完整性校验未通过",
                "package_write_denied":"包管理器无法写入隔离的安装或缓存目录", "memory_exhausted":"沙箱内存预算耗尽",
                "dependency_integrity_changed":"冻结依赖清单在检查前后不一致，未采纳本次测试结果；需要核对隔离环境和工作区链接",
                "source_distribution_missing":"没有符合约束的源码包", "source_hash_mismatch":"源码哈希不匹配", "source_archive_invalid":"源码归档结构不安全", "source_metadata_invalid":"源码构建声明无效", "no_matching_distribution":"没有匹配当前 Python/平台及版本约束的 wheel",

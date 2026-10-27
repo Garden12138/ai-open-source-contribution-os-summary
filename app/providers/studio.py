@@ -143,7 +143,7 @@ class StudioRunner(NvidiaNimGatewayRunner):
                     + canonical_json(output_schema),
                 },
             ],
-            "max_tokens": self.profile["max_tokens"],
+            "max_tokens": min(self.profile["max_tokens"], invocation.output_token_limit or self.profile["max_tokens"]),
             "stream": False,
         }
         if self.profile["structured_output"] == "json_schema":
@@ -358,7 +358,11 @@ class PublicHTTPSClient:
 class ProfileUpstream:
     def __init__(self, profile, store, *, proxy_url=None, transport=None):
         self.profile, self.store, self.proxy_url = profile, store, proxy_url
-        self.transport = transport or PublicHTTPSClient()
+        if profile["connection"]["provider"] == "xcli_local":
+            from app.providers.xcli_local import XcliLocalClient
+            self.transport = transport or XcliLocalClient()
+        else:
+            self.transport = transport or PublicHTTPSClient()
 
     async def create_response(self, payload):
         profile = self.profile
@@ -370,17 +374,30 @@ class ProfileUpstream:
                 connection["base_url"], "/models", credential=key, timeout=30
             )
         provider = connection["provider"]
+        if provider == "xcli_local":
+            from app.providers.xcli_local import registered_endpoint, require_model
+            try:
+                registered_endpoint(connection["base_url"])
+            except ValueError:
+                raise ProviderRunError("xcli_registration_required", "xcli 本机实例未注册或地址已变化", retryable=False) from None
+            if request.get("model") != profile["model"]:
+                raise ProviderRunError("xcli_frozen_model_mismatch", "xcli 模型与冻结 Profile 不符", retryable=False)
+            catalog = await self.transport.request(connection["base_url"], "/models", credential=key, timeout=30)
+            require_model(catalog, profile["model"], request)
+        requested_limit = request.pop("max_tokens", profile["max_tokens"])
+        if type(requested_limit) is not int or requested_limit < 1:
+            raise ProviderRunError("model_output_budget_invalid", "模型输出额度无效", retryable=False)
+        output_limit = min(requested_limit, profile["max_tokens"])
         if provider == MINIMAX_PROVIDER:
-            request.pop("max_tokens", None)
             request.pop("reasoning_effort", None)
-            request["max_completion_tokens"] = profile["max_tokens"]
+            request["max_completion_tokens"] = output_limit
             if request.get("tool_choice"):
                 request["thinking"] = {"type": "disabled"}
             else:
                 request["thinking"] = {"type": "adaptive"}
             request["reasoning_split"] = True
         else:
-            request["max_tokens"] = profile["max_tokens"]
+            request["max_tokens"] = output_limit
         for field in ("temperature", "reasoning_effort"):
             if provider == MINIMAX_PROVIDER and field == "reasoning_effort":
                 continue

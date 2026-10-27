@@ -87,7 +87,7 @@ def validate_base_url(value: str) -> str:
 class ConnectionInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=80)
-    provider: Literal["openai_compatible", "nvidia_nim", "minimax"] = (
+    provider: Literal["openai_compatible", "nvidia_nim", "minimax", "xcli_local"] = (
         "openai_compatible"
     )
     base_url: str = Field(min_length=1, max_length=500)
@@ -97,7 +97,13 @@ class ConnectionInput(BaseModel):
 
     @model_validator(mode="after")
     def validate_connection(self):
-        self.base_url = validate_base_url(self.base_url)
+        if self.provider == "xcli_local":
+            from app.providers.xcli_local import registered_endpoint
+            self.base_url = registered_endpoint(self.base_url)
+            if not self.credential_ref or self.credential_ref == "env-nvidia":
+                raise ValueError("xcli must use an independently stored application Token")
+        else:
+            self.base_url = validate_base_url(self.base_url)
         if (
             self.provider == "nvidia_nim"
             and self.base_url != "https://integrate.api.nvidia.com/v1"

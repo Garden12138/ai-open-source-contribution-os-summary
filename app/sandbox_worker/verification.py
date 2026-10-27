@@ -1617,7 +1617,7 @@ print(json.dumps({
     repr(GIT_SAFETY_ENVIRONMENT_NAMES),
 ).strip()
 _VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__PYTHON_SOURCE_OVERLAY__", getsource(build_python_source_overlay))
-from app.node_environments import validate_node_recipe
+from app.node_environments import validate_node_recipe, validate_node_receipt
 from app.sandbox_worker.node_execution import prepare_node_execution, verify_node_source
 _VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__NODE_EXECUTION__",
-    getsource(validate_node_recipe) + getsource(prepare_node_execution) + getsource(verify_node_source))
+    getsource(validate_node_recipe) + getsource(validate_node_receipt) + getsource(prepare_node_execution) + getsource(verify_node_source))

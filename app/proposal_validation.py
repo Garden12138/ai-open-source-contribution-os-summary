@@ -15,6 +15,7 @@ MESSAGES = {
     "proposal_hash_mismatch":"修改草案的文件哈希与冻结原文不符，尚未修改代码。",
     "proposal_sensitive_output":"修改草案含敏感内容，已拒绝保存和执行。",
     "proposal_budget_exceeded":"修改草案超过大小限制，尚未修改代码。",
+    "proposal_call_budget_exceeded":"本提案链的模型调用预算已用尽，尚未修改代码；继续实施需要明确的追加预算授权。",
 }
 
 
@@ -49,8 +50,10 @@ def check_proposal_structure(raw: str, context: Any, allowed_paths: Sequence[str
     for index,operation in enumerate(operations):
         if not isinstance(operation,dict): raise ProposalValidationError('proposal_structure_invalid',operation_index=index)
         path=operation.get('path')
-        if not isinstance(path,str) or path not in allowed_paths or path not in entries or path in seen:
+        if not isinstance(path,str) or path not in allowed_paths or path not in entries:
             raise ProposalValidationError('proposal_scope_invalid',operation_index=index)
+        if path in seen:
+            raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)
         seen.add(path); entry=entries[path]
         if set(operation)-{'path','kind','expected_prior_hash','content','executable','edits'}:
             raise ProposalValidationError('proposal_structure_invalid',path=path,operation_index=index)

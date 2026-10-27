@@ -4,12 +4,35 @@ from pathlib import PurePosixPath
 from typing import Any, Sequence
 
 
-def verification_command_error(commands: Sequence[Any], inventory: set[str], new_paths: set[str]) -> dict | None:
+def _package_script(argv: list[str], directory: PurePosixPath) -> tuple[PurePosixPath, str] | None:
+    """Resolve literal manager directory options without executing the command."""
+    manager = PurePosixPath(argv[0]).name
+    options = {"bun":{"--cwd"}, "yarn":{"--cwd"}, "npm":{"--prefix"}, "pnpm":{"--dir", "-C"}}
+    allowed = options.get(manager)
+    if allowed is None:
+        return None
+    index = 1
+    while index < len(argv):
+        argument = argv[index]
+        if argument in allowed and index + 1 < len(argv):
+            directory = directory / argv[index + 1]
+            index += 2
+        elif any(argument.startswith(option + "=") for option in allowed):
+            directory = directory / argument.split("=", 1)[1]
+            index += 1
+        else:
+            break
+    if index + 1 < len(argv) and argv[index] == "run" and not argv[index + 1].startswith("-"):
+        return directory, argv[index + 1]
+    return None
+
+
+def verification_command_error(commands: Sequence[Any], inventory: set[str], new_paths: set[str], evidence: dict | None = None) -> dict | None:
     for command in commands:
         argv = list(command.argv)
         executable = PurePosixPath(argv[0]).name
         tool = argv[2] if executable in {"python", "python3"} and len(argv) > 2 and argv[1] == "-m" else executable
-        install = ((tool in {"pip", "pip3", "uv", "poetry", "pdm", "npm", "pnpm", "yarn"}
+        install = ((tool in {"pip", "pip3", "uv", "poetry", "pdm", "npm", "pnpm", "yarn", "bun"}
                     and any(a in {"install", "ci", "sync", "add", "update", "upgrade"} for a in argv[1:]))
                    or tool in {"tox", "tox-uv"}
                    or (tool == "uv" and "run" in argv[1:]))
@@ -18,7 +41,39 @@ def verification_command_error(commands: Sequence[Any], inventory: set[str], new
                     "fields":["commands_to_run.argv"], "constraint":"dependency_preparation_separate",
                     "command_ids":[command.command_id],
                     "remediation":"Remove installation/environment-management commands from verification. The Sandbox Worker separately resolves and builds frozen dependencies. Use direct offline pytest/ruff/mypy commands."}
+        directory_arguments = []
+        if executable == "bun" and "run" in argv[1:]:
+            run_index = argv.index("run", 1)
+            directory_arguments = argv[1:run_index]
+            for argument in argv[run_index + 1:]:
+                if not argument.startswith("-"):
+                    break  # Arguments after the script name belong to that script.
+                directory_arguments.append(argument)
+        if any(argument == "--cwd" or argument.startswith("--cwd=") for argument in directory_arguments):
+            return {"reason_code":"planning_output_invalid", "validation_types":["value_error"],
+                    "fields":["commands_to_run.argv", "commands_to_run.working_directory"],
+                    "constraint":"bun_script_directory_requires_working_directory",
+                    "command_ids":[command.command_id],
+                    "remediation":"Use argv [bun, run, <declared script>] with the exact package directory in working_directory. Bun script directory flags have version-dependent dispatch behavior; help with exit zero does not prove script execution. Do not silently rewrite an approved command."}
         directory = PurePosixPath(command.working_directory)
+        script = _package_script(argv, directory)
+        if evidence and script:
+            import json
+            script_directory, script_name = script
+            manifest = str(script_directory / "package.json")
+            source = next((e.get("content") for e in evidence.get("entries",[]) if e["path"]==manifest),None)
+            if isinstance(source,str):
+                try:
+                    package=json.loads(source)
+                except ValueError:
+                    package={}
+                scripts=package.get("scripts",{}) if isinstance(package,dict) else {}
+                if script_name not in scripts and str(script_directory/script_name) not in inventory:
+                    return {"reason_code":"planning_output_invalid", "validation_types":["value_error"],
+                        "fields":["commands_to_run.argv"], "constraint":"project_script_missing",
+                        "script":script_name,
+                        "command_ids":[command.command_id], "paths":[manifest],
+                        "remediation":"The named script is absent from the inspected package.json. Use an actual declared script at its exact working_directory; do not save a speculative command or promise a runtime fallback."}
         if str(directory) != "." and not any(p.startswith(str(directory) + "/") for p in inventory):
             return {"reason_code":"planning_output_invalid", "validation_types":["value_error"],
                     "fields":["commands_to_run.working_directory"], "constraint":"command_directory_missing",

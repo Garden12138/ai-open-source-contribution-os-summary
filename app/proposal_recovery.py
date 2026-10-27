@@ -1,13 +1,84 @@
 """Exact local correction of a rejected proposal without another provider call."""
 from __future__ import annotations
 
+import json
+from collections.abc import Sequence
 from typing import Any
+from app.provenance import canonical_json, content_hash
 from app.workbench import Workbench, WorkbenchError
+
+
+def normalize_edit_append(raw: str, context: Any, allowed_paths: Sequence[str]) -> tuple[str, dict]:
+    """Prove one exact edit followed by a plain append equals append-with-edits.
+
+    This is a maintenance-only representation correction. The normal proposal
+    validator still rejects every duplicate path, including this input shape.
+    """
+    from app.coding import _parse_change_set_proposal
+    from app.proposal_validation import check_proposal_structure
+    from app.security import ensure_no_sensitive_data
+    ensure_no_sensitive_data(raw, context="proposal format correction")
+    if not isinstance(raw, str) or len(raw.encode()) > 4_000_000:
+        raise ValueError("Format correction exceeds proposal bounds")
+    value = json.loads(raw)
+    if (not isinstance(value, dict) or set(value) != {"summary", "operations"}
+            or not isinstance(value["operations"], list) or not 1 <= len(value["operations"]) <= 64):
+        raise ValueError("Format correction requires a complete proposal")
+    operations, positions, expected, pairs, fields = [], {}, {}, [], []
+    entries = {entry.path:entry for entry in context.entries}
+    for index, original in enumerate(value["operations"]):
+        if not isinstance(original, dict):
+            raise ValueError("Format correction requires operation objects")
+        operation = dict(original)
+        path = operation.get("path")
+        if not isinstance(path, str) or path not in entries or path not in allowed_paths:
+            raise ValueError("Format correction cannot expand paths")
+        if operation.get("kind") in {"edit", "append"} and operation.get("executable") is not None:
+            mode = operation["executable"]
+            if type(mode) is not bool or mode != entries[path].executable:
+                raise ValueError("Format correction cannot change file mode")
+            operation["executable"] = None
+            fields.append({"operation_index":index, "field":"executable", "rule":"preserve_existing_mode"})
+        if operation.get("kind") == "append" and operation.get("edits") == []:
+            operation["edits"] = None
+            fields.append({"operation_index":index, "field":"edits", "rule":"empty_edits_are_identity"})
+        checked = check_proposal_structure(canonical_json({"summary":value["summary"], "operations":[operation]}),
+                                           context, allowed_paths)
+        _, parsed = _parse_change_set_proposal(checked, context=context, strict_prior_hash=True)
+        path = operation["path"]
+        if path not in positions:
+            positions[path] = (len(operations), index)
+            operations.append(operation)
+            expected[path] = parsed[0]
+            continue
+        offset, previous_index = positions[path]
+        previous = operations[offset]
+        if (previous_index + 1 != index or previous["kind"] != "edit" or operation["kind"] != "append"
+                or previous.get("executable") is not None or operation.get("edits") is not None
+                or previous["expected_prior_hash"] != operation["expected_prior_hash"]):
+            raise ValueError("Only an adjacent exact edit then plain append can be combined")
+        merged = {**operation, "edits":previous["edits"]}
+        operations[offset] = merged
+        from dataclasses import replace
+        expected[path] = replace(expected[path], content=expected[path].content + operation["content"])
+        pairs.append({"path":path, "edit_operation_index":previous_index, "append_operation_index":index})
+    if not pairs:
+        raise ValueError("No exact edit/append pair was found")
+    normalized = canonical_json({**value, "operations":operations})
+    checked = check_proposal_structure(normalized, context, allowed_paths)
+    _, actual = _parse_change_set_proposal(checked, context=context, strict_prior_hash=True)
+    if {operation.path:operation for operation in actual} != expected:
+        raise ValueError("Format correction changed operation semantics")
+    return normalized, {"version":"edit-append-format-normalization-v1",
+        "raw_proposal_hash":content_hash(raw), "normalized_proposal_hash":content_hash(normalized),
+        "raw_operation_count":len(value["operations"]), "normalized_operation_count":len(operations),
+        "pairs":pairs, "field_normalizations":fields,
+        "byte_equivalence_verified":True, "model_calls_added":0}
 
 
 def _inputs(wb: Workbench, job_id: str, settings: Any) -> tuple:
     from app.jobs import JobService
-    from app.coding import CodingConversationService, _load_coding_context, coding_conversation_hash
+    from app.coding import CodingConversationService, _load_coding_context, coding_conversation_hash, _require_agent_job_binding
     from app.executions import ExecutionAttemptService
     from app.execution_recovery import require_recovery_authorization
     from app.coding_repair import repair_change_set, repair_context
@@ -24,8 +95,10 @@ def _inputs(wb: Workbench, job_id: str, settings: Any) -> tuple:
     coding = conversation.require_session(attempt.id)
     conversation._require_session_current(coding)
     turns = conversation.turns(coding.id)
-    if (coding.context_hash != job.payload["context_hash"] or not turns
-            or turns[-1].record_hash != job.payload["latest_turn_hash"]
+    _require_agent_job_binding(job.payload, coding)
+    direct = job.payload.get("version") == "change-set-proposal-job-v2"
+    if (coding.context_hash != job.payload["context_hash"] or (not turns and not direct)
+            or (turns[-1].record_hash if turns else content_hash([])) != job.payload["latest_turn_hash"]
             or coding_conversation_hash(turns) != job.payload["conversation_hash"]):
         raise WorkbenchError("草案上下文或讨论已变化。", code="proposal_correction_stale")
     if any(j.id != job.id and j.state in {"queued", "leased", "running"} for j in wb.jobs(attempt.task_id)):
@@ -44,7 +117,7 @@ def _inputs(wb: Workbench, job_id: str, settings: Any) -> tuple:
 
 
 def record_corrected_proposal(wb: Workbench, job_id: str, *, raw: str,
-                              expected_rejection_hash: str, settings: Any) -> Any:
+                              expected_rejection_hash: str, settings: Any, commit: bool = True) -> Any:
     """Trusted local editing entry; never rewrites a job or fabricates model usage."""
     from app.cla import _lock
     from app.coding import _parse_change_set_proposal, _validate_proposed_operations
@@ -86,6 +159,8 @@ def record_corrected_proposal(wb: Workbench, job_id: str, *, raw: str,
         "change_set_hash":change_set.change_set_hash, "artifact_id":artifact,
         "model_calls_added":0,
     }, key="corrected-proposal:" + job.id, job_id=job.id, plan_id=plan.id, commit=False)
+    from app.agent_runtime import mark_maintenance
+    mark_maintenance(wb, attempt.task_id, receipt, reason="local_proposal_correction")
     blocker = wb.active_blocker(attempt.task_id)
     if blocker:
         if blocker.job_id != job.id:
@@ -97,6 +172,55 @@ def record_corrected_proposal(wb: Workbench, job_id: str, *, raw: str,
             "job_id":job.id, "job_attempt_count":job.attempt_count,
             "correction_hash":receipt.record_hash,
         }, key="resume-corrected:" + job.id, job_id=job.id, plan_id=plan.id, commit=False)
+    if commit:
+        wb.session.commit()
+    return receipt
+
+
+def record_edit_append_correction(wb: Workbench, job_id: str, *, expected_rejection_hash: str,
+                                 settings: Any) -> Any:
+    """Derive a correction from the exact rejected model reply; no authored code."""
+    from app.cla import _lock
+    from app.models import AgentInvocation, Job
+    from app.coding import verify_agent_invocation
+    from app.executions import ExecutionAttemptService
+    _lock(wb)
+    job = wb.session.get(Job, job_id)
+    if job is None:
+        raise WorkbenchError("原草案任务不存在。", code="proposal_correction_stale")
+    attempt = ExecutionAttemptService(wb.session).get_verified(job.payload["execution_attempt_id"])
+    old = next((e for e in wb.history(attempt.task_id) if e.kind == "proposal_format_normalized"
+                and e.job_id == job_id), None)
+    if old:
+        if old.actor_id != "maintenance" or old.payload["rejection_hash"] != expected_rejection_hash:
+            raise WorkbenchError("重复校正的原始依据不同。", code="proposal_correction_stale")
+        raw = wb.read(old.payload["normalized_proposal_artifact_id"])["raw"]
+        return record_corrected_proposal(wb, job_id, raw=raw,
+            expected_rejection_hash=expected_rejection_hash, settings=settings)
+    job, attempt, auth, base, view, previous, plan, rejection = _inputs(wb, job_id, settings)
+    if rejection.record_hash != expected_rejection_hash:
+        raise WorkbenchError("草案失败依据已变化。", code="proposal_correction_stale")
+    rejected = wb.read(rejection.payload["result_hash"])
+    invocation = wb.session.get(AgentInvocation, rejection.payload["agent_invocation_id"])
+    if (rejection.actor_id != "system" or rejection.plan_version_id != plan.id
+            or invocation is None or verify_agent_invocation(invocation).job_id != job.id
+            or invocation.role != "change_set" or invocation.attempt_number != job.attempt_count
+            or invocation.output_hash != rejection.payload["result_hash"]
+            or content_hash(rejected.get("raw_proposal")) != rejected.get("raw_proposal_hash")):
+        raise WorkbenchError("原始模型回复无法验证。", code="proposal_correction_stale")
+    normalized, proof = normalize_edit_append(rejected["raw_proposal"], view, plan.files_likely_to_change)
+    with wb.session.begin_nested():
+        proof_id = wb.artifact({**proof, "rejection_hash":rejection.record_hash,
+            "agent_invocation_hash":invocation.record_hash, "editing_context_hash":view.context_hash})
+        normalized_id = wb.artifact({"raw":normalized})
+        wb.append(attempt.task_id, "proposal_format_normalized", {"version":proof["version"],
+            "rejection_hash":rejection.record_hash, "agent_invocation_hash":invocation.record_hash,
+            "proof_hash":proof_id, "normalized_proposal_artifact_id":normalized_id,
+            "authorization_hash":auth.record_hash, "model_calls_added":0},
+            key="normalize-edit-append:" + job.id, actor="maintenance", job_id=job.id,
+            plan_id=plan.id, commit=False)
+        receipt = record_corrected_proposal(wb, job.id, raw=normalized,
+            expected_rejection_hash=expected_rejection_hash, settings=settings, commit=False)
     wb.session.commit()
     return receipt
 

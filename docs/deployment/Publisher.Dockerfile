@@ -9,7 +9,7 @@ RUN apt-get update \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent contribos
 COPY pyproject.toml README.md ./
 COPY app ./app
-RUN python -m pip install --no-cache-dir .
+RUN python -m app.runtime_integrity && python -m pip install --no-cache-dir .
 RUN mkdir -p /data/artifacts /publisher-private && chown -R contribos:contribos /data /publisher-private
 USER 10001:10001
 ENTRYPOINT ["contribos", "publisher-service"]
