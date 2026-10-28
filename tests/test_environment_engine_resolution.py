@@ -106,3 +106,16 @@ def test_hash_mismatch_and_symlink_are_never_missing_retry():
     data["entries"][0]["type"] = "symlink"
     with pytest.raises(ResolutionError, match="source_symlink_unsupported"):
         requirements(FrozenSource(data), ["r.txt"])
+
+
+def test_new_projection_types_a_legacy_unsupported_gap_without_reinterpreting_old_plans():
+    from app.execution_preflight import inspect_environment
+    selected = {"status": "unsupported", "reason": "No admitted dependency recipe", "manifests": []}
+    assert inspect_environment(selected, {"entries": []}) == selected
+    current = inspect_environment(selected, {"entries": []}, engine_version="upeve-v1")
+    assert current["reason_code"] == "environment_recipe_unsupported"
+    assert current["readiness"]["static_admitted"] is False
+    assert current["readiness"]["baseline_verified"] == "unverified"
+    builtin = {"status": "builtin", "reason": "Use image tools", "manifests": []}
+    assert inspect_environment(builtin, {"entries": []}) == builtin
+    assert inspect_environment(builtin, {"entries": []}, engine_version="upeve-v1")["status"] == "unsupported"

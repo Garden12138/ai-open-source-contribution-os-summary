@@ -138,6 +138,8 @@ def task_environment(wb: Any, task_id: str) -> dict[str, Any]:
     binding = next((e for e in reversed(wb.history(task_id)) if e.kind == "plan_bound" and e.plan_version_id == plan.id), None)
     engine = binding.payload.get("environment_engine") if binding else None
     selected = inspect_environment(selected, evidence, engine_version=engine["version"] if engine else None)
+    if engine:
+        selected = {**selected, "environment_engine": engine}
     if engine and selected["status"] == "supported":
         from app.environment_engine.service import inspect_contract
         from app.changesets import plan_sandbox_commands

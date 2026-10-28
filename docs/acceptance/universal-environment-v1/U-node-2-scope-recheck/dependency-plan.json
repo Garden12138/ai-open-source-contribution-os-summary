@@ -1,0 +1,159 @@
+{
+  "version": "workspace-dependency-plan-v6",
+  "plan_id": "U-node-2-scope-recheck",
+  "execution_attempt_id": "U-node-2-scope-recheck",
+  "workspace_inventory_hash": "bc6db8ed38d638a2c3b290d40120d55cd7052fd6e24ad8d27912b8816e99aac3",
+  "ecosystem": "node",
+  "manifests": [
+    {
+      "path": "package.json",
+      "content_hash": "ab38720b2b8fe9529a49040d6d20fe23627d0cdf2699195bf9f2eaf58b5d0b18"
+    },
+    {
+      "path": "yarn.lock",
+      "content_hash": "d53edb62306b30bc2888ebb06c028f4b1452df9e39819c4d98f00857655f5156"
+    }
+  ],
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "proxy_policy_hash": "67683582dd39140593ed3bf6fcf3658035e86a192fca2c0c209fb13231496838",
+  "disk_bytes": 4294967296,
+  "source_result_hash": "42aba4160ba773e7e899701c5de6540e28c9df64b163767290c073c9a856b4c6",
+  "source_kind": "explore",
+  "project_directory": ".",
+  "local_projects": [],
+  "preparation_version": "node-workspace-preparation-v1",
+  "node_environment": {
+    "version": "node-environment-v2",
+    "manager": "yarn",
+    "manager_version": "",
+    "runtime_requirement": "",
+    "runtime_pin": "",
+    "project_directory": ".",
+    "package_roots": [
+      "."
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [],
+    "registry": "https://registry.npmjs.org",
+    "manager_constraint": ">=1.0.0",
+    "lockfile": "yarn.lock",
+    "lock_strategy": "existing"
+  },
+  "environment_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U-node-2-scope-recheck",
+      "snapshot_hash": "c86add8c499d7676914a92edafda8ecef925698cd13ed7741608f3b89afd0fce",
+      "source_archive_hash": "4863a1304b659f1105f69d8ae0c715428c41d2d64b43edfd701148ddfca900da",
+      "base_commit_sha": "c191c6c2d27f41245e803912d43c7213436a34d3",
+      "plan_version_hash": "819078f964cf1c0477672141f3d8dbf57a01425b32ff56894348652565bfcbea",
+      "approved_commands_hash": "c954448ac202622e5c449969f72cd1f53e3496a00efdecb091e6e0f8db1228da",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "yarn",
+          "test"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "package.json",
+            "sha256": "ab38720b2b8fe9529a49040d6d20fe23627d0cdf2699195bf9f2eaf58b5d0b18",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "yarn.lock",
+            "sha256": "d53edb62306b30bc2888ebb06c028f4b1452df9e39819c4d98f00857655f5156",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          "package.json#test",
+          ".:react-scripts-ts test --env=jsdom"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "react-scripts-ts"
+          ],
+          [
+            ".",
+            "yarn"
+          ]
+        ],
+        "required_executable": "yarn",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "resolved"
+      },
+      {
+        "command_id": "check-2",
+        "argv": [
+          "yarn",
+          "build"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "package.json",
+            "sha256": "ab38720b2b8fe9529a49040d6d20fe23627d0cdf2699195bf9f2eaf58b5d0b18",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "yarn.lock",
+            "sha256": "d53edb62306b30bc2888ebb06c028f4b1452df9e39819c4d98f00857655f5156",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          "package.json#build",
+          ".:react-scripts-ts build"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "react-scripts-ts"
+          ],
+          [
+            ".",
+            "yarn"
+          ]
+        ],
+        "required_executable": "yarn",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "resolved"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": "package.json",
+        "sha256": "ab38720b2b8fe9529a49040d6d20fe23627d0cdf2699195bf9f2eaf58b5d0b18",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "yarn.lock",
+        "sha256": "d53edb62306b30bc2888ebb06c028f4b1452df9e39819c4d98f00857655f5156",
+        "parser": "node-toolchain-v1"
+      }
+    ],
+    "preparation": {
+      "independent_directories": []
+    },
+    "unresolved": [],
+    "admission": "static_admitted",
+    "expected_failures": {}
+  },
+  "metadata_strategy": "declarative-v1"
+}

@@ -136,6 +136,13 @@ def python_project_error(metadata: dict, *, allow_dynamic: bool = False, include
 
 def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any], *, engine_version: str | None = None) -> dict[str, Any]:
     """A recognized filename selects an adapter; inspected content admits it."""
+    if engine_version and (selected.get("status") == "builtin"
+            or selected.get("status") == "unsupported" and not selected.get("reason_code")):
+        # Legacy selectors predate machine-readable gaps. Keep their original
+        # result for old authorizations, but never emit an untyped new verdict.
+        return {**selected, "status": "unsupported", "reason_code": "environment_recipe_unsupported",
+                "reason": selected.get("reason", "") + "通用引擎尚未识别可冻结的生态配方；不会将镜像内置工具视为已经验证。",
+                "readiness": {"static_admitted": False, "toolchain_prepared": "unverified", "baseline_verified": "unverified"}}
     if selected.get("preparation_version") == "node-workspace-preparation-v1":
         from app.node_environments import inspect_node_environment
         return inspect_node_environment(selected, evidence)

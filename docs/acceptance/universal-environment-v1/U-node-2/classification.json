@@ -1,0 +1,10 @@
+{
+  "classification": "U",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "failed",
+  "contract_hash": "e75546727ca72f7e7d7cee62d8a35c7a7f8e478ce1be8a55a263e2cc3cdc3551",
+  "reason_code": "acceptance_ImplementationError"
+}

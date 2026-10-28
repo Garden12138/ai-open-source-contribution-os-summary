@@ -1,0 +1,67 @@
+{
+  "protocol_hash": "5c5c77dce94ccda84e4699dbe82d3b6eded30b7b96137410e5aba32f57b73120",
+  "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+  "selected_before_source_inspection": true,
+  "samples": [
+    {
+      "sample_id": "U-python-1",
+      "repository": "BayesWitnesses/m2cgen",
+      "repository_id": 165457814,
+      "ecosystem": "python",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "selection_hash": "223a3d2b16963973097cf3578cad70a463b00a3bcbd53f40c44bad7ae76e1e99",
+      "first_selected_at": "2026-10-28T16:23:59.253935+00:00"
+    },
+    {
+      "sample_id": "U-python-2",
+      "repository": "mixelpixx/KiCAD-MCP-Server",
+      "repository_id": 973208983,
+      "ecosystem": "python",
+      "default_branch": "main",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "selection_hash": "35621bf82d38c45f2b691ebd2dbfe3a8d753362658c742ce58d5ef470f79aa87",
+      "first_selected_at": "2026-10-28T16:23:59.253998+00:00"
+    },
+    {
+      "sample_id": "U-node-1",
+      "repository": "shadcn-labs/pdfcn",
+      "repository_id": 1330867309,
+      "ecosystem": "node",
+      "default_branch": "main",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "selection_hash": "0aaf4c34821d45c12a6cbfe398bd7bcdf3eae0295406b6b02b034d154f96c96c",
+      "first_selected_at": "2026-10-28T16:23:59.254010+00:00"
+    },
+    {
+      "sample_id": "U-node-2",
+      "repository": "fangpenlin/avataaars-generator",
+      "repository_id": 111056609,
+      "ecosystem": "node",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "selection_hash": "8a34cdc5df19387da2e9bec495467d9b69b8d8013d8d3f5c5d44563521e5aad4",
+      "first_selected_at": "2026-10-28T16:23:59.254012+00:00"
+    }
+  ],
+  "excluded": [
+    {
+      "repository": "yangjianxin1/GPT2-chitchat",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "alejandrobalderas/claude-code-from-source",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "michaelshimeles/ralphy",
+      "reason": "license_not_eligible"
+    }
+  ],
+  "initial_denominator": 4,
+  "replacements_allowed": false
+}

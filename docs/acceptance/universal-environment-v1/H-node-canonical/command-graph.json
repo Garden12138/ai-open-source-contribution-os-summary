@@ -1,0 +1,488 @@
+{
+  "status": "unsupported",
+  "ecosystem": "node",
+  "mode": "workspace-v2",
+  "preparation_version": "node-workspace-preparation-v1",
+  "project_directory": ".",
+  "manifests": [
+    ".github/workflows/bench-main.yml",
+    ".github/workflows/bench-pr-comment.yml",
+    ".github/workflows/bench-pr.yml",
+    ".github/workflows/bundle-impact.yml",
+    ".github/workflows/check-main.yml",
+    ".github/workflows/check-pr.yml",
+    ".github/workflows/prerelease-pr.yml",
+    ".github/workflows/publish-docs.yml",
+    ".github/workflows/publish.yml",
+    ".github/workflows/register-pr.yml",
+    ".github/workflows/seed-benchmarks.yml",
+    ".github/workflows/test-pr.yml",
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/bench-file/package.json",
+    "scripts/bench-main/package.json",
+    "scripts/bench-pr/package.json",
+    "scripts/benchmarks/package.json",
+    "scripts/biome-config/package.json",
+    "scripts/bundle-impact/package.json",
+    "scripts/changelog/package.json",
+    "scripts/checkout-pr/package.json",
+    "scripts/common/package.json",
+    "scripts/format/package.json",
+    "scripts/lint/package.json",
+    "scripts/package.json",
+    "scripts/prerelease-pr/package.json",
+    "scripts/publish-docs/package.json",
+    "scripts/publish-version/package.json",
+    "scripts/radashi-db/package.json",
+    "scripts/register-pr/package.json",
+    "scripts/release-notes/package.json",
+    "scripts/seed-benchmarks/package.json",
+    "scripts/seed-merged-functions/package.json",
+    "scripts/seed-proposed-functions/package.json",
+    "scripts/test-branch/package.json",
+    "scripts/test-single/package.json",
+    "scripts/tree-shake/package.json",
+    "scripts/update-browserslist/package.json"
+  ],
+  "lockfiles": [
+    "pnpm-lock.yaml"
+  ],
+  "change_paths": [
+    "src/typed/isObject.ts",
+    "tests/typed/isObject.test.ts"
+  ],
+  "reason": "环境命令依赖图尚未闭合：unsupported_dynamic_installer。不能开始编码；需补充冻结证据或生成新方案并重新确认。",
+  "manifest_hashes": {
+    ".github/workflows/bench-main.yml": "dc13a3137c3b9f8a1c333450bafa68e8772c4c36548a5eb9160c0e0219a5b999",
+    ".github/workflows/bench-pr-comment.yml": "5531f63fc78a49350b07c0607a829ed5fbae63bc50a5506620084047bfa337c2",
+    ".github/workflows/bench-pr.yml": "0ea1b40f2d5b8f6206bb5499bbc30d7a1e3033a7361fd2798b80820290b08201",
+    ".github/workflows/bundle-impact.yml": "7495f3914b7440edb0f341a7b59a73b7cb5505dd9c59fb81ef16ac76dc599444",
+    ".github/workflows/check-main.yml": "c717b7313fc2a401288274a0f2da75bf8c8ff3d759cc495e0772edc8d3eaf98b",
+    ".github/workflows/check-pr.yml": "62009227f2d312d899e090e0b3728fa3545e769de695e308ce978c55f8f2914a",
+    ".github/workflows/prerelease-pr.yml": "2c65c108ac4bc14a63c3d38da938581d6bc70daa56de1c9ed7234f20e1e611d4",
+    ".github/workflows/publish-docs.yml": "8f1c81e8c759cd1914f40e94269016298a4c945511aff6a945270bc4cbba1174",
+    ".github/workflows/publish.yml": "dc268c9f35b92d3ac6389fb67561a9003f6176fba6516aeae476983d7bfaadd1",
+    ".github/workflows/register-pr.yml": "087a691b52b3c71b29b1377d0ecb4b1fe69dfeb53ea12c4f1a20b452f3b0a881",
+    ".github/workflows/seed-benchmarks.yml": "22ef0f9291604650f3c084750217e9fd7fd42da9cbac86be4d2413b24c0ff536",
+    ".github/workflows/test-pr.yml": "7310d3efa0c2d536ac7c1e228fd0def7a149185a49f684407ccdfe75c4b1eaa8",
+    "package.json": "e34631e146f9e46a324f34b96b58b8e5e468a55c9488d5e63987e515b1f54e58",
+    "scripts/bench-file/package.json": "df1e753b1255d83b895fc56c7445947ea71b4a89283a12b84a49c972c533872c",
+    "scripts/bench-main/package.json": "ad3348b433bc56bf0bfb9f8828ffdde10ec2788038eaac9042d30577f8078a69",
+    "scripts/bench-pr/package.json": "eb80218587b49d26b4e1d04ff3718c3c6ee930245b2357bdcd4dde8e97a828df",
+    "scripts/benchmarks/package.json": "655cc9691cef8f9f0b1311d4aac89a6dec5a322c7e5814d2fa72b1ec84ccca2a",
+    "scripts/biome-config/package.json": "94ae6dd94e42e1e37d966c82aa5f83e5f680f6c4cb5c72c9062ae3276aae14fa",
+    "scripts/bundle-impact/package.json": "a60444358b9e379c684011c99e00f286de6f6ee378bb4bccd7c5e37db0c3cdb0",
+    "scripts/changelog/package.json": "1fde971764c069bac2f4ec5f9993edd45aa84c731822ef239e8f2af117743898",
+    "scripts/checkout-pr/package.json": "eff5f475afe9d4e4b9e65707c524a6f2a1527b7483eee9e1f73f0ed5e566e594",
+    "scripts/common/package.json": "0fb4a4864ab87c67a87739e2744c7ab6fe4ec15632dac2607c0d31ba494d4406",
+    "scripts/format/package.json": "6f43166ebb6958af8e31b4aba56940e062ab42dd4a751456cf0cc8067cb89f33",
+    "scripts/lint/package.json": "dd041fb3db86600bd6d48e1e96b6114eb1130bd0be8d9f70d47d94cd6dcc214d",
+    "scripts/package.json": "f69ed17eea98f49ee075f676bae79df9cb779e54d5887b94d94313d34511170c",
+    "scripts/prerelease-pr/package.json": "89984524672a2cdd0fa9a82a2bd5291cdea36bee2b963cabb0b8b522ea2b0378",
+    "scripts/publish-docs/package.json": "bdd725e88341d1e398ec843d23f1f8c2c931a34789183e19b1bb42668288d732",
+    "scripts/publish-version/package.json": "a323f971cff58ab475fd171c00574f22c0f5cbf00c02f32cf6c4f0afbf3fa188",
+    "scripts/radashi-db/package.json": "8d08b0259acac8d81c8c0b19639b58fda64705e0830cb7361745cbf117cc63c0",
+    "scripts/register-pr/package.json": "39310258677b0295d5c8d6099c051906e2acce08b4306f63eb5d44cf97fab8d9",
+    "scripts/release-notes/package.json": "cd5697c77faae2429b2e33734059b28626ca1ca849921fa685e82d854811bc9e",
+    "scripts/seed-benchmarks/package.json": "dbd6ee2e2c1ec8d143c1bcbbe16b94b569db2acfb98a9d07f69e1e28472910b9",
+    "scripts/seed-merged-functions/package.json": "d56365e30ea7a3c92baab016c50d6914eb02d3e1174a5a5a80d67ef763986e54",
+    "scripts/seed-proposed-functions/package.json": "3a9d00a4085025b94ac66a4de4a6b74b7622a8b387e7df95d51f549616f76349",
+    "scripts/test-branch/package.json": "b516ee115ead7a4518e3244f1708b515a4ebf6438baaf1c776cdee7d401c4d28",
+    "scripts/test-single/package.json": "1007061330057bcd40ab13d74a5661bd13694c023589d52885ae0bd517b191f8",
+    "scripts/tree-shake/package.json": "4cdcc3ec650e9bc265842a5866b555eecdad626d6df6c60e69b34a77f0a7dcd4",
+    "scripts/update-browserslist/package.json": "df14b1e0413e086f8702ea96f7084f2497627b6bbc6a7b133b94a06cde226874"
+  },
+  "node_environment": {
+    "version": "node-environment-v1",
+    "manager": "pnpm",
+    "manager_version": "10.29.3",
+    "runtime_requirement": ">=18.0.0",
+    "runtime_pin": "",
+    "project_directory": ".",
+    "package_roots": [
+      "."
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [],
+    "registry": "https://registry.npmjs.org"
+  },
+  "capability_version": "node-environment-v1",
+  "required_paths": [],
+  "environment_engine": {
+    "version": "upeve-v1",
+    "target_platform": "linux/arm64"
+  },
+  "reason_code": "unsupported_dynamic_installer",
+  "verification_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "H-node-canonical",
+      "snapshot_hash": "e7877488a8672581ad7f0029bdda44abca3ec21f4f5dc2112b68face4c74fc32",
+      "source_archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "base_commit_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "plan_version_hash": "86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a",
+      "approved_commands_hash": "0a21df28348473b0da105f34527dc88bdc1c027677ba2a11dedce585cd151485",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "baseline-typecheck",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "baseline-is-object-tests",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "regression-typecheck",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "regression-is-object-tests",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "post-fix-typecheck",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "post-fix-is-object-tests",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "full-test-suite",
+        "argv": [
+          "pnpm",
+          "test"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "lint",
+        "argv": [
+          "pnpm",
+          "lint"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": ".github/workflows/bench-main.yml",
+        "sha256": "dc13a3137c3b9f8a1c333450bafa68e8772c4c36548a5eb9160c0e0219a5b999",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/bench-pr-comment.yml",
+        "sha256": "5531f63fc78a49350b07c0607a829ed5fbae63bc50a5506620084047bfa337c2",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/bench-pr.yml",
+        "sha256": "0ea1b40f2d5b8f6206bb5499bbc30d7a1e3033a7361fd2798b80820290b08201",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/bundle-impact.yml",
+        "sha256": "7495f3914b7440edb0f341a7b59a73b7cb5505dd9c59fb81ef16ac76dc599444",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/check-main.yml",
+        "sha256": "c717b7313fc2a401288274a0f2da75bf8c8ff3d759cc495e0772edc8d3eaf98b",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/check-pr.yml",
+        "sha256": "62009227f2d312d899e090e0b3728fa3545e769de695e308ce978c55f8f2914a",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/prerelease-pr.yml",
+        "sha256": "2c65c108ac4bc14a63c3d38da938581d6bc70daa56de1c9ed7234f20e1e611d4",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/publish-docs.yml",
+        "sha256": "8f1c81e8c759cd1914f40e94269016298a4c945511aff6a945270bc4cbba1174",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/publish.yml",
+        "sha256": "dc268c9f35b92d3ac6389fb67561a9003f6176fba6516aeae476983d7bfaadd1",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/register-pr.yml",
+        "sha256": "087a691b52b3c71b29b1377d0ecb4b1fe69dfeb53ea12c4f1a20b452f3b0a881",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/seed-benchmarks.yml",
+        "sha256": "22ef0f9291604650f3c084750217e9fd7fd42da9cbac86be4d2413b24c0ff536",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/test-pr.yml",
+        "sha256": "7310d3efa0c2d536ac7c1e228fd0def7a149185a49f684407ccdfe75c4b1eaa8",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package.json",
+        "sha256": "e34631e146f9e46a324f34b96b58b8e5e468a55c9488d5e63987e515b1f54e58",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "d60c3ffed7176af9f89dd721d221d4eab00c9a00762fb27b505e83401e1126ce",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/bench-file/package.json",
+        "sha256": "df1e753b1255d83b895fc56c7445947ea71b4a89283a12b84a49c972c533872c",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/bench-main/package.json",
+        "sha256": "ad3348b433bc56bf0bfb9f8828ffdde10ec2788038eaac9042d30577f8078a69",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/bench-pr/package.json",
+        "sha256": "eb80218587b49d26b4e1d04ff3718c3c6ee930245b2357bdcd4dde8e97a828df",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/benchmarks/package.json",
+        "sha256": "655cc9691cef8f9f0b1311d4aac89a6dec5a322c7e5814d2fa72b1ec84ccca2a",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/biome-config/package.json",
+        "sha256": "94ae6dd94e42e1e37d966c82aa5f83e5f680f6c4cb5c72c9062ae3276aae14fa",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/bundle-impact/package.json",
+        "sha256": "a60444358b9e379c684011c99e00f286de6f6ee378bb4bccd7c5e37db0c3cdb0",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/changelog/package.json",
+        "sha256": "1fde971764c069bac2f4ec5f9993edd45aa84c731822ef239e8f2af117743898",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/checkout-pr/package.json",
+        "sha256": "eff5f475afe9d4e4b9e65707c524a6f2a1527b7483eee9e1f73f0ed5e566e594",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/common/package.json",
+        "sha256": "0fb4a4864ab87c67a87739e2744c7ab6fe4ec15632dac2607c0d31ba494d4406",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/format/package.json",
+        "sha256": "6f43166ebb6958af8e31b4aba56940e062ab42dd4a751456cf0cc8067cb89f33",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/lint/package.json",
+        "sha256": "dd041fb3db86600bd6d48e1e96b6114eb1130bd0be8d9f70d47d94cd6dcc214d",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/package.json",
+        "sha256": "f69ed17eea98f49ee075f676bae79df9cb779e54d5887b94d94313d34511170c",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/prerelease-pr/package.json",
+        "sha256": "89984524672a2cdd0fa9a82a2bd5291cdea36bee2b963cabb0b8b522ea2b0378",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/publish-docs/package.json",
+        "sha256": "bdd725e88341d1e398ec843d23f1f8c2c931a34789183e19b1bb42668288d732",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/publish-version/package.json",
+        "sha256": "a323f971cff58ab475fd171c00574f22c0f5cbf00c02f32cf6c4f0afbf3fa188",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/radashi-db/package.json",
+        "sha256": "8d08b0259acac8d81c8c0b19639b58fda64705e0830cb7361745cbf117cc63c0",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/register-pr/package.json",
+        "sha256": "39310258677b0295d5c8d6099c051906e2acce08b4306f63eb5d44cf97fab8d9",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/release-notes/package.json",
+        "sha256": "cd5697c77faae2429b2e33734059b28626ca1ca849921fa685e82d854811bc9e",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/seed-benchmarks/package.json",
+        "sha256": "dbd6ee2e2c1ec8d143c1bcbbe16b94b569db2acfb98a9d07f69e1e28472910b9",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/seed-merged-functions/package.json",
+        "sha256": "d56365e30ea7a3c92baab016c50d6914eb02d3e1174a5a5a80d67ef763986e54",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/seed-proposed-functions/package.json",
+        "sha256": "3a9d00a4085025b94ac66a4de4a6b74b7622a8b387e7df95d51f549616f76349",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/test-branch/package.json",
+        "sha256": "b516ee115ead7a4518e3244f1708b515a4ebf6438baaf1c776cdee7d401c4d28",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/test-single/package.json",
+        "sha256": "1007061330057bcd40ab13d74a5661bd13694c023589d52885ae0bd517b191f8",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/tree-shake/package.json",
+        "sha256": "4cdcc3ec650e9bc265842a5866b555eecdad626d6df6c60e69b34a77f0a7dcd4",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/update-browserslist/package.json",
+        "sha256": "df14b1e0413e086f8702ea96f7084f2497627b6bbc6a7b133b94a06cde226874",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/run.js",
+        "sha256": "8f518ba80112a6745f85d1a4068891b74183e19915b2ca317830c1788c38db6a",
+        "parser": "node-script-chain-v1"
+      }
+    ],
+    "preparation": {},
+    "unresolved": [
+      {
+        "reason_code": "unsupported_dynamic_installer",
+        "paths": [
+          "scripts/run.js"
+        ],
+        "command_id": null
+      }
+    ],
+    "admission": "unsupported",
+    "expected_failures": {}
+  },
+  "verification_contract_hash": "2a12f0522a288379cd2189a091d14054fb6a9765f0a2f4a9970610e0875c4ac8"
+}

@@ -21,7 +21,9 @@ def environment_view(wb, task_id: str, selected: dict, baseline, *, prepared: bo
             "baseline": verdict["outcome"] if verdict else "unverified",
             "coding": "started" if coding_current else "not_started",
             "review": review_status if current and review_status != "not_run" else "unverified"},
-        "gaps": contract.get("unresolved", []), "commands": contract.get("commands", []),
+        "gaps": contract.get("unresolved", []) or ([{"reason_code": selected["reason_code"],
+            "paths": selected.get("required_paths", [])}] if selected.get("reason_code") else []),
+        "commands": contract.get("commands", []),
         "executables": receipt["executables"] if receipt else [],
         "baseline_reason_codes": verdict.get("reason_codes", []) if verdict else [],
         "evidence_refs": {k: value.get(k) if current else None for k in (

@@ -94,5 +94,55 @@
     "purpose": "PEP 508 requirement and marker parsing; no evaluation or network",
     "license": "Apache-2.0 OR BSD-2-Clause",
     "tests": "recursive declarations, malicious flags/paths, conflicts and real pip constraints"
+  },
+  "frozen_revision_default": {
+    "tests": 1604,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 55,
+    "passed": 1549,
+    "revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+    "reports": [
+      {
+        "path": "/tmp/upeve-freeze-shard-0.xml",
+        "sha256": "1a357ae294c1a8c11db08b74f5cf81de8e0df160993dd47e348652c5fe5c900b"
+      },
+      {
+        "path": "/tmp/upeve-freeze-shard-1.xml",
+        "sha256": "8d0f62e87633fdbcc62e57492da42ed7e9800ad68e268448e32a9ab8d5c109d5"
+      },
+      {
+        "path": "/tmp/upeve-freeze-shard-2.xml",
+        "sha256": "c948d0d226577a883b73d5b398dab26cb92bd2d16451ad569588b51e3cf4404e"
+      },
+      {
+        "path": "/tmp/upeve-freeze-shard-3.xml",
+        "sha256": "4543ef9cbeee5db6fdcc96d56ac1b34af039c38c6636ae4384422d56660f3b85"
+      }
+    ]
+  },
+  "actual_source_shadow_security": {
+    "passed": 1,
+    "failed": 0,
+    "report_sha256": "8cf99d1719526cf78cf1610e7b407419a3c24b0a1e7a1a1a232603c8b6dfbe72",
+    "classification": "controlled_actual_OCI_security_not_native"
+  },
+  "legacy_browser": {
+    "status": "passed",
+    "report_sha256": "893c1ebff58e6918f87ea88d07dbccf94e0ee66f28bf6a065098682f4dfceccf",
+    "classification": "controlled_browser_contract"
+  },
+  "v2_browser": {
+    "classification": "browser_contract_mock_data",
+    "passed": 2,
+    "failed": 0,
+    "artifact_page_reads": 4
+  },
+  "generic_gap_fix": {
+    "tests": 68,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 5,
+    "report_sha256": "b6c634b14077e86c73bfd0c23d3457ed70b458fa071838c412c45ddf4a6a3651"
   }
 }

@@ -1,0 +1,137 @@
+{
+  "sample_id": "H-node-canonical",
+  "classification": "H",
+  "repository": "radashi-org/radashi",
+  "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+  "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+  "change_paths": [
+    "src/typed/isObject.ts",
+    "tests/typed/isObject.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "baseline-typecheck",
+      "argv": [
+        "pnpm",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "baseline-is-object-tests",
+      "argv": [
+        "pnpm",
+        "exec",
+        "vitest",
+        "run",
+        "tests/typed/isObject.test.ts"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "regression-typecheck",
+      "argv": [
+        "pnpm",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "regression-is-object-tests",
+      "argv": [
+        "pnpm",
+        "exec",
+        "vitest",
+        "run",
+        "tests/typed/isObject.test.ts"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "post-fix-typecheck",
+      "argv": [
+        "pnpm",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "post-fix-is-object-tests",
+      "argv": [
+        "pnpm",
+        "exec",
+        "vitest",
+        "run",
+        "tests/typed/isObject.test.ts"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "full-test-suite",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "lint",
+      "argv": [
+        "pnpm",
+        "lint"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "plan_hash": "86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a",
+  "snapshot_hash": "e7877488a8672581ad7f0029bdda44abca3ec21f4f5dc2112b68face4c74fc32",
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "target_platform": "linux/arm64",
+  "workspace_paths": [
+    ".cliffignore",
+    ".devcontainer",
+    ".github",
+    ".gitignore",
+    ".prettierrc.json",
+    ".tasks",
+    ".vscode",
+    "CHANGELOG-next.md",
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "README-pt_br.md",
+    "README.md",
+    "SECURITY.md",
+    "benchmarks",
+    "biome.json",
+    "cliff.toml",
+    "commitlint.config.ts",
+    "cspell.yaml",
+    "deno.json",
+    "docs",
+    "package.json",
+    "pnpm-lock.yaml",
+    "renovate.json",
+    "scripts",
+    "skills",
+    "src",
+    "tests",
+    "tsconfig.json",
+    "tsup.config.ts",
+    "vitest.config.ts"
+  ],
+  "snapshot_id": "0f9e7cf8-b839-4e63-8a10-00dcef32a3c1",
+  "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+  "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45",
+  "measured_at": "2026-10-28T16:26:13.275061+00:00",
+  "host_platform": {
+    "system": "Darwin",
+    "architecture": "arm64"
+  }
+}

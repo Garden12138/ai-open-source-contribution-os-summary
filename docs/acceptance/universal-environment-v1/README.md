@@ -127,3 +127,39 @@ are preserved. Product admission now uses and checks the actual immutable
 OpportunitySnapshot hash. Subsequent canonical H manifests read it directly
 from the original read-only execution record. No historical native chain is
 fabricated or retroactively upgraded.
+
+## First frozen unseen cohort — failed, never replaced
+
+Rules were frozen at `ef33342301d870b9527b7779e38cc2ec3085c1ac` before the
+[selection protocol](holdout-protocol.json), metadata-only candidate search,
+[selection](holdout-selection.json), [commit refs](holdout-refs.json), source
+archive reads and [exact environment commands](holdout-plans.json). All four
+first measurements used the same engine source hash. Full evidence:
+[holdout-results.json](holdout-results.json).
+
+| Original unseen sample | Actual first result | Full baseline |
+| --- | --- | --- |
+| U-python-1, m2cgen | Legacy setup/requirements layout unsupported; specific machine reason missing | not_run |
+| U-python-2, KiCAD-MCP-Server | `tool_distribution_unresolved`; inline CI tool declaration not closed | not_run |
+| U-node-1, pdfcn | Actual proxy acquisition followed by offline `node_build` failure; detailed cause unproven | not_run |
+| U-node-2, avataaars-generator | Materializer refused tracked `.env` (exit 23); initial observer omitted production safe source scope | not_run |
+
+**Initial complete-baseline success rate: 0/4.** No failure was replaced with a
+friendlier project. avataaars' separately recorded scope recheck used the existing
+production scope function, kept both commands and engine unchanged, then failed
+actual `node_tools` preparation. That is an observer maintenance episode, not
+first-run success or native delivery. No business code was patched.
+
+The missing legacy reason was reopened after this measurement. A generic fix now
+emits `environment_recipe_unsupported` for new unsupported/unknown builtin
+recipes, keeps all old projections exact, carries engine state through blocked
+views and forbids fallback around the new contract. Because the failure informed
+this improvement, all four repositories are **D for the revised engine**. Their
+original frozen U manifests/results remain unchanged. A new cohort must be
+selected after another code freeze. E3/E4/native/Linux gates remain open.
+
+Canonical H rechecks use the original execution record's actual Snapshot ID/hash.
+`H-python-canonical` again measures all five entries and commands, with 4/5 exits
+zero and the mypy cache environment stop. `H-node-canonical` retains eight exact
+commands and rejects the dynamic installer. No original approval was reused to
+perform a new business action.

@@ -1,0 +1,34 @@
+{
+  "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+  "source": "GitHub connector read-only git refs; pinned before archive analysis",
+  "samples": [
+    {
+      "sample_id": "U-python-1",
+      "repository": "BayesWitnesses/m2cgen",
+      "branch": "master",
+      "base_sha": "9784632311986234032673cdbfd29fc4c5cb429d",
+      "git_ref": "refs/heads/master"
+    },
+    {
+      "sample_id": "U-python-2",
+      "repository": "mixelpixx/KiCAD-MCP-Server",
+      "branch": "main",
+      "base_sha": "628d320f4cd51b51e55489fd6f29f20c228e2741",
+      "git_ref": "refs/heads/main"
+    },
+    {
+      "sample_id": "U-node-1",
+      "repository": "shadcn-labs/pdfcn",
+      "branch": "main",
+      "base_sha": "8e48bf83a0ce20326373f0b679ccdc9b91cb6683",
+      "git_ref": "refs/heads/main"
+    },
+    {
+      "sample_id": "U-node-2",
+      "repository": "fangpenlin/avataaars-generator",
+      "branch": "master",
+      "base_sha": "c191c6c2d27f41245e803912d43c7213436a34d3",
+      "git_ref": "refs/heads/master"
+    }
+  ]
+}

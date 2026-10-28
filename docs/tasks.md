@@ -4831,7 +4831,12 @@ Node OCI cases pass. Actual Mac doctor passes; Linux endpoint absent. Forward
 0039 upgrade/backup/restore preserves old hashes. New isolated API on 18090 is
 healthy; real Provider/Gateway remains unavailable. E5/E6 remain partial and
 native human approvals are still required. Evidence and exact failures are in
-the linked ledger. Subsequent independent holdout measurements must preserve
+the linked ledger. First frozen holdouts were 0/4 complete baselines; their failures remain. A generic
+legacy-gap/builtin fallback correction was tested after preserving that cohort,
+so those four projects become development samples for the revised engine.
+Gateway credential use was rejected by automatic approval review and remains
+blocked pending explicit authorization; no bypass was attempted.
+Subsequent independent holdout measurements must preserve
 this candidate's rules and never close the unpassed H/native/platform gates.
 
 Original failures and approval/event hashes are retained. The original Node

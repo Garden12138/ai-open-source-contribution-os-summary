@@ -1,0 +1,106 @@
+{
+  "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+  "engine_unchanged_through_holdouts": true,
+  "first_attempt_denominator": 4,
+  "first_attempt_full_baseline_successes": 0,
+  "replacements": 0,
+  "native_deliveries": 0,
+  "samples": [
+    {
+      "sample_id": "U-python-1",
+      "repository": "BayesWitnesses/m2cgen",
+      "base_sha": "9784632311986234032673cdbfd29fc4c5cb429d",
+      "status": "unsupported",
+      "reason_code": null,
+      "diagnostic": null,
+      "first_attempt": true,
+      "native": false,
+      "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+      "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45"
+    },
+    {
+      "sample_id": "U-python-2",
+      "repository": "mixelpixx/KiCAD-MCP-Server",
+      "base_sha": "628d320f4cd51b51e55489fd6f29f20c228e2741",
+      "status": "unsupported",
+      "reason_code": "tool_distribution_unresolved",
+      "diagnostic": null,
+      "first_attempt": true,
+      "native": false,
+      "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+      "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45"
+    },
+    {
+      "sample_id": "U-node-1",
+      "repository": "shadcn-labs/pdfcn",
+      "base_sha": "8e48bf83a0ce20326373f0b679ccdc9b91cb6683",
+      "status": "failed",
+      "reason_code": "environment_node_preparation_failed",
+      "diagnostic": {
+        "version": "dependency-failure-v1",
+        "phase": "node_build",
+        "reason_code": "subprocess_failed",
+        "exit_code": 1,
+        "packages": []
+      },
+      "first_attempt": true,
+      "native": false,
+      "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+      "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45"
+    },
+    {
+      "sample_id": "U-node-2",
+      "repository": "fangpenlin/avataaars-generator",
+      "base_sha": "c191c6c2d27f41245e803912d43c7213436a34d3",
+      "status": "failed",
+      "reason_code": "acceptance_ImplementationError",
+      "diagnostic": null,
+      "first_attempt": true,
+      "native": false,
+      "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+      "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45"
+    },
+    {
+      "sample_id": "U-node-2-scope-recheck",
+      "repository": "fangpenlin/avataaars-generator",
+      "base_sha": "c191c6c2d27f41245e803912d43c7213436a34d3",
+      "status": "failed",
+      "reason_code": "environment_node_preparation_failed",
+      "diagnostic": {
+        "version": "dependency-failure-v1",
+        "phase": "node_tools",
+        "reason_code": "subprocess_failed",
+        "exit_code": 1,
+        "packages": []
+      },
+      "first_attempt": false,
+      "native": false,
+      "engine_revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+      "engine_source_hash": "c6cc8d9e95decf489df0cd7bf1f7046c10a6a32bc1ec9cd43a6d3e3a650e7a45"
+    }
+  ],
+  "gate_result": "failed_real_generalization_minimum_not_satisfied",
+  "remaining_implementation_gaps": [
+    "legacy unsupported selection lacks a specific machine reason code",
+    "CI inline pip package declarations not resolved into current Python toolchain",
+    "pnpm monorepo offline build failed with generic diagnostic, detailed cause not proven",
+    "Yarn root safe-scope observer corrected only on recheck; real tool acquisition then failed"
+  ],
+  "external_native_prerequisites": [
+    "no supported passing holdout baseline in this cohort",
+    "actual model Gateway/provider not available",
+    "fresh exact human plan approval and final acceptance absent"
+  ],
+  "linux_amd64": "blocked_not_run_no_native_endpoint",
+  "disposition_after_generic_gap_fix": {
+    "current_sample_class": "D",
+    "samples": [
+      "U-python-1",
+      "U-python-2",
+      "U-node-1",
+      "U-node-2"
+    ],
+    "reason": "After preserving the frozen first results, the missing machine reason prompted a generic code fix; original U evidence remains immutable and these repositories cannot be used as unseen for the revised engine.",
+    "initial_results_rewritten": false
+  }
+}

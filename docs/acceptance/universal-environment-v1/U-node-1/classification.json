@@ -1,0 +1,17 @@
+{
+  "classification": "U",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "failed",
+  "contract_hash": "c6030cb780c071b82a4e94a9d6ca7656ca9dfa605cb7d42d9d53661698ecb096",
+  "reason_code": "environment_node_preparation_failed",
+  "diagnostic": {
+    "version": "dependency-failure-v1",
+    "phase": "node_build",
+    "reason_code": "subprocess_failed",
+    "exit_code": 1,
+    "packages": []
+  }
+}
