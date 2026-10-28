@@ -1,0 +1,14 @@
+{
+  "classification": "actual_native_readonly_browser_no_interception",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "origin": "http://127.0.0.1:18080",
+  "plan_confirmation_button_visible": true,
+  "plan_confirmation_button_enabled": true,
+  "preflight": "ready",
+  "browser_errors": [],
+  "approval_clicked": false,
+  "execution_started": false,
+  "passed": 1,
+  "failed": 0,
+  "counts_as_M5": false
+}

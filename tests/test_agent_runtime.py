@@ -471,3 +471,100 @@ def test_progress_label_describes_background_work_during_a_foreground_question(t
         status = user_status(w, task)
         assert status["label"] == "正在实现修改" and status["busy"] is True
         assert len(observe(w, task)["foreground"]) == len(observe(w, task)["background"]) == 1
+
+
+def test_actual_final_observation_without_reads_preserves_answer_and_audit(tmp_path):
+    db,s,task,*_=runtime_fixture(tmp_path)
+    send(db,s,task,'解释已经保存的任务信息')
+    advance_conversations(db,s)
+    raw=json.dumps({'action':'respond','references':['task'],
+        'reply':'当前仍是方案阶段，尚未开始实施。'})
+    job,runner=run(db,s,{'effect':'observe','reads':[{'name':'task'}]},raw)
+    assert job.state=='succeeded',job.error_message
+    assert len(runner.invocations)==2
+    advance_conversations(db,s)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        event=w.latest(task,'conversation_observation_normalized')
+        assert w.read(event.payload['artifact_id'])['raw_output']==raw
+        assert event.payload['workflow_dispatched'] is False
+        assert not w.latest(task,'conversation_decision_rejected')
+        assert w.latest(task,'conversation_result').payload['text']=='当前仍是方案阶段，尚未开始实施。'
+        assert not w.latest(task,'execution_authorized')
+        assert not w.latest(task,'publication_confirmed')
+
+
+@pytest.mark.parametrize('bad',[
+    {'action':'respond','reply':'','references':[]},
+    {'action':'respond','reply':'done','reads':None,'references':[]},
+    {'action':'respond','reply':'done','references':['review']},
+    {'action':'discuss_plan','reply':'start','references':[]},
+    {'reply':'start','references':[]},
+])
+def test_empty_read_default_cannot_infer_actions_answers_or_evidence(bad):
+    from app.conversation_protocol import parse_step
+    with pytest.raises(ValueError):
+        parse_step(json.dumps(bad),version=RUNTIME_REASONING_VERSION,
+            actions=['respond','discuss_plan'],known=set(),allow_reads=True)
+
+
+def test_read_presentation_citations_are_ignored_only_before_tools(tmp_path):
+    db,s,task,*_=runtime_fixture(tmp_path)
+    send(db,s,task,'读取并解释任务事实');advance_conversations(db,s)
+    job,_=run(db,s,{'effect':'observe','reads':[{'name':'task'}],
+        'reply':'尚未核实的说明','references':['publication_preview']},
+        {'reply':'当前任务仍在方案阶段。','references':['task']})
+    assert job.state=='succeeded',job.error_message
+    advance_conversations(db,s)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        assert w.latest(task,'conversation_read_requested')
+        assert not w.latest(task,'conversation_decision_rejected')
+        result=w.latest(task,'conversation_result')
+        assert [r['name'] for r in result.payload['references']]==['task']
+        assert '尚未核实' not in result.payload['text']
+        assert not w.latest(task,'publication_confirmed')
+
+
+@pytest.mark.parametrize('text',['结果呢','有结果了吗？','完成了吗','做完了吗？'])
+def test_bare_result_question_reads_facts_without_model_or_background_changes(tmp_path,text):
+    db,s,task,*_=runtime_fixture(tmp_path)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        background=w.enqueue(task,'coding_turn',{},key='background-result-question')
+        source=w.append(task,'conversation_result',{'version':'conversation-v1','text':'已有源码说明'},key='focus-result')
+        record_focus(w,task,source,[{'name':'repository_file','source_hash':'a'*64}])
+        session.commit();before=observe(w,task)
+    send(db,s,task,text);advance_conversations(db,s)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root);after=observe(w,task)
+        assert before['focus']==after['focus'] and before['revision']==after['revision']
+        assert [j.id for j in w.jobs(task)]==[background.id]
+        assert w.latest(task,'conversation_finished').payload['status']=='completed'
+        assert not w.latest(task,'execution_authorized')
+
+
+def test_failed_planning_status_is_not_reported_as_running_and_new_success_supersedes_it(tmp_path):
+    from app.conversation import user_status
+    db,s,task,*_=runtime_fixture(tmp_path)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root);jobs=JobService(session)
+        failed=w.enqueue(task,'planning_turn',{},key='failed-status')
+        leased=jobs.lease_next(worker_id='status-test',kinds=('planning_turn',));jobs.start(leased.id,worker_id='status-test')
+        jobs.fail(failed.id,worker_id='status-test',error_code='model_gateway_upstream_failure',error_message='safe failure')
+    send(db,s,task,'结果呢');advance_conversations(db,s)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root);status=user_status(w,task)
+        assert not status['busy'] and '没有后台任务' in status['label']
+        assert '上次模型服务请求失败' in w.latest(task,'conversation_result').payload['text']
+        assert len(w.jobs(task))==1
+        fresh=w.enqueue(task,'planning_turn',{},key='new-success-status');jobs=JobService(session)
+        leased=jobs.lease_next(worker_id='status-test',kinds=('planning_turn',));jobs.start(leased.id,worker_id='status-test')
+        jobs.succeed(fresh.id,worker_id='status-test')
+        assert '失败' not in user_status(w,task)['next_step']
+
+
+def test_compound_result_request_does_not_bypass_requested_work():
+    from app.conversation import progress_only
+    assert not progress_only('结果呢，继续修改代码')
+    assert not progress_only('测试结果呢，请解释这个失败')

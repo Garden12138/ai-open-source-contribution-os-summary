@@ -1,0 +1,24 @@
+{
+  "classification": "native_http_over_private_database_copy",
+  "live_user_database_mutated": false,
+  "model_calls_added": 0,
+  "authorizations_added": 0,
+  "focus_and_domain_revision_preserved": true,
+  "queries": [
+    {
+      "question": "结果呢",
+      "status": "completed",
+      "reply": "方案已保存，等待确认。\n\n请核对当前方案并通过精确确认开始；聊天不会授予执行权限。",
+      "result_hash": "f0b67c3e9e1d1a511c40f342aa43232aeb83fafb0e7a809959a64764f60ec6aa"
+    },
+    {
+      "question": "完成了吗？",
+      "status": "completed",
+      "reply": "方案已保存，等待确认。\n\n请核对当前方案并通过精确确认开始；聊天不会授予执行权限。",
+      "result_hash": "57bdc8b44edd09a87a27d203bd5fa51aee573b4b02fdd83d68a47afcd40926dc"
+    }
+  ],
+  "passed": 2,
+  "failed": 0,
+  "counts_as_M5": false
+}

@@ -534,6 +534,15 @@ async def execute_reasoning(worker: Any, job: Any) -> dict:
                 correction = {"proposed_action":decision.action, "proposed_reply":clip(decision.reply,3000),
                     "instruction":"Review this proposed tool against ONLY the latest user request and dialogue referent. Has the user explicitly asked to create/renew/revise, or only to view/check/send an existing deliverable? If it is an inspection request, return action respond and the existing evidence reference. Expiry does not request regeneration. Do not dispatch a lifecycle step merely because the task permits it."}
                 continue
+            if normalized_read and not decision.reads:
+                artifact = wb.artifact({"version": "conversation-observation-normalization-v1",
+                    "raw_output": completion.content, "defaulted_fields": {"reads": []},
+                    "workflow_dispatched": False})
+                wb.append(task.id, "conversation_observation_normalized", {
+                    "version": VERSION, "reasoning_version": version,
+                    "message_id": job.payload["message_id"], "artifact_id": artifact,
+                    "workflow_dispatched": False}, key=f"conversation-observation:{job.id}:{attempt}",
+                    job_id=job.id, commit=False)
             if decision.reads:
                 if attempt+1 >= max_calls:
                     raise WorkbenchError("本轮读取次数已用完，已读取成果保留；尚未派发操作。", code="conversation_call_budget")

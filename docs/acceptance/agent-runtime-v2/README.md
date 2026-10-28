@@ -70,7 +70,7 @@ verification but retains native-delivery and Linux platform gates.
 
 | Verification | Passed | Failed | Skipped | Scope |
 | --- | ---: | ---: | ---: | --- |
-| Final default regression, four disjoint shards | 1486 | 0 | 53 | No real model; [machine report](regression-results.json) |
+| Final default regression, four disjoint shards | 1508 | 0 | 53 | No real model; [machine report](regression-results.json) |
 | Expanded actual OCI regressions | 36 | 0 | 0 | Environment, source, recovery, six malicious cases included |
 | Actual Provider container boundary | 3 | 0 | 0 | Read-only source, gateway-only network, injection |
 | Source-tool suite | 7 | 0 | 0 | Five actual Docker cases and two pure authority/UTF-8 cases |
@@ -174,7 +174,7 @@ the facade entry failed or only narrated future work. The existing product
 planning control was invoked once per sample. Each has a durable
 `agent_maintenance_recorded` event and is permanently excluded from autonomous
 completion, even if subsequent research succeeds. Their manifests and research
-reports preserve this distinction. Both newest research jobs ended with `model_gateway_upstream_failure` / Gateway
+reports preserve this distinction. At the initial handoff, both newest research jobs ended with `model_gateway_upstream_failure` / Gateway
 HTTP502, with no saved plan, execution authorization, edits, tests or Review.
 No native boundary success is inferred from an unsupported-looking repository.
 All native jobs are terminal; the only saved current S1 plan awaits exact human
@@ -297,3 +297,20 @@ a separate confirmation and was not requested.
 See [architecture](../../agent-runtime-v2-architecture.md),
 [ADR](../../adr/agent-runtime-v2-engine-selection.md) and
 [migration/recovery](../../agent-runtime-v2-migration.md).
+
+## User trial repair after the initial handoff
+
+The current trial task's actual HTTP200 final observation was rejected for
+omitting an empty read list. Bare result queries consumed model calls, and
+continue replayed narration rather than resuming pending planning. These were
+platform defects; configuring the same key again would not fix them. See the
+[preserved failure](user-trial-dialogue-failure.json).
+
+The repaired runtime has real native model and Docker source evidence leading
+to a saved, still unapproved plan. [Exact verification](user-trial-fix-verification.json)
+preserves 453 prior event hashes, cumulative budget and permanent maintenance
+classification. No code, test, Review or execution approval was fabricated.
+The [actual browser](user-trial-native-browser.json) uses no intercepted data
+and does not click approval. [HTTP status probes](user-trial-http-smoke.json)
+run on a private database copy, add no model calls and preserve focus/revision.
+This is usability and plan recovery evidence; native M5 delivery remains zero.

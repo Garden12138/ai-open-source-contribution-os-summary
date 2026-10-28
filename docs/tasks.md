@@ -4670,7 +4670,7 @@ interrupt/reopen, Agents SDK two-tool/reopened-session probes and Codex
 app-server initialization are recorded in the engine ADR. The selected journal
 loop retains SQLite/Workbench authority, CAS, exact authorization/runtime
 pinning, separate leased model/tool jobs and cumulative budgets. No project
-SDK dependency was added. Final default suite: **1486 passed / 53 skipped /
+SDK dependency was added. Final default suite: **1508 passed / 53 skipped /
 0 failed**, four disjoint shards; see machine reports in the acceptance folder.
 
 Actual macOS arm64/OrbStack container regression: **44 unique cases passed**
@@ -4717,7 +4717,7 @@ Sandbox receive no GitHub credential. Exact human plan/execution approval,
 final acceptance and native publication preview remain outstanding; nothing
 is inferred from chat agreement. Native radashi #386 failed a 35-vs-32 prerequisite read bound; the sample ended
 before repair. New v2 reads drain in <=32-path batches, preserving draft, source
-hashes and original total budgets; restart regression and full **1486/0/53**
+hashes and original total budgets; restart regression and full **1508/0/53**
 passed. Platform fix is local commit `78347ac`, after implementation `3356921`.
 Gradio #13974 failed Gateway HTTP502, not a proven unsupported environment.
 New radashi #257 and gradio #13906 facade entries were incomplete; subsequent
@@ -4738,6 +4738,33 @@ Linux amd64/Docker remains unavailable. A transient approval-review usage
 failure was resolved; a root-context build rejection was resolved by using a
 minimal Dockerfile-only context. No rejected action was bypassed.
 Existing P5-G06, UXR-G01 and ENV-G01 remain unchanged; Phase 6–10 are not advanced.
+
+User trial regression repair (2026-10-28, UXR-T01 / ARV2-M4 reopened and reverified):
+Task `e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e` received real HTTP200 answers but
+rejected an omitted empty read list; “结果呢” called a model unnecessarily, and
+“继续” replayed narration instead of the failed planning job. Runtime v4 now
+normalizes only a final explicit observation's empty read list, journals the
+raw/defaulted output, and retains all action/evidence/authorization checks.
+Bare status queries read current facts directly. Source-bound read-only retries
+retain all consumed usage and round limits; old narration-only continues are
+reconciled with permanent maintenance markers. Background v2 plan jobs must
+produce actual reads, a draft or structured material questions; promises alone
+use bounded correction instead of falsely ending planning.
+
+Actual recovery used the original user continue and real model/sandbox source
+reads, saving plan `9aecf8e2-096b-48b2-936a-f7b81c124346`, hash
+`86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a`.
+Budget remains cumulative: 18/32 calls, 222,710 input / 7,390 output tokens.
+The original 453 event IDs/hashes are unchanged. Execution authorization,
+code edits, tests and Review remain zero. This is assisted plan recovery, not
+M5 acceptance. Actual native browser confirms its enabled exact-plan review
+button without interception or approval; private-copy HTTP probes answer two
+status questions with zero model calls, no focus/revision change and no new
+authority. Full final regression **1508 passed / 0 failed / 53 skipped**.
+Evidence: `acceptance/agent-runtime-v2/user-trial-*.json`. No production data or
+service was changed; original failures remain. Native end-to-end/Linux gates
+stay open.
+
 
 ---
 

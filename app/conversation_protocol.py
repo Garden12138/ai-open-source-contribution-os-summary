@@ -87,6 +87,13 @@ def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
     normalized = False
     if version == RUNTIME_REASONING_VERSION:
         value = json.loads(raw)
+        # An explicit final observation with no read list requests zero tools.
+        # Never infer an action, repair an empty answer or coerce null/strings.
+        if (isinstance(value, dict) and value.get("action") == "respond"
+                and "reads" not in value and isinstance(value.get("reply"), str)
+                and value["reply"].strip()):
+            value["reads"] = []
+            normalized = True
         # A provider sometimes serializes an empty presentation list as "".
         # Only a validated read-only step can omit presentation; never coerce
         # actions, tool arguments, non-empty citations or final responses.
@@ -107,7 +114,7 @@ def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
         if not allow_reads:
             raise TurnProtocolError("reads_after_budget", "No model calls remain after this one. Answer from tool_results with reads:[]; state any evidence limitation.")
         requested = {r.name for r in envelope.reads}
-        if not set(envelope.references) <= known | requested:
+        if version != RUNTIME_REASONING_VERSION and not set(envelope.references) <= known | requested:
             raise TurnProtocolError("reference_not_read", "References must name evidence already read, or requested by this read-only step.")
         normalized = normalized or bool(envelope.reply or envelope.references)
         envelope.reply, envelope.references = "", []

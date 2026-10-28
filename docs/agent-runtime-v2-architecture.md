@@ -142,3 +142,27 @@ restart. Existing read rounds, model/token/time limits and path authorization
 still apply. Invalid/unavailable paths remain rejected. Historical v1 requests
 retain their original policy. Exceeding total read limits still stops with a
 recorded evidence gap, never silently approving a partially read plan.
+
+## Native trial dialogue recovery
+
+The user trial exposed an HTTP200 final observation rejected solely because an
+empty `reads` list was omitted. Runtime v4 may default that list only for an
+explicit `respond` with a nonempty answer. Actions, answers, citations, nulls and
+tool arguments are never inferred. Raw output and the exact default are retained
+in a normalization artifact. Read-step presentation is suppressed before tool
+execution; final citations still require actual issued evidence. v2/v3 legacy
+turn parsing stays unchanged.
+
+Bare result/progress questions use persisted facts without model calls or
+background cancellation. Failed or narration-only planning is displayed as idle
+and incomplete. An explicit continue resumes the exact failed read-only planning
+payload before chat routing, retaining source/state/plan/model binding, read and
+repair rounds and cumulative usage. Source changes, stops and exhausted budgets
+block recovery. Old continues that only narrated can be reconciled once using
+their original user source; such platform recovery is durably marked maintenance
+and never counts as autonomous native delivery.
+
+Background v2 draft jobs require actual source reads, a complete plan or
+structured material questions. A standalone promise cannot complete a plan job;
+it uses the existing bounded repair mechanism and is recorded as rejected.
+Ordinary conversational explanations retain their read-only final-response path.

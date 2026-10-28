@@ -147,3 +147,26 @@ def test_environment_prerequisites_drain_in_bounded_batches_across_restart(tmp_p
         assert wb.latest_plan(task) and not wb.latest(task,'execution_authorized')
         assert wb.latest(task,'planning_read_batch').payload['remaining_count']==8
     db.close()
+
+
+def test_background_v2_plan_job_cannot_finish_with_only_a_reading_promise(tmp_path):
+    from tests.test_workbench import run_turn, result
+    db,s,task,content,_=large_fixture(tmp_path)
+    with db.session() as session:
+        w=PlanningService(session,s.artifact_root)
+        w.request(task,text='Read source and save a plan',parent_id=None,expected_hash=None,
+            key='required-draft',runtime_version='agent-runtime-v2')
+    rejected,runner=run_turn(db,s,json.dumps({'reply':'我会先读文件，是否同意？'}))
+    assert rejected.state=='succeeded'
+    assert all(branch['required']!=['reply'] for branch in runner.invocations[0].output_schema['anyOf'])
+    with db.session() as session:
+        w=PlanningService(session,s.artifact_root)
+        assert w.latest_plan(task) is None
+        assert w.latest(task,'model_output_rejected').payload['constraint']=='plan_required_after_repair_or_read'
+        assert w.jobs(task)[-1].state=='queued'
+    completed,_=run_turn(db,s,result(content))
+    assert completed.state=='succeeded',completed.error_message
+    with db.session() as session:
+        w=PlanningService(session,s.artifact_root)
+        assert w.latest_plan(task) and not w.latest(task,'execution_authorized')
+    db.close()

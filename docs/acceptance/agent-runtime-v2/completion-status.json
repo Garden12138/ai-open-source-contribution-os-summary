@@ -14,7 +14,7 @@
     "M6": "local_checks_passed_cross_platform_and_native_gates_incomplete"
   },
   "default_tests": {
-    "passed": 1486,
+    "passed": 1508,
     "failed": 0,
     "skipped": 53
   },
@@ -55,9 +55,13 @@
   "native_assisted_entry_interventions": 3,
   "external_blockers": {
     "human_exact_approval": "S1 immutable plan is saved but no execution authorization or final human acceptance exists.",
-    "model_service": "Last three real native research jobs returned model_gateway_upstream_failure / Gateway HTTP502; prior HTTP429/410 and empty structured responses retained. A healthy supported service for full native journeys is unproven.",
     "linux_amd64": "Only local default and OrbStack contexts are available; actual engine is linux/aarch64. No native Linux amd64 Docker endpoint supplied."
   },
   "active_native_jobs": 0,
-  "native_new_assisted_research_outcome": "Both newest research jobs failed at Gateway HTTP502; no plan, edits, checks or Review."
+  "native_new_assisted_research_outcome": "Original failed research jobs remain failed; user-requested platform recovery has now saved a real source-backed unapproved TypeScript plan. See user-trial-fix-verification.json.",
+  "latest_user_trial": "user-trial-fix-verification.json",
+  "latest_user_trial_status": "real model/source-backed plan saved; exact approval pending; assisted and permanently non-autonomous",
+  "known_risks": {
+    "provider_reliability": "Initial native investigations encountered HTTP429/502 and empty structured responses. The latest assisted recovery completed actual HTTP200 model/source investigation and saved a plan. Full native code delivery and acceptance remain unverified."
+  }
 }

@@ -181,7 +181,8 @@ def fast_intent(text: str) -> str | None:
 def progress_only(text: str) -> bool:
     """Only complete progress questions bypass the model, never compounds."""
     value = text.strip().lower().rstrip("。.!！?？")
-    return value in {"现在到哪了", "现在进行到哪了", "当前进度", "目前进度", "进度怎么样", "执行进度", "status", "progress"}
+    return value in {"现在到哪了", "现在进行到哪了", "当前进度", "目前进度", "进度怎么样", "执行进度",
+                    "结果呢", "有结果了吗", "完成了吗", "做完了吗", "status", "progress"}
 
 
 def plan_confirmation_requested(text: str) -> bool:
@@ -235,7 +236,8 @@ def observed_status(payload: dict[str, Any]) -> dict[str, Any]:
 def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
     from app.task_states import ContributionTaskStateService
     state = ContributionTaskStateService(wb.session).current(task_id).to_state
-    jobs = [j for j in wb.jobs(task_id) if j.state not in TERMINAL_STATES]
+    all_jobs = wb.jobs(task_id)
+    jobs = [j for j in all_jobs if j.state not in TERMINAL_STATES]
     observation = wb.latest(task_id, "pr_followup_observed")
     labels = {"planning": "准备贡献计划", "plan_approved": "计划已确认", "executing": "正在实现与验证",
               "reviewing": "正在审查代码", "ready": "修改完成，等待确认结果", "draft_pr": "草稿 PR 已创建",
@@ -293,7 +295,8 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
              "pr_ready_write":"正在提交正式审核并核对结果", "pr_update_read":"正在读取 PR 文案",
              "pr_update_document":"正在修订 PR 文案", "pr_update_write":"正在更新并核对 PR 文案",
              "native_resource_download":"正在下载并校验测试资源",
-             "cla_prepare":"正在读取贡献者协议", "cla_check":"正在核对协议签署状态", "cla_write":"正在提交并核对签署声明"}
+             "cla_prepare":"正在读取贡献者协议", "cla_check":"正在核对协议签署状态", "cla_write":"正在提交并核对签署声明",
+             "agent_v2_model":"正在分析工具与测试反馈", "agent_v2_tool":"正在执行受限工具"}
     if jobs:
         from app.agent_runtime import enabled, FOREGROUND_KINDS
         background = [j for j in jobs if j.kind not in FOREGROUND_KINDS] if enabled(wb, task_id) else []
@@ -321,6 +324,29 @@ def user_status(wb: Workbench, task_id: str) -> dict[str, Any]:
             if preflight.get("status") == "blocked":
                 label = "方案已保存，执行条件未满足"
                 next_step = "当前实施适配尚不支持这个方案，请查看执行条件；源码阅读和方案讨论仍可继续。"
+            elif preflight.get("status") == "ready":
+                label, next_step = "方案已保存，等待确认", "请核对当前方案并通过精确确认开始；聊天不会授予执行权限。"
+        elif state == "planning":
+            work = [j for j in all_jobs if j.kind in {
+                "planning_archive", "planning_context", "planning_turn", "planning_import_metadata"}]
+            latest = work[-1] if work else (all_jobs[-1] if all_jobs else None)
+            if latest and latest.state in {"failed", "timed_out", "cancelled"}:
+                label = "方案准备尚未完成，当前没有后台任务"
+                if latest.error_code in {"model_gateway_upstream_failure", "model_gateway_network_failure",
+                                         "model_gateway_rate_limited", "planning_provider_failed"}:
+                    next_step = "上次模型服务请求失败，已有源码和请求保留。可以继续原调研；尚未生成方案或启动实施。"
+                elif latest.error_code == "conversation_decision_invalid":
+                    next_step = "上次对话未通过工具协议校验，未派发工作。原始输出和请求保留，尚未启动实施。"
+                else:
+                    next_step = "上次处理失败或停止，已有请求和证据保留。请查看失败记录；尚未启动实施。"
+            elif latest and latest.kind == "planning_turn" and latest.state == "succeeded":
+                outcome = latest.result_data or {}
+                if outcome.get("plan_status") == "rejected":
+                    label, next_step = "方案尚未生成，本轮修正已停止", "模型草稿仍未通过校验，具体失败证据和预算已保留；尚未授权实施。"
+                elif outcome.get("awaiting_answers"):
+                    label, next_step = "方案调研等待澄清", "请回答当前方案问题；回答问题不会批准实施。"
+                elif outcome.get("action") == "message":
+                    label, next_step = "调研尚未产出方案，当前没有后台任务", "上次回答只有说明，尚未完成调研或保存计划；已有请求和源码保留。"
     if state == "planning" and not jobs:
         from app.native_resources import view as native_resource_view
         native = native_resource_view(wb, task_id)
@@ -512,6 +538,14 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
             status = user_status(wb, task_id)
             _finish(wb, task_id, message, text=status["label"] + "。当前工作会按原确认继续，完成后自动进入已授权的下一步。")
             return
+        if state == "planning":
+            from app.planning_continuation import resume_failed_model_planning
+            job = resume_failed_model_planning(wb, task_id, message)
+            if job:
+                wb.append(task_id, "conversation_dispatched", {"version": VERSION,
+                    "message_id": message.id, "status": "processing", "intent": intent},
+                    key="conversation-dispatch:" + message.id, job_id=job.id, commit=False)
+                return
         from app.agent_runtime import resume_turn
         job = resume_turn(wb, task_id, message)
         if job:
@@ -627,7 +661,8 @@ def advance_conversation(wb: Workbench, task_id: str, settings: Any) -> None:
     _results(wb, task_id)
     from app.conversation_continuations import recover_interrupted_acceptance, continuation_intent
     recover_interrupted_acceptance(wb, task_id, settings)
-    from app.planning_continuation import recover_failed_forward
+    from app.planning_continuation import recover_failed_forward, recover_missed_planning_continue
+    recover_missed_planning_continue(wb, task_id)
     recover_failed_forward(wb,task_id,settings)
     queue = pending_messages(wb, task_id)
     for message in queue:

@@ -1,0 +1,395 @@
+{
+  "classification": "actual_native_user_trial_platform_recovery_plan_only",
+  "measured_at": "2026-10-28T06:37:55.562508+00:00",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "native_url": "http://127.0.0.1:18080/#/tasks/e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "status": {
+    "phase": "planning",
+    "label": "方案已保存，等待确认",
+    "next_step": "请核对当前方案并通过精确确认开始；聊天不会授予执行权限。",
+    "observed_at": null,
+    "busy": false,
+    "can_stop": false,
+    "write_active": false
+  },
+  "preflight": {
+    "version": "execution-capabilities-v3",
+    "status": "ready",
+    "issues": [],
+    "environment": {
+      "status": "supported",
+      "ecosystem": "node",
+      "mode": "workspace-v2",
+      "preparation_version": "node-workspace-preparation-v1",
+      "project_directory": ".",
+      "manifests": [
+        ".github/workflows/bench-main.yml",
+        ".github/workflows/bench-pr-comment.yml",
+        ".github/workflows/bench-pr.yml",
+        ".github/workflows/bundle-impact.yml",
+        ".github/workflows/check-main.yml",
+        ".github/workflows/check-pr.yml",
+        ".github/workflows/prerelease-pr.yml",
+        ".github/workflows/publish-docs.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/register-pr.yml",
+        ".github/workflows/seed-benchmarks.yml",
+        ".github/workflows/test-pr.yml",
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bench-file/package.json",
+        "scripts/bench-main/package.json",
+        "scripts/bench-pr/package.json",
+        "scripts/benchmarks/package.json",
+        "scripts/biome-config/package.json",
+        "scripts/bundle-impact/package.json",
+        "scripts/changelog/package.json",
+        "scripts/checkout-pr/package.json",
+        "scripts/common/package.json",
+        "scripts/format/package.json",
+        "scripts/lint/package.json",
+        "scripts/package.json",
+        "scripts/prerelease-pr/package.json",
+        "scripts/publish-docs/package.json",
+        "scripts/publish-version/package.json",
+        "scripts/radashi-db/package.json",
+        "scripts/register-pr/package.json",
+        "scripts/release-notes/package.json",
+        "scripts/seed-benchmarks/package.json",
+        "scripts/seed-merged-functions/package.json",
+        "scripts/seed-proposed-functions/package.json",
+        "scripts/test-branch/package.json",
+        "scripts/test-single/package.json",
+        "scripts/tree-shake/package.json",
+        "scripts/update-browserslist/package.json"
+      ],
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "change_paths": [
+        "src/typed/isObject.ts",
+        "tests/typed/isObject.test.ts"
+      ],
+      "reason": "按项目声明选择运行时和包管理器，冻结完整工作区依赖；独立离线构建后，先运行修改前测试，再实施及离线验证。",
+      "manifest_hashes": {
+        ".github/workflows/bench-main.yml": "dc13a3137c3b9f8a1c333450bafa68e8772c4c36548a5eb9160c0e0219a5b999",
+        ".github/workflows/bench-pr-comment.yml": "5531f63fc78a49350b07c0607a829ed5fbae63bc50a5506620084047bfa337c2",
+        ".github/workflows/bench-pr.yml": "0ea1b40f2d5b8f6206bb5499bbc30d7a1e3033a7361fd2798b80820290b08201",
+        ".github/workflows/bundle-impact.yml": "7495f3914b7440edb0f341a7b59a73b7cb5505dd9c59fb81ef16ac76dc599444",
+        ".github/workflows/check-main.yml": "c717b7313fc2a401288274a0f2da75bf8c8ff3d759cc495e0772edc8d3eaf98b",
+        ".github/workflows/check-pr.yml": "62009227f2d312d899e090e0b3728fa3545e769de695e308ce978c55f8f2914a",
+        ".github/workflows/prerelease-pr.yml": "2c65c108ac4bc14a63c3d38da938581d6bc70daa56de1c9ed7234f20e1e611d4",
+        ".github/workflows/publish-docs.yml": "8f1c81e8c759cd1914f40e94269016298a4c945511aff6a945270bc4cbba1174",
+        ".github/workflows/publish.yml": "dc268c9f35b92d3ac6389fb67561a9003f6176fba6516aeae476983d7bfaadd1",
+        ".github/workflows/register-pr.yml": "087a691b52b3c71b29b1377d0ecb4b1fe69dfeb53ea12c4f1a20b452f3b0a881",
+        ".github/workflows/seed-benchmarks.yml": "22ef0f9291604650f3c084750217e9fd7fd42da9cbac86be4d2413b24c0ff536",
+        ".github/workflows/test-pr.yml": "7310d3efa0c2d536ac7c1e228fd0def7a149185a49f684407ccdfe75c4b1eaa8",
+        "package.json": "e34631e146f9e46a324f34b96b58b8e5e468a55c9488d5e63987e515b1f54e58",
+        "scripts/bench-file/package.json": "df1e753b1255d83b895fc56c7445947ea71b4a89283a12b84a49c972c533872c",
+        "scripts/bench-main/package.json": "ad3348b433bc56bf0bfb9f8828ffdde10ec2788038eaac9042d30577f8078a69",
+        "scripts/bench-pr/package.json": "eb80218587b49d26b4e1d04ff3718c3c6ee930245b2357bdcd4dde8e97a828df",
+        "scripts/benchmarks/package.json": "655cc9691cef8f9f0b1311d4aac89a6dec5a322c7e5814d2fa72b1ec84ccca2a",
+        "scripts/biome-config/package.json": "94ae6dd94e42e1e37d966c82aa5f83e5f680f6c4cb5c72c9062ae3276aae14fa",
+        "scripts/bundle-impact/package.json": "a60444358b9e379c684011c99e00f286de6f6ee378bb4bccd7c5e37db0c3cdb0",
+        "scripts/changelog/package.json": "1fde971764c069bac2f4ec5f9993edd45aa84c731822ef239e8f2af117743898",
+        "scripts/checkout-pr/package.json": "eff5f475afe9d4e4b9e65707c524a6f2a1527b7483eee9e1f73f0ed5e566e594",
+        "scripts/common/package.json": "0fb4a4864ab87c67a87739e2744c7ab6fe4ec15632dac2607c0d31ba494d4406",
+        "scripts/format/package.json": "6f43166ebb6958af8e31b4aba56940e062ab42dd4a751456cf0cc8067cb89f33",
+        "scripts/lint/package.json": "dd041fb3db86600bd6d48e1e96b6114eb1130bd0be8d9f70d47d94cd6dcc214d",
+        "scripts/package.json": "f69ed17eea98f49ee075f676bae79df9cb779e54d5887b94d94313d34511170c",
+        "scripts/prerelease-pr/package.json": "89984524672a2cdd0fa9a82a2bd5291cdea36bee2b963cabb0b8b522ea2b0378",
+        "scripts/publish-docs/package.json": "bdd725e88341d1e398ec843d23f1f8c2c931a34789183e19b1bb42668288d732",
+        "scripts/publish-version/package.json": "a323f971cff58ab475fd171c00574f22c0f5cbf00c02f32cf6c4f0afbf3fa188",
+        "scripts/radashi-db/package.json": "8d08b0259acac8d81c8c0b19639b58fda64705e0830cb7361745cbf117cc63c0",
+        "scripts/register-pr/package.json": "39310258677b0295d5c8d6099c051906e2acce08b4306f63eb5d44cf97fab8d9",
+        "scripts/release-notes/package.json": "cd5697c77faae2429b2e33734059b28626ca1ca849921fa685e82d854811bc9e",
+        "scripts/seed-benchmarks/package.json": "dbd6ee2e2c1ec8d143c1bcbbe16b94b569db2acfb98a9d07f69e1e28472910b9",
+        "scripts/seed-merged-functions/package.json": "d56365e30ea7a3c92baab016c50d6914eb02d3e1174a5a5a80d67ef763986e54",
+        "scripts/seed-proposed-functions/package.json": "3a9d00a4085025b94ac66a4de4a6b74b7622a8b387e7df95d51f549616f76349",
+        "scripts/test-branch/package.json": "b516ee115ead7a4518e3244f1708b515a4ebf6438baaf1c776cdee7d401c4d28",
+        "scripts/test-single/package.json": "1007061330057bcd40ab13d74a5661bd13694c023589d52885ae0bd517b191f8",
+        "scripts/tree-shake/package.json": "4cdcc3ec650e9bc265842a5866b555eecdad626d6df6c60e69b34a77f0a7dcd4",
+        "scripts/update-browserslist/package.json": "df14b1e0413e086f8702ea96f7084f2497627b6bbc6a7b133b94a06cde226874"
+      },
+      "node_environment": {
+        "version": "node-environment-v1",
+        "manager": "pnpm",
+        "manager_version": "10.29.3",
+        "runtime_requirement": ">=18.0.0",
+        "runtime_pin": "",
+        "project_directory": ".",
+        "package_roots": [
+          "."
+        ],
+        "linker": "node-modules",
+        "workspace_lifecycle": [],
+        "registry": "https://registry.npmjs.org"
+      },
+      "capability_version": "node-environment-v1"
+    },
+    "input_hash": "12040c527b6330742ee2d593b4e8211e7a2868c6e8abd8841fd5c8a8f6f6b132",
+    "limits": {
+      "coding_file_bytes": 700000,
+      "coding_context_bytes": 1500000
+    },
+    "report_hash": "85da6a0051c0a991a3b3a6b0a5d26643a3c484609a233db2933afb6419fcc046"
+  },
+  "budget": {
+    "calls": 18,
+    "input_tokens": 222710,
+    "output_tokens": 7390,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    }
+  },
+  "plan": {
+    "id": "9aecf8e2-096b-48b2-936a-f7b81c124346",
+    "record_hash": "86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a",
+    "schema_version": "1",
+    "goal": "修复 Issue #257：在不改变 isObject 运行时行为的前提下，改进对“函数 | 普通对象”联合类型的 TypeScript 收窄；先以真实类型回归用例复现失败，再做最小类型签名修改并完成验证与独立 Review。",
+    "acceptance_criteria": [
+      "新增类型回归用例覆盖 `(() => void) | { a: string }`：在 `isObject(something)` 为真分支中可访问 `something.a`，在假分支中保留函数类型，不再错误收窄为 `never`。",
+      "isObject 的运行时实现及既有语义保持不变：对象字面量、Object.create(null)、类实例返回 true；null、undefined、原始值、数组等返回 false。",
+      "现有 isObject 运行时单元测试继续通过，并新增或保留覆盖函数与普通对象联合类型收窄的类型测试。",
+      "类型检查、相关单元测试、完整测试与 lint 均通过；若基线存在与本改动无关的失败，必须记录真实输出并单独说明，不得伪报通过。",
+      "最终变更仅限必要的类型签名、类型回归测试及必要的测试/文档调整，不引入空改动或无关重构。",
+      "完成独立 Review，检查类型谓词是否在函数/对象联合类型上正确收窄、是否误收窄其他类型、运行时语义是否未变，以及测试是否真实覆盖 Issue。"
+    ],
+    "files_to_inspect": [
+      "src/typed/isObject.ts",
+      "tests/typed/isObject.test.ts",
+      "src/typed/isPlainObject.ts",
+      "src/typed/isFunction.ts",
+      "src/types.ts",
+      "tests/typed/isPlainObject.test.ts",
+      "benchmarks/typed/isObject.bench.ts",
+      "benchmarks/typed/isPlainObject.bench.ts",
+      "benchmarks/typed/isFunction.bench.ts",
+      "docs/typed/isPlainObject.mdx",
+      "docs/typed/isFunction.mdx",
+      "package.json",
+      ".github/contributing.md",
+      ".github/pull_request_template.md",
+      ".github/workflows/check-pr.yml",
+      ".github/workflows/test-pr.yml"
+    ],
+    "files_likely_to_change": [
+      "src/typed/isObject.ts",
+      "tests/typed/isObject.test.ts"
+    ],
+    "implementation_steps": [
+      "确认当前快照中的 isObject 实现、运行时测试、类型测试约定及项目脚本；确认快照是否已包含上游修复。若源码已修复，则停止并以源码依据说明，不创建空改动。",
+      "在 tests/typed/isObject.test.ts 中新增英文类型回归用例，使用 `expectTypeOf` 或仓库现有类型断言约定，覆盖 `(() => void) | { a: string }` 的真/假分支收窄，并确保该用例在当前实现下真实失败。",
+      "在批准后先执行新增用例对应的类型检查并记录真实失败输出，再在 src/typed/isObject.ts 中仅调整类型谓词签名，使函数与普通对象联合类型在真分支收窄为对象、假分支保留函数类型；不改变 isTagged 运行时逻辑。",
+      "重新运行类型检查、isObject 相关测试、完整测试和 lint，记录真实结果。",
+      "进行独立 Review：检查 diff、类型谓词边界、运行时语义、回归测试有效性及是否超出批准范围；如发现问题，仅在批准范围内修正并重新验证。"
+    ],
+    "tests_to_add_or_run": [
+      "新增类型回归测试：联合类型 `(() => void) | { a: string }` 经 isObject 判定后，真分支可访问对象属性，假分支保留函数类型。",
+      "运行现有 tests/typed/isObject.test.ts，确认运行时行为不变。",
+      "运行 TypeScript 类型检查，确认新增回归用例在修复前失败、修复后通过。",
+      "运行完整 pnpm test 和 pnpm lint，确认无回归。"
+    ],
+    "commands_to_run": [
+      {
+        "command_id": "baseline-typecheck",
+        "purpose": "在修改前运行 TypeScript 类型检查，记录当前基线状态。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "baseline-is-object-tests",
+        "purpose": "在修改前运行现有 isObject 相关测试，确认运行时基线。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "regression-typecheck",
+        "purpose": "新增类型回归用例后运行类型检查，记录该用例在修复前真实失败。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "regression-is-object-tests",
+        "purpose": "新增类型回归用例后运行 isObject 相关测试，确认运行时测试仍通过且类型回归被收集。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "post-fix-typecheck",
+        "purpose": "修改类型签名后重新运行 TypeScript 类型检查，验证收窄修复。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "post-fix-is-object-tests",
+        "purpose": "修改后运行 isObject 相关测试，验证运行时语义和回归用例。",
+        "argv": [
+          "pnpm",
+          "exec",
+          "vitest",
+          "run",
+          "tests/typed/isObject.test.ts"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "full-test-suite",
+        "purpose": "运行完整测试套件，确认没有回归。",
+        "argv": [
+          "pnpm",
+          "test"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "lint",
+        "purpose": "运行仓库 lint，检查格式、静态规则和类型相关问题。",
+        "argv": [
+          "pnpm",
+          "lint"
+        ],
+        "working_directory": "."
+      }
+    ],
+    "risks": [
+      "TypeScript 类型谓词签名可能影响其他调用点的推断；需通过完整类型检查和测试确认。",
+      "Issue 建议的泛型签名可能过度约束或错误收窄非普通对象类型；实现应优先采用能正确表达运行时语义的最小签名。",
+      "当前执行环境尚未准备依赖，且没有获批方案；实施与验证必须由执行环境在人工精确批准后完成。",
+      "仓库快照是固定提交，不等同于刚刚刷新上游；上游状态需在执行阶段以可用源码证据确认。"
+    ],
+    "questions_for_maintainer": []
+  },
+  "recovery_receipts": [
+    {
+      "record_hash": "329d2c3a0f46920daf4a8d130f57a833bd322ce5f4018eca152ecb3493131e98",
+      "version": "planning-model-retry-v1",
+      "failed_job_id": "208ae6ea-cd7b-4fa5-ae4e-2f103a96275d",
+      "source_id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+      "source_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704",
+      "request_hash": "ebf744a9f4839a94d537f6ccfc9dcc77679c047f277c007b7fc1d0759d0fbc41",
+      "context_hash": "5d17853eca8cb343e51b7d648607d8f089d50d90cef6df2d394650161acb507b",
+      "usage_at_retry": {
+        "calls": 12,
+        "input_tokens": 59272,
+        "output_tokens": 1039,
+        "limits": {
+          "calls": 32,
+          "input_tokens": 2000000,
+          "output_tokens": 100000
+        }
+      },
+      "execution_authorized": false
+    },
+    {
+      "record_hash": "c59b9fef8db5a37a699edd77e71e6f1360e09ee8742b0113ba4514a1c4a0ca49",
+      "version": "planning-model-retry-v1",
+      "source_id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+      "source_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704",
+      "decision_hash": "6147a19e3fb7aa6d88e92079b5731f045445401b1f4f443c572390b13f5190da",
+      "execution_authorized": false
+    },
+    {
+      "record_hash": "25d1a3a915d6fc1cd6761a91140fcca8cf6d149a21fcb5d21052a4d9c5e0ff70",
+      "version": "planning-model-retry-v1",
+      "failed_job_id": "54adffdb-30b4-45b8-887c-66e12e5f1c0c",
+      "source_id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+      "source_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704",
+      "request_hash": "ebf744a9f4839a94d537f6ccfc9dcc77679c047f277c007b7fc1d0759d0fbc41",
+      "context_hash": "5d17853eca8cb343e51b7d648607d8f089d50d90cef6df2d394650161acb507b",
+      "usage_at_retry": {
+        "calls": 13,
+        "input_tokens": 85920,
+        "output_tokens": 1176,
+        "limits": {
+          "calls": 32,
+          "input_tokens": 2000000,
+          "output_tokens": 100000
+        }
+      },
+      "execution_authorized": false,
+      "retry_reason": "missing_planning_progress"
+    },
+    {
+      "record_hash": "8747b30055a0d5f58b68bb9ff79c48f56b65aafa81788b712aceaa48e0ef888c",
+      "version": "planning-model-retry-v1",
+      "source_id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+      "source_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704",
+      "decision_hash": "6147a19e3fb7aa6d88e92079b5731f045445401b1f4f443c572390b13f5190da",
+      "execution_authorized": false
+    }
+  ],
+  "new_source_receipts": [
+    {
+      "record_hash": "f1bc6e8b46e072c0a8f231ad97a257202ce744598df6d13efb8a9715a6b6d4d9",
+      "artifact_id": "66d49b681699e2d45a3e2403aad1189f97772f181b3df516be8a8c7ea6d03efa",
+      "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "branch": "main",
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "inputs_hash": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    {
+      "record_hash": "54d9ad96c4dd10472c76535a2518c81275fa4011a24dfa9afc7d6364f45c6090",
+      "artifact_id": "6c8d2ba34bd7d84aaad1f1f1763220c2fe7dd17bea431c2d92950eaa7f8d402f",
+      "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "branch": "main",
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "inputs_hash": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    {
+      "record_hash": "3dbf962e14f2b436b4612e31c26aa0b4041697eac784078a24a746b02f375c86",
+      "artifact_id": "1011625e4bc5240445067b98aefc226bde3bf03b53933fc5a276529bbc7ef365",
+      "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "branch": "main",
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "inputs_hash": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    }
+  ],
+  "old_events_preserved": 453,
+  "old_event_hashes_unchanged": true,
+  "original_failed_job_still_failed": true,
+  "execution_authorizations": 0,
+  "actual_code_edits": 0,
+  "actual_tests": 0,
+  "independent_reviews": 0,
+  "operator_maintenance_count": 3,
+  "autonomous_eligible": false,
+  "human_plan_approved": false,
+  "human_final_acceptance": false,
+  "counts_as_M5": false
+}

@@ -143,3 +143,126 @@ def test_recovery_never_resurrects_a_stale_user_request(tmp_path, interruption):
             w.append(task, interruption, {}, key="stop")
         assert not recover_failed_forward(w, task, s)
         assert not w.latest(task, "agent_planning_continued")
+
+
+def failed_model_step(tmp_path):
+    from app.agent_runtime import activate
+    from app.jobs import JobService
+    db,s,task,content,_=seeded(tmp_path)
+    with db.session() as session:
+        w=PlanningService(session,s.artifact_root);activate(w,task)
+        initial=w.request(task,text='原始目标：研究源码并提出方案',parent_id=None,expected_hash=None,
+            key='model-initial',runtime_version='agent-runtime-v2')
+        jobs=JobService(session);j=jobs.lease_next(worker_id='model-failure',kinds=('planning_turn',))
+        jobs.start(j.id,worker_id='model-failure')
+        jobs.fail(j.id,worker_id='model-failure',error_code='fixture_superseded',error_message='fixture stage')
+        data={**initial.payload,'round':2,'repair_round':1,'pending_plan':content.hash_payload()}
+        failed=w.enqueue(task,'planning_turn',data,key='frozen-model-failure',max_attempts=1)
+        j=jobs.lease_next(worker_id='model-failure',kinds=('planning_turn',));jobs.start(j.id,worker_id='model-failure')
+        jobs.fail(j.id,worker_id='model-failure',error_code='model_gateway_upstream_failure',error_message='safe model failure')
+        w.append(task,'model_call',{'input_hash':'a'*64},key='prior-call')
+        w.append(task,'conversation_usage',{'version':'conversation-v1','usage':{'input_tokens':123,'output_tokens':17}},key='prior-usage')
+        frozen=failed.payload.copy();failed_id=failed.id
+    return db,s,task,content,failed_id,frozen
+
+
+def test_continue_resumes_frozen_planning_before_chat_and_preserves_budgets(tmp_path):
+    from app.planning_budget import planning_usage
+    from app.jobs import JobService
+    db,s,task,content,failed_id,frozen=failed_model_step(tmp_path)
+    send(db,s,task,'继续',key='retry-frozen-planning')
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        receipt=w.latest(task,'planning_model_retry_requested')
+        retry=JobService(session).get(receipt.job_id)
+        assert retry.payload==frozen
+        assert retry.payload['round']==2 and retry.payload['repair_round']==1
+        assert receipt.payload['usage_at_retry']['calls']==1
+        assert planning_usage(w,task)['input_tokens']==123
+        assert JobService(session).get(failed_id).state=='failed'
+        assert not any(j.kind=='conversation_intent' for j in w.jobs(task))
+        assert not w.latest(task,'agent_maintenance_recorded')
+    # A second click observes the active retry; it cannot create another job.
+    send(db,s,task,'继续',key='repeat-retry-frozen-planning')
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        assert len([e for e in w.history(task) if e.kind=='planning_model_retry_requested'])==1
+    complete,_=run_turn(db,s,result(content))
+    assert complete.state=='succeeded',complete.error_message
+    advance_conversations(db,s)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        assert w.latest_plan(task) and not w.latest(task,'execution_authorized')
+        assert JobService(session).get(failed_id).payload==frozen
+        assert planning_usage(w,task)['calls']==2
+
+
+@pytest.mark.parametrize('stale', ['context','budget','pause'])
+def test_readonly_planning_retry_rejects_stale_or_exhausted_state(tmp_path,stale):
+    from app.planning_continuation import resume_failed_model_planning
+    from app.workbench import WorkbenchError
+    db,s,task,_,_,_=failed_model_step(tmp_path)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        if stale=='context':
+            e=w.latest(task,'context_ready');w.append(task,'context_ready',e.payload,key='new-context')
+        elif stale=='pause':
+            w.append(task,'conversation_paused',{'version':'conversation-v1'},key='pause-before-retry')
+        else:
+            for i in range(31):w.append(task,'model_call',{'input_hash':'b'*64},key=f'exhaust-{i}',commit=False)
+        source=w.append(task,'conversation_received',{'version':'conversation-v1','text':'继续'},key='direct-source',actor='local-user')
+        before=len(w.jobs(task))
+        if stale=='budget':
+            with pytest.raises(WorkbenchError) as error:resume_failed_model_planning(w,task,source)
+            assert error.value.code=='planning_budget_exceeded'
+        else:assert resume_failed_model_planning(w,task,source) is None
+        assert len(w.jobs(task))==before
+        assert not w.latest(task,'execution_authorized')
+
+
+@pytest.mark.parametrize('later', ['结果呢','stop','change'])
+def test_upgrade_recovers_only_still_requested_old_continue_once(tmp_path,later):
+    from app.planning_continuation import recover_missed_planning_continue
+    from app.agent_runtime import observe
+    from app.jobs import JobService
+    db,s,task,_,failed_id,_=failed_model_step(tmp_path)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        source=w.append(task,'conversation_received',{'version':'conversation-v1','text':'继续'},key='old-continue',actor='local-user')
+        w.append(task,'conversation_decision',{'version':'conversation-v1','message_id':source.id,
+            'action':'respond','reply':'我会调查。','references':[]},key='narration-only')
+        w.append(task,'conversation_finished',{'version':'conversation-v1','message_id':source.id,'status':'completed'},key='old-continue-done')
+        if later=='stop':
+            w.append(task,'stop_requested',{'job_ids':[]},key='later-stop')
+        elif later=='change':
+            changed=w.append(task,'conversation_received',{'version':'conversation-v1','text':'先不要继续，请解释源码'},key='later-change',actor='local-user')
+            w.append(task,'conversation_finished',{'version':'conversation-v1','message_id':changed.id,'status':'completed'},key='later-change-done')
+        else:
+            question=w.append(task,'conversation_received',{'version':'conversation-v1','text':later},key='old-status',actor='local-user')
+            w.append(task,'conversation_finished',{'version':'conversation-v1','message_id':question.id,'status':'failed'},key='old-status-failed')
+        assert recover_missed_planning_continue(w,task)==(later=='结果呢')
+        assert recover_missed_planning_continue(w,task) is False
+        if later=='结果呢':
+            assert observe(w,task)['autonomous_eligible'] is False
+            assert JobService(session).get(failed_id).state=='failed'
+            assert w.latest(task,'planning_continue_recovered').payload['source_id']==source.id
+        assert not w.latest(task,'execution_authorized')
+
+
+def test_old_narration_success_consumes_one_repair_instead_of_resetting_read_rounds(tmp_path):
+    from app.jobs import JobService
+    from app.planning_continuation import resume_failed_model_planning
+    db,s,task,_,_,data=failed_model_step(tmp_path)
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root);jobs=JobService(session)
+        old=w.enqueue(task,'planning_turn',data,key='old-narration')
+        j=jobs.lease_next(worker_id='narration',kinds=('planning_turn',));jobs.start(j.id,worker_id='narration')
+        jobs.succeed(j.id,worker_id='narration',result_data={'action':'message','plan_status':'not_saved','awaiting_answers':False})
+        source=w.append(task,'conversation_received',{'version':'conversation-v1','text':'继续'},key='continue-narration',actor='local-user')
+        retry=resume_failed_model_planning(w,task,source)
+        assert retry.payload['round']==data['round']
+        assert retry.payload['repair_round']==data['repair_round']+1
+        assert retry.payload['text']==data['text']
+        assert w.latest(task,'planning_model_retry_requested').payload['retry_reason']=='missing_planning_progress'
+        assert jobs.get(old.id).state=='succeeded'
+        assert not w.latest(task,'execution_authorized')

@@ -1,6 +1,6 @@
 {
   "classification": "final_default_regression_disjoint_shards",
-  "measured_at": "2026-10-28T02:47:13.036746+00:00",
+  "measured_at": "2026-10-28T06:34:05.963026+00:00",
   "command": ".venv/bin/python -m pytest <disjoint test files> --disable-warnings -p no:cacheprovider --junitxml=<report>",
   "partition": "sorted tests/test_*.py round robin across four shards",
   "file_partitions": [
@@ -132,18 +132,18 @@
       "errors": 0,
       "skipped": 33,
       "passed": 364,
-      "seconds": 238.958,
-      "report_hash": "6fda10a66cf1a39ca86ba0230622f3bd6c3ad7134c6067007d525a0823019139",
+      "seconds": 235.437,
+      "report_hash": "d308eedba5afef29d90308d621c87e30d0a4ea24a913fc18b79cc7bcf2dbc186",
       "shard": 0
     },
     {
-      "tests": 419,
+      "tests": 432,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "passed": 417,
-      "seconds": 223.138,
-      "report_hash": "6a99abd0ac9729cdbb47e96536f34e703a1fa5a8e34e4a9eee1460b690b1c435",
+      "passed": 430,
+      "seconds": 221.378,
+      "report_hash": "b13e5211f206d8bce9ab626f5a250196573d6e0fbc4dd2fd059ebbf7ff9d0654",
       "shard": 1
     },
     {
@@ -152,24 +152,24 @@
       "errors": 0,
       "skipped": 12,
       "passed": 277,
-      "seconds": 147.417,
-      "report_hash": "c2336ccd40c2d1aa2ed3abb3480828786ffbe7117ad7962145bd4b0f7cfd1147",
+      "seconds": 146.543,
+      "report_hash": "9d51b39d51f985fc621036f3297acdbc4d919ca5e695aea36a7890ee6a4cfb69",
       "shard": 2
     },
     {
-      "tests": 434,
+      "tests": 443,
       "failures": 0,
       "errors": 0,
       "skipped": 6,
-      "passed": 428,
-      "seconds": 207.047,
-      "report_hash": "fa56bc1287bb6235311517d991b4cb84d375e8a2f3dd415ef38f01cd12a61a48",
+      "passed": 437,
+      "seconds": 208.449,
+      "report_hash": "510e687f31a0e81d00103985bb5b5940872737ffe457a2429f1cfce0203cec66",
       "shard": 3
     }
   ],
   "totals": {
-    "tests": 1539,
-    "passed": 1486,
+    "tests": 1561,
+    "passed": 1508,
     "failures": 0,
     "errors": 0,
     "skipped": 53

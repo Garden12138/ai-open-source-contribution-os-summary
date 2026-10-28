@@ -1,0 +1,338 @@
+{
+  "classification": "user_reported_native_trial_failed_before_platform_fix",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "user_last_message": "结果呢",
+  "failed_job_id": "21c29644-3175-44fd-a0e1-f0a08f8a54e5",
+  "native_delivery_passed": false,
+  "operator_business_patches": 0,
+  "model_http_status": 200,
+  "actual_failure": "Final observation contains a nonempty answer and valid known references but omits empty reads; strict parser rejects. Bare result query unnecessarily consumes model calls. Explicit continue can replay chat instead of the existing failed planning step.",
+  "historical_events_preserved": [
+    {
+      "id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+      "kind": "conversation_received",
+      "record_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704"
+    },
+    {
+      "id": "682148f7-64f4-4973-b496-a1bfef1e3f29",
+      "kind": "conversation_resumed",
+      "record_hash": "5204e7eb560eff17fe93bf015ca1b344a5c31a61d956d508c0ad569ac3512c15"
+    },
+    {
+      "id": "a61d0682-f014-4020-9511-56b6201de77e",
+      "kind": "job_queued",
+      "record_hash": "a0121852ef8128fba84d25cd6d48ff525f9bda03430e06c30a8be0534987bb4c"
+    },
+    {
+      "id": "11e73d27-33d7-43d5-b445-c368666753d3",
+      "kind": "agent_turn_resumed",
+      "record_hash": "2c716068e5828fd58217309f3d1311552a296b42069677cc80904b1f72c7d97f"
+    },
+    {
+      "id": "ccd4d69c-bfc3-4d4a-9176-b206574cf4e8",
+      "kind": "conversation_classifying",
+      "record_hash": "212cf666b0e9b02d15d9b1b89ebaa5e395db6133d737cc6120944809702032ca"
+    },
+    {
+      "id": "3390c320-17ce-45fc-92ed-80a9f37f2a49",
+      "kind": "conversation_finished",
+      "record_hash": "e3d8cf1693cacd4d67952c767e9115ae314218bd07c09e69ad2d625cf9857a1a"
+    },
+    {
+      "id": "7a7b2d9e-bb46-4003-a01e-4b4c35bc361c",
+      "kind": "conversation_result",
+      "record_hash": "e21df67bdf165e9f0cb3df5c9e4aa74fa2189f150ff1f3b2cc87958e6bb2e1c3"
+    },
+    {
+      "id": "bc278021-74d7-470f-8625-8b73295e1e32",
+      "kind": "context_checkpoint",
+      "record_hash": "b3de328c28464393cf31222ac87e9714ee786d41e3f2b9d5a346648690218c2a"
+    },
+    {
+      "id": "7a75cd7e-0d54-4eb1-934e-cba1a4033b35",
+      "kind": "agent_request_budget",
+      "record_hash": "db88ba8fbed9930880f5bf1ab25cdc775135aeb13f5adfd33200b158894be45a"
+    },
+    {
+      "id": "743f0bd5-72e7-49ad-b809-92fa1aa8e9c5",
+      "kind": "context_checkpoint",
+      "record_hash": "ca1724a727c28924c0bdfb5827bdfb86bd7332d5f284a126fef580ea5fea40cd"
+    },
+    {
+      "id": "687c9420-d6e8-4350-8bf7-726ac4e81505",
+      "kind": "model_call",
+      "record_hash": "794e11e809f22a155c33253225026eabc655efb754f1390c376f786f61592d84"
+    },
+    {
+      "id": "ec015c59-58d4-4f15-bf90-3dc1db31f85e",
+      "kind": "conversation_usage",
+      "record_hash": "291df4d58226014b407bc164d334d98eac9e1fba7a57cc98ec7a601fc2459461"
+    },
+    {
+      "id": "72d8c9b6-e757-4ae5-838d-7e3d81ada113",
+      "kind": "conversation_decision_rejected",
+      "record_hash": "0af90a940b83f3cd310fdcad8a78a6b61f2fd5426f4ce2c681d444cb39fbe070"
+    },
+    {
+      "id": "8326ee6c-da9d-4f99-9a27-c3040b6e9cdd",
+      "kind": "context_checkpoint",
+      "record_hash": "a9930ea8c3e19c35e884f637ee0e57f5728e28a4d586d53117e846786c862a05"
+    },
+    {
+      "id": "bb71df59-857d-4c87-8691-80d1dccb9a60",
+      "kind": "agent_request_budget",
+      "record_hash": "94dabdb04ecad633075b11617e4bd139d424bc5bcf395b9e22559c5e769f9db1"
+    },
+    {
+      "id": "ecc8ab05-30c5-42d6-9180-49e64c34fc98",
+      "kind": "context_checkpoint",
+      "record_hash": "90210748901475a81d7c04f6824df4345c278702453f8c72391f27a4636958f2"
+    },
+    {
+      "id": "e8207c80-ca9f-400f-ae7b-c0517713e1c7",
+      "kind": "model_call",
+      "record_hash": "86380cf7f4552e270a617911ff747c993cbd84b8de8b2feacfe3fc5e7a249d78"
+    },
+    {
+      "id": "143054ae-5ee5-437e-ac42-b86f9fe3bc96",
+      "kind": "conversation_usage",
+      "record_hash": "6e679629fa38f49e236d2d43026593bbf6de285155fcff5c0ca01309f35285b5"
+    },
+    {
+      "id": "7713ce97-fb3e-4a23-8485-f4756b6b666a",
+      "kind": "conversation_read_requested",
+      "record_hash": "3134d1a381f607230a04c1a6d034d58b14395075abcc305127d36a5d3bd99e07"
+    },
+    {
+      "id": "6a84381c-15fa-473c-8ee8-367e19a48b24",
+      "kind": "conversation_tool_result",
+      "record_hash": "dbda7e31c20895451b7878bc5d5bd6fbb7ccab35937589b1fa3189bb6efd7cf2"
+    },
+    {
+      "id": "24beb410-688e-4c5b-a0ec-bfd893058fa4",
+      "kind": "conversation_tool_result",
+      "record_hash": "e17bfdac7fcbd80e1c4f5d6e3a2f33617747a24ef040b91ef54bec621f8fce88"
+    },
+    {
+      "id": "dd1e01d7-839d-458d-81da-68a3a5b1fe63",
+      "kind": "conversation_tool_result",
+      "record_hash": "c3cd6ad874d1183ab39fa97fb2b36b64c14d074307f40e145d606e332e5b8c09"
+    },
+    {
+      "id": "47b9970f-6c0e-4005-a32a-d98ce2855347",
+      "kind": "context_checkpoint",
+      "record_hash": "fe849c2713f5fcf35439be21fd34ca83d0aff155db84048ca4cc3998e83ba0a7"
+    },
+    {
+      "id": "ed651ce1-f4b9-4bb1-a90f-15eb888fb7d7",
+      "kind": "agent_request_budget",
+      "record_hash": "99b945612de3ac59dc567d457a6d8b9bbc0933fec2b8263762b333ea6115d32f"
+    },
+    {
+      "id": "e43f7b5f-12dc-430d-b2fc-9c321c021a2e",
+      "kind": "context_checkpoint",
+      "record_hash": "318368c8e102a2863fa431269b47e5f397de995e23f00f6aeb0adbb00f332356"
+    },
+    {
+      "id": "cca71213-74fb-4a1c-a651-7c2d407b4a3a",
+      "kind": "model_call",
+      "record_hash": "4393d60b9a7bb3b664bbc230da38c76e6fcb41c34def550bc3819d2b9059b5bd"
+    },
+    {
+      "id": "730688d8-8f50-4fb9-b572-a52da2f4a501",
+      "kind": "conversation_usage",
+      "record_hash": "64d0e5bc1220857fda57e367b8cdc8feb1db7479f872660e50fa36d599b01029"
+    },
+    {
+      "id": "17e0ddf3-6818-457b-b591-9c9962e42b41",
+      "kind": "conversation_read_requested",
+      "record_hash": "7ff9b297f2eaeaed3cff64cc2b102892a7ca95a6fbdf9421eb610cff3b26005a"
+    },
+    {
+      "id": "4ca01710-c64f-4c73-8120-caa2568f349f",
+      "kind": "conversation_tool_result",
+      "record_hash": "87fe586168151d3e3ec4a3e81f15a9d29ac41347a13ab15ad19984b7be30383b"
+    },
+    {
+      "id": "7ff71d15-bb9a-48bb-a7ec-c1fa9c781261",
+      "kind": "conversation_tool_result",
+      "record_hash": "423a9d305a5e5753a46fa244c613ea79b1a16c9ba6593097740afabe5b1abc19"
+    },
+    {
+      "id": "1f468736-8810-4813-8599-81f76f5ce08f",
+      "kind": "conversation_tool_result",
+      "record_hash": "22a93d4ca6613e45fa8a67372e035f3bb01ead2ff3cd0b390e4a6fffa82f4d58"
+    },
+    {
+      "id": "9750bd48-8557-4843-964b-afdb45c11d36",
+      "kind": "context_checkpoint",
+      "record_hash": "768157c58769176536e7ed7d1e85b3de0c14d1c435267b2c0dcacd689b3b76be"
+    },
+    {
+      "id": "4abf86a5-fc11-4063-96e9-c3bb0714013a",
+      "kind": "agent_request_budget",
+      "record_hash": "56cca506efc07b990af5100f150618dc0cfe03335ba4bc0f39a045de22b45656"
+    },
+    {
+      "id": "a835ff85-5453-4fd5-b967-490c2e273566",
+      "kind": "context_checkpoint",
+      "record_hash": "8902c9266d64cde9e488a92d178d92dbc1fc3acc92bcfdb01307f66b29e1b99b"
+    },
+    {
+      "id": "d07e4454-87b8-4bfc-b2bd-06a5cb31f0ce",
+      "kind": "model_call",
+      "record_hash": "114602a075eaf1b3413f6cfaff0dfacc9298166b195929f11178ca128f7ae0f2"
+    },
+    {
+      "id": "616fab97-8f97-4929-9ded-1f43e170b2af",
+      "kind": "conversation_usage",
+      "record_hash": "da47eef7548f1f940c8806c786feceec4b6d6102db268a30168c76fe8f7de440"
+    },
+    {
+      "id": "97b2f505-858c-44a2-a4cd-65b706e23a32",
+      "kind": "agent_turn_classified",
+      "record_hash": "5d6afa64fd8ae57f01e1fcfdcf99152fc20689a64475602b00ba2c424c7bd832"
+    },
+    {
+      "id": "9085dfa3-044c-4e9f-9763-5d27e67f961d",
+      "kind": "conversation_decision",
+      "record_hash": "6147a19e3fb7aa6d88e92079b5731f045445401b1f4f443c572390b13f5190da"
+    },
+    {
+      "id": "c71992ae-9f00-46ce-93c8-af7afd94a2b7",
+      "kind": "conversation_received",
+      "record_hash": "c971ec7eeee34a559768a64c5fd79e490351993fd3696a379866bc10d856861e"
+    },
+    {
+      "id": "4810e71d-f593-41e4-b8e5-9122af28f6c6",
+      "kind": "job_queued",
+      "record_hash": "0fdea8fed0aec29361540b2cc0c44f5b3ae552b1f80e443dc978db415e0b8a45"
+    },
+    {
+      "id": "5df94bc3-568c-4f8a-b165-641cebbf74ca",
+      "kind": "conversation_classifying",
+      "record_hash": "4943bde7ce76d5c201f4dbcf7c87935e29176c2e417c7702a2522665f916c969"
+    },
+    {
+      "id": "bea45075-acb2-4b18-b9e1-1baae15aaceb",
+      "kind": "conversation_tool_result",
+      "record_hash": "5ee718b8ecd0006165df96baae4600a7387c23d69cfab0ef9a19e3160d184413"
+    },
+    {
+      "id": "5e2bd6d7-6ff0-416a-b678-6ed8ce680446",
+      "kind": "context_checkpoint",
+      "record_hash": "00f0a9b354f54106c7f43da0c9dcd515f2ff14d3d8a20d99a79f4b7647225804"
+    },
+    {
+      "id": "5a330386-efc4-4662-b81b-15570bfd92ce",
+      "kind": "agent_request_budget",
+      "record_hash": "cef68a3cd2fb3026008d4f4d5f13c586fcdd1a436de2769bd294bef9a9650085"
+    },
+    {
+      "id": "a52f18a8-988d-4d71-8059-3ea00f9c11f7",
+      "kind": "context_checkpoint",
+      "record_hash": "04808d1e0711563164524a4e79499e31b88f9ad097142e08f7e43437f7a88c08"
+    },
+    {
+      "id": "c16f8ed9-2db4-4b03-9dfa-f0281de91ffc",
+      "kind": "model_call",
+      "record_hash": "80828287df7bb4f41e431e1f0349ea007408578eec416f5029e54530787d4c72"
+    },
+    {
+      "id": "be36a8d3-9f50-4f3f-b1f4-39052cf78f2d",
+      "kind": "conversation_usage",
+      "record_hash": "1f1a50baca45145b64a43e457b07e6c25cde8a654c3baa1c013bd3ac27093d26"
+    },
+    {
+      "id": "6eea0f7b-b38c-4bd4-89b2-e5b48a4d53a8",
+      "kind": "conversation_decision_rejected",
+      "record_hash": "4fe18c122965806c2e3643261dbb26443492e4bb44445621c85d80c748297a21"
+    },
+    {
+      "id": "9d23e333-dc58-4009-a208-a9c12c716fc2",
+      "kind": "context_checkpoint",
+      "record_hash": "ca60b8f659ba722e847ebd011be901301588ee25c0d71689291f196d8bfc6ec6"
+    },
+    {
+      "id": "9e19050c-c8eb-4ec9-a1a3-a0df4aabd7a0",
+      "kind": "agent_request_budget",
+      "record_hash": "e23b2ea9e0c7601ea902b7ee7076ec94c749a0ca25a0f5d30001e2d5fb3092e1"
+    },
+    {
+      "id": "0af2db9f-e44f-497a-b633-de67cb56b461",
+      "kind": "context_checkpoint",
+      "record_hash": "8d1654f08ba1dff748ebb5799d44bd8d343d1310fe5448f8f2a16a38da92a323"
+    },
+    {
+      "id": "06fee861-7b30-4636-8d63-aa7793b6d097",
+      "kind": "model_call",
+      "record_hash": "a638569205fde28ab78c8f3a4caa4a33c5e3ed09175d979b8ea26dc2ef478478"
+    },
+    {
+      "id": "7c1063c0-9eb0-4ded-8d90-52ebaf9bad5a",
+      "kind": "conversation_usage",
+      "record_hash": "9d1c11e2b1a33e3489914d4d54c056069d1e6ed89228804cf30bb9deb120ef3c"
+    },
+    {
+      "id": "a2af0092-ad2b-4e85-abb4-67355aac04bc",
+      "kind": "conversation_read_requested",
+      "record_hash": "7ec390cc91fc688b5f6220a01478eac29e45d62822b1903a0cb8530b4b3a20cf"
+    },
+    {
+      "id": "998cd86f-0b04-4b1f-a58b-cbac47b063ab",
+      "kind": "conversation_tool_result",
+      "record_hash": "cb42128b8e21926cea258ce6be744b408b9b500a641c88bee8f134a4553bb2bd"
+    },
+    {
+      "id": "3b11a981-dd35-4ad8-8131-34e3437df798",
+      "kind": "conversation_tool_result",
+      "record_hash": "bde682ce87de41ed7c0aa0a4ec6e01f28e82d23c0066d7a88374a130c80946f5"
+    },
+    {
+      "id": "7b6405e1-81c4-4ee9-b98d-1c16610cc027",
+      "kind": "context_checkpoint",
+      "record_hash": "38b9725856e63a51778ccbc36780eb092af8bc85f8baf45753f4be6fd9678a35"
+    },
+    {
+      "id": "088e2c40-8eba-48bd-898b-692e729a35a6",
+      "kind": "agent_request_budget",
+      "record_hash": "5c66f27d10e61aecaf45b8ff5c63cc7640d31991b5072406869268aefb01ca90"
+    },
+    {
+      "id": "c3b31b69-126d-4495-8e71-797dfed91ee8",
+      "kind": "context_checkpoint",
+      "record_hash": "ebc0ae22435dad3134038d30ad214b8e747b9e40a5811f1fc9660df87b159517"
+    },
+    {
+      "id": "b22b62e4-267b-44f5-b3fb-df2334de5b86",
+      "kind": "model_call",
+      "record_hash": "030393c5afbad19a82621c5c3079928213e269e4ca20d66b5373f06a743688ed"
+    },
+    {
+      "id": "7facd956-fac2-479c-b879-930e46420fc7",
+      "kind": "conversation_usage",
+      "record_hash": "9cf578e2b687a157bcb9a57b8273b266b0a83e9ec8a95a2d833822045fd0ce12"
+    },
+    {
+      "id": "c8c3ae3f-d4e4-483b-bf6d-7d6f7a1e0b53",
+      "kind": "conversation_decision_rejected",
+      "record_hash": "8501f3b9ec8cdcaaad297345ddd46cd2d8415feedc6928b6b75a30c82299829e"
+    },
+    {
+      "id": "7587666c-44f0-409c-9bfb-669f8128e7aa",
+      "kind": "conversation_finished",
+      "record_hash": "dc5b078125acdfe4fb31a4715d3f0620a3b4359b1da7063566f2380087e4354b"
+    },
+    {
+      "id": "891f2e92-c279-404f-8569-d9be72040c76",
+      "kind": "conversation_result",
+      "record_hash": "08e1348a6d5488239610bc141f219f270a4009dd181865c4c8d0959f60606529"
+    }
+  ],
+  "fix_scope": [
+    "Normalize only omitted empty reads on an explicit final respond; no action/reply/evidence inference",
+    "Bare progress/result questions read durable task facts without a model",
+    "Resume exact frozen failed read-only planning step on explicit continue, preserving all consumed usage and per-round budgets"
+  ],
+  "counts_as_M5": false
+}

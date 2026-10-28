@@ -771,7 +771,8 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             self._current(wb, job)
             require_planning_budget(wb, data["task_id"])
             output_schema = PlanningReply.model_json_schema()
-            require_plan_outcome = bool(data.get("plan_repair") or data.get("pending_plan") or data.get("baseline_recovery_hash"))
+            require_plan_outcome = bool(data.get("agent_runtime_version") == "agent-runtime-v2"
+                or data.get("plan_repair") or data.get("pending_plan") or data.get("baseline_recovery_hash"))
             no_more_reads = data.get("round", 0) >= MAX_READ_ROUNDS
             output_schema["anyOf"] = [branch for branch in output_schema["anyOf"]
                 if not (require_plan_outcome and "reply" in branch["required"])
@@ -911,9 +912,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     reject_plan({**domain_error, "fields": ["questions"],
                         "constraint": "baseline_premature_authorization",
                         "remediation": "Read-only diagnosis and candidate child planning are already authorized. Do not ask permission to skip type checks, shrink the selected packages, alter frozen manifests, or start unspecified work. Retain answered choices. Prepare a complete safe child plan for exact confirmation, ask a concrete missing-source/data question, or explain the precise unsupported capability. Do not offer authorization choices that violate the existing constraints."})
-            if (data.get("plan_repair") or data.get("pending_plan") or data.get("baseline_recovery_hash")) and not reply.plan and not reply.questions and not reply.read_paths and not reply.read_context:
+            if require_plan_outcome and not reply.plan and not reply.questions and not reply.read_paths and not reply.read_context:
                 if not result.get("plan_error"):
-                    reject_plan({**domain_error, "constraint": "plan_required_after_repair_or_read"})
+                    reject_plan({**domain_error, "constraint": "plan_required_after_repair_or_read",
+                        "remediation": "This background job prepares a plan. Return actual read_paths/read_context, a complete plan, or structured material questions. Read-only source investigation is already authorized. A promise or a request for permission to read cannot finish this job. If upstream is already fixed, cite the read evidence and ask a structured next-step question; never invent changes."})
             if reply.plan:
                 try:
                     candidate = PlanningPlan.model_validate(reply.plan)
