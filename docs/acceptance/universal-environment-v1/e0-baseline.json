@@ -1,0 +1,1627 @@
+{
+  "version": "upeve-e0-v1",
+  "head": "08be8f729d849828fb865ed34129f0d922821041",
+  "branch": "refactor/agent-runtime-v2",
+  "history_files": {
+    "docs/acceptance/agent-runtime-v2/README.md": "47cdbdc1578fd22797a0e6198fe748b03d786f445c859fcce7bf9a4cf08e446c",
+    "docs/acceptance/agent-runtime-v2/baseline.json": "177662b2fd97255b46ea73c7afbc5953d0169c40aab01690863db893a470b9d0",
+    "docs/acceptance/agent-runtime-v2/codex-protocol-spike.json": "e1ae37e949ebe7c58b994cd51b2ae85f6ed2654a0264e3b417b92b5845f94f3d",
+    "docs/acceptance/agent-runtime-v2/codex_protocol_spike.py": "b29c204dd3aad171c618a97aee499ca9dc89c300751fba062e848d6db190cedd",
+    "docs/acceptance/agent-runtime-v2/completion-status.json": "db098973f9a0f3b593c433f60b7cf7daa5be27e26935d08e2656a21de7ff1337",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-01/diagnosis.json": "baabfbb8b76577b1ca107acc93b31078b0ca7a20af1dc44afac317fc560d303e",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-01/manifest.json": "60c3a1b99cb05a21c4255ba58e95bd3c9871c5fbbb59b085aaaae1d68887f356",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-01/result.json": "8dd047c5892b196b6e4fd0a412bcbac147505ceb394e0df71e6c43a1f4014439",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-02/diagnosis.json": "a96c269f0e1d8b8acebeaf021df50dde0a4795d57303524782972989ec6fff24",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-02/manifest.json": "1c74c0878ff31c626f02e0bed900fc53e77b6d0b0325827bd4bb8c716194f0d7",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-02/result.json": "cba79692193353479467edfc2e39bc7ed98780d98145867b67837be9e0bb6890",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-03/diagnosis.json": "87572449746d245810b98ca441cd1704b270738027fd9597edc243a73156e179",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-03/manifest.json": "d434d81b3a372564407a3877eb1d313c098e2c82d097aa778f295ba2037db5db",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-03/result.json": "c1617a32e61d1aad64c98f6ec3159f3aaf35cff978e23aa13db5c28fb555ff44",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-04-typescript/diagnosis.json": "f6c82e82f78326157179cce53d463f3bcc95ada9607b90e65dd6fdde3c253a09",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-04-typescript/journal-evidence.json": "0c9ecd8e75162fe8a3f05a31817e76719cd37e8c4dbe75ec8a00862cb4dc679c",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-04-typescript/manifest.json": "d7eeccbc783b7d45089fb2ee35bf5ccd2ab293f423cf095b2f0c49e8e729a62e",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-04-typescript/result.json": "779a08e77b7e6e0ef679de8f6c493d2f9da9dae30a2d9e8eb2b74e671cd3027f",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-05-typescript/diagnosis.json": "515ed6ead3c625ba69ebeb6c4ba8625c5a3cfd893357e9ee1b78397cc98e91a2",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-05-typescript/manifest.json": "000696df9dd602c50d00e91bc02533056005bd81061659c75270768b342a0b88",
+    "docs/acceptance/agent-runtime-v2/controlled-failure-05-typescript/result.json": "d3c467745d546827eed06dc62ffbbdd572c63ac677a403ba57ed1ffb026e5a26",
+    "docs/acceptance/agent-runtime-v2/controlled-model-results.json": "9b0e67ae3ad1926b4ac3750b843601a2e2094784bd716a7021550dea50cf3029",
+    "docs/acceptance/agent-runtime-v2/controlled-success-04-python/journal-evidence.json": "0f71a13fa607079339c205d854f93bac1f93c7834e8fd89b2854fe1c0558c954",
+    "docs/acceptance/agent-runtime-v2/controlled-success-04-python/manifest.json": "3090d20838f8db7e3c1a9955fc7db264fce36454b8d3b087136a7d49da1d433c",
+    "docs/acceptance/agent-runtime-v2/controlled-success-04-python/result.json": "e9e4d1a0529a63bd9ac4f0f15a3a6fb84be14c540429b79cb5f8b32270879e83",
+    "docs/acceptance/agent-runtime-v2/controlled-success-06-typescript/journal-evidence.json": "be809ae99e477e669cd92137356ccd611af711e900e0c59ab4ab23250247ce79",
+    "docs/acceptance/agent-runtime-v2/controlled-success-06-typescript/manifest.json": "476ebb8cafe4b9d5c6820775b8bacd4652b275336a10770e007141897cdb95d0",
+    "docs/acceptance/agent-runtime-v2/controlled-success-06-typescript/result.json": "fe30f17b194d8a9cadd756887db7a1c2e1033fc346f07ff3eb5983f6983efc7a",
+    "docs/acceptance/agent-runtime-v2/conversation-schema-compatible-probe.json": "79ee5e9f191abe7890c033add1f63f74568482e0bc204c9f55e25b289f62f988",
+    "docs/acceptance/agent-runtime-v2/conversation-schema-probe.json": "9771dac140ff331307667fe49b5c6aa3002abd5a7f8cdc4701df2e56e9de6e88",
+    "docs/acceptance/agent-runtime-v2/credential-scan.json": "c0b8e1a001c5e52a644e4efaf7bc672fc083559dff18c7c6b11d9d00297df19b",
+    "docs/acceptance/agent-runtime-v2/discovery-credential-probe.json": "fd8910c8305fa1f20b33d331ef0956c14125d35d06216e8c78642e84309e5f5d",
+    "docs/acceptance/agent-runtime-v2/framework-spikes.json": "9ca1955b731240a5f225c8f98cb05562a42389496ecdb9cb884f64089e4040a7",
+    "docs/acceptance/agent-runtime-v2/framework_spike.py": "399e449727a344e5432494be51c6146e919d1be2e1196ae9a4f65e26c1559755",
+    "docs/acceptance/agent-runtime-v2/isolated-deployment.json": "0bc994a2ca62b2e87cfdad05edce17ca078c2b942dcbeaffa62134a818e9d26f",
+    "docs/acceptance/agent-runtime-v2/macos-doctor.json": "3497c136f0760a8fa961aaa59267abea82196a58f8db47e6a61f041dd1de1563",
+    "docs/acceptance/agent-runtime-v2/macos-tool-receipts.json": "9d5add5e26793257e109f755563d6d54a0e83b2313f388b2ed5a47c9a02adec6",
+    "docs/acceptance/agent-runtime-v2/model-prerequisite.json": "98cc2aa501cce78cb526380932f539c82a662760fa3a187e6a4013978d80b8de",
+    "docs/acceptance/agent-runtime-v2/native-boundary-manifest.json": "33a3d88aa66541c5030cd8ed03167d6eb385dcc11324c5f8b4f8ec596cb15ee0",
+    "docs/acceptance/agent-runtime-v2/native-boundary-queue-manifest.json": "dcb343c02aac26b38a62aacae7da50b7061c5eac22e2b1a47eaa55162c2b130c",
+    "docs/acceptance/agent-runtime-v2/native-boundary-queue-research.json": "7c371a07361e949c25dfe9d41e439eeb2f885d28f5bb7263ae020334bef85c99",
+    "docs/acceptance/agent-runtime-v2/native-boundary-research.json": "82caf54594cb5636cd0ebdf1f356fb65772e4dd394367f25f423ee0d5d0bb2fa",
+    "docs/acceptance/agent-runtime-v2/native-planning-context-failure.json": "2f701b2e7607aa385088dbcc8081625af1df057bef2e3bee82f835fe8db1b300",
+    "docs/acceptance/agent-runtime-v2/native-protocol-failure.json": "3b585ab44e9c3a70c00b2b2fd12ad14fb4424c3ee6f184cef88d788438f68cc1",
+    "docs/acceptance/agent-runtime-v2/native-python-compatible-manifest.json": "be5fa2a95cd2ececa760adc332695635ef9f0662de1262af6a9228fc4e2bc2f1",
+    "docs/acceptance/agent-runtime-v2/native-python-final-manifest.json": "bf80a2f5791562058e7a917b23be1e0766e2752a95f90e4317bbf5906d8969d7",
+    "docs/acceptance/agent-runtime-v2/native-python-manifest.json": "62aef35a18607c9c39455cbcd825dc508fea1907322211f9376cbb8d7e0d1d7c",
+    "docs/acceptance/agent-runtime-v2/native-python-paged-manifest.json": "b8917fd5e6886f2043f37a41f2de86374a6563d99c9e8c8aa785f5a5bee50cf8",
+    "docs/acceptance/agent-runtime-v2/native-python-readonly-manifest.json": "445ee2280a51c249d5967797f7b696875eb9b18f192e7d0c3737caac60f1dfbb",
+    "docs/acceptance/agent-runtime-v2/native-python-replacement-manifest.json": "c77868de1619794f97fd31a46a2473a19df3ac0b6e1a971bf35c1e6ffa7c18ae",
+    "docs/acceptance/agent-runtime-v2/native-research-plan.json": "ba408c5b8de5290b3941c802031479eecadb9b3e4b6f336b0742d7da5af872ec",
+    "docs/acceptance/agent-runtime-v2/native-typescript-batch-failure.json": "a8d4a09936ae113d282b794485520f079a92dfaccd3424cb3582873546b4201f",
+    "docs/acceptance/agent-runtime-v2/native-typescript-batched-manifest.json": "c34e7be7055c9f6c85a4bc700c1e323ccd9eb9b3474595c5ee0c4ef5dd157a27",
+    "docs/acceptance/agent-runtime-v2/native-typescript-batched-research.json": "0d391699e92c3d3cbb4eb2ecd63783c4ebda8d219b9bd022fc48b51cef78cdee",
+    "docs/acceptance/agent-runtime-v2/native-typescript-manifest.json": "b3c0ab7761fdbd0dafd1ab1adb996c43eb4d16503cdcaded504b4761e15d54ee",
+    "docs/acceptance/agent-runtime-v2/native-typescript-research.json": "eb64eece403c72061d61b59c28df7690ecad063e7b822a9feb64b6d88d2519bc",
+    "docs/acceptance/agent-runtime-v2/node-cache-actual-receipts.json": "b05895c8af3ad384616ff257d32ee36e834734fefe4fda1adef7f6ae261007e7",
+    "docs/acceptance/agent-runtime-v2/node-cache-adapter.json": "fc06e6e80d04039917f0c321d20fc2cbc774061555216023a2445b83b6e824bb",
+    "docs/acceptance/agent-runtime-v2/planning-schema-matrix.json": "406d45832bc1962e4ce860e67386780c4a48d2696a87879dc0a6ae50f716ea93",
+    "docs/acceptance/agent-runtime-v2/planning-schema-paging-probe.json": "7a33a6054181b676a8f9dc009890f9f3537ae9f8bc48f0590dd74a4702c22b2c",
+    "docs/acceptance/agent-runtime-v2/provider-probes.json": "56898a2c8d19da721f6a314cf611a8ff7c7fe5ec9d78fade44c14d0b79bda5bd",
+    "docs/acceptance/agent-runtime-v2/regression-results.json": "e6d7ec770695e652b92dcc097400d5fea342fed538523e870c9048d03fc038c2",
+    "docs/acceptance/agent-runtime-v2/sandbox-results.json": "061ccde9c4ae34a628d014cb21f1ce771754969bb8751812f0b81faa1b4fc890",
+    "docs/acceptance/agent-runtime-v2/sandbox_tool_probe.py": "b93fec425cd5221e28a420d8226b47dba9a391df1fe2f0c9dae2bea9bb80607c",
+    "docs/acceptance/agent-runtime-v2/structured-model-probes-recheck.json": "88c08771679a9aab08f068c5f546e3fb03ed7f687f201d1ad244324d5bab21f8",
+    "docs/acceptance/agent-runtime-v2/structured-model-probes.json": "98252b587067f53be14bd0a34519a1507d855674b3a3b4b5017e723c97b6fb34",
+    "docs/acceptance/agent-runtime-v2/test-matrix.json": "c83446010fdf295d2460437d4e5589568f42cf95147e8ea3bce1633ea996c103",
+    "docs/acceptance/agent-runtime-v2/user-trial-baseline-browser.json": "1d77d64b71a6043ac41f787cfbbd56a71b53184bd62dda2649d21407bfacb316",
+    "docs/acceptance/agent-runtime-v2/user-trial-baseline-failure.json": "fdc54f40015ecd90071b695e97c440e4e35d7bd4a99e502f50c8c2fe5aacad3f",
+    "docs/acceptance/agent-runtime-v2/user-trial-baseline-verification.json": "2cba84a9357c2715b90680b72388a6b73034c0adfa3468d46b484d04d6d169eb",
+    "docs/acceptance/agent-runtime-v2/user-trial-dialogue-failure.json": "d4d66b3f2ec0e6405551645710815fafa079cc6bb4132e61c8ed5c92f9ed59d6",
+    "docs/acceptance/agent-runtime-v2/user-trial-fix-verification.json": "7900cd1059b43e6ddf2959750b22f45e94562b9f3842dc695f5bd8c37b3eba21",
+    "docs/acceptance/agent-runtime-v2/user-trial-http-smoke.json": "2e2801fbad03d7ba0a6bcf90789752cd05d4793e2357b77d287dfd0e86bfe4a4",
+    "docs/acceptance/agent-runtime-v2/user-trial-native-browser.json": "3c935b107eb4807bee02b12fd99044692487f3509d279c974dd0b9bca97a45cc"
+  },
+  "samples": [
+    {
+      "task_id": "6727af39-e005-4551-a1ad-93ecf1ad1015",
+      "events": [
+        {
+          "id": "dd85e3a5-941e-4142-a227-3be15a2f7bf2",
+          "kind": "agent_runtime_enabled",
+          "record_hash": "ca88b8f5ddca04876ff73b23f0f85784c5914ed4539704880e252ab43e00da95"
+        },
+        {
+          "id": "47aa1edd-edaf-4910-a84c-eee90886134a",
+          "kind": "conversation_received",
+          "record_hash": "2e5022e367b83019151f2b7a1e23f556d91dd96e4dd83d55d3697b785455c3a1"
+        },
+        {
+          "id": "30bd90a0-8eb3-418c-9739-a851b5cf1c8b",
+          "kind": "native_journey_started",
+          "record_hash": "58d61be28733ca403c6969dcc4a8a25d1e2c3a91e693cc23c0cb3f2e1170e9f1"
+        },
+        {
+          "id": "b2dc92b7-46fe-4844-8df8-503fab7f886d",
+          "kind": "job_queued",
+          "record_hash": "8a3239a2d9fdff4730c91c3d100bf252249dee13cb1f94651301c81c0e9b6830"
+        },
+        {
+          "id": "b13838ab-c449-46f9-a751-3587a9094927",
+          "kind": "conversation_classifying",
+          "record_hash": "64de92ca8e15190c6427d7dbc51cffa82b470e9b51efe8f147efaf117a081938"
+        },
+        {
+          "id": "dd883741-d80e-414a-b9dd-c32670f3aae5",
+          "kind": "context_checkpoint",
+          "record_hash": "d4961c15c4a252de4dce1ccbc4beb949eceff65d6b63b012125e9def2885ad64"
+        },
+        {
+          "id": "f2178354-6cb0-4143-ac6b-2e4c543ca066",
+          "kind": "agent_request_budget",
+          "record_hash": "6e441a845e049bbb2b7800a83959c72675383ea459d1bd88ba884b36f70da958"
+        },
+        {
+          "id": "a3b19a18-0ad3-49db-b359-d5b2bbb62410",
+          "kind": "context_checkpoint",
+          "record_hash": "d577595190d48697348c2d4c5cf33924690ff784884225bbc4e29ab51a921092"
+        },
+        {
+          "id": "6d66a760-f5b4-41af-944f-99a0529f021e",
+          "kind": "model_call",
+          "record_hash": "36b7bf81f792d2f171257a288bad72c6b351ab46eefb0ed42c6ca6ea493953c1"
+        },
+        {
+          "id": "4f600f58-6e9b-4ae7-9f33-425f68e204e6",
+          "kind": "conversation_usage",
+          "record_hash": "b5bb2befbf13dd9f18a9452f746f5ff3efffa1962e8e44c29c5a25731aa092c2"
+        },
+        {
+          "id": "7400d1f2-c9d3-4241-af1f-64c35a5aef78",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "44293357d4c17db6cbab64b127ba5ac4ff06bdf162fb803d7daab205cdf6d35a"
+        },
+        {
+          "id": "e2da7061-4f39-4c07-ba41-b76de3fe0c7e",
+          "kind": "context_checkpoint",
+          "record_hash": "1c2562437c19ee4d2a624a23d054b98cf44b528f186cacc609292857b43bfaac"
+        },
+        {
+          "id": "b98cc64c-9ba9-48c0-ab11-aece7c81ade2",
+          "kind": "agent_request_budget",
+          "record_hash": "46517439d181b65b515e40f1debb9b714a8d85100d5199cd13fd57eca8ef41c1"
+        },
+        {
+          "id": "0248c89c-a293-4d9e-a986-f21d9e79fcb8",
+          "kind": "context_checkpoint",
+          "record_hash": "c593d0c5251dfb74991284fbccfedc01dc4b36b8993e2fdc4754b76386054256"
+        },
+        {
+          "id": "792710ec-8166-4345-a170-61d7ad60c9b4",
+          "kind": "model_call",
+          "record_hash": "f4120b9f37c8fc4ac818e2b0442cb9112df2d4a2782f2c845e39cafe620647c6"
+        },
+        {
+          "id": "4acf6542-9d2a-44de-a5c3-f51768e8d5a4",
+          "kind": "conversation_usage",
+          "record_hash": "df8a25138711ea1a85809c6b36db331edbcd0fedf631d33e8e76c322cceec475"
+        },
+        {
+          "id": "6504b72c-88c1-4fab-93c0-c88f303535ca",
+          "kind": "conversation_read_requested",
+          "record_hash": "77d339dd1616877ecd2ceb9491daf00cbac8ddf0b6b24d3b069448f0c02802de"
+        },
+        {
+          "id": "3ad2e9cd-803c-4f51-af2b-5dcb886fa7d1",
+          "kind": "conversation_tool_result",
+          "record_hash": "1722d5ae5ee848a79f9b60983129dfe2855490aa2a6712077fc1432437db1d67"
+        },
+        {
+          "id": "31924c80-b935-49bd-868c-7eb0e0088d9a",
+          "kind": "context_checkpoint",
+          "record_hash": "c7df45b473cedc692f27e8513b5d549258ad69471d14799d2530857aabbcf77f"
+        },
+        {
+          "id": "1f77a090-00b0-48fc-ae53-8a2f8f27844f",
+          "kind": "agent_request_budget",
+          "record_hash": "7335ff801b6d9c1e8727c7733e9764971bf6efc71f2e4a35d4f3dba0dced7c9f"
+        },
+        {
+          "id": "1d004c22-891b-4798-b4c0-3ba3c26a7a9e",
+          "kind": "context_checkpoint",
+          "record_hash": "8e64682c6b0256937a0d91db57b445c089da407c25df475217b6d7fa3c45884d"
+        },
+        {
+          "id": "33283cd5-3e3d-45ba-b5b1-77c81b363b28",
+          "kind": "model_call",
+          "record_hash": "b77d4f59301c9cb3cb0251bf2c0fcf73ba0dba1bbd0a7fd9bdb4fd6ede4dfd1c"
+        },
+        {
+          "id": "933c1493-b753-4f29-9fc6-8faabcfc4faf",
+          "kind": "conversation_usage",
+          "record_hash": "95d4e10d0964602941bb9983f89811bc9754f69a4e29d92c9ec3f52c48f14aa2"
+        },
+        {
+          "id": "9e16b62d-4771-4256-9633-a511c9f4cb86",
+          "kind": "conversation_read_requested",
+          "record_hash": "aeeac94a98e1eecd75d180d74362bb87e73580cee5b9a3aa80028c5564d27dc2"
+        },
+        {
+          "id": "d2f9d566-3b5a-4c81-bb64-03b11fbfbb8c",
+          "kind": "conversation_tool_result",
+          "record_hash": "1b847a8a48f6d97b9596dfd0032aa548ebb00c3527057ec7bd16f070ce2bacd3"
+        },
+        {
+          "id": "edf695da-b0a5-484c-a5b6-d368378c7a60",
+          "kind": "conversation_tool_result",
+          "record_hash": "de28140c88569da358cb70437ade3d9207e4d6f8e932f4417413d2c8ebcc5ed0"
+        },
+        {
+          "id": "3d5a60e8-002c-448c-b530-25aaaab653e1",
+          "kind": "context_checkpoint",
+          "record_hash": "9f8ea9e5c507180e6adf7882d3626a4d2003c39bf47ee8088166f33c9cdde869"
+        },
+        {
+          "id": "0d6585e2-fbd4-4a33-8bd9-3de1dd9be2eb",
+          "kind": "agent_request_budget",
+          "record_hash": "c96c7e300079b4fd3e8ac0c7709d277f8e3f43bc3f8a76abdeefc7905ed0a414"
+        },
+        {
+          "id": "4957e039-90b5-46ff-9ae4-b088b7a20264",
+          "kind": "context_checkpoint",
+          "record_hash": "635821e14f3ccae362a6f99bf4e9569895494509dc0aa86def1b8f15abbf6c3c"
+        },
+        {
+          "id": "7236a1ef-b646-4ce6-b8a8-d8f66d62cae9",
+          "kind": "model_call",
+          "record_hash": "bcbfce9408451403dcd1664553e3fadf91959487ff8de33e9bc87f26a7773f4a"
+        },
+        {
+          "id": "cb9f4aaa-8308-4b37-8e1b-9184ca9b31ae",
+          "kind": "conversation_usage",
+          "record_hash": "962e8be6f9613ace0e2b9d44c4b3d29b30d1758b34ff57e21fb3ab90da5a7b86"
+        },
+        {
+          "id": "50fd498c-ca68-49fd-a074-aa92110ccc08",
+          "kind": "agent_turn_classified",
+          "record_hash": "8395316501dd81eb3707caa516f2ab9329af007fa17b23e01fa23e44e77d3c30"
+        },
+        {
+          "id": "745f94ad-4389-48f6-8afd-ea6237c279a7",
+          "kind": "conversation_decision",
+          "record_hash": "9dc5027bc149d2e3808b0ba8d4b3bca5347b6fe9ac05f63cc56a01ace1ab1237"
+        },
+        {
+          "id": "10e9dd68-8de4-4a99-8ed9-ed3105cec6b5",
+          "kind": "user_message",
+          "record_hash": "715c24c21239ff8804812aae601b45cc7361aeacb540d59aea14aa9f1142bbb8"
+        },
+        {
+          "id": "b3675c5a-c049-4e5c-9a03-fa207a624967",
+          "kind": "conversation_dispatched",
+          "record_hash": "530f7c5656d2bc80b09b1061a78392a891d05e9788d1caf016bc2f92fa13122e"
+        },
+        {
+          "id": "34f881b2-6756-4871-912f-a82cd735be51",
+          "kind": "conversation_result",
+          "record_hash": "e693e61dd31161db95a3ca4d93aa08275890a46e0515330d979fef7d5a04a1ef"
+        },
+        {
+          "id": "113c8c48-6b2a-4c35-beda-2886f0fe1fee",
+          "kind": "job_queued",
+          "record_hash": "371907ea61738b3d2ffc188d54ac0f84885570dc7656dc702b161576ada3db07"
+        },
+        {
+          "id": "f8cd6827-926c-4cc3-b000-7bae160c4881",
+          "kind": "context_ready",
+          "record_hash": "8a1584d5da2b0343bfd5253385e371b6ef5f366139a87af6ecef0f316fde1ae6"
+        },
+        {
+          "id": "d624acc1-d441-4609-b0ec-20ff2fee35f7",
+          "kind": "job_queued",
+          "record_hash": "1bc64312b56c88bd47cae7774ebe73af70114149f8010beb36ad569c05b50eda"
+        },
+        {
+          "id": "f549e94c-49e7-4a24-8ef4-a6373ed9c9db",
+          "kind": "context_checkpoint",
+          "record_hash": "eb053092a25e9208135de6020cd4a8822b9f67be9bd75887ac2d89b2af7a418e"
+        },
+        {
+          "id": "53241941-d322-4269-8d04-d5e1c1f19710",
+          "kind": "model_call",
+          "record_hash": "1b8e75c803107ec1611b7f412d2d7a6a693c59b5b9f3e62364fc18762e39da3c"
+        },
+        {
+          "id": "03e4f230-5997-44a2-a674-97b3bb1226bf",
+          "kind": "assistant_message",
+          "record_hash": "3d1432a5f24d2c9c3f667ef246ecaa59b5b3b475ee1e3f86ce97e0765188b712"
+        },
+        {
+          "id": "90fcead5-8cd7-4b8d-87ad-39b56ee0f9b9",
+          "kind": "job_queued",
+          "record_hash": "5a719ef85628b99df71cb6f7a4ab5e150536d117e27bf4fc28c88639cfbf9a0e"
+        },
+        {
+          "id": "0393ec71-23ac-4243-a3a7-fef40c70c5b2",
+          "kind": "context_ready",
+          "record_hash": "dddb288a1a07597bfcc94ec26e02eae458cb9849dd8305848a1123d72c9f18d0"
+        },
+        {
+          "id": "fe9a2b2f-6dc8-4b6a-a32f-23139b8f366e",
+          "kind": "job_queued",
+          "record_hash": "36c2f0c6f8d4027f607aab1629b0821a41161a7de688fa2f4194b28856b93d97"
+        },
+        {
+          "id": "e2e2cb52-7281-4135-8d3c-fe31f7ca8602",
+          "kind": "context_checkpoint",
+          "record_hash": "2b48d94b6a43a0c5c5a519f5645cdcbab548c5ccc36f2d01a5e41efb9fbea462"
+        },
+        {
+          "id": "7da05911-961f-4f2f-ba8e-2de38a79c5c6",
+          "kind": "model_call",
+          "record_hash": "534dd0a2fa0e01cdb5e00f06629b39d494095c219d017c55ae960cbc5530677d"
+        },
+        {
+          "id": "921ef082-92e4-4d6b-8019-0f7c1d7345f2",
+          "kind": "assistant_message",
+          "record_hash": "d2081f8866f4956004ef5b872c42c26e0145f1fbd7f56e68ed6f3fdd7f5e87a0"
+        },
+        {
+          "id": "c7337091-ee58-462f-bb16-2eb18e1be3dd",
+          "kind": "job_queued",
+          "record_hash": "5c4f7acf585a655fca5827151d2433721f4426b0f26fcf2d032cc21f8a55c01c"
+        },
+        {
+          "id": "6fe94218-20ca-4769-b30e-df68b3641ae5",
+          "kind": "context_checkpoint",
+          "record_hash": "b0a20c508a847d2e1c0c2019e1b168ac4701e6e4998e85d1f582b2966688bb38"
+        },
+        {
+          "id": "b3f6e145-487c-4f9d-bf67-a6b393d48f4e",
+          "kind": "model_call",
+          "record_hash": "7bdcb784736a35202c0f1bb1cd8de6dfefe3483686a458a02c08e8fd93590ee7"
+        },
+        {
+          "id": "cfdd92fa-ae49-4a85-93de-0e68fed95531",
+          "kind": "assistant_message",
+          "record_hash": "69e8640666b2204a91950b7241f5b595ec68a054ade54d24045119a168d054dd"
+        },
+        {
+          "id": "cf8b63d8-a5dd-4ee5-9fba-4abc52ce9ff7",
+          "kind": "job_queued",
+          "record_hash": "bc99f6d33a382f83879033c1ccc5c327ad776cb494d6e54f2f6f070e19e2bf26"
+        },
+        {
+          "id": "569e9afa-b9e5-4e6a-8313-0a4046292d51",
+          "kind": "context_checkpoint",
+          "record_hash": "2d29e292a4a9d2e6402425ff410a2437926575a3f66df26d07505ed7cf1511ac"
+        },
+        {
+          "id": "327aaaf8-817c-41f5-9f1a-824daeb84513",
+          "kind": "model_call",
+          "record_hash": "ec01b1eab9927edbdc70144391767af439467045031a0b7ddd7ba44f8630f3d2"
+        },
+        {
+          "id": "0a6f114a-7f93-4c7b-941e-cffb26ca8aa7",
+          "kind": "plan_bound",
+          "record_hash": "fb91e24bfb74ea7f2776cf59371414c3f45485818adb610cd17de1536d4dfed8"
+        },
+        {
+          "id": "f3f3f5fd-e0ec-4bfe-ac6e-bb9623a64406",
+          "kind": "assistant_message",
+          "record_hash": "e01e5cca92b3b3a7ee3ec51612a447f5bbb110de05bd830dbf087ebfc3dcfa05"
+        },
+        {
+          "id": "1db5654f-2809-4186-9b4d-9fbdd19a82b2",
+          "kind": "conversation_finished",
+          "record_hash": "83ad75453978fb59a2e16e48f01042687a7cf20732941603a38ce2a37b6bc4f4"
+        },
+        {
+          "id": "9f4e1661-4b8d-4105-8a66-3375a8b8e106",
+          "kind": "conversation_started",
+          "record_hash": "027240de320ccaa0997ec4559c4710bb5ef09877b03f04e4199a61f1251c5b82"
+        },
+        {
+          "id": "bbdaa6dc-85fa-427c-a17d-00b98f5eb2ed",
+          "kind": "execution_authorized",
+          "record_hash": "b2756e0c5df1bbb161fe936d115e55b3233bd26e0abe710fc89f792919c37074"
+        },
+        {
+          "id": "222ef8d6-d8b1-4dc9-864f-fefd4fe214ad",
+          "kind": "automation_started",
+          "record_hash": "90d7a650a2b2568d0c2ef02fa5a4758aff9fa7bda93573f3b1b1b0d69369101e"
+        },
+        {
+          "id": "0d0ae595-cdd4-4842-a651-cc2e30fc3a28",
+          "kind": "job_queued",
+          "record_hash": "973499dcec5cec8966f878f254caaec9e165f63d4233566f7279c92443996b13"
+        },
+        {
+          "id": "57dc8bab-acd8-460f-bb13-04be35e3b15e",
+          "kind": "job_queued",
+          "record_hash": "9a510056248bff4cf6678603a4fa29efd0988e684481c2bd9085b2bae179eacc"
+        },
+        {
+          "id": "64d6ecfe-a2f3-4353-b896-906a56979b56",
+          "kind": "preparation_workspace",
+          "record_hash": "08922a5a4d54ab9076632768432dfa0ff4485e11ca67f7bcad2c293046ca5cfe"
+        },
+        {
+          "id": "4d303cf3-b757-42d2-8948-7801a504e997",
+          "kind": "dependency_workspace",
+          "record_hash": "ffa3b01c521801a4d7b6d0e1f2acae473b1c99ac91f11613ce3d36c0a5407ed3"
+        },
+        {
+          "id": "560797a3-6f7b-4fce-8dd3-34a59cdebf03",
+          "kind": "dependencies_ready",
+          "record_hash": "7e01e4b86672f6b292d11a1b8608934f83a47238ea9f8ab3cb0ab9b0023edf67"
+        },
+        {
+          "id": "42c5708a-fdbe-4e03-9525-e35dee7ca85f",
+          "kind": "execution_baseline_ready",
+          "record_hash": "da148c51a832e17142e1b4175eb852d8c0b5b6f3917fa7014b9c0c445939ca32"
+        },
+        {
+          "id": "1e8d24a9-f82f-4942-b267-046ad61845c5",
+          "kind": "preparation_workspace_disposed",
+          "record_hash": "66d0c1fdbb51857c0824ab9692f5cf9754c75a90e51ff117033d5559d48ea9f8"
+        },
+        {
+          "id": "51d2cbf9-ca61-4aaf-abdd-828001a5902a",
+          "kind": "automation_blocked",
+          "record_hash": "771e6addbc9703ba39cc43e211258663b1253bf3ac413782296942d471619f63"
+        },
+        {
+          "id": "3a05de8b-f72a-41e1-b5fe-3fd0df692d33",
+          "kind": "dependency_workspace_disposed",
+          "record_hash": "0b8f8ad2580ef0d33065eae083d5bd1fe76765a0682c3fad56e982a888e419ab"
+        },
+        {
+          "id": "18bc075e-e50e-4e92-b0a8-e68962969bc3",
+          "kind": "conversation_result",
+          "record_hash": "83b2d81b1988308b6706a522e04956a654c0cf11c8ad4693b6d0ec19033ab744"
+        }
+      ],
+      "artifacts": {
+        "8f319a3a2f071a2792143068d3c1fe33c356fe3b945afb408b8d7ec49ae2fdcc": {
+          "verified": true,
+          "bytes": 38681
+        },
+        "5865ce4904a56e1c32ed3c8c48ad1daafb392acdf72d9911c2d2e034bf4f1f69": {
+          "verified": true,
+          "bytes": 898
+        },
+        "558450d40d4e2e05781feca72da2860afc4f9a810b0ff3ec0e7c594892c86023": {
+          "verified": true,
+          "bytes": 726
+        }
+      },
+      "sources": {
+        "Makefile": {
+          "sha256": "fd825cb050af1d7399fb28257b3591baf5d14f8ddd94d4d0bbcbc777690305db",
+          "content": ".PHONY: all-checks\nall-checks: requirements coverage check docs package\n\n.PHONY: requirements\nrequirements:\n\tpython -m pip install --upgrade -r requirements/development.txt\n\tpython -m pip install --editable .\n\n.PHONY: check\ncheck:\n\truff format --check .\n\truff check more_itertools tests\n\tstubtest more_itertools.more more_itertools.recipes\n\n.PHONY: format\nformat:\n\truff format .\n\n.PHONY: coverage\ncoverage:\n\tpython -m pip install --upgrade -r requirements/testing.txt\n\tcoverage run --include=\"more_itertools/*.py\" -m unittest\n\tcoverage report --show-missing --fail-under=99\n\n.PHONY: test\ntest:\n\tpython -m unittest -v ${tests}\n\n.PHONY: docs\ndocs:\n\tpython -m pip install --upgrade -r docs/requirements.txt\n\tsphinx-build -W -b html docs docs/_build/html\n\n.PHONY: package\npackage:\n\tpython -m pip install --upgrade -r requirements/packaging.txt\n\tflit build\n\ttwine check dist/*\n"
+        },
+        "requirements/development.txt": {
+          "sha256": "ea11594e2c832b2e83248bbb1626b61a42805b87dbcbcfe5fa8a20de5b71dcb9",
+          "content": "--requirement testing.txt\n--requirement typechecks.txt\n--requirement ../docs/requirements.txt\n--requirement packaging.txt\n"
+        },
+        "requirements/testing.txt": {
+          "sha256": "cd26741c111c100de91fa68c6e9ba865348645da9b70c0b6672ff0f17f87ec6f",
+          "content": "coverage\nruff\n"
+        },
+        "requirements/typechecks.txt": {
+          "sha256": "33eff4300845d30859eace31f902fc365134650e4521b5c9cd299db7d426133e",
+          "content": "mypy\n"
+        }
+      },
+      "environment_spec_hash": {
+        "disk_bytes": 4294967296,
+        "ecosystem": "python",
+        "execution_attempt_id": "4635f1ab-6b37-4be5-9d64-2a81de0bb822",
+        "local_projects": [],
+        "manifests": [
+          {
+            "content_hash": "a2b3a175ee00820cd2d387a6521d80af5eccfe4d96dc057f9ba4d3cd76ddba87",
+            "path": "pyproject.toml"
+          }
+        ],
+        "plan_id": "a1913f1a-4607-435b-b254-11b142131067",
+        "preparation_version": "python-workspace-preparation-v2",
+        "project_directory": ".",
+        "proxy_policy_hash": "18ff3da5771b22faceed98b64f4bfd0bb93f804a136585f57f012022f0b14b63",
+        "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "source_kind": "explore",
+        "source_result_hash": "8bf8ecaf2de7c62cf33b1eef2ad9f4afd6c1754cc22c02e15d26c5e7e0655874",
+        "version": "workspace-dependency-plan-v2",
+        "workspace_inventory_hash": "a0d64a5e033b18f2f9891940b4bc9d5928c4bf0437545f433371b88cc4cc8bbe"
+      },
+      "archive_hash": "169458c629e233a182d8c3ce0002996becd84d9e42d294c786c05be8c715e3d1",
+      "approved_baseline_commands": [
+        {
+          "command_id": "test_more",
+          "command_hash": "c40aa2845e8cef13b85f2b4fac3c058ec39ff488b2f9a7aa15181f4a9bdd867f",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "test_all",
+          "command_hash": "e9d203c1c69aa47c7c30904ffa8bd40a8f27cc9c4d8b305a1320a03b7a582fa0",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "format_check",
+          "command_hash": "c0bd9cc0806ad2a678c26681d852924177d37dd8ca4379028704e9233fb17712",
+          "exit_code": 127,
+          "status": "failed"
+        },
+        {
+          "command_id": "lint_check",
+          "command_hash": "45f33b3dbd74748e841d4982a60435011bf8d5eb437169120d543e46acf27cab",
+          "exit_code": 127,
+          "status": "failed"
+        },
+        {
+          "command_id": "stubtest",
+          "command_hash": "5abfcb7169f36d525c34ac761cf32fdc5f8764f4f7c712e68645bd66de7ef3f9",
+          "exit_code": 127,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+      "events": [
+        {
+          "id": "66ff2677-b63f-4ddd-8b30-80a8c491bbe9",
+          "kind": "agent_runtime_enabled",
+          "record_hash": "a181312f4b4ec0740522eac94cdcf92e3939fc3ef57382fd056724665fd8d508"
+        },
+        {
+          "id": "5d9b53a6-c26e-43e4-843f-1488569a393b",
+          "kind": "conversation_received",
+          "record_hash": "971e9c0b14881b3af2a990c4c96d78f12ae77fca61af1c269c2f31b823f96212"
+        },
+        {
+          "id": "1d93f9d4-57c2-438c-b090-eafe7c970ba9",
+          "kind": "native_journey_started",
+          "record_hash": "48583166e70a850dda753b943720db88f2426729b36fafece4140f45738ac487"
+        },
+        {
+          "id": "caffdca7-9b00-4aec-ad30-8043b956c200",
+          "kind": "job_queued",
+          "record_hash": "dbce74213690df858bfb11276d7af86cea861cffc839678c04a53f345062fa6f"
+        },
+        {
+          "id": "6291e9d9-1817-4c6f-b27e-3cdea9b2fdfb",
+          "kind": "conversation_classifying",
+          "record_hash": "a9de20eef66f0f59916d3e7783b2655a61f615e1268d5e3acbabd6d6391e3869"
+        },
+        {
+          "id": "4da773a3-fd65-4fe4-b4e7-0a124d748fe4",
+          "kind": "context_checkpoint",
+          "record_hash": "8d189fa872e2076e21c3992cc2a916688dae6515056f66be2a363750fba03bf9"
+        },
+        {
+          "id": "33fd370a-f663-41ab-9328-3e4d97a096a9",
+          "kind": "agent_request_budget",
+          "record_hash": "8180e5dbf936292c5682b91e71c186bdb803f3d4ff13dd6b35a2dd52b36f1135"
+        },
+        {
+          "id": "ad28f86e-445b-46ff-8ce2-5210ecee5b2a",
+          "kind": "context_checkpoint",
+          "record_hash": "82d42d6d611f2a4592dd865f8f1acd4c11da08ab72e2f1b9e8c2d786981a37e0"
+        },
+        {
+          "id": "8857b468-ee90-4769-baab-991d88bc6936",
+          "kind": "model_call",
+          "record_hash": "27d0989dae2af28aa81242f2f288de4ed734f06c8d59f79f45a21420674d90ec"
+        },
+        {
+          "id": "5d7dff7d-c08c-4b37-9f31-3397c8377887",
+          "kind": "conversation_usage",
+          "record_hash": "e7a6734de3449d8f8266c738e125b59e1a54051def2d42388ccd2e6fcae380cd"
+        },
+        {
+          "id": "b05ce11c-3faa-48d2-b05d-977012adf92e",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "e5017237055393ddc6b74ebfa662dbfffb367753029b69c7dde323bea82078c8"
+        },
+        {
+          "id": "3d276780-cbf0-462f-b31b-7d897def2e3f",
+          "kind": "context_checkpoint",
+          "record_hash": "5fd00cc9dfb23124647799c54fc0793cacd806c5bdb3febb41df8be0f7637f35"
+        },
+        {
+          "id": "aaf7c649-6d6a-47ac-89dd-99513137daa5",
+          "kind": "agent_request_budget",
+          "record_hash": "7ecec023e11ebcd74b2abe7567a00d3ee9df02df1a6109b9f4cb06eff88d09fd"
+        },
+        {
+          "id": "2e65511f-9b10-4977-a159-6e71746ed0fd",
+          "kind": "context_checkpoint",
+          "record_hash": "bd3e28a9a3fc050c722abf06b59a4025d66e4fe733e64aca4bbfa212057a7385"
+        },
+        {
+          "id": "a1c26aba-1a0e-4206-b110-4a9fa50ce96a",
+          "kind": "model_call",
+          "record_hash": "b42c482313f3664e6b21404b0bdb9561a2c82144a911034d0ed8fb68565c6e14"
+        },
+        {
+          "id": "790de09b-e82b-4b81-9921-52ca2ddb98b1",
+          "kind": "conversation_usage",
+          "record_hash": "a760c7e74209a7497e55c407cc73f1f00410c176f07f246e99bdd0103f73c2d4"
+        },
+        {
+          "id": "a0844a25-4cbd-42c3-a6c5-1cacaeb03a01",
+          "kind": "conversation_read_requested",
+          "record_hash": "14c0333a104e3b6ed5e10831b55b9f86883d43caf6172ab49c9b08a7c6559f6b"
+        },
+        {
+          "id": "172a194d-c5d3-4190-8dc8-f65ccf9ae4e6",
+          "kind": "conversation_tool_result",
+          "record_hash": "0ad53bf12ad2024ccf17c78344b7108ab45af7467536f14293df7191c6ef2876"
+        },
+        {
+          "id": "521a4794-b913-4d66-8e39-069e81a34b66",
+          "kind": "conversation_tool_result",
+          "record_hash": "e8b4510bd194240816d22a38d00ee0d12d0cf532aa4db9c68609f197341b64d4"
+        },
+        {
+          "id": "8b8ad5da-e2d5-4e23-82b6-8460c1c4a13a",
+          "kind": "context_checkpoint",
+          "record_hash": "8343f9c12f8436776bf781f977fe2e39fdfebe1cb5fe08531f9ace9726888065"
+        },
+        {
+          "id": "47824e19-ba74-43eb-8841-86f449dde234",
+          "kind": "agent_request_budget",
+          "record_hash": "e5182f0800e9337add75d46c965b93278d5e49829fb01acfe103e50a509ebe6d"
+        },
+        {
+          "id": "e3ef81df-e2a1-43e6-a988-eb1a5ab02729",
+          "kind": "context_checkpoint",
+          "record_hash": "730db063f52b8b9f1e10036452327d93b6e396de2b64a8aa404476757cb6759f"
+        },
+        {
+          "id": "67f53ce2-6150-4ae8-b08e-5017a20bd9b9",
+          "kind": "model_call",
+          "record_hash": "68a810e1d15fbb46a0de0479784bfb803e2e12a28e96abf035f4cd88032bd8e1"
+        },
+        {
+          "id": "6b8d5529-5875-4229-b805-923b9ba51b2b",
+          "kind": "conversation_usage",
+          "record_hash": "35042635346688bac73a64d4e378b7fcc8394f293f516bdafd97c68b2a41daad"
+        },
+        {
+          "id": "d1d66663-329b-4d7f-aeb7-238986ded147",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "f4e6240da9541240823ef21f475719730d8c436bc51d45287559e56f88af0440"
+        },
+        {
+          "id": "bf108ee2-c0fc-4629-acea-9b4555776036",
+          "kind": "conversation_finished",
+          "record_hash": "63b4125d7f3403a4d4a6447f0808418f0825d71bd1e04ad1f32d71d7fddc2986"
+        },
+        {
+          "id": "f19d2746-66e7-4f65-ba2a-dbdcddf56b01",
+          "kind": "conversation_result",
+          "record_hash": "28987dc3f572a9674af4f44a8a2f1161ac83be0eb8fb3b324e425ae94e2125bc"
+        },
+        {
+          "id": "551440f7-9580-40ed-b26b-f94cd7d68855",
+          "kind": "user_message",
+          "record_hash": "7105774f8f1dabc3165089aeb1b57e09483c6d6c81dcf5ef6e3cc18ac0df25f9"
+        },
+        {
+          "id": "70a63212-8472-4fee-810a-958bf12c34c1",
+          "kind": "job_queued",
+          "record_hash": "3f3aa8e617ab4b100057addcecb2d2fd0ca0367a5f57fa797a91760280cf85ce"
+        },
+        {
+          "id": "eb71becf-ff37-4cbd-99d9-bba4d52eac90",
+          "kind": "context_ready",
+          "record_hash": "7dd3a3cf47c576117b95b30e82a752d7239c844cf45fa75e5fc76ebabf09e86c"
+        },
+        {
+          "id": "df1323a0-4bba-4b65-bb94-2b9d820195f7",
+          "kind": "job_queued",
+          "record_hash": "389d0492654e3b7ab2392b3dae574ce5ad45f69c310bdff029c25aa2681d10f8"
+        },
+        {
+          "id": "948137f7-5d69-40ad-b0b5-91b3d759eb7f",
+          "kind": "context_checkpoint",
+          "record_hash": "05bffc541b5cd5c28e07b85c60f9f5cafaade0a0771f7bd56237cb044fd82854"
+        },
+        {
+          "id": "76c0d211-ca20-4236-a712-106ca4bbb8bb",
+          "kind": "model_call",
+          "record_hash": "9a22da485716e5b5527cc451656ecc55a055cd3fe61a5fd20557247c05ac5cda"
+        },
+        {
+          "id": "beed30d8-abe0-4237-be1a-a4a82a2e090e",
+          "kind": "assistant_message",
+          "record_hash": "a782c46e011db35a9f0a42347f46835b20601450000a7db0b58e7a472ffb1bdf"
+        },
+        {
+          "id": "fb2d3699-aa0e-4eb8-b094-1b24aee8ee9d",
+          "kind": "job_queued",
+          "record_hash": "21d0dc16c15134e12d3b6f8bdbdf4fee6063322c13835e02e1e172930fda7402"
+        },
+        {
+          "id": "bfc5c5f9-830f-45f9-ad47-aa5d5c0bb5bc",
+          "kind": "context_ready",
+          "record_hash": "5d17853eca8cb343e51b7d648607d8f089d50d90cef6df2d394650161acb507b"
+        },
+        {
+          "id": "40047166-100f-4c8c-8e6b-fd5b05b300c8",
+          "kind": "job_queued",
+          "record_hash": "52054ffbeab7b0aa726bbdb2dbc55be43beecb8290143811278200b37f094162"
+        },
+        {
+          "id": "d7b20a45-35b6-4041-a204-d123334ab6b3",
+          "kind": "agent_maintenance_recorded",
+          "record_hash": "de2acee23c674a93cb83277b0428db9d9b7f66f1673e7fce24f0b47459dd47b9"
+        },
+        {
+          "id": "9b1252c4-c048-4877-8a9e-f4869dcb7cde",
+          "kind": "context_checkpoint",
+          "record_hash": "cecbe286c411ba17b46a3f7e45911eabc7dd0b1d31f764fa25b176815b794e20"
+        },
+        {
+          "id": "0f5d685e-36a9-49b7-bb15-8cebb90eedce",
+          "kind": "model_call",
+          "record_hash": "7356f77bddc3b4413b1f87e6e1603400f815d330f9ed1d3e0b5a5ecc26bf0841"
+        },
+        {
+          "id": "c18d7506-8a55-4feb-8d0a-333de0798ab7",
+          "kind": "conversation_result",
+          "record_hash": "f3148db0395a294a610fbe7ab016b03a6c4ce4a193c77e0e1f04e46877c795ae"
+        },
+        {
+          "id": "9873d254-1e90-4441-abaf-cc33956d3f1d",
+          "kind": "conversation_received",
+          "record_hash": "b4989f310af403995083eed622aefb9b3c0a660430e208cb90d9185c0ab9a704"
+        },
+        {
+          "id": "682148f7-64f4-4973-b496-a1bfef1e3f29",
+          "kind": "conversation_resumed",
+          "record_hash": "5204e7eb560eff17fe93bf015ca1b344a5c31a61d956d508c0ad569ac3512c15"
+        },
+        {
+          "id": "a61d0682-f014-4020-9511-56b6201de77e",
+          "kind": "job_queued",
+          "record_hash": "a0121852ef8128fba84d25cd6d48ff525f9bda03430e06c30a8be0534987bb4c"
+        },
+        {
+          "id": "11e73d27-33d7-43d5-b445-c368666753d3",
+          "kind": "agent_turn_resumed",
+          "record_hash": "2c716068e5828fd58217309f3d1311552a296b42069677cc80904b1f72c7d97f"
+        },
+        {
+          "id": "ccd4d69c-bfc3-4d4a-9176-b206574cf4e8",
+          "kind": "conversation_classifying",
+          "record_hash": "212cf666b0e9b02d15d9b1b89ebaa5e395db6133d737cc6120944809702032ca"
+        },
+        {
+          "id": "3390c320-17ce-45fc-92ed-80a9f37f2a49",
+          "kind": "conversation_finished",
+          "record_hash": "e3d8cf1693cacd4d67952c767e9115ae314218bd07c09e69ad2d625cf9857a1a"
+        },
+        {
+          "id": "7a7b2d9e-bb46-4003-a01e-4b4c35bc361c",
+          "kind": "conversation_result",
+          "record_hash": "e21df67bdf165e9f0cb3df5c9e4aa74fa2189f150ff1f3b2cc87958e6bb2e1c3"
+        },
+        {
+          "id": "bc278021-74d7-470f-8625-8b73295e1e32",
+          "kind": "context_checkpoint",
+          "record_hash": "b3de328c28464393cf31222ac87e9714ee786d41e3f2b9d5a346648690218c2a"
+        },
+        {
+          "id": "7a75cd7e-0d54-4eb1-934e-cba1a4033b35",
+          "kind": "agent_request_budget",
+          "record_hash": "db88ba8fbed9930880f5bf1ab25cdc775135aeb13f5adfd33200b158894be45a"
+        },
+        {
+          "id": "743f0bd5-72e7-49ad-b809-92fa1aa8e9c5",
+          "kind": "context_checkpoint",
+          "record_hash": "ca1724a727c28924c0bdfb5827bdfb86bd7332d5f284a126fef580ea5fea40cd"
+        },
+        {
+          "id": "687c9420-d6e8-4350-8bf7-726ac4e81505",
+          "kind": "model_call",
+          "record_hash": "794e11e809f22a155c33253225026eabc655efb754f1390c376f786f61592d84"
+        },
+        {
+          "id": "ec015c59-58d4-4f15-bf90-3dc1db31f85e",
+          "kind": "conversation_usage",
+          "record_hash": "291df4d58226014b407bc164d334d98eac9e1fba7a57cc98ec7a601fc2459461"
+        },
+        {
+          "id": "72d8c9b6-e757-4ae5-838d-7e3d81ada113",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "0af90a940b83f3cd310fdcad8a78a6b61f2fd5426f4ce2c681d444cb39fbe070"
+        },
+        {
+          "id": "8326ee6c-da9d-4f99-9a27-c3040b6e9cdd",
+          "kind": "context_checkpoint",
+          "record_hash": "a9930ea8c3e19c35e884f637ee0e57f5728e28a4d586d53117e846786c862a05"
+        },
+        {
+          "id": "bb71df59-857d-4c87-8691-80d1dccb9a60",
+          "kind": "agent_request_budget",
+          "record_hash": "94dabdb04ecad633075b11617e4bd139d424bc5bcf395b9e22559c5e769f9db1"
+        },
+        {
+          "id": "ecc8ab05-30c5-42d6-9180-49e64c34fc98",
+          "kind": "context_checkpoint",
+          "record_hash": "90210748901475a81d7c04f6824df4345c278702453f8c72391f27a4636958f2"
+        },
+        {
+          "id": "e8207c80-ca9f-400f-ae7b-c0517713e1c7",
+          "kind": "model_call",
+          "record_hash": "86380cf7f4552e270a617911ff747c993cbd84b8de8b2feacfe3fc5e7a249d78"
+        },
+        {
+          "id": "143054ae-5ee5-437e-ac42-b86f9fe3bc96",
+          "kind": "conversation_usage",
+          "record_hash": "6e679629fa38f49e236d2d43026593bbf6de285155fcff5c0ca01309f35285b5"
+        },
+        {
+          "id": "7713ce97-fb3e-4a23-8485-f4756b6b666a",
+          "kind": "conversation_read_requested",
+          "record_hash": "3134d1a381f607230a04c1a6d034d58b14395075abcc305127d36a5d3bd99e07"
+        },
+        {
+          "id": "6a84381c-15fa-473c-8ee8-367e19a48b24",
+          "kind": "conversation_tool_result",
+          "record_hash": "dbda7e31c20895451b7878bc5d5bd6fbb7ccab35937589b1fa3189bb6efd7cf2"
+        },
+        {
+          "id": "24beb410-688e-4c5b-a0ec-bfd893058fa4",
+          "kind": "conversation_tool_result",
+          "record_hash": "e17bfdac7fcbd80e1c4f5d6e3a2f33617747a24ef040b91ef54bec621f8fce88"
+        },
+        {
+          "id": "dd1e01d7-839d-458d-81da-68a3a5b1fe63",
+          "kind": "conversation_tool_result",
+          "record_hash": "c3cd6ad874d1183ab39fa97fb2b36b64c14d074307f40e145d606e332e5b8c09"
+        },
+        {
+          "id": "47b9970f-6c0e-4005-a32a-d98ce2855347",
+          "kind": "context_checkpoint",
+          "record_hash": "fe849c2713f5fcf35439be21fd34ca83d0aff155db84048ca4cc3998e83ba0a7"
+        },
+        {
+          "id": "ed651ce1-f4b9-4bb1-a90f-15eb888fb7d7",
+          "kind": "agent_request_budget",
+          "record_hash": "99b945612de3ac59dc567d457a6d8b9bbc0933fec2b8263762b333ea6115d32f"
+        },
+        {
+          "id": "e43f7b5f-12dc-430d-b2fc-9c321c021a2e",
+          "kind": "context_checkpoint",
+          "record_hash": "318368c8e102a2863fa431269b47e5f397de995e23f00f6aeb0adbb00f332356"
+        },
+        {
+          "id": "cca71213-74fb-4a1c-a651-7c2d407b4a3a",
+          "kind": "model_call",
+          "record_hash": "4393d60b9a7bb3b664bbc230da38c76e6fcb41c34def550bc3819d2b9059b5bd"
+        },
+        {
+          "id": "730688d8-8f50-4fb9-b572-a52da2f4a501",
+          "kind": "conversation_usage",
+          "record_hash": "64d0e5bc1220857fda57e367b8cdc8feb1db7479f872660e50fa36d599b01029"
+        },
+        {
+          "id": "17e0ddf3-6818-457b-b591-9c9962e42b41",
+          "kind": "conversation_read_requested",
+          "record_hash": "7ff9b297f2eaeaed3cff64cc2b102892a7ca95a6fbdf9421eb610cff3b26005a"
+        },
+        {
+          "id": "4ca01710-c64f-4c73-8120-caa2568f349f",
+          "kind": "conversation_tool_result",
+          "record_hash": "87fe586168151d3e3ec4a3e81f15a9d29ac41347a13ab15ad19984b7be30383b"
+        },
+        {
+          "id": "7ff71d15-bb9a-48bb-a7ec-c1fa9c781261",
+          "kind": "conversation_tool_result",
+          "record_hash": "423a9d305a5e5753a46fa244c613ea79b1a16c9ba6593097740afabe5b1abc19"
+        },
+        {
+          "id": "1f468736-8810-4813-8599-81f76f5ce08f",
+          "kind": "conversation_tool_result",
+          "record_hash": "22a93d4ca6613e45fa8a67372e035f3bb01ead2ff3cd0b390e4a6fffa82f4d58"
+        },
+        {
+          "id": "9750bd48-8557-4843-964b-afdb45c11d36",
+          "kind": "context_checkpoint",
+          "record_hash": "768157c58769176536e7ed7d1e85b3de0c14d1c435267b2c0dcacd689b3b76be"
+        },
+        {
+          "id": "4abf86a5-fc11-4063-96e9-c3bb0714013a",
+          "kind": "agent_request_budget",
+          "record_hash": "56cca506efc07b990af5100f150618dc0cfe03335ba4bc0f39a045de22b45656"
+        },
+        {
+          "id": "a835ff85-5453-4fd5-b967-490c2e273566",
+          "kind": "context_checkpoint",
+          "record_hash": "8902c9266d64cde9e488a92d178d92dbc1fc3acc92bcfdb01307f66b29e1b99b"
+        },
+        {
+          "id": "d07e4454-87b8-4bfc-b2bd-06a5cb31f0ce",
+          "kind": "model_call",
+          "record_hash": "114602a075eaf1b3413f6cfaff0dfacc9298166b195929f11178ca128f7ae0f2"
+        },
+        {
+          "id": "616fab97-8f97-4929-9ded-1f43e170b2af",
+          "kind": "conversation_usage",
+          "record_hash": "da47eef7548f1f940c8806c786feceec4b6d6102db268a30168c76fe8f7de440"
+        },
+        {
+          "id": "97b2f505-858c-44a2-a4cd-65b706e23a32",
+          "kind": "agent_turn_classified",
+          "record_hash": "5d6afa64fd8ae57f01e1fcfdcf99152fc20689a64475602b00ba2c424c7bd832"
+        },
+        {
+          "id": "9085dfa3-044c-4e9f-9763-5d27e67f961d",
+          "kind": "conversation_decision",
+          "record_hash": "6147a19e3fb7aa6d88e92079b5731f045445401b1f4f443c572390b13f5190da"
+        },
+        {
+          "id": "c71992ae-9f00-46ce-93c8-af7afd94a2b7",
+          "kind": "conversation_received",
+          "record_hash": "c971ec7eeee34a559768a64c5fd79e490351993fd3696a379866bc10d856861e"
+        },
+        {
+          "id": "4810e71d-f593-41e4-b8e5-9122af28f6c6",
+          "kind": "job_queued",
+          "record_hash": "0fdea8fed0aec29361540b2cc0c44f5b3ae552b1f80e443dc978db415e0b8a45"
+        },
+        {
+          "id": "5df94bc3-568c-4f8a-b165-641cebbf74ca",
+          "kind": "conversation_classifying",
+          "record_hash": "4943bde7ce76d5c201f4dbcf7c87935e29176c2e417c7702a2522665f916c969"
+        },
+        {
+          "id": "bea45075-acb2-4b18-b9e1-1baae15aaceb",
+          "kind": "conversation_tool_result",
+          "record_hash": "5ee718b8ecd0006165df96baae4600a7387c23d69cfab0ef9a19e3160d184413"
+        },
+        {
+          "id": "5e2bd6d7-6ff0-416a-b678-6ed8ce680446",
+          "kind": "context_checkpoint",
+          "record_hash": "00f0a9b354f54106c7f43da0c9dcd515f2ff14d3d8a20d99a79f4b7647225804"
+        },
+        {
+          "id": "5a330386-efc4-4662-b81b-15570bfd92ce",
+          "kind": "agent_request_budget",
+          "record_hash": "cef68a3cd2fb3026008d4f4d5f13c586fcdd1a436de2769bd294bef9a9650085"
+        },
+        {
+          "id": "a52f18a8-988d-4d71-8059-3ea00f9c11f7",
+          "kind": "context_checkpoint",
+          "record_hash": "04808d1e0711563164524a4e79499e31b88f9ad097142e08f7e43437f7a88c08"
+        },
+        {
+          "id": "c16f8ed9-2db4-4b03-9dfa-f0281de91ffc",
+          "kind": "model_call",
+          "record_hash": "80828287df7bb4f41e431e1f0349ea007408578eec416f5029e54530787d4c72"
+        },
+        {
+          "id": "be36a8d3-9f50-4f3f-b1f4-39052cf78f2d",
+          "kind": "conversation_usage",
+          "record_hash": "1f1a50baca45145b64a43e457b07e6c25cde8a654c3baa1c013bd3ac27093d26"
+        },
+        {
+          "id": "6eea0f7b-b38c-4bd4-89b2-e5b48a4d53a8",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "4fe18c122965806c2e3643261dbb26443492e4bb44445621c85d80c748297a21"
+        },
+        {
+          "id": "9d23e333-dc58-4009-a208-a9c12c716fc2",
+          "kind": "context_checkpoint",
+          "record_hash": "ca60b8f659ba722e847ebd011be901301588ee25c0d71689291f196d8bfc6ec6"
+        },
+        {
+          "id": "9e19050c-c8eb-4ec9-a1a3-a0df4aabd7a0",
+          "kind": "agent_request_budget",
+          "record_hash": "e23b2ea9e0c7601ea902b7ee7076ec94c749a0ca25a0f5d30001e2d5fb3092e1"
+        },
+        {
+          "id": "0af2db9f-e44f-497a-b633-de67cb56b461",
+          "kind": "context_checkpoint",
+          "record_hash": "8d1654f08ba1dff748ebb5799d44bd8d343d1310fe5448f8f2a16a38da92a323"
+        },
+        {
+          "id": "06fee861-7b30-4636-8d63-aa7793b6d097",
+          "kind": "model_call",
+          "record_hash": "a638569205fde28ab78c8f3a4caa4a33c5e3ed09175d979b8ea26dc2ef478478"
+        },
+        {
+          "id": "7c1063c0-9eb0-4ded-8d90-52ebaf9bad5a",
+          "kind": "conversation_usage",
+          "record_hash": "9d1c11e2b1a33e3489914d4d54c056069d1e6ed89228804cf30bb9deb120ef3c"
+        },
+        {
+          "id": "a2af0092-ad2b-4e85-abb4-67355aac04bc",
+          "kind": "conversation_read_requested",
+          "record_hash": "7ec390cc91fc688b5f6220a01478eac29e45d62822b1903a0cb8530b4b3a20cf"
+        },
+        {
+          "id": "998cd86f-0b04-4b1f-a58b-cbac47b063ab",
+          "kind": "conversation_tool_result",
+          "record_hash": "cb42128b8e21926cea258ce6be744b408b9b500a641c88bee8f134a4553bb2bd"
+        },
+        {
+          "id": "3b11a981-dd35-4ad8-8131-34e3437df798",
+          "kind": "conversation_tool_result",
+          "record_hash": "bde682ce87de41ed7c0aa0a4ec6e01f28e82d23c0066d7a88374a130c80946f5"
+        },
+        {
+          "id": "7b6405e1-81c4-4ee9-b98d-1c16610cc027",
+          "kind": "context_checkpoint",
+          "record_hash": "38b9725856e63a51778ccbc36780eb092af8bc85f8baf45753f4be6fd9678a35"
+        },
+        {
+          "id": "088e2c40-8eba-48bd-898b-692e729a35a6",
+          "kind": "agent_request_budget",
+          "record_hash": "5c66f27d10e61aecaf45b8ff5c63cc7640d31991b5072406869268aefb01ca90"
+        },
+        {
+          "id": "c3b31b69-126d-4495-8e71-797dfed91ee8",
+          "kind": "context_checkpoint",
+          "record_hash": "ebc0ae22435dad3134038d30ad214b8e747b9e40a5811f1fc9660df87b159517"
+        },
+        {
+          "id": "b22b62e4-267b-44f5-b3fb-df2334de5b86",
+          "kind": "model_call",
+          "record_hash": "030393c5afbad19a82621c5c3079928213e269e4ca20d66b5373f06a743688ed"
+        },
+        {
+          "id": "7facd956-fac2-479c-b879-930e46420fc7",
+          "kind": "conversation_usage",
+          "record_hash": "9cf578e2b687a157bcb9a57b8273b266b0a83e9ec8a95a2d833822045fd0ce12"
+        },
+        {
+          "id": "c8c3ae3f-d4e4-483b-bf6d-7d6f7a1e0b53",
+          "kind": "conversation_decision_rejected",
+          "record_hash": "8501f3b9ec8cdcaaad297345ddd46cd2d8415feedc6928b6b75a30c82299829e"
+        },
+        {
+          "id": "7587666c-44f0-409c-9bfb-669f8128e7aa",
+          "kind": "conversation_finished",
+          "record_hash": "dc5b078125acdfe4fb31a4715d3f0620a3b4359b1da7063566f2380087e4354b"
+        },
+        {
+          "id": "891f2e92-c279-404f-8569-d9be72040c76",
+          "kind": "conversation_result",
+          "record_hash": "08e1348a6d5488239610bc141f219f270a4009dd181865c4c8d0959f60606529"
+        },
+        {
+          "id": "2ac4ad30-738d-4b0f-9d2d-b02f6c4c7c47",
+          "kind": "job_queued",
+          "record_hash": "455a2f6ccf836820c55c7e3aade0b699417d79508d99a3cdf3265de05d88de8b"
+        },
+        {
+          "id": "11f15ffa-62fa-4d3c-813c-12246ae8aaf0",
+          "kind": "planning_model_retry_requested",
+          "record_hash": "329d2c3a0f46920daf4a8d130f57a833bd322ce5f4018eca152ecb3493131e98"
+        },
+        {
+          "id": "b2bd64c6-8f5f-4881-a0da-5794ee6fc572",
+          "kind": "planning_continue_recovered",
+          "record_hash": "c59b9fef8db5a37a699edd77e71e6f1360e09ee8742b0113ba4514a1c4a0ca49"
+        },
+        {
+          "id": "d303ccf6-ab65-4e0b-941c-16fe0c1e3884",
+          "kind": "agent_maintenance_recorded",
+          "record_hash": "a985dda2f84c475bd1686581eb508f02db750e087f4fcb70af864e7d350e755e"
+        },
+        {
+          "id": "a48ff707-2aaa-4222-a101-bc07f000b122",
+          "kind": "conversation_result",
+          "record_hash": "abad455cf801a382e400d927e755a7a58f2a2b42a9730719f2a682e2abca4220"
+        },
+        {
+          "id": "e4705114-eb0d-4225-927d-ec13e1454509",
+          "kind": "context_checkpoint",
+          "record_hash": "53ec0f055042b008c498d95547db8a5d901cdb9b7305a6e186c201f8ba046ce6"
+        },
+        {
+          "id": "f2c6efc0-44b6-42d9-a57b-538a28fdf0af",
+          "kind": "model_call",
+          "record_hash": "108d5245437ca4500d043ed76a57948526975d34a913870ce26a1587912bf87b"
+        },
+        {
+          "id": "d87b1502-300f-4008-ae17-01cef0ccec50",
+          "kind": "assistant_message",
+          "record_hash": "8175577176495976f55378f78d9ce795857e56f6ca22352dcf310b887d452b3e"
+        },
+        {
+          "id": "993cb092-43a7-4742-b1d5-a6c26a1da0d4",
+          "kind": "job_queued",
+          "record_hash": "06ef152709938f1eeb0ddeb2e424196857a4a5e509d95353f40c6aa07afa4e24"
+        },
+        {
+          "id": "b83e4214-c769-4286-8439-b094a5d9b754",
+          "kind": "planning_model_retry_requested",
+          "record_hash": "25d1a3a915d6fc1cd6761a91140fcca8cf6d149a21fcb5d21052a4d9c5e0ff70"
+        },
+        {
+          "id": "6f936fdd-1437-41a6-bd7a-32189e8d7b0d",
+          "kind": "planning_continue_recovered",
+          "record_hash": "8747b30055a0d5f58b68bb9ff79c48f56b65aafa81788b712aceaa48e0ef888c"
+        },
+        {
+          "id": "0007c0a0-3182-48fb-bcb3-e7ae6488c3dc",
+          "kind": "agent_maintenance_recorded",
+          "record_hash": "1f595350b6752aac5a597aaca6b0fa7c03da25df884897693337c0ddf4ffb890"
+        },
+        {
+          "id": "9211f110-7103-4524-973c-3a90f55a7ba9",
+          "kind": "conversation_result",
+          "record_hash": "7cf49900469ba6ddc3ba19eb4d507d99e23ae84bee0c02ae0ba74de4eacb0e3b"
+        },
+        {
+          "id": "631aef6a-0702-49a8-9b9f-19806f49950a",
+          "kind": "context_checkpoint",
+          "record_hash": "8fe2dc598e0269b400d0bdfb96fdded2bb0e16719a990197b00cff11b5696d0d"
+        },
+        {
+          "id": "6e51ce47-e13c-471c-a5be-2a9f5f4e9d0b",
+          "kind": "model_call",
+          "record_hash": "94ce43de0176302fc92fbdf3c0dd2422387de78804e2e339d7a67fa51aa6cf2c"
+        },
+        {
+          "id": "c893b23a-05d0-406b-a2bc-db046d38ca70",
+          "kind": "model_output_rejected",
+          "record_hash": "4038fafec3d71487ce8c3aad64b446fef500268b830e9c9a3555857dba295115"
+        },
+        {
+          "id": "820ed569-6fc8-4f64-a7d2-0aea31fdc049",
+          "kind": "assistant_message",
+          "record_hash": "efcaf4f99ffd48f245a163ec1ee872d2864ab66c9baf7e97a94a27c17cd79958"
+        },
+        {
+          "id": "8ccbdc4b-eecf-445b-848c-84d333d76106",
+          "kind": "job_queued",
+          "record_hash": "bba107bb6712b5d174fcf4b05864241c51e9e4d0c30f2e325e9a95a6d0217d90"
+        },
+        {
+          "id": "eb61bd64-5d97-46fd-b967-7453e28dde50",
+          "kind": "context_checkpoint",
+          "record_hash": "dd8f845ffe6fad4edadd41e8b0837490acd353f3f20bf6f3e5c80483bccf2d1d"
+        },
+        {
+          "id": "09023989-4054-4767-acad-d62b62758ffd",
+          "kind": "model_call",
+          "record_hash": "f82dbdbda22c719df61596d044cb7beac9495f44c674cd2983b84049f49d70ee"
+        },
+        {
+          "id": "ec9da0ac-8fa0-4ac6-9ea3-8d80f2e8193f",
+          "kind": "assistant_message",
+          "record_hash": "c48286cb3d3c89a3493f61de8a953dcf3688afcd96198ad35887566d0b080c40"
+        },
+        {
+          "id": "e7043555-0afa-4d91-b577-a13eab62f815",
+          "kind": "job_queued",
+          "record_hash": "5a6a4de2ee9d81d00e75735b97f67e8c214aebcd797aa8cb93c6a2f7a6969705"
+        },
+        {
+          "id": "8a6be999-4313-411e-8495-3aa2952224f6",
+          "kind": "context_ready",
+          "record_hash": "f1bc6e8b46e072c0a8f231ad97a257202ce744598df6d13efb8a9715a6b6d4d9"
+        },
+        {
+          "id": "96623e1c-a92f-44b9-99fc-a6a4842010c4",
+          "kind": "job_queued",
+          "record_hash": "338ba746c5de9ed26f51a139bd625b9a5a4a801c6e30547bb0c71c67e1b3b9f2"
+        },
+        {
+          "id": "018b03ff-db90-46fe-baa7-c3e570cd9480",
+          "kind": "context_checkpoint",
+          "record_hash": "efede4245c7c4d9fce6b22f179a6931fd57e8719a8d6e256b16548e7c7587971"
+        },
+        {
+          "id": "84fc78e8-3cfc-4bfb-b470-5b082fac6ef5",
+          "kind": "model_call",
+          "record_hash": "46e648b5964dafe4b1256e434c0851776828030b7b103ea2dd365cd6d3194d31"
+        },
+        {
+          "id": "dd25f5fb-d202-49d6-807e-e258f2debe25",
+          "kind": "assistant_message",
+          "record_hash": "4400ab0f979f64f3f46455234d0a40fb1761b3f3eff9db6bffa6589ea222e404"
+        },
+        {
+          "id": "3dba5b2a-86fb-4a24-946e-08b84753750c",
+          "kind": "job_queued",
+          "record_hash": "da8a73699ed02f29673934ea21cbf6fa102d0297e8395a19655446920bdc18f1"
+        },
+        {
+          "id": "c17cc741-dcf1-4004-bd8e-a5dc66f01700",
+          "kind": "context_ready",
+          "record_hash": "54d9ad96c4dd10472c76535a2518c81275fa4011a24dfa9afc7d6364f45c6090"
+        },
+        {
+          "id": "9b7040ea-c610-4024-8ad4-0d92897e9b64",
+          "kind": "job_queued",
+          "record_hash": "b9d341257a79c8a79fd7dddffc958a1262328288e2127d840abb47ce8f962107"
+        },
+        {
+          "id": "70deb35b-da3d-43b2-8946-968a946f7366",
+          "kind": "context_checkpoint",
+          "record_hash": "14daf25ff6bf3e81a571ff2e8c6155e798a9bd698bf987877b749bd15b378542"
+        },
+        {
+          "id": "2729fc9a-8ede-45c2-9ed4-76436bf143a7",
+          "kind": "model_call",
+          "record_hash": "e8605d252633d0ff9714df9d08999600e5b80c0835ef338520fbfc681f6b85af"
+        },
+        {
+          "id": "d6f57c2b-c97d-4945-a270-675844914c06",
+          "kind": "assistant_message",
+          "record_hash": "983731ae21a021ef3e4036c673b2b0695c7398b7a331d6f38745e83e6405f0e2"
+        },
+        {
+          "id": "86ffb1ed-54ce-4633-b908-abe5d5b5dabc",
+          "kind": "job_queued",
+          "record_hash": "3295a0c9d987cf7cc0a67c01a7d1d91a1b1286e9b62a1638d559835db0a5efa6"
+        },
+        {
+          "id": "be00aa9e-9922-4dc7-8409-dd287de81624",
+          "kind": "context_ready",
+          "record_hash": "3dbf962e14f2b436b4612e31c26aa0b4041697eac784078a24a746b02f375c86"
+        },
+        {
+          "id": "bf4708ef-e1f7-4fca-a54c-d5a35b8eb2b1",
+          "kind": "job_queued",
+          "record_hash": "0719e35559b9c4ddea83efd4b30214f3e1e04afba3371cbe9df2e2b29b25dace"
+        },
+        {
+          "id": "76aefc7b-a1f1-41d3-b47f-cc778b0c8e2c",
+          "kind": "context_checkpoint",
+          "record_hash": "8d9d8eabf4fbf930c66bebad60c7b6318070ce6c3dc2936827237123a6fb99b6"
+        },
+        {
+          "id": "1a7925a8-d3bf-42d4-b0b1-f32178f7df4c",
+          "kind": "model_call",
+          "record_hash": "3a9613b7d3cb3843cc735a86712fbd1f74fdfbfc73d2d741e5cfb935ba381d5c"
+        },
+        {
+          "id": "2de4e53d-d01b-45a8-b289-9fb4593a9f84",
+          "kind": "plan_bound",
+          "record_hash": "5b4b1ba93ea771f16d78cd3be46cc65be236b797f8358613408780e3796a0b35"
+        },
+        {
+          "id": "439af64e-2a9c-429c-b1d4-fa2e3102ebe3",
+          "kind": "assistant_message",
+          "record_hash": "a794bebfeef4ac0647ee16915c5cc5d3658a66ac4888d2e04b5590236dab58f4"
+        },
+        {
+          "id": "1ac402ff-7cd3-4e0c-83eb-c6e42e3b7bab",
+          "kind": "conversation_started",
+          "record_hash": "40f2df8ca7bc6a602ac87bb99692de208bd5a5a13763b5b652f9af3e802562de"
+        },
+        {
+          "id": "20c4bab1-98b7-49ea-b8a6-ec3efbf69383",
+          "kind": "execution_authorized",
+          "record_hash": "a05322d7cb0f07bb188f90d57e34eadebe77b106e3bbeeed25f24ef6bc154b2f"
+        },
+        {
+          "id": "06d4765c-d587-42db-88cb-61afd5051335",
+          "kind": "automation_started",
+          "record_hash": "bb90de80f040c8539771675861c351c900db2d45b38f29c4f88768826b626e6d"
+        },
+        {
+          "id": "938dd285-967a-48a7-b962-ca07ac9c7b09",
+          "kind": "job_queued",
+          "record_hash": "4a09cd2a43deb5ebbff0dd065b3318e4ebe0c8962cb47f26220c81029a921db1"
+        },
+        {
+          "id": "23257c45-d0e4-41ef-9bc5-5124f4e82f53",
+          "kind": "job_queued",
+          "record_hash": "fa51bee9dd24a9f39e1eb859ca47b7e63a5c79707149108d413d714b3f65e7d5"
+        },
+        {
+          "id": "9ee6b61f-349a-4e56-a8b0-a6ca929ab6cd",
+          "kind": "preparation_workspace",
+          "record_hash": "60cfc458cde62fc415d1f5b9f590525cda7aa43366108d70e0b52022845608b6"
+        },
+        {
+          "id": "f350289b-4444-4dbb-86c6-fdb2585c9d74",
+          "kind": "dependency_workspace",
+          "record_hash": "58ad642354d5c0253a1994ec6208cc63250588013965795ca56b824a7c52e05c"
+        },
+        {
+          "id": "352724c6-bb9f-415c-b848-cb4443cda86b",
+          "kind": "dependencies_ready",
+          "record_hash": "b7199c128e3a1a20a1db6f8060bb6257f1f629eed254b9c677df3e2d2bb9c046"
+        },
+        {
+          "id": "6510620e-03f8-4249-870c-e460a7e169b7",
+          "kind": "execution_baseline_ready",
+          "record_hash": "91161a30c50dd4ec2581955dba894911c6a338ec6a97e339ab11dbfb689d00d6"
+        },
+        {
+          "id": "7f5da179-faeb-4253-afcf-54161edacb21",
+          "kind": "preparation_workspace_disposed",
+          "record_hash": "6ce7dccdbae20f0b8e8ce312ed531a688f44b60ada1c78b81c49483c91a4dfd0"
+        },
+        {
+          "id": "88c3037b-4e94-4699-b9f5-9041de6da321",
+          "kind": "agent_baseline_observed",
+          "record_hash": "c2b33a39d98872ceaba103cc21a91ed219e43c3f8f362ae00171c4d0009c77e3"
+        },
+        {
+          "id": "a45d764d-0c28-4885-8d10-0a7d972fa3a5",
+          "kind": "job_queued",
+          "record_hash": "cb5836beb4723cc7e702790d496b6c0b34ebe18708310aa5879b817a24e981a2"
+        },
+        {
+          "id": "2a585805-cbd3-464a-b638-32efda0b4922",
+          "kind": "workflow_diagnostic",
+          "record_hash": "aa438e9529ce0b6e5da6512615d8329348f723ff3c81726f7253b969951c8a49"
+        },
+        {
+          "id": "84a29b25-3701-4467-91e0-4b5d92ff586f",
+          "kind": "automation_blocked",
+          "record_hash": "a22574eeca4e77dbddfc33c2025ea3933a5237a8dad5ad10373f1a83ad0255d0"
+        },
+        {
+          "id": "c262bd0f-48be-4518-a321-6d87f23f0f95",
+          "kind": "conversation_result",
+          "record_hash": "56bf1612b3bd39400365ba403687ddcc985b54f99b7e7658abbf6684170463e0"
+        },
+        {
+          "id": "6291cf6a-1543-45e5-9f36-ab2b0e457842",
+          "kind": "dependency_workspace_disposed",
+          "record_hash": "799d014c866f4fc41e78fb0c4eb76a6974963a4acf9547b4ac5602faaeeffe4d"
+        },
+        {
+          "id": "5b4e8f8f-a1d4-41af-a545-18fe9315ef9f",
+          "kind": "automation_blocked",
+          "record_hash": "f2a40b9f1f98c2bf7ef44e28df6189274405f878a66179c83f33827fad13a6b0"
+        },
+        {
+          "id": "b16a85a4-f9e0-4dd4-bf1f-952e0e7747c9",
+          "kind": "conversation_result",
+          "record_hash": "6ad7b67356d682bb320aed8910684f7171c4e2104d64955af3e457340bc726ad"
+        },
+        {
+          "id": "c41d77cf-2c6c-4f8b-8827-eb6c92de83fb",
+          "kind": "automation_blocked",
+          "record_hash": "e37d7d27700cc9a3e814e43f8f56bf362193ee563276346576e9f2d83aa9b9b4"
+        },
+        {
+          "id": "e23308f4-a8ea-4e69-8283-6a104f30b396",
+          "kind": "conversation_result",
+          "record_hash": "0075f4fa042871e8515891c33bffa9418e3966ed6eafba4de67281908026a885"
+        }
+      ],
+      "artifacts": {
+        "72869448c039c12cb54d2d0320dd7b3d6fadedf999299eb115b8de2fea86858f": {
+          "verified": true,
+          "bytes": 69432
+        },
+        "6fdd41f668bde8c3c57d3132592b7094b08193199e8481c2cb8eb41dea772868": {
+          "verified": true,
+          "bytes": 5962
+        },
+        "c93e0cf7884286088d1a7a26540440537fdf8aa0072a41d496dd944ff19100e7": {
+          "verified": true,
+          "bytes": 5246
+        }
+      },
+      "sources": {
+        "package.json": {
+          "sha256": "e34631e146f9e46a324f34b96b58b8e5e468a55c9488d5e63987e515b1f54e58",
+          "content": "{\n  \"name\": \"radashi\",\n  \"version\": \"13.0.1\",\n  \"type\": \"module\",\n  \"description\": \"The modern, community-first TypeScript toolkit with all of the fast, readable, and minimal utility functions you need. Type-safe, dependency-free, tree-shakeable, fully tested.\",\n  \"repository\": {\n    \"url\": \"git+https://github.com/radashi-org/radashi.git\"\n  },\n  \"homepage\": \"https://radashi.js.org\",\n  \"author\": \"Alec Larson\",\n  \"contributors\": [\n    \"Ray Epps\"\n  ],\n  \"license\": \"MIT\",\n  \"packageManager\": \"pnpm@10.29.3\",\n  \"engines\": {\n    \"node\": \">=18.0.0\"\n  },\n  \"main\": \"dist/radashi.cjs\",\n  \"module\": \"dist/radashi.js\",\n  \"exports\": {\n    \"require\": {\n      \"types\": \"./dist/radashi.d.cts\",\n      \"default\": \"./dist/radashi.cjs\"\n    },\n    \"types\": \"./dist/radashi.d.ts\",\n    \"default\": \"./dist/radashi.js\"\n  },\n  \"types\": \"dist/radashi.d.cts\",\n  \"files\": [\n    \"dist\"\n  ],\n  \"scripts\": {\n    \"add-function\": \"radashi fn create\",\n    \"bench\": \"vitest bench\",\n    \"build\": \"tsup --clean\",\n    \"bundle-impact\": \"node scripts/run bundle-impact\",\n    \"dev\": \"tsup --clean --watch --sourcemap\",\n    \"format\": \"node scripts/run format\",\n    \"lint\": \"node scripts/run lint\",\n    \"move-function\": \"radashi fn move\",\n    \"test\": \"vitest run --coverage\",\n    \"test-branch\": \"node scripts/run test-branch\",\n    \"test-single\": \"node scripts/run test-single\",\n    \"tree-shake-check\": \"node scripts/run tree-shake\",\n    \"update-browserslist\": \"node scripts/run update-browserslist\"\n  },\n  \"devDependencies\": {\n    \"@biomejs/biome\": \"2.0.0-beta.1\",\n    \"@radashi-org/biome-config\": \"link:scripts/biome-config\",\n    \"@types/node\": \"^22.7.7\",\n    \"@vitest/coverage-v8\": \"2.1.5\",\n    \"cspell\": \"8.15.4\",\n    \"prettier\": \"^3.3.2\",\n    \"prettier-plugin-pkg\": \"^0.18.1\",\n    \"prettier-plugin-sh\": \"^0.14.0\",\n    \"radashi-helper\": \"^0.1.11\",\n    \"tsup\": \"^8.1.0\",\n    \"typescript\": \"^5.5.2\",\n    \"vitest\": \"2.1.9\"\n  },\n  \"sideEffects\": false,\n  \"browserslist\": [\n    \"and_chr >= 92\",\n    \"chrome >= 92\",\n    \"and_ff >= 90\",\n    \"android >= 147\",\n    \"edge >= 92\",\n    \"samsung >= 16.0\",\n    \"safari >= 16.0\",\n    \"ios_saf >= 16.0\",\n    \"opera >= 78\",\n    \"firefox >= 90\",\n    \"unreleased and_chr versions\",\n    \"unreleased chrome versions\",\n    \"unreleased and_ff versions\",\n    \"unreleased android versions\",\n    \"unreleased edge versions\",\n    \"unreleased samsung versions\",\n    \"unreleased safari versions\",\n    \"unreleased ios_saf versions\",\n    \"unreleased opera versions\",\n    \"unreleased firefox versions\",\n    \"node >= 18\"\n  ]\n}\n"
+        },
+        "scripts/lint/package.json": {
+          "sha256": "dd041fb3db86600bd6d48e1e96b6114eb1130bd0be8d9f70d47d94cd6dcc214d",
+          "content": "{\n  \"type\": \"module\",\n  \"private\": true,\n  \"dependencies\": {\n    \"execa\": \"^9.5.1\",\n    \"kleur\": \"^4.1.5\",\n    \"mri\": \"^1.2.0\",\n    \"string-argv\": \"^0.3.2\",\n    \"tinyglobby\": \"^0.2.10\"\n  }\n}\n"
+        },
+        "scripts/run.js": {
+          "sha256": "8f518ba80112a6745f85d1a4068891b74183e19915b2ca317830c1788c38db6a",
+          "content": "import { spawn } from 'node:child_process'\nimport fs from 'node:fs'\nimport path from 'node:path'\nimport { fileURLToPath } from 'node:url'\n\nmain(process.argv.slice(2))\n\nasync function main([command, ...argv]) {\n  if (!command) {\n    console.error('No command provided')\n    process.exit(1)\n  }\n\n  const commandDir = new URL(`./${command}`, import.meta.url).pathname\n\n  if (!fs.existsSync(commandDir)) {\n    console.error(`Command not found: ${command}`)\n    process.exit(1)\n  }\n\n  let forceTSX = false\n\n  // Only a few environment variables are exposed to install/postinstall\n  // scripts when installing dependencies from NPM.\n  const strictEnv = pick(process.env, [\n    'PATH',\n    'TMPDIR',\n    'NODE_PATH',\n    'NODE_OPTIONS',\n    'PNPM_HOME',\n    'HOME',\n    'USER',\n  ])\n\n  const __filename = fileURLToPath(import.meta.url)\n  const __dirname = path.dirname(__filename)\n\n  async function installDependencies(pkgDir) {\n    const pkgPath = path.join(pkgDir, 'package.json')\n    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))\n\n    if (!pkg.dependencies) {\n      return\n    }\n\n    // Since modules in Radashi may import \"radashi\" (which resolves to the \"dist\" folder), forcing\n    // the use of TSX helps us avoid resolution errors.\n    if ('radashi' in pkg.dependencies) {\n      forceTSX = true\n    }\n\n    if (fs.existsSync(path.join(pkgDir, 'node_modules'))) {\n      return\n    }\n\n    console.warn(\n      `> Installing dependencies for ${path.relative(process.cwd(), pkgDir)}`,\n    )\n\n    const installer = spawn('pnpm', ['install', '--lockfile-dir', __dirname], {\n      cwd: pkgDir,\n      stdio: ['ignore', process.stderr, 'inherit'],\n      env: strictEnv,\n    })\n\n    const code = await new Promise((resolve, reject) => {\n      installer.on('close', resolve)\n      installer.on('error', reject)\n    })\n\n    if (code !== 0) {\n      process.exit(code ?? 1)\n    }\n\n    console.warn()\n\n    for (const [name, version] of Object.entries(pkg.dependencies)) {\n      if (name === 'radashi') {\n        continue\n      }\n      // Install the dependencies of linked packages.\n      if (version.startsWith('link:')) {\n        const linkedDir = path.resolve(pkgDir, version.slice(5))\n        await installDependencies(linkedDir)\n      }\n    }\n  }\n\n  await installDependencies(commandDir)\n\n  if (process.env.INSTALL_ONLY) {\n    return\n  }\n\n  const version = process.versions.node\n  const [major, minor] = version.split('.').map(Number)\n\n  let runner\n  let runnerArgs\n  if (forceTSX || process.env.CI || major < 22 || (major === 22 && minor < 6)) {\n    const tsxSpecifier = 'tsx@4.19.1'\n    if (process.env.CI) {\n      console.warn(`> pnpm add -g ${tsxSpecifier}`)\n      await new Promise((resolve, reject) => {\n        const installer = spawn('pnpm', ['install', '-g', tsxSpecifier], {\n          stdio: ['ignore', process.stderr, 'inherit'],\n          env: strictEnv,\n        })\n        installer.on('close', resolve)\n        installer.on('error', reject)\n      })\n      runner = 'tsx'\n      runnerArgs = []\n    } else {\n      runner = 'pnpm'\n      runnerArgs = ['dlx', tsxSpecifier]\n    }\n  } else {\n    runner = 'node'\n    runnerArgs = [\n      '--experimental-strip-types',\n      '--disable-warning=ExperimentalWarning',\n    ]\n  }\n\n  const commandPath = path.join(commandDir, 'src/main.ts')\n  const child = spawn(runner, [...runnerArgs, commandPath, ...argv], {\n    stdio: 'inherit',\n  })\n\n  child.on('error', error => {\n    console.error(error)\n    process.exit(1)\n  })\n\n  child.on('close', code => {\n    process.exit(code)\n  })\n}\n\nfunction pick(object, keys) {\n  const result = {}\n  for (const key of keys) {\n    if (key in object) {\n      result[key] = object[key]\n    }\n  }\n  return result\n}\n"
+        }
+      },
+      "environment_spec_hash": {
+        "disk_bytes": 4294967296,
+        "ecosystem": "node",
+        "execution_attempt_id": "4ec9bcb7-4fa7-428e-bc96-1eb6bfe6b16f",
+        "local_projects": [],
+        "manifests": [
+          {
+            "content_hash": "dc13a3137c3b9f8a1c333450bafa68e8772c4c36548a5eb9160c0e0219a5b999",
+            "path": ".github/workflows/bench-main.yml"
+          },
+          {
+            "content_hash": "5531f63fc78a49350b07c0607a829ed5fbae63bc50a5506620084047bfa337c2",
+            "path": ".github/workflows/bench-pr-comment.yml"
+          },
+          {
+            "content_hash": "0ea1b40f2d5b8f6206bb5499bbc30d7a1e3033a7361fd2798b80820290b08201",
+            "path": ".github/workflows/bench-pr.yml"
+          },
+          {
+            "content_hash": "7495f3914b7440edb0f341a7b59a73b7cb5505dd9c59fb81ef16ac76dc599444",
+            "path": ".github/workflows/bundle-impact.yml"
+          },
+          {
+            "content_hash": "c717b7313fc2a401288274a0f2da75bf8c8ff3d759cc495e0772edc8d3eaf98b",
+            "path": ".github/workflows/check-main.yml"
+          },
+          {
+            "content_hash": "62009227f2d312d899e090e0b3728fa3545e769de695e308ce978c55f8f2914a",
+            "path": ".github/workflows/check-pr.yml"
+          },
+          {
+            "content_hash": "2c65c108ac4bc14a63c3d38da938581d6bc70daa56de1c9ed7234f20e1e611d4",
+            "path": ".github/workflows/prerelease-pr.yml"
+          },
+          {
+            "content_hash": "8f1c81e8c759cd1914f40e94269016298a4c945511aff6a945270bc4cbba1174",
+            "path": ".github/workflows/publish-docs.yml"
+          },
+          {
+            "content_hash": "dc268c9f35b92d3ac6389fb67561a9003f6176fba6516aeae476983d7bfaadd1",
+            "path": ".github/workflows/publish.yml"
+          },
+          {
+            "content_hash": "087a691b52b3c71b29b1377d0ecb4b1fe69dfeb53ea12c4f1a20b452f3b0a881",
+            "path": ".github/workflows/register-pr.yml"
+          },
+          {
+            "content_hash": "22ef0f9291604650f3c084750217e9fd7fd42da9cbac86be4d2413b24c0ff536",
+            "path": ".github/workflows/seed-benchmarks.yml"
+          },
+          {
+            "content_hash": "7310d3efa0c2d536ac7c1e228fd0def7a149185a49f684407ccdfe75c4b1eaa8",
+            "path": ".github/workflows/test-pr.yml"
+          },
+          {
+            "content_hash": "e34631e146f9e46a324f34b96b58b8e5e468a55c9488d5e63987e515b1f54e58",
+            "path": "package.json"
+          },
+          {
+            "content_hash": "d60c3ffed7176af9f89dd721d221d4eab00c9a00762fb27b505e83401e1126ce",
+            "path": "pnpm-lock.yaml"
+          },
+          {
+            "content_hash": "df1e753b1255d83b895fc56c7445947ea71b4a89283a12b84a49c972c533872c",
+            "path": "scripts/bench-file/package.json"
+          },
+          {
+            "content_hash": "ad3348b433bc56bf0bfb9f8828ffdde10ec2788038eaac9042d30577f8078a69",
+            "path": "scripts/bench-main/package.json"
+          },
+          {
+            "content_hash": "eb80218587b49d26b4e1d04ff3718c3c6ee930245b2357bdcd4dde8e97a828df",
+            "path": "scripts/bench-pr/package.json"
+          },
+          {
+            "content_hash": "655cc9691cef8f9f0b1311d4aac89a6dec5a322c7e5814d2fa72b1ec84ccca2a",
+            "path": "scripts/benchmarks/package.json"
+          },
+          {
+            "content_hash": "94ae6dd94e42e1e37d966c82aa5f83e5f680f6c4cb5c72c9062ae3276aae14fa",
+            "path": "scripts/biome-config/package.json"
+          },
+          {
+            "content_hash": "a60444358b9e379c684011c99e00f286de6f6ee378bb4bccd7c5e37db0c3cdb0",
+            "path": "scripts/bundle-impact/package.json"
+          },
+          {
+            "content_hash": "1fde971764c069bac2f4ec5f9993edd45aa84c731822ef239e8f2af117743898",
+            "path": "scripts/changelog/package.json"
+          },
+          {
+            "content_hash": "eff5f475afe9d4e4b9e65707c524a6f2a1527b7483eee9e1f73f0ed5e566e594",
+            "path": "scripts/checkout-pr/package.json"
+          },
+          {
+            "content_hash": "0fb4a4864ab87c67a87739e2744c7ab6fe4ec15632dac2607c0d31ba494d4406",
+            "path": "scripts/common/package.json"
+          },
+          {
+            "content_hash": "6f43166ebb6958af8e31b4aba56940e062ab42dd4a751456cf0cc8067cb89f33",
+            "path": "scripts/format/package.json"
+          },
+          {
+            "content_hash": "dd041fb3db86600bd6d48e1e96b6114eb1130bd0be8d9f70d47d94cd6dcc214d",
+            "path": "scripts/lint/package.json"
+          },
+          {
+            "content_hash": "f69ed17eea98f49ee075f676bae79df9cb779e54d5887b94d94313d34511170c",
+            "path": "scripts/package.json"
+          },
+          {
+            "content_hash": "89984524672a2cdd0fa9a82a2bd5291cdea36bee2b963cabb0b8b522ea2b0378",
+            "path": "scripts/prerelease-pr/package.json"
+          },
+          {
+            "content_hash": "bdd725e88341d1e398ec843d23f1f8c2c931a34789183e19b1bb42668288d732",
+            "path": "scripts/publish-docs/package.json"
+          },
+          {
+            "content_hash": "a323f971cff58ab475fd171c00574f22c0f5cbf00c02f32cf6c4f0afbf3fa188",
+            "path": "scripts/publish-version/package.json"
+          },
+          {
+            "content_hash": "8d08b0259acac8d81c8c0b19639b58fda64705e0830cb7361745cbf117cc63c0",
+            "path": "scripts/radashi-db/package.json"
+          },
+          {
+            "content_hash": "39310258677b0295d5c8d6099c051906e2acce08b4306f63eb5d44cf97fab8d9",
+            "path": "scripts/register-pr/package.json"
+          },
+          {
+            "content_hash": "cd5697c77faae2429b2e33734059b28626ca1ca849921fa685e82d854811bc9e",
+            "path": "scripts/release-notes/package.json"
+          },
+          {
+            "content_hash": "dbd6ee2e2c1ec8d143c1bcbbe16b94b569db2acfb98a9d07f69e1e28472910b9",
+            "path": "scripts/seed-benchmarks/package.json"
+          },
+          {
+            "content_hash": "d56365e30ea7a3c92baab016c50d6914eb02d3e1174a5a5a80d67ef763986e54",
+            "path": "scripts/seed-merged-functions/package.json"
+          },
+          {
+            "content_hash": "3a9d00a4085025b94ac66a4de4a6b74b7622a8b387e7df95d51f549616f76349",
+            "path": "scripts/seed-proposed-functions/package.json"
+          },
+          {
+            "content_hash": "b516ee115ead7a4518e3244f1708b515a4ebf6438baaf1c776cdee7d401c4d28",
+            "path": "scripts/test-branch/package.json"
+          },
+          {
+            "content_hash": "1007061330057bcd40ab13d74a5661bd13694c023589d52885ae0bd517b191f8",
+            "path": "scripts/test-single/package.json"
+          },
+          {
+            "content_hash": "4cdcc3ec650e9bc265842a5866b555eecdad626d6df6c60e69b34a77f0a7dcd4",
+            "path": "scripts/tree-shake/package.json"
+          },
+          {
+            "content_hash": "df14b1e0413e086f8702ea96f7084f2497627b6bbc6a7b133b94a06cde226874",
+            "path": "scripts/update-browserslist/package.json"
+          }
+        ],
+        "node_environment": {
+          "linker": "node-modules",
+          "manager": "pnpm",
+          "manager_version": "10.29.3",
+          "package_roots": [
+            "."
+          ],
+          "project_directory": ".",
+          "registry": "https://registry.npmjs.org",
+          "runtime_pin": "",
+          "runtime_requirement": ">=18.0.0",
+          "version": "node-environment-v1",
+          "workspace_lifecycle": []
+        },
+        "plan_id": "410e3829-40a2-48fe-917c-880e1544026c",
+        "preparation_version": "node-workspace-preparation-v1",
+        "project_directory": ".",
+        "proxy_policy_hash": "67683582dd39140593ed3bf6fcf3658035e86a192fca2c0c209fb13231496838",
+        "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "source_kind": "explore",
+        "source_result_hash": "e74435f8d0fa5faade6b470adfc0362e20679942b7c15c5ffeda59932507e57f",
+        "version": "workspace-dependency-plan-v5",
+        "workspace_inventory_hash": "a5f98e015a1e10d68703105d638d9893c49a738991bf1e1d4438204415eea035"
+      },
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "approved_baseline_commands": [
+        {
+          "command_id": "baseline-typecheck",
+          "command_hash": "6876c81f32b08ed252048f31c6a607b77cf64cf2660135feb16c739b5d127f12",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "baseline-is-object-tests",
+          "command_hash": "751575df3447ad0fd3569e41673b34df51a0c878f5bd7702f061d452be9b9853",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "regression-typecheck",
+          "command_hash": "7d99524319347cd998c43e8d5e6063231f8ca6f20db29bfff55ac555184cb66e",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "regression-is-object-tests",
+          "command_hash": "1cc6dceae8cde179ada218bfeb78a946b72d9d984e7206b466ed8abd849e8833",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "post-fix-typecheck",
+          "command_hash": "28b3ae820401da0adb32db8bc713eb5a5e2ad786cd3bec15cd5864d28d604e74",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "post-fix-is-object-tests",
+          "command_hash": "2401f19c488a05f2f4415a1add2a3fd80ef84aee52fb9d0c5d802578d1060d3c",
+          "exit_code": 0,
+          "status": "passed"
+        },
+        {
+          "command_id": "full-test-suite",
+          "command_hash": "bea952b5c0fbdd87f41fb08c24d81b1c35e44c92ff259478a04a598dd57bad59",
+          "exit_code": 1,
+          "status": "failed"
+        },
+        {
+          "command_id": "lint",
+          "command_hash": "01305f31513e6f847308349eb65eb1ca1413fc7ebbc1686f20c95c27a1ecd07f",
+          "exit_code": 1,
+          "status": "failed"
+        }
+      ]
+    }
+  ]
+}

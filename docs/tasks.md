@@ -4806,6 +4806,26 @@ M5 native deliveries/human acceptance and M6 native Linux amd64 remain open;
 existing P5-G06/UXR-G01/ENV-G01 gates are unchanged.
 
 
+### Universal Project Environment & Verification Engine v1 (2026-10-28)
+
+User-directed Phase 5 specialization on `refactor/agent-runtime-v2`; governed by
+[the implementation plan](universal-environment-v1/03-implementation-plan.md).
+Evidence: [acceptance ledger](acceptance/universal-environment-v1/README.md).
+
+- [x] **UPEVE-E01** E0 branch/source/immutable historical evidence baseline.
+- [ ] **UPEVE-E02** E1 strict versioned contracts, static graph and honest readiness.
+- [ ] **UPEVE-E03** E2 recursive Python requirements/tool resolution and real OCI.
+- [ ] **UPEVE-E04** E3 Node script/independent tool graphs, offline cache regression.
+- [ ] **UPEVE-E05** E4 bound preparation/entrypoint receipts, baseline and v2 admission.
+- [ ] **UPEVE-E06** E5 API/UI, frozen unseen projects and true native Python/TS journeys.
+- [ ] **UPEVE-E07** E6 security/recovery/regression, isolated deployment and both platforms.
+
+Original failures and approval/event hashes are retained. The original Node
+wrapper unconditionally selects network installation under Verify's CI=1;
+preparing child dependencies alone cannot satisfy that contract. Unsupported
+semantics must block with evidence. P5-G06, ENV-G01, UXR-G01 and ARV2-M5/M6 stay open.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair
