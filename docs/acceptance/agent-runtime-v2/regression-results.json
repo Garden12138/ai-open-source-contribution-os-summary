@@ -1,6 +1,6 @@
 {
   "classification": "final_default_regression_disjoint_shards",
-  "measured_at": "2026-10-28T02:27:06.892963+00:00",
+  "measured_at": "2026-10-28T02:47:13.036746+00:00",
   "command": ".venv/bin/python -m pytest <disjoint test files> --disable-warnings -p no:cacheprovider --junitxml=<report>",
   "partition": "sorted tests/test_*.py round robin across four shards",
   "file_partitions": [
@@ -132,8 +132,8 @@
       "errors": 0,
       "skipped": 33,
       "passed": 364,
-      "seconds": 228.428,
-      "report_hash": "b8fba3cdd0bacc9d964997ab29104249eafec7a8a916cc8090085704734c0632",
+      "seconds": 238.958,
+      "report_hash": "6fda10a66cf1a39ca86ba0230622f3bd6c3ad7134c6067007d525a0823019139",
       "shard": 0
     },
     {
@@ -142,8 +142,8 @@
       "errors": 0,
       "skipped": 2,
       "passed": 417,
-      "seconds": 211.436,
-      "report_hash": "21a97680e6c5fd4cfbe494a827cc5652488ad4df99b489c80961ee7b0bc2e6af",
+      "seconds": 223.138,
+      "report_hash": "6a99abd0ac9729cdbb47e96536f34e703a1fa5a8e34e4a9eee1460b690b1c435",
       "shard": 1
     },
     {
@@ -152,24 +152,24 @@
       "errors": 0,
       "skipped": 12,
       "passed": 277,
-      "seconds": 139.735,
-      "report_hash": "566f02abb51d0dee08f37b9b4fcd1686cbaac79b9f8069a95a449e99cf6a82e6",
+      "seconds": 147.417,
+      "report_hash": "c2336ccd40c2d1aa2ed3abb3480828786ffbe7117ad7962145bd4b0f7cfd1147",
       "shard": 2
     },
     {
-      "tests": 433,
+      "tests": 434,
       "failures": 0,
       "errors": 0,
       "skipped": 6,
-      "passed": 427,
-      "seconds": 195.624,
-      "report_hash": "61db646cb0d50095fe0602ce204bb35c143b4818b596918c14ffb0f6a588d11f",
+      "passed": 428,
+      "seconds": 207.047,
+      "report_hash": "fa56bc1287bb6235311517d991b4cb84d375e8a2f3dd415ef38f01cd12a61a48",
       "shard": 3
     }
   ],
   "totals": {
-    "tests": 1538,
-    "passed": 1485,
+    "tests": 1539,
+    "passed": 1486,
     "failures": 0,
     "errors": 0,
     "skipped": 53

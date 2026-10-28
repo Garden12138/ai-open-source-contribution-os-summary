@@ -1,0 +1,10 @@
+{
+  "classification": "failed_native_sample_post_run_platform_diagnosis",
+  "task_id": "b5d5ded4-6f2b-490d-8172-6d32895487ea",
+  "reason": "35 actual environment prerequisite paths exceeded one read request limit of 32; all three rejected plans had empty path-error lists",
+  "sample_ended_before_platform_change": true,
+  "operator_business_patches": 0,
+  "subsequent_operator_platform_interventions": 1,
+  "planned_fix": "Persist safe prerequisite reads in batches of at most 32 under original read/model/time budgets; retain unknown/unavailable source rejection and v1 policy.",
+  "counts_as_M5": false
+}

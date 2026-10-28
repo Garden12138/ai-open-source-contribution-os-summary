@@ -132,3 +132,13 @@ outcomes are supported; `minProperties` caused an upstream HTTP500 and is omitte
 because the complete Plan already has required domain fields. Server-side
 validation and source identity checks remain authoritative. No supplied answer,
 plan or business patch was inserted into a live model run.
+
+Environment prerequisites also use bounded persistent read batches. A measured
+native TypeScript investigation needed 35 configuration paths and failed the
+single-call limit of 32 with an empty path-error list. That sample was ended.
+New v2 plans retain their full draft and read at most 32 prerequisites per job;
+remaining paths are recomputed from immutable evidence after each result and
+restart. Existing read rounds, model/token/time limits and path authorization
+still apply. Invalid/unavailable paths remain rejected. Historical v1 requests
+retain their original policy. Exceeding total read limits still stops with a
+recorded evidence gap, never silently approving a partially read plan.

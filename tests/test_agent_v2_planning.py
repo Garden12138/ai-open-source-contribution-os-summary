@@ -102,3 +102,48 @@ def test_planning_schema_does_not_offer_empty_object_as_a_valid_outcome():
     schema=PlanningReply.model_json_schema()
     assert {tuple(branch['required']) for branch in schema['anyOf']}=={('reply',),('questions',),('read_paths',),('read_context',),('plan',)}
     with pytest.raises(ValueError):PlanningReply.model_validate({})
+
+
+def test_environment_prerequisites_drain_in_bounded_batches_across_restart(tmp_path, monkeypatch):
+    from app.workbench import Workbench
+    db,s,task,content,_=large_fixture(tmp_path)
+    prerequisites=[f'configuration/{i:02}.txt' for i in range(40)]
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root)
+        source=wb.latest(task,'context_ready');value=wb.read(source.payload['artifact_id'])
+        value['inventory']+=prerequisites
+        wb.append(task,'context_ready',{**source.payload,'artifact_id':wb.artifact(value)},key='prerequisite-source')
+        wb.request(task,text='Plan using all required configuration',parent_id=None,expected_hash=None,
+            key='batched-config',runtime_version='agent-runtime-v2')
+    def inspect(selected,evidence):
+        seen={e['path'] for e in evidence['entries'] if e.get('content') is not None}
+        missing=[p for p in prerequisites if p not in seen]
+        return {**selected,'required_paths':missing} if missing else selected
+    monkeypatch.setattr('app.execution_preflight.inspect_environment',inspect)
+    batches=[]
+    class Reader:
+        async def inspect(self,**kw):
+            paths=kw['paths'];batches.append(list(paths))
+            assert 1<=len(paths)<=32
+            return {'inventory':[*content.files_to_inspect,*content.files_likely_to_change,'background.py',*prerequisites],
+                'entries':[{'path':p,'content':'configuration','prior_hash':hashlib.sha256(b'configuration').hexdigest(),
+                    'executable':False} for p in paths],'truncated':False}
+    monkeypatch.setattr(RepositoryArchiveStore,'lookup',lambda *a,**kw:object())
+    for index in range(2):
+        job,_=run_turn(db,s,result(content));assert job.state=='succeeded',job.error_message
+        with db.session() as session:
+            wb=Workbench(session,s.artifact_root)
+            assert wb.latest_plan(task) is None
+            assert not wb.latest(task,'model_output_rejected')
+            assert not wb.latest(task,'execution_authorized')
+        read=asyncio.run(PlanningContextWorker(db,s,Reader(),worker_id=f'config-{index}').run_once())
+        assert read.state=='succeeded',read.error_message
+        db.close();db=Database(s.database_url)
+    final,_=run_turn(db,s,result(content));assert final.state=='succeeded',final.error_message
+    assert list(map(len,batches))==[32,8]
+    assert [p for batch in batches for p in batch]==prerequisites
+    with db.session() as session:
+        wb=Workbench(session,s.artifact_root)
+        assert wb.latest_plan(task) and not wb.latest(task,'execution_authorized')
+        assert wb.latest(task,'planning_read_batch').payload['remaining_count']==8
+    db.close()

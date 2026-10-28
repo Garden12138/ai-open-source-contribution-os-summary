@@ -980,14 +980,26 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     change_paths=list(draft.files_likely_to_change)), evidence)
                 needed.update(proposed_environment.get("required_paths", []))
                 requested = list(dict.fromkeys([*reply.read_paths, *sorted(needed)]))
-                if needed - known or needed & unavailable or len(requested) > 32:
+                v2_batch = data.get("agent_runtime_version") == "agent-runtime-v2"
+                if needed - known or needed & unavailable or (len(requested) > 32 and not v2_batch):
                     constraint = "path_unavailable" if needed & unavailable else "path_not_found" if needed - known else "read_bound"
                     reject_plan({**domain_error, "fields": ["files_to_inspect", "files_likely_to_change"],
                         "constraint": constraint, "paths": sorted((needed & unavailable) | (needed - known))[:12],
                         "remediation": "Do not request or modify unavailable files. For regression tests, propose a separate new test file using already inspected safe fixtures; only ask the user if that unavailable file is indispensable. For missing paths use the exact inventory path; do not invent it."})
                     draft = None
                 else:
-                    reply.read_paths = requested
+                    # Environment prerequisites can exceed a single tool call.
+                    # Preserve the pending plan and drain them across ordinary
+                    # read rounds; neither authority nor the total budget grows.
+                    reply.read_paths = requested[:32]
+                    if len(requested) > 32:
+                        wb.append(data["task_id"], "planning_read_batch", {
+                            "requested_count": len(requested),
+                            "selected_paths": reply.read_paths,
+                            "remaining_count": len(requested) - len(reply.read_paths),
+                            "read_round": data["round"],
+                        }, key="read-batch:" + job.id, job_id=job.id,
+                            actor="planner", commit=False)
             if reply.read_paths and not reply.questions and data["round"] >= MAX_READ_ROUNDS:
                 read_feedback = {"reason_code": "planning_read_limit", "fields": ["read_paths"],
                                  "constraint": "read_round_limit"}
