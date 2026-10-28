@@ -1,0 +1,180 @@
+{
+  "classification": "actual_fixture_receipts_no_model_delivery",
+  "frozen_files": {
+    "package.json": "7c2a38be8265e22ded8ebd6f6a886439705c40de8bb3a95589c9650b88fd6cfd",
+    "src/index.ts": "5dd4d8ec6462e58358cabe9c0961cc3a1b04d224bbe26b69e96d6bc7a95f8248",
+    "tests/runtime.test.js": "cf9ea82b4dbed27e20074a0f80314b52cfe86f0fc3c1e0bf8981dac2f4881baa",
+    "tests/types.test-d.ts": "370352e5dd277785174936ff8bc48fc7b4d5ab80f361b5dc04cf450fb7da7f17",
+    "vitest.config.ts": "0003073c05994df520a69a48422c174bfc0c98921bb9d8f85572614c9952eed8",
+    "tests/tsconfig.json": "3afc4a8b3a5a62862548ca019cdc538badaf7e485a3f3bf99b719b43d76da13f"
+  },
+  "baseline": {
+    "attempt_id": "c470b171-b57a-41e8-bf6e-92495ffd471c",
+    "command_selection_policy": "existing-target-commands-v1",
+    "commands_hash": "4fd7a1c0eb974604754162dcd4e93ea188907535c251c015078646ec68de2c2e",
+    "dependency_result_hash": "27f443124df2225282238b818af74ded285711cb09fd96cc80a7fcd0a96f5281",
+    "environment_spec_hash": "73cb90e3eefb182eff9c584da7875c65e127ce8c67dbffbde0860c1eed116108",
+    "explore_result_hash": "32db30ea7cb3f51e9119e5a491162888da07b29e9821e132763e93831371737b",
+    "inspection": {
+      "after_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "before_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "command_evidence": [
+        {
+          "command_hash": "5418c91fee2e406c14d696e19d1445d8a6edf67370552322a67683d0894bc9aa",
+          "command_id": "typecheck-tests",
+          "completed_at": "2026-10-28T08:18:56.910945Z",
+          "duration_ms": 808,
+          "exit_code": 0,
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "resource_usage": {
+            "involuntary_context_switches": 355,
+            "major_page_faults": 22,
+            "max_rss_bytes": 170868736,
+            "minor_page_faults": 44577,
+            "system_cpu_ms": 92,
+            "user_cpu_ms": 1272,
+            "voluntary_context_switches": 1747
+          },
+          "started_at": "2026-10-28T08:18:56.102969Z",
+          "status": "passed",
+          "stderr_bytes": 158,
+          "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c",
+          "stderr_log": "\u001b[33mTesting types with tsc and vue-tsc is an experimental feature.\nBreaking changes might not follow SemVer, please pin Vitest's version when using it.\u001b[39m\n",
+          "stdout_bytes": 702,
+          "stdout_hash": "98611dc946df132b23d1f4b2622cc464533dc87b8d28b89bb30c75e473cc1491",
+          "stdout_log": "\n> private-typecheck-cache-supported-v3@1.0.2 test /execution/workspace\n> vitest run\n\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/execution/workspace\u001b[39m\n\n \u001b[32m\u2713\u001b[39m tests/runtime.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 3\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m \u001b[44m\u001b[1m TS \u001b[22m\u001b[49m tests/types.test-d.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2mType Errors \u001b[22m \u001b[2mno errors\u001b[22m\n\u001b[2m   Start at \u001b[22m 08:18:56\n\u001b[2m   Duration \u001b[22m 541ms\u001b[2m (transform 6ms, setup 0ms, collect 8ms, tests 3ms, environment 0ms, prepare 25ms, typecheck 520ms)\u001b[22m\n\n"
+        }
+      ]
+    },
+    "outcome": {
+      "failures": [],
+      "missing_dependencies": [],
+      "passed": 1,
+      "status": "passed",
+      "test_results_hash": null,
+      "total": 1
+    },
+    "plan_hash": "b777785c22eb3d7f97141bee3fb89ba5d64e94e0f8b8e294b27cb596c82d1034",
+    "version": "execution-baseline-v1"
+  },
+  "dependency_result": {
+    "dependency_inventory_hash": "536c96b752e7b6111d5410f7f745987ce5eef7fed237c392234aa00c0605a849",
+    "ecosystem": "node",
+    "environment_receipt": {
+      "built_offline": true,
+      "cache_files": [
+        {
+          "adapter": "vitest-2.1.9-typecheck-v1",
+          "path": "project/node_modules/.pnpm/vitest@2.1.9/node_modules/vitest/dist/chunks/tsconfig.tmp.tsbuildinfo",
+          "target": "/execution/cache/node/7e56469a276618a0d3478e05fa0c0e93d576cbfbab380ab0a523b7e72ee1c81c.tsbuildinfo"
+        }
+      ],
+      "execution_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "manager_version": "10.29.3",
+      "manifest_hashes": {
+        "package.json": "7c2a38be8265e22ded8ebd6f6a886439705c40de8bb3a95589c9650b88fd6cfd",
+        "pnpm-lock.yaml": "50e43618b2d2e284b8493cb1636ae21f7e617c7874925bceef4686c0b6001c1f"
+      },
+      "native_packages": [],
+      "recipe": {
+        "linker": "node-modules",
+        "lock_strategy": "resolve_private",
+        "lockfile": null,
+        "manager": "pnpm",
+        "manager_constraint": "10.29.3",
+        "manager_version": "",
+        "package_roots": [
+          "."
+        ],
+        "project_directory": ".",
+        "registry": "https://registry.npmjs.org",
+        "runtime_pin": "",
+        "runtime_requirement": ">=18",
+        "version": "node-environment-v2",
+        "workspace_lifecycle": []
+      },
+      "runtime_bin": "/usr/local/bin",
+      "runtime_version": "22.23.2",
+      "version": "node-environment-result-v3"
+    },
+    "execution_attempt_id": "c470b171-b57a-41e8-bf6e-92495ffd471c",
+    "file_count": 5195,
+    "plan_hash": "73cb90e3eefb182eff9c584da7875c65e127ce8c67dbffbde0860c1eed116108",
+    "proxy_policy_hash": "67683582dd39140593ed3bf6fcf3658035e86a192fca2c0c209fb13231496838",
+    "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "source_kind": "explore",
+    "source_result_hash": "32db30ea7cb3f51e9119e5a491162888da07b29e9821e132763e93831371737b",
+    "total_bytes": 118338503,
+    "version": "workspace-dependency-result-v3"
+  },
+  "fresh_verification_results": [
+    {
+      "before_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "after_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "command_evidence": [
+        {
+          "command_id": "typecheck-tests",
+          "command_hash": "5418c91fee2e406c14d696e19d1445d8a6edf67370552322a67683d0894bc9aa",
+          "status": "passed",
+          "exit_code": 0,
+          "started_at": "2026-10-28T08:18:56.102969Z",
+          "completed_at": "2026-10-28T08:18:56.910945Z",
+          "resource_usage": {
+            "user_cpu_ms": 1272,
+            "system_cpu_ms": 92,
+            "max_rss_bytes": 170868736,
+            "minor_page_faults": 44577,
+            "major_page_faults": 22,
+            "voluntary_context_switches": 1747,
+            "involuntary_context_switches": 355
+          },
+          "stdout_hash": "98611dc946df132b23d1f4b2622cc464533dc87b8d28b89bb30c75e473cc1491",
+          "stdout_bytes": 702,
+          "stdout_log": "\n> private-typecheck-cache-supported-v3@1.0.2 test /execution/workspace\n> vitest run\n\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/execution/workspace\u001b[39m\n\n \u001b[32m\u2713\u001b[39m tests/runtime.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 3\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m \u001b[44m\u001b[1m TS \u001b[22m\u001b[49m tests/types.test-d.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2mType Errors \u001b[22m \u001b[2mno errors\u001b[22m\n\u001b[2m   Start at \u001b[22m 08:18:56\n\u001b[2m   Duration \u001b[22m 541ms\u001b[2m (transform 6ms, setup 0ms, collect 8ms, tests 3ms, environment 0ms, prepare 25ms, typecheck 520ms)\u001b[22m\n\n",
+          "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c",
+          "stderr_bytes": 158,
+          "stderr_log": "\u001b[33mTesting types with tsc and vue-tsc is an experimental feature.\nBreaking changes might not follow SemVer, please pin Vitest's version when using it.\u001b[39m\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 808
+        }
+      ]
+    },
+    {
+      "before_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "after_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+      "command_evidence": [
+        {
+          "command_id": "typecheck-tests",
+          "command_hash": "5418c91fee2e406c14d696e19d1445d8a6edf67370552322a67683d0894bc9aa",
+          "status": "passed",
+          "exit_code": 0,
+          "started_at": "2026-10-28T08:18:57.602708Z",
+          "completed_at": "2026-10-28T08:18:58.406850Z",
+          "resource_usage": {
+            "user_cpu_ms": 1269,
+            "system_cpu_ms": 80,
+            "max_rss_bytes": 172863488,
+            "minor_page_faults": 40946,
+            "major_page_faults": 19,
+            "voluntary_context_switches": 1783,
+            "involuntary_context_switches": 458
+          },
+          "stdout_hash": "19563443412eafcaf11dd5a39aed423523bad605ab3d1f53156485f14d272d21",
+          "stdout_bytes": 704,
+          "stdout_log": "\n> private-typecheck-cache-supported-v3@1.0.2 test /execution/workspace\n> vitest run\n\n\n\u001b[1m\u001b[7m\u001b[36m RUN \u001b[39m\u001b[27m\u001b[22m \u001b[36mv2.1.9 \u001b[39m\u001b[90m/execution/workspace\u001b[39m\n\n \u001b[32m\u2713\u001b[39m tests/runtime.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 12\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m \u001b[44m\u001b[1m TS \u001b[22m\u001b[49m tests/types.test-d.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2mType Errors \u001b[22m \u001b[2mno errors\u001b[22m\n\u001b[2m   Start at \u001b[22m 08:18:57\n\u001b[2m   Duration \u001b[22m 539ms\u001b[2m (transform 7ms, setup 0ms, collect 9ms, tests 12ms, environment 0ms, prepare 25ms, typecheck 516ms)\u001b[22m\n\n",
+          "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c",
+          "stderr_bytes": 158,
+          "stderr_log": "\u001b[33mTesting types with tsc and vue-tsc is an experimental feature.\nBreaking changes might not follow SemVer, please pin Vitest's version when using it.\u001b[39m\n",
+          "logs_truncated": false,
+          "raw_logs_omitted": false,
+          "duration_ms": 803
+        }
+      ]
+    }
+  ],
+  "model_calls": 0,
+  "counts_as_M5": false
+}

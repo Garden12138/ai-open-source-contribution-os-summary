@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from app.node_environments import validate_node_recipe
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
+from app.sandbox_worker.node_cache import prepare_node_cache_files
 
 
 def restore_unchanged_json_manifest(source_path: str, target_path: str, expected_hash: str) -> None:
@@ -319,4 +320,8 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
                 if not (target.startswith(str(output) + "/") or target.startswith("/execution/workspace/")):
                     raise SystemExit(110)
         receipt["built_offline"] = True
+        caches = prepare_node_cache_files(str(project), str(output))
+        if caches:
+            receipt.update(version="node-environment-result-v3", cache_files=caches)
+            receipt.setdefault("native_packages", [])
         receipt_path.write_text(json.dumps(receipt))

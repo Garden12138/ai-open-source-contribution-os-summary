@@ -1,0 +1,104 @@
+{
+  "classification": "native_user_trial_environment_stop_not_delivery",
+  "measured_at": "2026-10-28T08:09:39.637462+00:00",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "baseline_event_hash": "91161a30c50dd4ec2581955dba894911c6a338ec6a97e339ab11dbfb689d00d6",
+  "baseline_artifact_hash": "72869448c039c12cb54d2d0320dd7b3d6fadedf999299eb115b8de2fea86858f",
+  "plan_hash": "86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a",
+  "original_approval_hash": "a05322d7cb0f07bb188f90d57e34eadebe77b106e3bbeeed25f24ef6bc154b2f",
+  "derived_blocker_hash": "e37d7d27700cc9a3e814e43f8f56bf362193ee563276346576e9f2d83aa9b9b4",
+  "superseded_blocker_hash": "f2a40b9f1f98c2bf7ef44e28df6189274405f878a66179c83f33827fad13a6b0",
+  "derived_status": "environment_blocked",
+  "passed_commands": 6,
+  "total_commands": 8,
+  "reason_codes": [
+    "node_tool_cache_unavailable",
+    "verification_dependency_preparation_required"
+  ],
+  "failed_command_ids": [
+    "full-test-suite",
+    "lint"
+  ],
+  "old_events_preserved": 509,
+  "old_event_hashes_unchanged": true,
+  "original_source_inventory_unchanged": true,
+  "original_approval_preserved": true,
+  "original_failure_preserved": true,
+  "active_jobs": 0,
+  "new_business_patches": 0,
+  "coding_sessions": 0,
+  "independent_reviews": 0,
+  "automatic_retries": 0,
+  "uses_code_repair": false,
+  "post_failure_platform_maintenance_episodes_this_fix": 1,
+  "full_dependency_copy_experiment": {
+    "shipped": false,
+    "real_tests_passed": 4,
+    "real_tests_failed": 1,
+    "rejection_reason": "pnpm launcher exit 126 on existing noexec scratch; isolation retained"
+  },
+  "human_final_acceptance": false,
+  "counts_as_M5": false,
+  "external_writes": 0,
+  "open_implementation_gates": [
+    "Frozen dynamic lint/tool dependency recipe for the original task",
+    "ARV2-M5 supported native deliveries and human acceptance",
+    "ARV2-M6 actual Linux amd64"
+  ],
+  "health": {
+    "status": "ok",
+    "database": "ok"
+  },
+  "tests": {
+    "focused": {
+      "passed": 191,
+      "failed": 0,
+      "skipped": 10,
+      "report_sha256": "5fe6b441d5bda927057098f625a3502e41f17cb8acff32e83ec5478619e01d05"
+    },
+    "real_cache_stop": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "b468a79cb632916e2f9f8bc34c8b6ae9d3f22a26c8ba8af10e0c0fabb03a1ed9"
+    },
+    "real_supported_node": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "9710182a18a7b40dd868499109c472dd80bdd6a6781f0fbe306371d2da388a03"
+    },
+    "real_cache_overlay": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "840a8d989a3a5c4fd4576195f4583f4e2b3f465cb636ec606c194fa83c28ee8f"
+    },
+    "latest_contracts": {
+      "passed": 21,
+      "failed": 0,
+      "skipped": 1,
+      "report_sha256": "c2e056d4ddd0ea38887264b28452e247a9e28cade53380554158c18b05ae4580"
+    },
+    "real_supported_node_final": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "c6968963b4498544ea00c9f51ae7faf923e0aa2a215cb7e4f065d8719e2d2de0"
+    },
+    "real_malicious": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "a12ce1dee98f74a2cf566f7d6b3dc598fa64122cc5eebd0f890217a64e92b043"
+    },
+    "retained_cache_receipts": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "4d527d182bf63d301b268ead0bd87d39074b8b1793cddea2bb87839aa9acb8f6"
+    }
+  },
+  "cache_adapter_verified_on_new_fixture": "node-cache-adapter.json",
+  "failure_contract_preserves_unallocated_coding_budget": true
+}

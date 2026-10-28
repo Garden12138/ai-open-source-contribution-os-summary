@@ -68,3 +68,22 @@ rewrites historical events or moves active v2 jobs into a v1 parser.
 
 The measured integration-cost judgment is specific to this repository, not a
 claim that these frameworks lack durable execution.
+
+
+## Follow-up: package-local data caches (2026-10-28)
+
+Keep immutable dependency code and the original noexec scratch policy. A real
+full-copy experiment failed because pnpm launchers on scratch could not execute;
+it is rejected, not enabled through a mount exception. The accepted approach is
+a tool-version adapter for a single data file, frozen after offline preparation
+and materialized anew in each verifier. Receipt v3 binds its exact source link,
+hash-derived scratch target and adapter ID. Existing v1/v2 receipts remain valid.
+
+Vitest 2.1.9 explicitly selects a package-local `tsconfig.tmp.tsbuildinfo`
+[upstream implementation](https://github.com/vitest-dev/vitest/blob/v2.1.9/packages/vitest/src/typecheck/parse.ts).
+The adapter verifies installed package identity/version and the cache literal
+before adding this data link; it never patches package or repository code.
+Unknown versions are not guessed. Dynamic independent installers inside lint
+still require a separately frozen dependency recipe; verification remains
+networkless and all approved checks remain required. This is an execution
+capability decision and does not change the framework choice above.

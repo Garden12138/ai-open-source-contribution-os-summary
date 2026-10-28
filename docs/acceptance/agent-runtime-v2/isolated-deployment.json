@@ -1,6 +1,6 @@
 {
   "classification": "isolated_final_deployment",
-  "measured_at": "2026-10-28T06:37:24.733554+00:00",
+  "measured_at": "2026-10-28T08:09:39.871988+00:00",
   "origin": "http://127.0.0.1:18080",
   "health": {
     "status": "ok",
@@ -17,6 +17,18 @@
   "production_deployment": false,
   "publisher_mode": "none",
   "jobs": [
+    [
+      "coding_context",
+      "succeeded",
+      null,
+      1
+    ],
+    [
+      "contribution_start",
+      "succeeded",
+      null,
+      1
+    ],
     [
       "conversation_intent",
       "failed",
@@ -46,6 +58,12 @@
       "succeeded",
       null,
       16
+    ],
+    [
+      "execution_prepare",
+      "succeeded",
+      null,
+      1
     ],
     [
       "planning_archive",
@@ -82,16 +100,22 @@
       "succeeded",
       null,
       18
+    ],
+    [
+      "sandbox_stage",
+      "succeeded",
+      null,
+      1
     ]
   ],
   "active_jobs": 0,
   "integrity_check": "ok",
   "foreign_key_errors": 0,
-  "backup_event_count": 493,
+  "backup_event_count": 513,
   "backup_event_hashes_equal": true,
   "initial_backup_event_count": 11,
   "initial_backup_events_preserved": true,
-  "event_chain_index_sha256": "86313e98e5e1bc4d4ea6e7c287db5e63b65a2a117b8e2aab76dfd539d93bb0ae",
-  "backup_private_path": "/tmp/arv2-native-20261028/delivery-backup-20261028T063724Z.db",
+  "event_chain_index_sha256": "406ac1afe649dddf101b403ba5df42e0dcd7731f7ec8cbe185af22b31478cb2b",
+  "backup_private_path": "/tmp/arv2-native-20261028/delivery-backup-20261028T080939Z.db",
   "native_journeys_completed": 0
 }

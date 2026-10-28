@@ -21,6 +21,18 @@ not blindly repeated. Lost provider replies remain consumed calls.
 
 ## Forward revision 0038 and runtime pinning
 
+Node dependency results may additionally contain the versioned
+`node-environment-result-v3` receipt for exact data-cache mappings. This is an
+additive artifact protocol, not a database schema or approval rewrite. v1/v2
+results remain readable and are not retrofitted with cache links. A new offline
+preparation freezes each allowed data link in its inventory; a new verifier
+checks the receipt and creates a fresh, bounded cache without writing into that
+inventory. Old failed baselines remain failed evidence. Rollback to code without
+v3 support requires draining v3 tasks first; older verifiers must reject v3 rather
+than silently omit its cache binding. Rebuild a fresh frozen environment under
+the original exact authorization when permitted, otherwise obtain a new exact
+plan approval. Never edit an old environment receipt or reset its history.
+
 `0038_agent_runtime_v2` adds a trigger for versioned v2 session/checkpoint events,
 requiring orchestrator identity, an existing task-local session and exact
 checkpoint predecessor hash. Migration registry checksums and all old rows stay

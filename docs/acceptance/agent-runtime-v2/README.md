@@ -70,7 +70,7 @@ verification but retains native-delivery and Linux platform gates.
 
 | Verification | Passed | Failed | Skipped | Scope |
 | --- | ---: | ---: | ---: | --- |
-| Final default regression, four disjoint shards | 1508 | 0 | 53 | No real model; [machine report](regression-results.json) |
+| Final default regression, four disjoint shards | 1522 | 0 | 54 | No real model; [machine report](regression-results.json) |
 | Expanded actual OCI regressions | 36 | 0 | 0 | Environment, source, recovery, six malicious cases included |
 | Actual Provider container boundary | 3 | 0 | 0 | Read-only source, gateway-only network, injection |
 | Source-tool suite | 7 | 0 | 0 | Five actual Docker cases and two pure authority/UTF-8 cases |
@@ -306,11 +306,52 @@ continue replayed narration rather than resuming pending planning. These were
 platform defects; configuring the same key again would not fix them. See the
 [preserved failure](user-trial-dialogue-failure.json).
 
-The repaired runtime has real native model and Docker source evidence leading
-to a saved, still unapproved plan. [Exact verification](user-trial-fix-verification.json)
+At that checkpoint the repaired runtime had real native model and Docker source
+evidence leading to a saved, still unapproved plan (the user subsequently approved it; see the baseline section below). [Exact verification](user-trial-fix-verification.json)
 preserves 453 prior event hashes, cumulative budget and permanent maintenance
 classification. No code, test, Review or execution approval was fabricated.
 The [actual browser](user-trial-native-browser.json) uses no intercepted data
 and does not click approval. [HTTP status probes](user-trial-http-smoke.json)
 run on a private database copy, add no model calls and preserve focus/revision.
 This is usability and plan recovery evidence; native M5 delivery remains zero.
+
+## User trial baseline failure and data-cache adapter
+
+After the user actually confirmed plan `9aecf8e2`, attempt `4ec9bcb7` completed
+preparation but only **6 of 8 command checks** passed. `pnpm test` hit a package-local
+Vitest typecheck-cache EROFS error; `pnpm lint` tried installing independent tool
+projects inside network-free verification. Neither error established a code
+regression. The original [failure](user-trial-baseline-failure.json) and approval
+remain unchanged; the [derived stop](user-trial-baseline-verification.json)
+preserves every one of the 509 pre-fix event hashes. Coding and Review did not
+start, and the task remains permanently non-autonomous.
+
+The platform now distinguishes package-cache writes, nested offline installers
+and absent esbuild platform binaries from code failures. The native notice names
+failed command IDs, passed/total commands and concrete environment limitations.
+A versioned failure contract points to the original baseline artifact and blocks
+execution without consuming a code repair. Its empty remaining-budget mapping
+means no v2 coding session/budget has yet been allocated, not a reset of planning
+usage. Historical blocker/failure events are superseded only by new events.
+
+The [new frozen cache fixture](node-cache-adapter.json) passes runtime/type tests
+in **two actual fresh verification containers**; [complete raw receipts](node-cache-actual-receipts.json) retain both actual command results. Its tests also prove dependency
+code cannot be overwritten and scratch remains noexec. Offline preparation
+recognizes the verified Vitest 2.1.9 cache and freezes an exact data-file link in
+receipt v3; verification creates only its hash-derived temporary destination.
+The dependency inventory and source hashes remain unchanged. No full dependency
+copy, executable scratch mount, package-code patch or network exception ships.
+v1/v2 receipts stay supported; [recovery](../../agent-runtime-v2-migration.md)
+describes forward artifact compatibility and rollback.
+
+The discarded full-copy experiment had 4 pass / 1 fail (noexec). The first cache
+fixture failed because esbuild's optional platform binary was absent. Its frozen
+failure is retained; the new fixture makes the exact binary a mandatory declared
+dependency. An optional observer initially failed to serialize the otherwise passing inspections; its failure is retained and the corrected observer reran both real verifiers. These component fixtures make no model calls, use no operator
+business patch and do not count as M5 delivery or human-accepted S3 boundaries.
+
+**The original task still cannot pass its full approved lint contract.** Its
+independent dynamic installation chain needs a frozen preparation recipe which
+is outside the current adapter's verified support. No check or command was
+removed, no old plan/approval rewritten, and no automatic retry was launched.
+Re-entering the same model credentials does not solve this environment gap.

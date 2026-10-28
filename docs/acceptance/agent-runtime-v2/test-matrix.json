@@ -48,8 +48,8 @@
       "case": "T07",
       "status": "passed",
       "level": "Actual Docker baseline",
-      "evidence": "tests/test_agent_v2_tools.py",
-      "result": "Failing baseline prevents coding/session creation and scope expansion."
+      "evidence": "tests/test_agent_v2_tools.py; user-trial-baseline-verification.json; node-cache-adapter.json",
+      "result": "Failing baseline prevents coding/session creation and scope expansion. Actual native user baseline has 6/8 passing commands, precise append-only environment stop, original approval and all 509 old event hashes preserved. New frozen Vitest cache fixture passes two fresh real Verify runs while read-only code and noexec hold; it is component evidence, not M5 acceptance."
     },
     {
       "case": "T08",

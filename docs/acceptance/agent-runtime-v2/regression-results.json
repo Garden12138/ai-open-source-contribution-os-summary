@@ -1,6 +1,6 @@
 {
   "classification": "final_default_regression_disjoint_shards",
-  "measured_at": "2026-10-28T06:34:05.963026+00:00",
+  "measured_at": "2026-10-28T08:11:05.700639+00:00",
   "command": ".venv/bin/python -m pytest <disjoint test files> --disable-warnings -p no:cacheprovider --junitxml=<report>",
   "partition": "sorted tests/test_*.py round robin across four shards",
   "file_partitions": [
@@ -132,8 +132,8 @@
       "errors": 0,
       "skipped": 33,
       "passed": 364,
-      "seconds": 235.437,
-      "report_hash": "d308eedba5afef29d90308d621c87e30d0a4ea24a913fc18b79cc7bcf2dbc186",
+      "seconds": 249.414,
+      "report_hash": "99d992371395f2344c494080f61439ab35596e8805659fa48e7fdaaeb28d0068",
       "shard": 0
     },
     {
@@ -142,37 +142,37 @@
       "errors": 0,
       "skipped": 2,
       "passed": 430,
-      "seconds": 221.378,
-      "report_hash": "b13e5211f206d8bce9ab626f5a250196573d6e0fbc4dd2fd059ebbf7ff9d0654",
+      "seconds": 236.566,
+      "report_hash": "fc2b680ed41a377c9b5b1a5f380af16290e518c6ca925261956b2a917d7f6f08",
       "shard": 1
     },
     {
-      "tests": 289,
+      "tests": 298,
       "failures": 0,
       "errors": 0,
       "skipped": 12,
-      "passed": 277,
-      "seconds": 146.543,
-      "report_hash": "9d51b39d51f985fc621036f3297acdbc4d919ca5e695aea36a7890ee6a4cfb69",
+      "passed": 286,
+      "seconds": 150.882,
+      "report_hash": "4f33d06dec11839d3c03cfe5a6c3cbc410ddece14a3093da7d3c37658b85256f",
       "shard": 2
     },
     {
-      "tests": 443,
+      "tests": 449,
       "failures": 0,
       "errors": 0,
-      "skipped": 6,
-      "passed": 437,
-      "seconds": 208.449,
-      "report_hash": "510e687f31a0e81d00103985bb5b5940872737ffe457a2429f1cfce0203cec66",
+      "skipped": 7,
+      "passed": 442,
+      "seconds": 222.038,
+      "report_hash": "bf8fde6fc612ee334c24ba3fc71ab83c042d6f9a06ea481ce8eed43b1318a08e",
       "shard": 3
     }
   ],
   "totals": {
-    "tests": 1561,
-    "passed": 1508,
+    "tests": 1576,
+    "passed": 1522,
     "failures": 0,
     "errors": 0,
-    "skipped": 53
+    "skipped": 54
   },
   "real_model_calls": 0,
   "skip_policy": "Opt-in model, Docker, platform or account gates stay skipped; default results are not live acceptance."

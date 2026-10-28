@@ -1,0 +1,18 @@
+{
+  "classification": "actual_native_readonly_browser_no_interception",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "origin": "http://127.0.0.1:18080",
+  "environment_notice_visible": true,
+  "failed_commands_visible": true,
+  "passed_commands": 6,
+  "total_commands": 8,
+  "baseline_status": "environment_blocked",
+  "coding_started": false,
+  "can_execute": false,
+  "can_accept": false,
+  "browser_errors": [],
+  "approval_clicked": false,
+  "passed": 1,
+  "failed": 0,
+  "counts_as_M5": false
+}

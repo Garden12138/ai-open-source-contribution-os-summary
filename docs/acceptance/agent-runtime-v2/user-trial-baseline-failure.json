@@ -1,0 +1,74 @@
+{
+  "classification": "failed_native_baseline_before_platform_change",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "attempt_id": "4ec9bcb7-4fa7-428e-bc96-1eb6bfe6b16f",
+  "baseline_event_hash": "91161a30c50dd4ec2581955dba894911c6a338ec6a97e339ab11dbfb689d00d6",
+  "baseline_artifact_hash": "72869448c039c12cb54d2d0320dd7b3d6fadedf999299eb115b8de2fea86858f",
+  "plan_hash": "86a0c6fb9bd2790ea0f4aec17ffeec308b8a78c9f1931ad4ce1d0a07beacf54a",
+  "dependency_result_hash": "c93e0cf7884286088d1a7a26540440537fdf8aa0072a41d496dd944ff19100e7",
+  "command_outcomes": [
+    {
+      "command_id": "baseline-typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "baseline-is-object-tests",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "08bd3fce9c71bfcaa4b0ef985a79509efcc38a08197d75abdd41b3ebb6caaa38",
+      "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c"
+    },
+    {
+      "command_id": "regression-typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "regression-is-object-tests",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "61dd75751d2bb0bb6fa7345f9c58b3fc40f7f13458cfeb2fcca26ca6dc54fbaf",
+      "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c"
+    },
+    {
+      "command_id": "post-fix-typecheck",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "post-fix-is-object-tests",
+      "status": "passed",
+      "exit_code": 0,
+      "stdout_hash": "91899c9bf91ca6953e984f35e4819724f074cfc432cede2e5f2414f61f69b1dd",
+      "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c"
+    },
+    {
+      "command_id": "full-test-suite",
+      "status": "failed",
+      "exit_code": 1,
+      "stdout_hash": "56233e22eaffe2aa930c05ba9d8e1de86e4d8b42194f20b57908eb9e6827d897",
+      "stderr_hash": "da6526e2fd4b03c2847fbacb09a829beace8b4d10c8ec84a993f9d8bfeca1c6a"
+    },
+    {
+      "command_id": "lint",
+      "status": "failed",
+      "exit_code": 1,
+      "stdout_hash": "4337c5b47d1c010e279f86ce07bd188172e2a1242a28299abb44fdb8b2711e85",
+      "stderr_hash": "a98960594edca65ed2c24f012a0d72659ba4e223a915b385895353b0739b18e3"
+    }
+  ],
+  "observed_failures": [
+    "EROFS writing package-local Vitest typecheck cache",
+    "Nested package installation attempted during network-free lint verification"
+  ],
+  "sample_ended_before_platform_change": true,
+  "operator_business_patches": 0,
+  "counts_as_M5": false
+}

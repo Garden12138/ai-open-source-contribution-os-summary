@@ -341,3 +341,164 @@ def test_real_node_workspace_baseline_implementation_and_fresh_verify(tmp_path, 
             if dependency: await dependencies.destroy(dependency.workspace, ignore_missing=True)
             await materializer.destroy(workspace)
     asyncio.run(run())
+
+
+@pytest.mark.parametrize('message,code',[
+    ('The package "@esbuild/linux-arm64" could not be found, and is needed by esbuild.','native_addon_unavailable'),
+    ("error TS5033: Could not write file '/dependencies/output/project/node_modules/.pnpm/test/node_modules/test/dist/tsconfig.tmp.tsbuildinfo': EROFS: read-only file system",'node_tool_cache_unavailable'),
+    ('> Installing dependencies for tools/lint\nERR_PNPM_META_FETCH_FAIL GET https://registry.npmjs.org/execa: EAI_AGAIN registry.npmjs.org','verification_dependency_preparation_required'),
+])
+def test_package_cache_and_nested_installer_are_environment_failures(message,code):
+    from app.execution_outcome import classify_verification
+    value={'succeeded':False,'test_results':[{'outcome':'failed','exit_code':1}],
+        'command_evidence':[{'command_id':'checks','status':'failed','exit_code':1,'stderr_log':message}]}
+    result=classify_verification(value)
+    assert result['status']=='environment_blocked' and result['missing_dependencies']==[code]
+
+
+@pytest.mark.parametrize('message,code',[
+    ("error TS5033: Could not write file '/dependencies/output/project/node_modules/tool/tsconfig.tmp.tsbuildinfo': EROFS",'node_tool_cache_unavailable'),
+    ('Installing dependencies for tools/lint\nERR_PNPM_META_FETCH_FAIL https://registry.npmjs.org/execa: EAI_AGAIN','verification_dependency_preparation_required'),
+])
+def test_baseline_environment_reclassification_is_append_only_and_blocks_coding(tmp_path,monkeypatch,message,code):
+    from tests.test_node_workflow import node_workflow
+    from app.contribution_workflow import advance_workflows
+    from app.sandbox_worker.fake import FakeVerifyRuntime
+    from app.sandbox_worker.verification import VerifyCommandStatus
+    from app.execution_outcome import reconcile_baseline_blocker,require_coding_environment
+    from app.workbench import Workbench,WorkbenchError
+    from app.conversation import _results
+    db,s,task,workers,coder,reviewer=node_workflow(tmp_path,monkeypatch,'pnpm','10.11.0',runtime_v2=True)
+    class Failure(FakeVerifyRuntime):
+        async def run(self,**kwargs):
+            value=await super().run(**kwargs)
+            evidence=replace(value.command_evidence[0],status=VerifyCommandStatus.FAILED,
+                exit_code=1,stderr_log=message,stderr_bytes=len(message.encode()),
+                stderr_hash=hashlib.sha256(message.encode()).hexdigest())
+            return replace(value,command_evidence=(evidence,))
+    workers[-1].verifier=Failure()
+    try:
+        assert asyncio.run(workers[0].run_once()).state=='succeeded'
+        advance_workflows(db,s)
+        assert asyncio.run(workers[-1].run_once()).state=='succeeded'
+        with db.session() as session:
+            from sqlalchemy import select
+            from app.models import ExecutionAttempt
+            w=Workbench(session,s.artifact_root)
+            w.append(task,'conversation_started',{'version':'conversation-v1'},key='test-dialogue',actor='local-user')
+            old=w.append(task,'automation_blocked',{'reason_code':'agent_baseline_blocked','retryable':False,
+                'reason':'修改前检查未通过，不能当作代码回归修复。'},key='test-old-blocker',actor='orchestrator')
+            history=[(e.id,e.record_hash) for e in w.history(task)]
+            auth=w.latest(task,'execution_authorized').record_hash
+            jobs=[(j.id,j.state) for j in w.jobs(task)]
+            attempt=session.scalar(select(ExecutionAttempt))
+            for _ in range(2):
+                assert reconcile_baseline_blocker(w,attempt)
+                _results(w,task)
+            blocker=w.active_blocker(task)
+            assert blocker.payload['reason_code']=='environment_blocked'
+            assert blocker.payload['superseded_blocker_hash']==old.record_hash
+            assert blocker.payload['missing_dependencies']==[code]
+            assert blocker.payload['failed_command_ids']==['workspace-test']
+            assert blocker.payload['recovery']['uses_code_repair'] is False
+            assert '0 项通过' in blocker.payload['reason']
+            assert len([e for e in w.history(task) if e.idempotency_key.startswith('baseline-environment-v3:')])==1
+            assert blocker.payload['failure']['category']=='environment'
+            assert blocker.payload['failure']['blocking_scope']=='execution'
+            assert blocker.payload['failure']['evidence_ref']==w.latest(task,'execution_baseline_ready').payload['result_hash']
+            assert [(e.id,e.record_hash) for e in w.history(task)[:len(history)]]==history
+            assert w.latest(task,'execution_authorized').record_hash==auth
+            assert [(j.id,j.state) for j in w.jobs(task)]==jobs
+            assert '执行环境尚未就绪' in w.latest(task,'conversation_result').payload['text']
+            assert 'workspace-test' in w.latest(task,'conversation_result').payload['text']
+            with pytest.raises(WorkbenchError) as error:
+                require_coding_environment(w,attempt.id)
+            assert error.value.code=='environment_blocked'
+        assert not coder.invocations and not reviewer.invocations
+    finally:
+        db.close()
+
+
+@pytest.mark.skipif(os.getenv('CONTRIBOS_RUN_DOCKER_ACCEPTANCE')!='1',reason='real containers are opt-in')
+def test_real_vitest_package_local_typecheck_cache_uses_bound_data_overlay(tmp_path,monkeypatch):
+    from tests.test_node_workflow import node_workflow
+    from app.contribution_workflow import advance_workflows
+    from app.plans import PlanCommand
+    from app.workbench import Workbench
+    from app.execution_outcome import baseline_outcome
+    files={
+        'package.json':json.dumps({'name':'private-typecheck-cache-supported-v3','private':True,'version':'1.0.2',
+            'type':'module','packageManager':'pnpm@10.29.3','engines':{'node':'>=18'},
+            'scripts':{'test':'vitest run'},'devDependencies':{'vitest':'2.1.9','typescript':'5.6.3',
+                '@esbuild/linux-'+('arm64' if __import__('platform').machine() in {'arm64','aarch64'} else 'x64'):'0.21.5'}}),
+        'src/index.ts':"export function identityV2(value: string): string { return value }\n",
+        'tests/runtime.test.js':"""import {test,expect} from 'vitest'; import {identityV2} from '../src/index';
+import {readFileSync,writeFileSync,chmodSync} from 'node:fs'; import {createRequire} from 'node:module'; import {spawnSync} from 'node:child_process';
+test('value',()=>{expect(identityV2('ok')).toBe('ok')});
+test('immutable code and noexec scratch',()=>{
+ const dependency=createRequire(import.meta.url).resolve('vitest/package.json');
+ expect(()=>writeFileSync(dependency,'tampered')).toThrow(/EROFS/);
+ const mounts=readFileSync('/proc/mounts','utf8').split('\\n');
+ expect(mounts.find(l=>l.split(' ')[1]==='/execution').split(' ')[3].split(',')).toContain('noexec');
+ const executable='/execution/cache/probe';writeFileSync(executable,'#!/bin/sh\\nexit 0\\n');chmodSync(executable,0o755);
+ expect(spawnSync(executable).error?.code).toBe('EACCES');
+});
+""",
+        'tests/types.test-d.ts':"import {test,expectTypeOf} from 'vitest'; import {identityV2} from '../src/index'; test('types',()=>{expectTypeOf(identityV2).parameter(0).toEqualTypeOf<string>()});\n",
+        'vitest.config.ts':"import {defineConfig} from 'vitest/config'; export default defineConfig({test:{include:['tests/**/*.test.js'],typecheck:{enabled:true,include:['tests/**/*.test-d.ts'],tsconfig:'tests/tsconfig.json'}}});\n",
+        'tests/tsconfig.json':json.dumps({'compilerOptions':{'strict':True,'skipLibCheck':True,'noEmit':True,
+            'target':'es2022','module':'ESNext','moduleResolution':'Bundler','types':[]},'include':['../src','./**/*.ts']}),
+    }
+    db,s,task,workers,_,_=node_workflow(tmp_path,monkeypatch,'pnpm','10.29.3',real=True,
+        files_override=files,source_override='src/index.ts',
+        commands_override=(PlanCommand('typecheck-tests','Real runtime and type tests',('pnpm','run','test')),))
+    verifier=workers[-1].verifier
+    actual_receipts=[]
+    class FreshViews:
+        async def run(self,*args,**kwargs):
+            # Both invocations use real fresh containers and the same immutable
+            # dependency bundle. Neither can carry over the other's cache.
+            for _ in range(2):
+                actual_receipts.append(await verifier.run(*args,**kwargs))
+            return actual_receipts[0]
+    workers[-1].verifier=FreshViews()
+    try:
+        for _ in range(8):
+            advance_workflows(db,s)
+            asyncio.run(workers[0].run_once())
+            asyncio.run(workers[-1].run_once())
+            with db.session() as session:
+                w=Workbench(session,s.artifact_root);e=w.latest(task,'execution_baseline_ready')
+                if e:
+                    value=w.read(e.payload['result_hash']);outcome=baseline_outcome(value)
+                    assert outcome['status']=='passed',outcome
+                    evidence=value['inspection']['command_evidence'][0]
+                    assert 'types.test-d.ts' in evidence['stdout_log']
+                    assert 'runtime.test.js' in evidence['stdout_log']
+                    assert 'EROFS' not in evidence['stderr_log']
+                    assert value['inspection']['before_inventory_hash']==value['inspection']['after_inventory_hash']
+                    dependency=w.read(value['dependency_result_hash'])
+                    receipt=dependency['environment_receipt']
+                    assert receipt['version']=='node-environment-result-v3'
+                    assert len(receipt['cache_files'])==1
+                    assert len(actual_receipts)==2 and all(r.succeeded for r in actual_receipts)
+                    assert not w.latest(task,'automatic_change_accepted')
+                    assert not w.latest(task,'provider_review')
+                    # Optional observer retains real receipts outside pytest's
+                    # rotating temporary directories; it never supplies results.
+                    if os.getenv('ARV2_NODE_CACHE_EVIDENCE'):
+                        Path(os.environ['ARV2_NODE_CACHE_EVIDENCE']).write_text(json.dumps({
+                            'classification':'actual_fixture_receipts_no_model_delivery',
+                            'frozen_files':{p:hashlib.sha256(text.encode()).hexdigest() for p,text in files.items()},
+                            'baseline':value,'dependency_result':dependency,
+                            'fresh_verification_results':[{
+                                'before_inventory_hash':r.before_inventory_hash,
+                                'after_inventory_hash':r.after_inventory_hash,
+                                'command_evidence':[c.to_wire() for c in r.command_evidence]
+                            } for r in actual_receipts],
+                            'model_calls':0,'counts_as_M5':False},indent=2)+'\n')
+                    return
+        raise AssertionError('real baseline did not finish')
+    finally:
+        asyncio.run(workers[-1].cleanup())
+        db.close()

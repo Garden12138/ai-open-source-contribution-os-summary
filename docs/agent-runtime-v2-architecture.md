@@ -5,6 +5,30 @@ Existing v1 records and APIs stay readable. SQLite/ArtifactStore/Workbench remai
 the sole business authority. Migration 0038 adds insert-time v2 protocol/CAS
 invariants without altering historical rows or existing table definitions.
 
+The native user trial reopened and reverified M3 on 2026-10-28: recognizing a package manager
+does not establish that its repository's complete approved verification contract
+is supported. Package-local Vitest typecheck caches on read-only dependencies
+and verification scripts which dynamically install independent tool projects
+exposed two separate capabilities. Unsupported forms must stop before coding with `environment_blocked` and
+exact command evidence. The derived diagnosis may supersede a historical generic
+blocker append-only; original failures, approvals and hashes remain intact.
+No model code-repair budget is consumed by this stop. See the
+[failure and verification record](acceptance/agent-runtime-v2/user-trial-baseline-failure.json).
+
+A disposable full dependency copy was tested and rejected: `/execution` is
+actually `noexec` on the current engine, and copied pnpm launchers failed with
+exit 126. That experiment is not shipped. Dependencies remain mounted read-only
+with the existing bounded scratch view. The replacement adapter recognizes only
+the verified Vitest 2.1.9 typecheck cache. Offline preparation creates a single
+data-file link, freezes it in a `node-environment-result-v3` receipt and dependency
+inventory, and verification creates its exact hash-derived destination under
+`/execution/cache/node`. Code, launchers and the dependency volume stay read-only;
+scratch stays noexec. Each fresh verifier gets an empty independent cache. v1/v2
+receipts remain supported. Unknown tool versions and cache paths are never
+inferred or granted. Nested dynamic tool installers still need a frozen
+preparation recipe. Neither opening verification networking, permitting
+scratch execution, deleting lint nor changing approved commands is a recovery.
+
 ```mermaid
 flowchart TD
   UI[Native conversation and exact confirmation] --> Facade[Conversation facade]

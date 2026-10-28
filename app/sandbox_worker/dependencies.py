@@ -1645,8 +1645,9 @@ from app.sandbox_worker.workspace_dependencies import WORKSPACE_PYTHON_SCRIPT, M
 from inspect import getsource
 from app.node_environments import validate_node_recipe
 from app.sandbox_worker.node_dependencies import prepare_node_dependencies, restore_unchanged_json_manifest
+from app.sandbox_worker.node_cache import prepare_node_cache_files
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
-_node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(restore_unchanged_json_manifest) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
+_node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(restore_unchanged_json_manifest) + getsource(prepare_node_cache_files) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
 _PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __NODE_PREPARATION__", "\n".join("    " + line for line in _node_program.splitlines()))
 _workspace_program = "if plan.get('preparation_version') == 'python-workspace-preparation-v3':\n" + "\n".join(
     "    " + line for line in MULTIPACKAGE_PYTHON_SCRIPT.splitlines()) + "\nelse:\n" + "\n".join(

@@ -260,13 +260,15 @@ def inspect_node_environment(selected: dict, evidence: dict) -> dict:
 
 
 def validate_node_receipt(value: object, recipe: dict | None = None) -> dict:
+    import hashlib
     import re
     from pathlib import PurePosixPath
-    modern = isinstance(value,dict) and value.get("version")=="node-environment-result-v2"
+    cached = isinstance(value,dict) and value.get("version")=="node-environment-result-v3"
+    modern = isinstance(value,dict) and value.get("version") in {"node-environment-result-v2", "node-environment-result-v3"}
     keys = {"version", "recipe", "runtime_version", "runtime_bin", "manager_version", "manifest_hashes",
-        "built_offline", "execution_image_digest"} | ({"native_packages"} if modern else set())
+        "built_offline", "execution_image_digest"} | ({"native_packages"} if modern else set()) | ({"cache_files"} if cached else set())
     if (not isinstance(value, dict) or set(value) != keys
-            or value["version"] not in {"node-environment-result-v1","node-environment-result-v2"} or value["built_offline"] is not True):
+            or value["version"] not in {"node-environment-result-v1","node-environment-result-v2","node-environment-result-v3"} or value["built_offline"] is not True):
         raise ValueError("Invalid completed Node environment")
     validate_node_recipe(value["recipe"])
     if recipe is not None and value["recipe"] != recipe:
@@ -284,7 +286,7 @@ def validate_node_receipt(value: object, recipe: dict | None = None) -> dict:
         raise ValueError("Invalid Node environment versions or manifests")
     if modern:
         packages=value["native_packages"]
-        if not isinstance(packages,list) or not 1<=len(packages)<=4:
+        if not isinstance(packages,list) or not (0 if cached else 1)<=len(packages)<=4:
             raise ValueError("Invalid native workspace packages")
         seen=set()
         for package in packages:
@@ -297,4 +299,21 @@ def validate_node_receipt(value: object, recipe: dict | None = None) -> dict:
                     or not isinstance(package["binary_hash"],str) or not re.fullmatch(r"[a-f0-9]{64}",package["binary_hash"])):
                 raise ValueError("Invalid native workspace package")
             seen.add(package["package"])
+    if cached:
+        files = value["cache_files"]
+        if not isinstance(files,list) or not 1 <= len(files) <= 32:
+            raise ValueError("Invalid Node data caches")
+        seen = set()
+        for cache in files:
+            if not isinstance(cache,dict) or set(cache) != {"path","target","adapter"}:
+                raise ValueError("Invalid Node cache descriptor")
+            path = cache["path"]
+            if (not isinstance(path,str) or len(path)>1024 or path in seen
+                    or not path.startswith("project/")
+                    or not path.endswith("/node_modules/vitest/dist/chunks/tsconfig.tmp.tsbuildinfo")
+                    or any(p in {"", ".", ".."} for p in path.split("/")) or "\\" in path
+                    or cache["adapter"] != "vitest-2.1.9-typecheck-v1"
+                    or cache["target"] != "/execution/cache/node/"+hashlib.sha256(path.encode()).hexdigest()+".tsbuildinfo"):
+                raise ValueError("Invalid Node cache path or target")
+            seen.add(path)
     return value

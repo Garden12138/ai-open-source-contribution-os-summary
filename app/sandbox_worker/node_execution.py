@@ -18,7 +18,7 @@ def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe:
     if receipt_file.is_symlink():
         raise ValueError("Invalid Node environment receipt")
     receipt = validate_node_receipt(json.loads(receipt_file.read_text()), recipe)
-    if (receipt.get("version") not in {"node-environment-result-v1","node-environment-result-v2"} or receipt.get("recipe") != recipe
+    if (receipt.get("version") not in {"node-environment-result-v1","node-environment-result-v2","node-environment-result-v3"} or receipt.get("recipe") != recipe
             or receipt.get("built_offline") is not True
             or recipe["version"] == "node-environment-v1" and receipt.get("manager_version") != recipe["manager_version"]):
         raise ValueError("Node environment does not match execution")
@@ -43,6 +43,16 @@ def prepare_node_execution(source: str, dependencies: str, scratch: str, recipe:
                 raise ValueError("Node execution source budget exceeded")
             originals.append((str(path.relative_to(source)), hashlib.sha256(path.read_bytes()).hexdigest()))
     shutil.copytree(source, target)
+    for cache in receipt.get("cache_files", []):
+        frozen = output / cache["path"]
+        if not frozen.is_symlink() or os.readlink(frozen) != cache["target"]:
+            raise ValueError("Frozen Node cache binding changed")
+        # Only the exact receipt-bound data file becomes writable. Original
+        # dependency code and launchers stay read-only; scratch stays noexec.
+        temporary = Path(scratch) / Path(cache["target"]).relative_to("/execution")
+        temporary.parent.mkdir(parents=True, exist_ok=True)
+        with temporary.open("xb"):
+            pass
     project = output / "project"
     for package in recipe["package_roots"]:
         relative = "" if package == "." else package

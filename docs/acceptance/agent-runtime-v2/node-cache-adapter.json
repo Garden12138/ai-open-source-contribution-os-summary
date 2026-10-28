@@ -1,0 +1,92 @@
+{
+  "classification": "actual_frozen_fixture_cache_adapter_not_model_delivery",
+  "fixture_id": "private-typecheck-cache-supported-v3@1.0.2",
+  "task_id": "fc8021fe-f0cd-4805-8ede-f149830aedba",
+  "baseline_artifact_hash": "9488173c548e341fed4654b7f24192de3480d0213c159e3aed022f87e098d26d",
+  "baseline_event_hash": "6ece0075ac001cdfaded5798a2a5030febfcbd78f3be9b589ecb8ea87fec1350",
+  "dependency_result_hash": "27f443124df2225282238b818af74ded285711cb09fd96cc80a7fcd0a96f5281",
+  "dependency_receipt": {
+    "built_offline": true,
+    "cache_files": [
+      {
+        "adapter": "vitest-2.1.9-typecheck-v1",
+        "path": "project/node_modules/.pnpm/vitest@2.1.9/node_modules/vitest/dist/chunks/tsconfig.tmp.tsbuildinfo",
+        "target": "/execution/cache/node/7e56469a276618a0d3478e05fa0c0e93d576cbfbab380ab0a523b7e72ee1c81c.tsbuildinfo"
+      }
+    ],
+    "execution_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "manager_version": "10.29.3",
+    "manifest_hashes": {
+      "package.json": "7c2a38be8265e22ded8ebd6f6a886439705c40de8bb3a95589c9650b88fd6cfd",
+      "pnpm-lock.yaml": "50e43618b2d2e284b8493cb1636ae21f7e617c7874925bceef4686c0b6001c1f"
+    },
+    "native_packages": [],
+    "recipe": {
+      "linker": "node-modules",
+      "lock_strategy": "resolve_private",
+      "lockfile": null,
+      "manager": "pnpm",
+      "manager_constraint": "10.29.3",
+      "manager_version": "",
+      "package_roots": [
+        "."
+      ],
+      "project_directory": ".",
+      "registry": "https://registry.npmjs.org",
+      "runtime_pin": "",
+      "runtime_requirement": ">=18",
+      "version": "node-environment-v2",
+      "workspace_lifecycle": []
+    },
+    "runtime_bin": "/usr/local/bin",
+    "runtime_version": "22.23.2",
+    "version": "node-environment-result-v3"
+  },
+  "command_id": "typecheck-tests",
+  "command_hash": "5418c91fee2e406c14d696e19d1445d8a6edf67370552322a67683d0894bc9aa",
+  "exit_code": 0,
+  "status": "passed",
+  "stdout_hash": "98611dc946df132b23d1f4b2622cc464533dc87b8d28b89bb30c75e473cc1491",
+  "stderr_hash": "4400cdd9c6728bd55583b1312d10bd76521133e66aeaa7222c5d3d3c28bda79c",
+  "before_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+  "after_inventory_hash": "16f4cf94b10462c29108bf42740ecc9800576fd1710ece2e0a68dd532b52c240",
+  "fresh_verify_invocations": 2,
+  "actual_tests_per_invocation": 3,
+  "runtime_and_type_tests_passed": true,
+  "readonly_dependency_write_denied": true,
+  "scratch_noexec_confirmed": true,
+  "scratch_execution_denied": true,
+  "actual_model_calls": 0,
+  "counts_as_M5": false,
+  "earlier_attempts": [
+    {
+      "id": "full_dependency_copy",
+      "passed": 4,
+      "failed": 1,
+      "shipped": false,
+      "reason": "scratch noexec denied copied launcher"
+    },
+    {
+      "id": "private-typecheck-cache-supported-v2@1.0.1",
+      "passed": 0,
+      "failed": 1,
+      "reason": "esbuild optional platform binary not acquired; new fixture requires exact binary as mandatory dependency"
+    },
+    {
+      "id": "optional_receipt_observer_v1",
+      "passed": 0,
+      "failed": 1,
+      "actual_verify_invocations_passed": 2,
+      "reason": "Evidence export used a nonexistent VerifyInspection.to_wire method; corrected observer and reran actual verification in a new retained directory",
+      "report_sha256": "e56ca3fcee4e081f27d2d80ac1dd609226f6f1f558c7f332c8e059b6da7f21dc"
+    }
+  ],
+  "retained_receipts_file": "node-cache-actual-receipts.json",
+  "retained_receipts_file_sha256": "b05895c8af3ad384616ff257d32ee36e834734fefe4fda1adef7f6ae261007e7",
+  "actual_test_summary": [
+    "Test Files  2 passed (2)",
+    "Tests  3 passed (3)",
+    "Type Errors  no errors"
+  ],
+  "report_sha256": "4d527d182bf63d301b268ead0bd87d39074b8b1793cddea2bb87839aa9acb8f6"
+}

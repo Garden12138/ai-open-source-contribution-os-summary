@@ -858,6 +858,8 @@ def _results(wb: Workbench, task_id: str) -> None:
         if event.kind == "publication_completed":
             text = with_publication_link(text, event.payload)
         elif event.kind == "automation_blocked":
+            if event.payload.get("reason_code") == "environment_blocked" and event.payload.get("baseline_hash"):
+                text = "执行环境尚未就绪，任务已停在修改前检查。"
             text += "\n" + plain_text(event.payload.get("reason", "")) + (
                 "\n当前失败不能直接重试，需要先解决执行条件；方案和证据已保留。"
                 if event.payload.get("retryable") is False else

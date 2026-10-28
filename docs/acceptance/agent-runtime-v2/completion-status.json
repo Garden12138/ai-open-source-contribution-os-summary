@@ -1,6 +1,6 @@
 {
   "classification": "honest_incomplete_architecture_refactor_handoff",
-  "measured_at": "2026-10-28T02:57:27.489754+00:00",
+  "measured_at": "2026-10-28T08:11:05.700639+00:00",
   "branch": "refactor/agent-runtime-v2",
   "baseline_commit": "27802bb5f1e61c3a21c61bc2dfb2ad597ab233d0",
   "implementation_commit": "33569218720a25780ec2e4d8887d3ac200b9a7ce",
@@ -14,9 +14,9 @@
     "M6": "local_checks_passed_cross_platform_and_native_gates_incomplete"
   },
   "default_tests": {
-    "passed": 1508,
+    "passed": 1522,
     "failed": 0,
-    "skipped": 53
+    "skipped": 54
   },
   "actual_oci_unique_cases_passed": 44,
   "controlled_live_samples": {
@@ -38,7 +38,7 @@
     "main_merges": 0
   },
   "remaining_gates": [
-    "Exact approval of frozen native plan before baseline and implementation",
+    "Exact human execution approval of the frozen Python S1 plan; current assisted TypeScript trial has approval but failed baseline",
     "Native Python delivery, actual tests, independent Review and separate human final acceptance",
     "Native TypeScript delivery with actual failure and code repair, independent Review and separate human final acceptance",
     "Native upstream-fixed or unsupported-environment boundary stop",
@@ -46,7 +46,6 @@
     "Actual native Linux amd64/Docker Engine policy, tools, malicious fixtures and recovery evidence"
   ],
   "initial_formal_services_and_data_untouched": true,
-  "latest_platform_commit": "78347ac631e74977a700b4d11e380542d708eed4",
   "remaining_native_entry_limitations": [
     "Actual facade sometimes returns an empty final step or promises investigation without dispatch; bounded correction does not invent actions or approvals.",
     "New research entered through native planning control is marked permanently non-autonomous in immutable task events."
@@ -58,10 +57,14 @@
     "linux_amd64": "Only local default and OrbStack contexts are available; actual engine is linux/aarch64. No native Linux amd64 Docker endpoint supplied."
   },
   "active_native_jobs": 0,
-  "native_new_assisted_research_outcome": "Original failed research jobs remain failed; user-requested platform recovery has now saved a real source-backed unapproved TypeScript plan. See user-trial-fix-verification.json.",
-  "latest_user_trial": "user-trial-fix-verification.json",
-  "latest_user_trial_status": "real model/source-backed plan saved; exact approval pending; assisted and permanently non-autonomous",
+  "native_new_assisted_research_outcome": "The user approved the saved TypeScript plan; baseline ran all eight commands and stopped with environment failures. A new component fixture verifies the cache adapter, while original dynamic lint remains unsupported. The assisted task has no code edits, Review or final acceptance.",
+  "latest_user_trial": "user-trial-baseline-verification.json",
+  "latest_user_trial_status": "User approved the frozen TypeScript plan. Actual baseline remains environment-blocked: 6/8 commands passed, no coding or Review. Cache adapter verified on a new component fixture; dynamic lint installation remains unsupported.",
   "known_risks": {
-    "provider_reliability": "Initial native investigations encountered HTTP429/502 and empty structured responses. The latest assisted recovery completed actual HTTP200 model/source investigation and saved a plan. Full native code delivery and acceptance remain unverified."
-  }
+    "provider_reliability": "Initial native investigations encountered HTTP429/502 and empty structured responses. The latest assisted recovery completed actual HTTP200 model/source investigation and saved a plan. Full native code delivery and acceptance remain unverified.",
+    "dynamic_tool_installers": "The original task requires independent lint tool installation and dynamic downloads; its full approved verification contract remains unsupported without a frozen preparation recipe. No network exception or reduced command list is authorized."
+  },
+  "previous_platform_commit": "aa0000317f67fe0b2b770e81272fee8a89037e9b",
+  "current_platform_change": "bounded Vitest data cache adapter and precise append-only baseline environment diagnosis",
+  "latest_cache_component_evidence": "node-cache-adapter.json"
 }

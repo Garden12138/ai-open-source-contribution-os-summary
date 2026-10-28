@@ -4766,6 +4766,46 @@ service was changed; original failures remain. Native end-to-end/Linux gates
 stay open.
 
 
+User trial baseline regression (2026-10-28, ARV2-M3 reopened and reverified):
+The user then exactly approved the saved plan. Attempt `4ec9bcb7` ran all eight
+original commands; six passed, full tests hit a read-only package-cache write,
+and lint attempted independent dependency installation during offline Verify.
+No coding session or Review started. The failed native sample ended before this
+platform change; it remains non-autonomous and cannot count as M5 delivery.
+
+Classification now distinguishes package-internal cache writes, nested dynamic
+installers and missing esbuild platform binaries from code regressions. It
+appends a source-bound environment failure with exact failed commands, safe
+next action and baseline evidence reference; no old failure/approval is edited.
+All **509** pre-fix event IDs/hashes survive. Actual native Chromium displays the
+precise stop and forbids execute/accept without clicking any approval.
+
+The implemented cache adapter recognizes verified Vitest 2.1.9 and adds only an
+exact data-file mapping in versioned Node receipt v3 after offline preparation.
+The new frozen component fixture passes real runtime/type tests in **two fresh
+containers**, while actual probes reject dependency overwrites and execution
+from noexec scratch. v1/v2 receipts remain valid. Full dependency copying was
+rejected after an actual noexec failure; a subsequent fixture failed on absent
+esbuild's optional platform package. Failures are preserved; a new fixture
+requires its exact binary as a mandatory dependency. No business patch or fake
+model result is involved. See `acceptance/agent-runtime-v2/node-cache-adapter.json`.
+
+Final default regression: **1522 passed / 0 failed / 54 skipped**. Latest actual
+Docker regressions: **11 passed / 0 failed / 0 skipped** (one cache case with two
+fresh Verify runs, four existing Node environment cases, six malicious cases).
+Repeated existing cases are not added to the earlier 44 unique cases. Compile,
+runtime integrity, whitespace and credential checks accompany this checkpoint.
+The isolated service is restarted; production remains untouched.
+
+**Remaining implementation limitation:** the original `pnpm lint` dynamically
+installs independent tools and downloads runtime tooling; it still lacks a
+frozen supported preparation recipe. Original checks were neither removed nor
+changed, no retry was dispatched, and no autonomous delivery is claimed. This is
+a documented unsupported verification contract, not missing model settings.
+M5 native deliveries/human acceptance and M6 native Linux amd64 remain open;
+existing P5-G06/UXR-G01/ENV-G01 gates are unchanged.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

@@ -38,13 +38,25 @@ def reconcile_baseline_blocker(wb: Any, attempt: Any) -> bool:
         job = wb.session.get(Job, replacement.job_id)
         if job and job.payload.get("replaces_baseline_hash") == receipt.record_hash:
             return job.state in {"queued", "leased", "running"}
-    key = "baseline-environment-v2:" + receipt.id
+    key = "baseline-environment-v3:" + receipt.id
     if not any(e.idempotency_key == key for e in wb.history(attempt.task_id)):
         old = wb.active_blocker(attempt.task_id)
         from app.agent_runtime import recovery
+        from app.agent_v2.contracts import Failure
+        reasons = {"node_tool_cache_unavailable": "测试工具尝试在只读依赖目录写缓存，当前隔离环境不支持这种写入",
+            "verification_dependency_preparation_required": "验证脚本尝试安装尚未准备的依赖，离线验证禁止联网安装；需要扩展依赖准备流程后重新验证",
+            "sandbox_storage_exhausted": "隔离验证的磁盘预算已耗尽"}
+        detail = "；".join(reasons[c] for c in outcome["missing_dependencies"] if c in reasons)
         wb.append(attempt.task_id, "automation_blocked", {"reason_code":"environment_blocked",
             "retryable":False,"recovery":recovery("environment_blocked"),
-            "reason":"修改前检查未能实际完成，执行环境或命令尚未就绪；需先修订方案或恢复环境并重建基线。",
+            "failure":Failure(category="environment",safe_reason_code="environment_blocked",retryable=False,
+                remaining_budget={},next_allowed_action="restore_frozen_environment_or_revise_plan",
+                blocking_scope="execution",evidence_ref=receipt.payload["result_hash"]).model_dump(),
+            "reason":f"修改前 {outcome['total']} 项命令检查中 {outcome['passed']} 项通过；失败项："
+                + "、".join(str(f["command_id"]) for f in outcome["failures"])
+                + "。" + (detail + "。" if detail else "执行环境或命令尚未就绪。")
+                + "尚未开始修改代码；需要先恢复受支持的执行环境并重新通过全部原检查。",
+            "failed_command_ids":[f["command_id"] for f in outcome["failures"]],
             "baseline_hash":receipt.record_hash,"missing_dependencies":outcome["missing_dependencies"],
             "superseded_blocker_hash":old.record_hash if old else None}, key=key,
             actor="orchestrator", job_id=receipt.job_id)
@@ -105,6 +117,7 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
         if "PinnedDownloadError" in diagnostic_output and "ffmpeg" in diagnostic_output.lower():
             missing.update(("ffmpeg", "ffprobe"))
         if (re.search(r"(?:Cannot find module[^\n]*\.node|ERR_DLOPEN_FAILED|Failed to load [^\n]*native addon|Could not locate the bindings file)", diagnostic_output, re.I)
+                or re.search(r"The package [\"']@esbuild/linux-(?:arm64|x64)[\"'] could not be found", diagnostic_output)
                 or re.search(r"(?:ImportError|OSError):[^\n]*(?:cannot open shared object file|undefined symbol|DLL load failed)", diagnostic_output)):
             missing.add("native_addon_unavailable")
         missing.update(re.findall(r"ModuleNotFoundError: No module named ['\"]([a-zA-Z0-9_.-]+)", diagnostic_output))
@@ -115,6 +128,13 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
         if (re.search(r"(?:ENOENT|EACCES|EROFS)", diagnostic_output)
                 and re.search(r"node_modules[/\\](?:\.vite-temp|\.vite|\.cache)(?:[/\\\s'\"]|$)", diagnostic_output)):
             missing.add("node_tool_cache_unavailable")
+        if (re.search(r"(?:EACCES|EROFS)", diagnostic_output)
+                and "node_modules" in diagnostic_output
+                and re.search(r"(?:tsbuildinfo|cache|Could not write file)", diagnostic_output, re.I)):
+            missing.add("node_tool_cache_unavailable")
+        if (re.search(r"EAI_AGAIN|ENOTFOUND|ERR_PNPM_META_FETCH_FAIL|ENETUNREACH", diagnostic_output)
+                and re.search(r"Installing dependencies|(?:npm|pnpm|yarn|bun) (?:install|add|dlx)|registry\.npmjs\.org", diagnostic_output)):
+            missing.add("verification_dependency_preparation_required")
         if re.search(r"FileNotFoundError: /usr/(?:local/)?bin/[A-Za-z0-9_.-]+", diagnostic_output):
             missing.add("command_unavailable")
         if re.search(r"ImportError: Start directory is not importable:", diagnostic_output):

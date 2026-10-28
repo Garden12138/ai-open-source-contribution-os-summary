@@ -28,6 +28,59 @@ def test_native_workspace_receipt_is_exact_and_keeps_legacy_compatibility():
     assert validate_node_receipt(legacy)==legacy
 
 
+def cache_receipt():
+    value=native_receipt()
+    path='project/node_modules/.pnpm/vitest@2.1.9/node_modules/vitest/dist/chunks/tsconfig.tmp.tsbuildinfo'
+    value.update(version='node-environment-result-v3',native_packages=[],cache_files=[{
+        'path':path,'target':'/execution/cache/node/'+hashlib.sha256(path.encode()).hexdigest()+'.tsbuildinfo',
+        'adapter':'vitest-2.1.9-typecheck-v1'}])
+    return value
+
+
+def test_cache_receipt_and_supervisor_only_materialize_exact_data_link(tmp_path):
+    from pathlib import Path
+    from app.sandbox_worker.node_cache import prepare_node_cache_files
+    value=cache_receipt()
+    assert validate_node_receipt(value)==value
+    output=tmp_path/'output';project=output/'project'
+    cache=value['cache_files'][0]
+    target=output/cache['path'];package=target.parent.parent.parent
+    target.parent.mkdir(parents=True)
+    (package/'package.json').write_text(json.dumps({'name':'vitest','version':'2.1.9'}))
+    implementation=target.parent/'typecheck.js';implementation.write_text('const name = "tsconfig.tmp.tsbuildinfo";')
+    before=implementation.read_bytes()
+    assert prepare_node_cache_files(str(project),str(output))==value['cache_files']
+    assert target.is_symlink() and os.readlink(target)==cache['target']
+    assert implementation.read_bytes()==before
+    with pytest.raises(ValueError):prepare_node_cache_files(str(project),str(output))
+
+
+@pytest.mark.parametrize('change',['escape','target','code_file','adapter','duplicate','extra_field','empty'])
+def test_cache_receipt_rejects_widened_or_unbound_writes(change):
+    value=cache_receipt();cache=value['cache_files'][0]
+    if change=='escape':cache['path']=cache['path'].replace('project/','project/../')
+    elif change=='target':cache['target']='/dependencies/output/tools/node_modules/.bin/node'
+    elif change=='code_file':cache['path']=cache['path'].replace('tsconfig.tmp.tsbuildinfo','package.json')
+    elif change=='adapter':cache['adapter']='arbitrary-file-write'
+    elif change=='duplicate':value['cache_files'].append(deepcopy(cache))
+    elif change=='extra_field':cache['command']='sh'
+    elif change=='empty':value['cache_files']=[]
+    with pytest.raises(ValueError):validate_node_receipt(value)
+
+
+def test_cache_adapter_rejects_link_traversal_and_ignores_other_tool_versions(tmp_path):
+    from app.sandbox_worker.node_cache import prepare_node_cache_files
+    output=tmp_path/'output';project=output/'project';package=project/'node_modules/vitest'
+    package.mkdir(parents=True);manifest=package/'package.json'
+    manifest.write_text(json.dumps({'name':'vitest','version':'3.0.0'}))
+    assert prepare_node_cache_files(str(project),str(output))==[]
+    manifest.write_text(json.dumps({'name':'vitest','version':'2.1.9'}))
+    outside=tmp_path/'outside';outside.mkdir()
+    (package/'dist').symlink_to(outside,target_is_directory=True)
+    with pytest.raises(ValueError):prepare_node_cache_files(str(project),str(output))
+    assert not list(outside.iterdir())
+
+
 @pytest.mark.parametrize("field,value",[("main","../../escape.node"),("binary_hash","wrong"),
     ("package","https://example.com/addon"),("version","latest"),("workspace_directory","outside")])
 def test_native_workspace_receipt_rejects_unbound_or_unsafe_packages(field,value):
