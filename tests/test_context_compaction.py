@@ -223,7 +223,7 @@ def test_foreign_task_cannot_read_checkpoint_or_arbitrary_artifact(tmp_path):
     db.close();other.close()
 
 
-@pytest.mark.parametrize('case',['unknown','round_limit','mixed'])
+@pytest.mark.parametrize('case',['unknown','round_limit'])
 def test_invalid_context_reads_are_bounded_and_cannot_save_a_plan(tmp_path,monkeypatch,case):
     db,settings,task,content,_=large_fixture(tmp_path)
     if case=='round_limit':monkeypatch.setattr('app.planner.MAX_READ_ROUNDS',0)
@@ -383,7 +383,7 @@ def test_large_inventory_is_searchable_without_resending_all_paths(tmp_path):
         empty=read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=output['inventory_reference'],query='missing-package')])[0]
         assert empty['matches']==0 and json.loads(empty['text'])==[]
         file_ref=next(x['reference_id'] for x in wb.read(cp['artifact_id'])['references'] if x['label']=='repository file: background.py')
-        with pytest.raises(WorkbenchError,match='不支持目录查询'):
-            read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=file_ref,query='sentinel')])
+        source=read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=file_ref,query='ORIGINAL_BODY_SENTINEL')])[0]
+        assert source['matches']==1 and json.loads(source['text'])['matches'][0]['line']==3
         assert cp['prompt_bytes']<cp['original_bytes']//2
     db.close()

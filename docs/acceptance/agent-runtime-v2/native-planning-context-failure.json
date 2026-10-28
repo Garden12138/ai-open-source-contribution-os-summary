@@ -1,0 +1,274 @@
+{
+  "classification": "ended_native_large_planning_context_failure",
+  "task_id": "45f0928c-cfeb-4825-b4d8-6a400dece5d7",
+  "reason_code": "planning_outcome_missing",
+  "model_input_tokens": [
+    21864,
+    70620,
+    52952
+  ],
+  "operator_business_patches": 0,
+  "platform_fix_after_sample_ended": true,
+  "T02_mixed_real_model_reads_observed": true,
+  "mixed_reads": [
+    {
+      "id": "ed0fab47-f47b-4334-80d3-3f136b575a97",
+      "kind": "assistant_message",
+      "record_hash": "c09837cbe42c1b6a9caa4f32e9f73b0fe8d28cd26417382d6dd1ef205c19cac1",
+      "payload": {
+        "reply": "",
+        "questions": [],
+        "read_paths": [
+          "more_itertools/recipes.py",
+          "tests/test_recipes.py",
+          "more_itertools/recipes.pyi",
+          "docs/versions.rst",
+          "README.rst",
+          "Makefile",
+          "tox.ini",
+          "pyproject.toml",
+          "setup.cfg",
+          ".github/PULL_REQUEST_TEMPLATE.md",
+          ".github/workflows/python-app.yml"
+        ],
+        "read_context": [
+          {
+            "reference_id": "0b948353978f9eb6ca7594dca6fc9058099d0f76bb923ed146f859f0a9fd15f7",
+            "offset": 0,
+            "max_bytes": 16000,
+            "query": null
+          }
+        ],
+        "plan": {
+          "acceptance_criteria": [
+            "partition 对普通 predicate 保持原有行为：返回两个迭代器，分别产出满足和不满足 predicate 的元素。",
+            "当 predicate 在回调期间重入 partition 所使用的同一输入迭代器时，输出顺序稳定且符合预期，不再因生成器交错执行而改变。",
+            "新增回归测试覆盖 predicate 重入场景，并验证两个输出迭代器的元素顺序。",
+            "现有 partition 测试及完整测试套件通过。",
+            "不引入与本问题无关的性能优化或大规模重构。"
+          ],
+          "commands_to_run": [
+            {
+              "argv": [
+                "python",
+                "-m",
+                "unittest",
+                "-v",
+                "tests.test_recipes.PartitionTests"
+              ],
+              "command_id": "test_partition",
+              "purpose": "运行 partition 相关测试，包括新增的重入回归测试",
+              "working_directory": "."
+            },
+            {
+              "argv": [
+                "python",
+                "-m",
+                "unittest",
+                "-v"
+              ],
+              "command_id": "test_all",
+              "purpose": "运行完整测试套件，确认无回归",
+              "working_directory": "."
+            },
+            {
+              "argv": [
+                "ruff",
+                "check",
+                "more_itertools",
+                "tests"
+              ],
+              "command_id": "lint",
+              "purpose": "运行项目静态检查",
+              "working_directory": "."
+            }
+          ],
+          "files_likely_to_change": [
+            "more_itertools/recipes.py",
+            "tests/test_recipes.py"
+          ],
+          "files_to_inspect": [
+            "more_itertools/recipes.py",
+            "tests/test_recipes.py",
+            "more_itertools/recipes.pyi",
+            "docs/versions.rst",
+            "README.rst",
+            "Makefile",
+            "tox.ini",
+            "pyproject.toml",
+            "setup.cfg",
+            ".github/PULL_REQUEST_TEMPLATE.md",
+            ".github/workflows/python-app.yml"
+          ],
+          "goal": "修复 more_itertools.recipes.partition 在 predicate 回调重入时因共享队列和生成器交错执行而导致的输出顺序不确定问题，并补充回归测试；不进行性能优化重写。",
+          "implementation_steps": [
+            "定位 partition 当前实现及其生成器/队列协作方式，确认重入 predicate 导致输出顺序变化的根因。",
+            "以最小改动调整 partition 的内部实现，使 predicate 回调期间产生的重入消费不会破坏输出顺序；保持公开 API、返回类型和普通调用语义不变。",
+            "在 tests/test_recipes.py 中新增针对重入 predicate 的回归测试，断言两个输出迭代器的完整元素序列。",
+            "运行现有 partition 相关测试，确认无回归。",
+            "运行完整测试套件及项目静态检查，确认修改符合仓库规范。"
+          ],
+          "questions_for_maintainer": [],
+          "risks": [
+            "修复可能影响 partition 在普通 predicate 下的行为，需要通过现有测试确认。",
+            "重入场景的预期顺序需要与 Issue 描述及现有测试约定一致。"
+          ],
+          "tests_to_add_or_run": [
+            "新增回归测试：构造会在回调中重入同一输入迭代器的 predicate，断言 partition 两个输出迭代器的元素顺序稳定且符合预期。",
+            "运行现有 partition 测试。",
+            "运行完整测试套件。",
+            "运行项目静态检查。"
+          ]
+        },
+        "usage": {
+          "input_tokens": 21864,
+          "output_tokens": 885,
+          "duration_ms": 27219,
+          "provider": {
+            "provider": "nvidia_nim",
+            "adapter_version": "nvidia-nim-chat-v28",
+            "model": "minimaxai/minimax-m3.1-flash",
+            "model_version": "nvidia-build-catalog"
+          }
+        },
+        "context_checkpoint_hash": "dc0d6df1715df1dd1794b87dc5ed11338cb7e655c4018c3d3f353271c02b7e4c",
+        "action": "read",
+        "plan_deferred": true,
+        "plan_id": null,
+        "plan_receipt": {
+          "status": "deferred",
+          "plan_id": null,
+          "execution_started": false
+        }
+      }
+    }
+  ],
+  "read_results": [
+    {
+      "checkpoint_hash": "55d86aede3050499564b89d79c797d4bbf08a1efca5569c2c0d85e185efff9ed",
+      "stats": {
+        "instruction_count": 1,
+        "original_bytes": 494690,
+        "prompt_bytes": 249826,
+        "reference_count": 8,
+        "saved_bytes": 244864,
+        "status": "compacted",
+        "target_bytes": 160000,
+        "target_met": false
+      },
+      "context_read_results": [
+        {
+          "matches": null,
+          "next_offset": null,
+          "offset": 0,
+          "partial": false,
+          "query": null,
+          "reference_id": "0b948353978f9eb6ca7594dca6fc9058099d0f76bb923ed146f859f0a9fd15f7",
+          "source_hash": "f28d85227276d9c12afbd0991f79814bed7cc9a63527289cd94d2832d7e4053e",
+          "text": "\"## Overview and benchmark results\\n\\nI propose two optimizated implementations, and maybe a bugfix.\\n\\nBenchmark results with times per element (full benchmark code is at the bottom):\\n\\n```none\\n131.0 +- 0.6 ns  previous\\n130.2 +- 0.6 ns  current\\n120.5 +- 0.7 ns  proposal_1\\n107.6 +- 0.2 ns  proposal_2\\n 92.1 +- 0.5 ns  extreme\\n\\nPython: 3.15.0 (tags/v3.15.0:d220409a13b, Oct 10 2026, 06:45:03) [Clang 22.1.8 (Fedora 22.1.8-4.fc44)]\\n```\\n\\n`previous`/`current` are the implementations before/after yesterday's optimization from @rhettinger in #1313. `proposal_1` and `proposal_2` are my proposals, and `extreme` is just for curiosity.\\n\\n\\n## The proposals\\n\\nThe current implementation uses this generator:\\n\\n```python\\n    def gen(queue):\\n        append_false = false_queue.append\\n        append_true = true_queue.append\\n        while True:\\n            while queue:\\n                yield queue.popleft()\\n            for value in iterator:\\n                (append_true if pred(value) else append_false)(value)\\n                break\\n            else:\\n                return\\n```\\n\\nMy `proposal_1` replaces the outer `while True` and single-value `for` loops with one long-running `for` loop:\\n\\n```python\\n    def gen(queue):\\n        append_false = false_queue.append\\n        append_true = true_queue.append\\n        while queue:\\n            yield queue.popleft()\\n        for value in iterator:\\n            (append_true if pred(value) else append_false)(value)\\n            while queue:\\n                yield queue.popleft()\\n```\\n\\nAnd `proposal_2` avoids putting the new value into the generator's own queue and instead yields it directly:\\n\\n```python\\n    def gen(queue):\\n        while queue:\\n            yield queue.popleft()\\n        for value in iterator:\\n            destination = true_queue if pred(value) else false_queue\\n            if destination is queue:\\n                yield value\\n                while queue:\\n                    yield queue.popleft()\\n            else:\\n                destination.append(value)\\n```\\n\\n\\n## The bug\\n\\n`proposal_2` also happens to fix a current bug, although the bug is obscure, so I don't put much weight on this. Consider the following:\\n\\n```python\\niterable = [1, 2]\\n\\ndef pred(value):\\n    if value == 1:\\n        next(falses, None)\\n    return True\\n\\nfalses, trues = partition(pred, iterable)\\nprint(list(trues))\\n```\\n\\nThe output is `[2, 1]`, changing the order of the two true values. The reason: The trues-generator fetches a value with `for value in iterator`, then calls `pred(value)`, and then appends `value` to its queue. But the `pred` function sneaks the second value into that queue first, by using the falses-generator. The `proposal_2` implementation avoids this by not putting `value` through the queue at all.\\n\\n\\n## Benchmark\\n\\nThe benchmark uses this iterable of 20,000 values:\\n\\n```python\\niterable = [True, False] * 10**4\\nrandom.shuffle(iterable)\\n```\\n\\nIt then measures how long it takes to create and consume the partitions like this:\\n\\n```python\\nfalses, trues = partition(None, iterable)\\ndeque(zip(falses, trues), maxlen=0)\\n```\\n\\n<details><summary>Full benchmark script</summary>\\n\\n```python\\ndef partition_previous(pred, iterable):\\n    if pred is None:\\n        pred = bool\\n    iterator = iter(iterable)\\n\\n    false_queue = deque()\\n    true_queue = deque()\\n\\n    def gen(queue):\\n        while True:\\n            while queue:\\n                yield queue.popleft()\\n            for value in iterator:\\n                (true_queue if pred(value) else false_queue).append(value)\\n                break\\n            else:\\n                return\\n\\n    return gen(false_queue), gen(true_queue)\\n\\n\\ndef partition_current(pred, iterable):\\n    if pred is None:\\n        pred = bool\\n    iterator = iter(iterable)\\n\\n    false_queue = deque()\\n    true_queue = deque()\\n\\n    def gen(queue):\\n        append_false = false_queue.append\\n        append_true = true_queue.append\\n        while True:\\n            while queue:\\n                yield queue.popleft()\\n            for value in iterator:\\n                (append_true if pred(value) else append_false)(value)\\n                break\\n            else:\\n                return\\n\\n    return gen(false_queue), gen(true_queue)\\n\\n\\ndef partition_proposal_1(pred, iterable):\\n    if pred is None:\\n        pred = bool\\n    iterator = iter(iterable)\\n\\n    false_queue = deque()\\n    true_queue = deque()\\n\\n    def gen(queue):\\n        append_false = false_queue.append\\n        append_true = true_queue.append\\n        while queue:\\n            yield queue.popleft()\\n        for value in iterator:\\n            (append_true if pred(value) else append_false)(value)\\n            while queue:\\n                yield queue.popleft()\\n\\n    return gen(false_queue), gen(true_queue)\\n\\n\\ndef partition_proposal_2(pred, iterable):\\n    if pred is None:\\n        pred = bool\\n    iterator = iter(iterable)\\n\\n    false_queue = deque()\\n    true_queue = deque()\\n\\n    def gen(queue):\\n        while queue:\\n            yield queue.popleft()\\n        for value in iterator:\\n            destination = true_queue if pred(value) else false_queue\\n            if destination is queue:\\n                yield value\\n                while queue:\\n                    yield queue.popleft()\\n            else:\\n                destination.append(value)\\n\\n    return gen(false_queue), gen(true_queue)\\n\\n\\ndef partition_extreme(pred, iterable):\\n    if pred is None:\\n        pred = bool\\n    iterator = iter(iterable)\\n\\n    false_queue = deque()\\n    true_queue = deque()\\n\\n    def falses():\\n        pop_false = false_queue.popleft\\n        append_true = true_queue.append\\n        while false_queue:\\n            yield pop_false()\\n        for value in iterator:\\n            if pred(value):\\n                append_true(value)\\n            else:\\n                yield value\\n                while false_queue:\\n                    yield pop_false()\\n\\n    def trues():\\n        pop_true = true_queue.popleft\\n        append_false = false_queue.append\\n        while true_queue:\\n            yield pop_true()\\n        for value in iterator:\\n            if pred(value):\\n                yield value\\n                while true_queue:\\n                    yield pop_true()\\n            else:\\n                append_false(value)\\n\\n    return falses(), trues()\\n\\n\\nfuncs = [\\n    partition_previous,\\n    partition_current,\\n    partition_proposal_1,\\n    partition_proposal_2,\\n    partition_extreme,\\n]\\n\\n\\nfrom collections import deque\\nimport timeit\\nimport random\\nfrom statistics import mean, stdev\\nimport sys\\n\\n\\n# Correctness\\niterable = [[] for _ in range(100)] + [[1] for _ in range(100)]\\nrandom.shuffle(iterable)\\nfetches = [True, False] * 100\\nrandom.shuffle(fetches)\\nexpect = None\\nfor f in funcs:\\n    falses, trues = f(None, iterable)\\n    F, T = [], []\\n    for fetch in fetches:\\n        if fetch:\\n            T.append(id(next(trues)))\\n        else:\\n            F.append(id(next(falses)))\\n    tails = list(falses), list(trues)\\n    result = F, T, tails\\n    if expect is None:\\n        expect = result\\n        print(len(F), len(T), tails)\\n    else:\\n        print(result == expect, f.__name__)\\n\\n# Bug demo\\nfor f in funcs:\\n    def pred(value):\\n        if value == 1:\\n            next(falses, None)\\n        return True\\n    falses, trues = f(pred, [1, 2])\\n    print(list(trues), f.__name__)\\n\\n\\n# Speed\\niterable = [True, False] * 10**4\\nrandom.shuffle(iterable)\\n\\ndef run():\\n    deque(zip(*f(None, iterable)), maxlen=0)\\n\\ntimes = {f: [] for f in funcs}\\nfor _ in range(100):\\n    for f in random.sample(funcs, len(funcs)):\\n        t = timeit.timeit(run, number=1) / len(iterable)\\n        times[f].append(t)\\nfor f in funcs:\\n    ts = [t * 1e9 for t in sorted(times[f])[:5]]\\n    print(f'{mean(ts):5.1f} +- {stdev(ts):3.1f} ns ', f.__name__.removeprefix('partition_'))\\n\\nprint('\\\\nPython:', sys.version)\\n```\\n\\n[Attempt This Online!](https://ato.pxeger.com/run?1=7VjNjts2EAZ61LFPQKAHixvFXW8SoDWwlxbYY1Gge3MFQWuNdolKlEpS7m4XeZJeckkfqk_TGZKyKEtep0mKJkAFGJY5_998HMr648_2wdw18s2bt50pn3_z15dfFFCyNldGGNHIrFWwE02nY7wpEiYMqPymAr6OGF4CVXGdCc1-aCS4Rbrs6iW7aZrKKZKdaRSu0W289xNZcZlXGrJfO-gANQrAu5hbiVHdVGAllOctyNgK-RD6tztRAbtGu2FtWLfaYwFdDwKqwgmXbdNWUBqfQH-VmPwurzAPIfflTB3FQcIendiacQZYY1gpX-ZtC7KXT1zdKMh_Ga2Sh2lIBaZT0oHi7i0uYaTErgypIYTRuM_bTimQ5vNps8Musy7RJnDtYT3UpBCoOEQ61PuPiROmOcecsGD-SXCmVU3b6LzKVv_TZoYeT1PjHWjx4ZR4D-p-JEpcfD6U-PcaWIA2QuaEzIhCp06GkRPUDf0gck_207qcyJ4kwula6ZofJEFqB8fZhxEJ7o2CGj5NFlk7HQccQshmZ4qH8j2HSuBpjpn7oP-MlWPyTVsa5Dg3U-Z5cJp8R4s5XtQecMplgvcUxCNov8OwdykOro7BbUH5qGifBu5YViezo2u-WyEwc_u1J3jSI4_7s-zkViOKG6s4_YeQHKz7J8rD5eGh4ajk4lDih0ESpZSHamq2baoKtiTUTNRto4zbpZH_YUQNwvS_VC6LpnaW2uCwwpm13RvWkMsE1wvY9Qb6QWOkr9j3DdawNRK0jvrZQRBsUtv6jNqOzm8hXp2f85Q9Q9FqXha5JJb6rivLCoJRVILZ3oGFlh4-E3ZF6KfsjKHhoZlX5hHct5gZGtEEjChiSRFtl9bDdNO-hUT_mFSDYWq1rhJ2TaHTBD9RT2obxvpz8QYKIZ_t2phU1_3wF0UssV12tmvOBzJOiXh1aOMS7o1MLipKu8Ju9aLE_XLOPWF1VxEMVEfijPozwkM0OSX20Dnj4PQQ-A-owpPpiiLh9zX3Ll2wcQ1OvU_g0rtNWLnMMpnXkGWcOPRdd4vcrJvZHtlDb248YPpusKDj1Ri3AKvEVjaA7Lcv0egIBdx5ulkl7CJ1dr7qAdeDCrCEn1qAYrQBJkQ9O3t5nOH2bFed7Ce4O1B_F218NiElhq_zewT_8hwNaR9T4o_lmvlNN0D4OprZaOuBw15gc8rrlnYPmbnW2lseIE6EcGNj6b5izDhhsqtvQF2uOPva2o13jzWkHDdl2tPZ8NlWG7vDDaEF39oEDWlonDfY_94J36xfpWnQmHLxSAMqNpqvXy1X5Wv27Dl7tNPKrr2wazgGF2Hfljgvmx1gt0txHy-GUbrA3RU5z4uf5Y_25c8aTXHiLXegNOpw9yrIvxHq3wz9DQ)\\n\\n</details>\\n\\n\"",
+          "total_bytes": 9494
+        }
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "kind": "conversation_intent",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_archive",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_context",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_context",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_context",
+      "state": "succeeded",
+      "reason_code": null
+    },
+    {
+      "kind": "planning_turn",
+      "state": "failed",
+      "reason_code": "planning_outcome_missing"
+    }
+  ],
+  "event_hashes": [
+    "96be697edea34aec8054143188c36d325d6ae5335689f690c58e896d185ef290",
+    "332854051a66ffe52bf5ae4808466c22d92a43a018943126be8bbceefc5df7a9",
+    "74e896f891674e36f8754475a86061ea8bafdcef4176c2cc791362992af707a7",
+    "6bf058c92115578e78b9854955b2a620ce2cd86f066cb0a86d39d9ecc78ee9dc",
+    "e6408726c5aef7312d8ab64a2c2194dc4716221c89b91b939faf1f924f6eb766",
+    "a304ccebb7c5d9d9fa590fdf861d81c9bb232deb11ba78280d12df25500f2234",
+    "0fedefc697a4cbf5b23f5ded3dc7df543782742579fa534ac888006787a39661",
+    "0c14addacfdd4df099e52f9f05df02c2ab24a26d21cd2547073f633373402923",
+    "2fef0f0fcbc25dd9b73246f1f3b340a9170f8c6edc4a763ff8e290a43c8c20e5",
+    "094a5841c7f5188717114876583b95f1848fd8e5746efc14d1974054b01df0f4",
+    "0f7b04df3a6aa9695d7d8f50f38fd7a991a2032b902a0d8b3882aacc566a5c8b",
+    "c05b073bb1bbf463217f8b744f212c1cc0238b8277ff6bfb156014bc15c9ee1b",
+    "490261ba6028c412de6b726e23c0ff01a50b626d938b93f5df67387ebef99fe6",
+    "8c694904a1387056f8e1d5fb4fdde16cd9371009ec1a6d3df7186af777c0732d",
+    "a176c1f579c240b1f8131f388332469c450059971296ce29c8d9d381711f20c9",
+    "accfb18e4a3e2869e797e5d4e36a73b6b607a80391c96d84a1eca68cc6838281",
+    "e659103e45fdc8cb27568f14daf2cf336f561c1f3adb1bf67e86a641c20280d3",
+    "82f1a89232c6eabf583295e57758df6526aba47e26cafdd57d1d5c6b652819cc",
+    "7046ccbf8bd9c1a02fb2b2e4bd7cb48433586e5665c2a143e8268c9aa80bf22c",
+    "e057e0d6560657e23e57464978b1a9a8afac19d998df9ba3631dcdfaba8f0740",
+    "09be9c214655791f7ed61a829dcad29d96396e7c9dfb5d46480e9d89bc0c5f08",
+    "0a98b92a2dea47c353c2617c7ba0f8d131f485550dce65d4a82045680c493749",
+    "6722e675af27b4dd1f8d827ae1dee476a8a9b68eaeda3ed9cb044b872fd0f78e",
+    "7015e97184a7cce82cd91f173a5e2b41121b6ebac3d43b978569e103c4cb40bc",
+    "5bae113a25d4757a80e27363abac1746dc227162181493a29d0ef800f84fa1d1",
+    "98fd68584faca99cd8226faa05886d82e7b1c85b814852b210664d680e77e818",
+    "63f87add799b909aad0370b47e7422c69251d7a6dfc8bc9215b05fdb39ef78d1",
+    "4ffa1c1e1cc6c994d6b644e98dfe96a2ffe3afdc26282bf6fd9fe5ad99abe187",
+    "33ac9053acfff8627537ed6fa8f1dd0a5b46379099575e05e0efd89bf68e6d2d",
+    "e2492b03c8511562f2e128a783e755c720cba93d68442514117ae4ad12d2fe89",
+    "2d7d1b114f294b959fa0c417055a8e781c6e62d3cfc1a370814cae973c37bb7c",
+    "15beabaa9aaf29d28cc540e73aee66d1af68b2695e647c4f25186f3a123fb7ef",
+    "abddd88a49268027e382aae2c0b3979b00bb714a37146a819c9a519b1c3a1283",
+    "126cf54ad71c9d54285b6aba40a2ab0df1505cf1ff743b565f76c60da5914ff7",
+    "46c28f0f9c126a1b3caab9d110739f23543a2413f5b559d5f2e6c0b6fb8f0721",
+    "84a1bdb3e7223a35c426d27a21fa7fa521e1b0d457409cdc00f49a69b1fe6279",
+    "5dd49bf86510a4d5cd6fc54a8f90ac3ad1c0d5a68de9520472d5a7fb64212774",
+    "7cdb43e7f8cc039df310b80d493d08d4793da5e37da1f630c7589f009073eb5f",
+    "4f8e5e5e259296daf60182787136b9202ce16eff88163dbb751954d251c16bb8",
+    "e76aa35e1acaa53a8def883ff62b6564b99d4657569070c9898f62c82fdcacd2",
+    "d68e672e3de6b52c9dc41f942d29ba44950be40c2176a98960ffd3ab1ce0e663",
+    "c09837cbe42c1b6a9caa4f32e9f73b0fe8d28cd26417382d6dd1ef205c19cac1",
+    "e55aa5f7844db9706d2287c5ecf91b42c1526df43e70320577677c81ddf8d634",
+    "af3b0ded53b273078de53828bf1c72cefd7efafbb9946c7ef6ae93987d4b772c",
+    "e94e5db9e12ec32cc30c3278c272b0192b901602dcfdd66b1e556af1fa7efa81",
+    "f3209b3e843f19cb48cc243d22d85fca99eaaf740101af8302ce1ba48f05fd75",
+    "3a175bbf2f16f54ecf933784ea67fd6c38f9d2f8eb0742c6a8a052262adb1bc0",
+    "e5bcc99068646aa9c6ffc2a1b31dc00af56b4af1b92579c018087cf81ebfe123",
+    "f622513527ed5b6a834bfd5a15b8730eb82a11fc465011331a38a4505c5e196e",
+    "9d6d51281d8767976a1a911a0a715e23bae75a54459bcfdf90f98edd58ada5d1",
+    "ad5a2b0a3ba3e33fd10853e8e873103eaf76b3b4f2f17a5c2fab85afeea905c4",
+    "da73bc2491089802450b6bc66c21d0922bb48f5fbb9b71b0352fdd529fbd43d9",
+    "d6d7ff1e24ea593ebdbdbe4a9a0d4d44737c363af7e9fa1782bd34578c52e7e5",
+    "f02f065d4e523838813a6409c32f7b1a807a27cd340cbb69d89464a36a7cff47",
+    "3accf7bfc1b84eb85858c2556c55ff7d2e4db3b27601cac29b2bc94ddbe0e7ae",
+    "fa4addef38b3f0fcb564af8706ad7423b1060016558e86435a2b69930d5a4e4f"
+  ]
+}

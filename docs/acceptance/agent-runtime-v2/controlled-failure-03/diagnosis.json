@@ -1,0 +1,16 @@
+{
+  "classification": "blocked_real_model_prerequisite",
+  "reason_code": "model_gateway_network_failure",
+  "upstream_observations": [
+    "HTTP 429 nvidia_nim_rate_limited",
+    "model_gateway_network_failure"
+  ],
+  "operator_business_patches": 0,
+  "operator_interventions_total": 0,
+  "model_calls": 4,
+  "tool_calls": 0,
+  "independent_review_completed": false,
+  "result_sha256": "c1617a32e61d1aad64c98f6ec3159f3aaf35cff978e23aa13db5c28fb555ff44",
+  "counts_as_M5": false,
+  "recovery": "Restore a healthy supported model service, freeze a new sample and obtain native exact human approval. Do not increase or reset this run budget."
+}

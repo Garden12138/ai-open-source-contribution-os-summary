@@ -1,0 +1,11 @@
+{
+  "classification": "failed_controlled_real_model_tool_loop",
+  "category": "platform_context_state",
+  "reason_code": "read_complete_still_instructed_inspect_source",
+  "operator_business_patches": 0,
+  "operator_interventions_total": 1,
+  "counts_as_M5": false,
+  "counts_as_autonomous": false,
+  "result_sha256": "d3c467745d546827eed06dc62ffbbdd572c63ac677a403ba57ed1ffb026e5a26",
+  "remediation": "Derive continue_implementation after successful source receipt instead of instructing inspect_source forever; no budget increase or business patch. Fix only after this sample ended."
+}

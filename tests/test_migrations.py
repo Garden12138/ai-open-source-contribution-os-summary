@@ -16,7 +16,7 @@ from app.models import Base
 
 FIXTURES = Path(__file__).parent / "fixtures"
 BASELINE_REVISION = "0001_phase1_baseline"
-LATEST_REVISION = "0037_baseline_feedback"
+LATEST_REVISION = "0038_agent_runtime_v2"
 
 
 def _load_phase1_fixture(path: Path) -> None:
@@ -75,6 +75,7 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
             "0034_execution_baselines",
             "0035_workspace_scopes",
             "0036_verification_environment_recovery",
+            "0037_baseline_feedback",
             LATEST_REVISION,
         )
         assert first.stamped == ()
@@ -274,6 +275,7 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
             "0034_execution_baselines",
             "0035_workspace_scopes",
             "0036_verification_environment_recovery",
+            "0037_baseline_feedback",
             LATEST_REVISION,
         )
         assert report.stamped == (BASELINE_REVISION,)
@@ -416,6 +418,7 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
             "0034_execution_baselines",
             "0035_workspace_scopes",
             "0036_verification_environment_recovery",
+            "0037_baseline_feedback",
             LATEST_REVISION,
         )
         with database.session() as session:
@@ -464,6 +467,7 @@ def test_product_experience_and_review_binding_upgrade_preserves_rows(
             "0034_execution_baselines",
             "0035_workspace_scopes",
             "0036_verification_environment_recovery",
+            "0037_baseline_feedback",
             LATEST_REVISION,
         )
         with database.session() as session:

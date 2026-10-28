@@ -89,6 +89,8 @@ def classify_verification(value: dict[str, Any]) -> dict[str, Any]:
         # Keep immutable exit/status evidence intact while correcting derived
         # verdicts for known CLI dispatch failures, including historical runs.
         unexecuted = any(log.lstrip().startswith("Usage: bun run [flags] <file or script>")
+                         or re.match(r"(?is)^usage:[^\n]*\n(?:\s*\n)?(?:options:|flags:|commands:)", log.lstrip())
+                         or re.search(r"(?m)^Ran 0 tests\b|^# tests 0\s*$|^=+ no tests ran\b", log)
                          for log in (stdout_full, stderr_full))
         if item.get("status") == "passed" and item.get("exit_code") == 0:
             if not unexecuted:

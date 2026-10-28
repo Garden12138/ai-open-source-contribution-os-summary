@@ -22,7 +22,7 @@ from tests.test_node_environments import node_files, selected, FakeNodeDependenc
 
 def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False,
                   files_override=None, source_override=None, commands_override=None,
-                  goal_override=None):
+                  goal_override=None, write_paths_override=None, runtime_v2=False):
     from tests import test_workbench as fixtures
     from tests import test_execution_pipeline as archives
     from app.sandbox_worker.coding_context import CodingContextEntry
@@ -43,7 +43,7 @@ def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False,
     original_content = fixtures._plan_content()
     content = replace(original_content, goal=goal_override or "Update the workspace fixture while preserving isolated verification",
         files_to_inspect=tuple(selection(files)["manifests"] + [source] + [p for p in files if p == "test.mjs" or "/tests/" in p]),
-        files_likely_to_change=(source,), questions_for_maintainer=(),
+        files_likely_to_change=tuple(write_paths_override) if write_paths_override else (source,), questions_for_maintainer=(),
         commands_to_run=commands_override or (PlanCommand("workspace-test", "Verify current workspace source", (manager, "run", "test")),))
     monkeypatch.setattr(fixtures, "_plan_content", lambda: content)
     original_seeded = fixtures.seeded
@@ -74,7 +74,7 @@ def node_workflow(tmp_path, monkeypatch, manager, version, *, real=False,
     initial = seeded(tmp_path)
     configure(*initial[:3])
     monkeypatch.setattr(fixtures, "seeded", lambda path: initial)
-    db, settings, task, workers, code, review = fixtures.automatic_fixture(tmp_path)
+    db, settings, task, workers, code, review = fixtures.automatic_fixture(tmp_path, runtime_v2=runtime_v2)
     class Inspector:
         async def inspect(self, **kwargs):
             return {"entries": [{"path": p, "content": files[p], "prior_hash": hashlib.sha256(files[p].encode()).hexdigest()}

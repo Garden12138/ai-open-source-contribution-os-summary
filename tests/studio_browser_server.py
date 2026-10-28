@@ -94,7 +94,8 @@ def main():
                     await worker
     app.router.lifespan_context = fixture_lifespan
     print(f"Fixture task: {task_id}; data: {root}", flush=True)
-    uvicorn.run(app, host="127.0.0.1", port=8765, log_level="warning")
+    import os
+    uvicorn.run(app, host="127.0.0.1", port=int(os.getenv("CONTRIBOS_BROWSER_PORT", "8765")), log_level="warning")
 
 
 if __name__ == "__main__":

@@ -78,6 +78,8 @@ export function mountContributionWorkbench(root, taskId, options) {
   budgetSelect.setAttribute("aria-describedby", budgetUsage.id);
   budgetControl.append(budgetLabel, budgetSelect, budgetUsage);
   const stop = button("停止", () => act(() => post("/conversation/messages", {text:"停止"}))); stop.hidden = true;
+  const toolTimeline = button("工具与测试记录", () => showAgentTools()); toolTimeline.hidden = true;
+  toolbar.append(toolTimeline);
   const send = button("发送 ↑", () => {}, true); send.type = "submit"; send.setAttribute("aria-label", "发送");
   toolbar.append(hint, stop, send); form.append(replyContext, input, budgetControl, toolbar);
   shell.append(header, error, messages, fresh, form); root.replaceChildren(shell);
@@ -472,6 +474,39 @@ export function mountContributionWorkbench(root, taskId, options) {
       }
     } catch { if (generation === drawerGeneration) drawerBody.replaceChildren(node("p", "结果暂时无法读取，已有成果保留。"), button("重新读取", () => showExecution(id))); }
   }
+  async function showAgentTools() {
+    const generation = openDrawer("工具、测试与恢复记录");
+    const runtime = data.execution?.agent_runtime_v2;
+    if (!runtime) { drawerBody.append(node("p", "尚无工具执行记录。")); return; }
+    const states = {ready:"等待下一回合",model:"正在推理",tools:"正在执行工具",paused:"已暂停",blocked:"已阻断",finished:"编码检查已完成，等待独立审查",cancelled:"已停止"};
+    drawerBody.append(node("p", states[runtime.checkpoint.state] || runtime.checkpoint.state));
+    const remaining = runtime.remaining_budget;
+    drawerBody.append(node("p", `剩余模型调用 ${remaining.model_calls} · 读取 ${remaining.reads} · 修改 ${remaining.writes} · 测试 ${remaining.checks}`));
+    const timeline = node("ol"); timeline.setAttribute("aria-label", "工具时间线");
+    for (const event of runtime.timeline || []) {
+      if (event.kind === "agent_v2_tool_started") timeline.append(node("li", `开始 ${event.payload.name} · ${new Date(event.created_at).toLocaleTimeString("zh-CN")}`));
+      if (event.kind === "agent_v2_tool_result") {
+        const row = node("li", event.payload.status === "rejected" ? "工具请求已拒绝，诊断保留 " : event.payload.status === "unknown" ? "工具结果尚未确定 " : "工具已返回真实证据 ");
+        row.append(button("查看结果", async () => {
+          try {
+            const page = await requestJSON(`${endpoint}/runtime/artifacts/${encodeURIComponent(event.payload.artifact_id)}`);
+            if (generation !== drawerGeneration) return;
+            const content = node("pre", page.text); row.append(content);
+            if (page.next_offset !== null) {
+              let offset = page.next_offset;
+              const more = button("继续读取证据", async () => {
+                const next = await requestJSON(`${endpoint}/runtime/artifacts/${encodeURIComponent(event.payload.artifact_id)}?offset=${offset}`);
+                if (generation !== drawerGeneration) return;
+                content.textContent += next.text; offset = next.next_offset; more.hidden = offset === null;
+              }); row.append(more);
+            }
+          } catch { drawerError.textContent = "证据读取失败，可以重新打开记录。"; }
+        })); timeline.append(row);
+      }
+      if (event.payload.failure) timeline.append(node("li", `${event.payload.failure.category}：${event.payload.failure.safe_reason_code}；下一步 ${event.payload.failure.next_allowed_action}`));
+    }
+    drawerBody.append(timeline);
+  }
   function showFollowup(snapshot) {
     openDrawer("项目检查与维护者反馈");
     drawerBody.append(safeLink("在 GitHub 查看 PR", snapshot.target?.pr_url));
@@ -652,6 +687,7 @@ export function mountContributionWorkbench(root, taskId, options) {
     const bottom = atBottom(), before = entries.size;
     const c = data.conversation || {}, state = c.user_state || {};
     renderBudget();
+    toolTimeline.hidden = !data.execution?.agent_runtime_v2;
     status.textContent = state.label || "等待下一步";
     const contextState = data.execution?.context_management;
     if (contextState?.status === "compacted") {

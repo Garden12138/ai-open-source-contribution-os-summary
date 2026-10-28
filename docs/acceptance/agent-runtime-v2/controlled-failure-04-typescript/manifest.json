@@ -1,0 +1,14 @@
+{
+  "classification": "controlled_archive_real_model_real_docker_fixture_plan",
+  "sample": "typescript",
+  "variant": "count-v4",
+  "files_hash": "f890ae4cb444309b6ad285b6f3b672ab471e4eb880597929e4dafb39148998a4",
+  "goal": "Extend the count parser to accept decimal nonnegative integer strings with optional surrounding whitespace. Blank or whitespace-only strings must return zero. Negative numbers, fractional numbers and other noninteger strings must raise an error instead of returning a number. Preserve existing positive integer behavior. Read actual source and tests, implement within the two approved paths, add meaningful regression tests, run all approved checks and repair failures. Do not weaken tests.",
+  "model": "minimaxai/minimax-m3.1-flash",
+  "write_paths": [
+    "counts.ts",
+    "test.mjs"
+  ],
+  "human_acceptance": false,
+  "counts_as_M5": false
+}

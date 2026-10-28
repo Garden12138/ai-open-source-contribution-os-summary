@@ -1,0 +1,14 @@
+{
+  "classification": "trusted_credential_domain_schema_probe_not_journey",
+  "probes": [
+    {
+      "schema": "constraints",
+      "http_status": 400,
+      "safe_error": "{\"message\":\"Bad Request\",\"type\":\"Bad Request\",\"code\":400}"
+    },
+    {
+      "schema": "without_conditional_constraints",
+      "http_status": 200
+    }
+  ]
+}

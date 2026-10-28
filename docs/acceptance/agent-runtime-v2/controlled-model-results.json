@@ -1,0 +1,56 @@
+{
+  "classification": "controlled_real_model_acceptance_separate_from_native_M5",
+  "passed": 2,
+  "failed_or_ended": 5,
+  "counts_as_M5": false,
+  "operator_business_patches": 0,
+  "successful_samples_operator_interventions": 0,
+  "successful_samples": [
+    {
+      "sample": "python-count-v4",
+      "status": "passed",
+      "model_calls": 4,
+      "tool_calls": 5,
+      "review_passed": true,
+      "test_first_repair": false,
+      "evidence": "controlled-success-04-python/result.json"
+    },
+    {
+      "sample": "typescript-quota-v6",
+      "status": "passed",
+      "model_calls": 12,
+      "tool_calls": 10,
+      "check_outcomes": [
+        "failed",
+        "passed",
+        "passed",
+        "passed",
+        "passed"
+      ],
+      "review_verdicts": [
+        "block",
+        "pass"
+      ],
+      "cumulative_usage": {
+        "model_calls": 12,
+        "input_tokens": 60311,
+        "output_tokens": 5181,
+        "reads": 3,
+        "output_bytes": 12973,
+        "writes": 2,
+        "checks": 5,
+        "code_repairs": 2,
+        "provider_retries": 1
+      },
+      "evidence": "controlled-success-06-typescript/journal-evidence.json"
+    }
+  ],
+  "failed_samples": [
+    "controlled-failure-01",
+    "controlled-failure-02",
+    "controlled-failure-03",
+    "controlled-failure-04-typescript",
+    "controlled-failure-05-typescript"
+  ],
+  "note": "Fixture discovery and exact plan approvals do not count as a native unfamiliar task or human final acceptance. Failed samples remain failed; platform fixes used new samples."
+}

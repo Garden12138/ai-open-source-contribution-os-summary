@@ -161,7 +161,8 @@ def failed_turn(wb: Workbench, task_id: str) -> tuple[Any, Any] | None:
     if job is None or job.state not in {"failed", "timed_out"} or job.error_code not in {
         "conversation_response_budget", "conversation_input_budget", "conversation_context_budget",
         "conversation_decision_invalid", "conversation_basis_changed", "planning_budget_exceeded",
-        "conversation_call_budget", "planning_provider_failed", "workbench_failed"}:
+        "conversation_call_budget", "planning_provider_failed", "workbench_failed",
+        "model_gateway_rate_limited", "model_gateway_network_failure", "model_gateway_upstream_failure"}:
         return None
     return source, job
 
@@ -279,7 +280,15 @@ def refresh_decision(wb: Workbench, task_id: str, message: Any, decision: Any) -
 
 def recovery(code: str, *, remaining: bool = False) -> dict:
     """Classify effects, not exception text. Unknown writes are never retried."""
-    if code.endswith("outcome_unknown") or code in {"publisher_unknown", "publication_outcome_unknown"}:
+    if code in {"agent_baseline_blocked", "baseline_failures_remaining"}:
+        category, action = "baseline", "revise_plan"
+    elif code in {"agent_review_environment_blocked"}:
+        category, action = "environment", "restore_environment"
+    elif code in {"agent_write_scope_denied", "agent_sensitive_output", "agent_artifact_scope_denied"}:
+        category, action = "security", "inspect_scope"
+    elif code in {"model_gateway_network_failure", "model_gateway_upstream_failure"}:
+        category, action = "model", "retry" if remaining else "inspect_diagnostic"
+    elif code.endswith("outcome_unknown") or code in {"publisher_unknown", "publication_outcome_unknown"}:
         category, action = "external_unknown", "reconcile"
     elif "budget" in code or "context_limit" in code:
         category, action = "budget", "resume_with_budget"
@@ -311,4 +320,7 @@ def advance_tasks(database: Any, settings: Any) -> None:
     from app.contribution_workflow import advance_workflows
     # Classify/consume messages before any new effect is dispatched.
     advance_conversations(database, settings)
+    if settings.agent_runtime_v2_enabled:
+        from app.agent_v2.loop import reconcile_sessions
+        reconcile_sessions(database, settings)
     advance_workflows(database, settings)

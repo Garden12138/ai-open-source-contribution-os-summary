@@ -1,0 +1,47 @@
+# Runtime v2 migration and recovery
+
+The existing SQLite/Workbench journal and content-addressed ArtifactStore remain
+the durable authority. v2 events are explicitly versioned. Existing task events,
+PlanVersions, approvals, ChangeSet proposals and artifact hashes are retained.
+Active v1 jobs retain their original parsers and budgets; activation is permitted
+only at an idle, explicit execution boundary. The rollout switch defaults off.
+
+Before an isolated upgrade, stop writers and use SQLite's online backup API;
+copy the matching artifact tree and record code revision, migration revision,
+row counts and event hashes. Upgrade the copy, verify integrity/foreign keys,
+replay its historical chains, then exercise cancellation and restart there.
+Never point this branch at production storage.
+
+Forward migrations are additive; no historical migration is edited. A downgrade
+requires draining v2 jobs and restoring the matched pre-upgrade database,
+artifacts and code into an isolated instance. Preserve later failures and usage
+before restoring; do not delete events, reset budgets or reinterpret approval.
+An unresolved tool outcome is reconciled using its call/input/receipt hashes,
+not blindly repeated. Lost provider replies remain consumed calls.
+
+## Forward revision 0038 and runtime pinning
+
+`0038_agent_runtime_v2` adds a trigger for versioned v2 session/checkpoint events,
+requiring orchestrator identity, an existing task-local session and exact
+checkpoint predecessor hash. Migration registry checksums and all old rows stay
+intact. The migration test uses an actual v0037 database, SQLite online backup,
+forward upgrade, original event-hash comparison, stale-CAS failure injection,
+restored backup upgrade, integrity and foreign-key checks.
+
+New execution authorization freezes `agent_runtime_version`. An old authorization
+without this field stays v1, including when the rollout switch is enabled.
+An active v2 authorization with the switch off blocks; it never falls back to
+v1. Drain v2 before rollback. Do not edit old authorizations to switch engines.
+The default SDK/tool limits attach to the immutable session spec. Repairs under
+the same approval inherit snapshot, cumulative usage and the original deadline.
+
+Vendor tool-call IDs are scoped to a model response. The platform derives the
+execution ID from the immutable model Job ID and vendor ID, preserving both the
+original decision and the namespaced tool receipt. This prevents an ordinary
+call-ID reuse from becoming an accidental global replay or input conflict.
+
+New planning requests also record `agent_runtime_version` at creation. v2 source
+indexing/search/line paging and reduced prompt limits apply only to those
+requests; old pending v1 planning jobs retain their original context policy.
+Source artifacts remain complete and immutable. Approval is still required
+after planning and before dependency preparation, baseline or implementation.

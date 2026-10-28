@@ -118,6 +118,7 @@ def authorize_execution(
         raise WorkbenchError("工作区范围超过预算，请缩小方案。", code="workspace_scope_unsupported")
     payload = {
         "workflow_version": "sandbox-workflow-v2",
+        "agent_runtime_version": "agent-runtime-v2" if settings.agent_runtime_v2_enabled else "agent-runtime-v1",
         "workspace_scope_version": "source-tree-scope-v1",
         "workspace_paths": list(workspace_paths),
         "workspace_scope_hash": content_hash(list(workspace_paths)),
@@ -687,6 +688,12 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             )
             track(wb, task_id, job)
             return
+        if authorization.payload.get("agent_runtime_version") == "agent-runtime-v2":
+            if not settings.agent_runtime_v2_enabled:
+                raise WorkbenchError("此作业固定使用 v2，请先恢复匹配的执行服务。", code="agent_runtime_disabled")
+            from app.agent_v2.integration import advance_coding
+            advance_coding(wb, attempt.id, settings)
+            return
         conversation = CodingConversationService(
             wb.session, artifact_root=settings.artifact_root
         )
@@ -814,6 +821,9 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                 key="acceptance:" + review.id,
             )
             return
+        if review.reason_code in {"insufficient_evidence", "environment_blocked"}:
+            raise WorkbenchError("独立审查缺少验证证据或遇到环境阻塞；不会消耗代码修复次数。",
+                code="agent_review_" + review.reason_code)
         if enabled(wb, task_id) and outcome["status"] == "failed":
             from app.execution_outcome import unchanged_baseline_failures
             from app.sandbox_worker.workspace_jobs import preparation_receipt

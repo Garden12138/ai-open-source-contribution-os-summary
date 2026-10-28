@@ -1,0 +1,23 @@
+{
+  "classification": "bounded_hosted_schema_capability_probe_not_journey",
+  "probes": [
+    {
+      "schema": "nonempty_outcome_no_minproperties",
+      "schema_hash": "15c9a8660bff0ab87550a5eba9f618f714b1c28f25de2dd20a3db206f6a6e025",
+      "http_status": 200,
+      "returned_empty_object": false
+    },
+    {
+      "schema": "base_control",
+      "schema_hash": "3eec05dcaad2629bbf16f903641f6c3a43d1df439468379e62eae2c4cd97d960",
+      "http_status": 200,
+      "returned_empty_object": true
+    },
+    {
+      "schema": "required_reply",
+      "schema_hash": "c1d33c28ddcf68d9093918acf4774a8b833a844411be95f4b8a7b3222dccd3ab",
+      "http_status": 429,
+      "safe_error": "{\"status\":429,\"title\":\"Too Many Requests\"}"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "classification": "trusted_credential_domain_schema_probe_not_journey",
+  "probes": [
+    {
+      "schema": "paged_source_planning_schema",
+      "http_status": 500,
+      "safe_error": "{\"message\":\"Internal server error\",\"type\":\"Internal Server Error\",\"code\":500,\"details\":{\"backend_status\":500}}"
+    }
+  ]
+}

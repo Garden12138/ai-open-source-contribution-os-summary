@@ -1,0 +1,13 @@
+{
+  "classification": "failed_controlled_real_model_tool_loop",
+  "reason_code": "agent_tool_id_conflict",
+  "category": "platform_protocol",
+  "result_sha256": "8dd047c5892b196b6e4fd0a412bcbac147505ceb394e0df71e6c43a1f4014439",
+  "cause": "Vendor call IDs were scoped to a model turn, but the platform treated them as session-global.",
+  "remediation": "Namespace actual execution IDs by persisted model job ID plus vendor call ID; preserve raw turn decision and all incurred usage.",
+  "business_task_repaired_by_operator": false,
+  "counts_as_M5": false,
+  "operator_interventions_total": 1,
+  "counts_as_autonomous": false,
+  "intervention_timing": "Platform fix after this sample was ended as failed; no running business patch"
+}

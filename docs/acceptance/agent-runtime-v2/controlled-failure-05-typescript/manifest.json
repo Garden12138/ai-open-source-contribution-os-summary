@@ -1,0 +1,14 @@
+{
+  "classification": "controlled_archive_real_model_real_docker_fixture_plan",
+  "sample": "typescript",
+  "variant": "limit-v5",
+  "files_hash": "5be4bbfc5d8e13b08ea0252ea0a581306fa2a85acd35c90b4b93600f034a394a",
+  "goal": "Implement a decimal limit parser accepting integer strings from 0 through 100 inclusive, with optional surrounding whitespace; blank strings mean zero. Reject negative, fractional, nonnumeric and greater-than-100 inputs with an error. Preserve valid existing inputs. First read source/tests, then add meaningful regression tests ONLY and run all approved checks to observe the genuine new failure before changing implementation. Read that actual failure, repair the implementation within scope and rerun every check. Finish only with real passing evidence. Do not weaken or remove tests.",
+  "model": "minimaxai/minimax-m3.1-flash",
+  "write_paths": [
+    "limits.ts",
+    "test.mjs"
+  ],
+  "human_acceptance": false,
+  "counts_as_M5": false
+}

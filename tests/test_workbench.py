@@ -459,7 +459,7 @@ class ReadOnlyGitHub:
         return branch, "a" * 40
 
 
-def automatic_fixture(tmp_path, configure_models=None):
+def automatic_fixture(tmp_path, configure_models=None, *, runtime_v2=False):
     from app.archives import RepositoryArchiveStore
     from app.changesets import ChangeSetStore
     from app.coding import CodingContextJobWorker, NvidiaCodingJobWorker
@@ -475,6 +475,7 @@ def automatic_fixture(tmp_path, configure_models=None):
     from tests.test_nvidia_workflows import FakeContextRuntime
 
     db, settings, task_id, content, context = seeded(tmp_path)
+    settings = replace(settings, agent_runtime_v2_enabled=runtime_v2)
     if configure_models:
         configure_models(db, settings, task_id)
     archive = tmp_path / "repo.tar.gz"
@@ -859,6 +860,7 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
         "0035_workspace_scopes",
         "0036_verification_environment_recovery",
         "0037_baseline_feedback",
+        "0038_agent_runtime_v2",
     )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash

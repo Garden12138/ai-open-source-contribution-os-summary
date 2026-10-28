@@ -159,6 +159,7 @@ class Settings:
     sandbox_job_spec_key_id: str = "local-v1"
     sandbox_job_spec_signing_key: bytes | None = None
     sandbox_stage_runtime: str = "none"
+    agent_runtime_v2_enabled: bool = False
     workbench_runner_image: str = ""
     publisher_mode: str = "none"
     publisher_management_key: bytes | None = None
@@ -234,6 +235,7 @@ class Settings:
             defaults.github_archive_hosts,
         )
         return cls(
+            agent_runtime_v2_enabled=_bool_env("AGENT_RUNTIME_V2_ENABLED"),
             workbench_runner_image=os.getenv("WORKBENCH_RUNNER_IMAGE", ""),
             publisher_mode=os.getenv("PUBLISHER_MODE", "none"),
             publisher_management_key=(bytes.fromhex(os.environ["PUBLISHER_MANAGEMENT_KEY"])

@@ -6,6 +6,8 @@ from sqlalchemy import Connection
 
 def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -> None:
     execute = getattr(connection, "exec_driver_sql", connection.execute)
+    execute("DROP TRIGGER IF EXISTS agent_v2_event_protocol")
+    execute("DELETE FROM _schema_migrations WHERE revision='0038_agent_runtime_v2'")
     from app.migrations.versions.v0018_dependency_verify_inputs import _STATEMENTS
     from app.migrations.versions.v0029_workbench import STATEMENTS as WORKBENCH_STATEMENTS
     execute('DROP TRIGGER contribution_task_state_legal_insert')

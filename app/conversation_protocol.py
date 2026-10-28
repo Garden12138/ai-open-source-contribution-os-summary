@@ -91,10 +91,13 @@ def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
         # Only a validated read-only step can omit presentation; never coerce
         # actions, tool arguments, non-empty citations or final responses.
         if (isinstance(value, dict) and value.get("action") == "respond"
-                and isinstance(value.get("reads"), list) and value["reads"]
-                and value.get("references") == ""):
-            value["references"] = []
-            normalized = True
+                and isinstance(value.get("reads"), list) and value["reads"]):
+            if "reply" not in value:
+                value["reply"] = ""
+                normalized = True
+            if "references" not in value or value.get("references") == "":
+                value["references"] = []
+                normalized = True
         envelope = envelope_type.model_validate(value)
     else:
         envelope = envelope_type.model_validate_json(raw)
@@ -123,6 +126,31 @@ def step_schema(actions: list[str], known: set[str], *, allow_reads: bool,
     schema = deepcopy((RuntimeEnvelope if version == RUNTIME_REASONING_VERSION else TurnEnvelope).model_json_schema())
     if version == RUNTIME_REASONING_VERSION:
         schema["required"].append("effect")
+        # Hosted providers reject conditional allOf/if schemas. Explicit
+        # disjoint tool shapes express the same constraints without hidden rules.
+        base = schema["$defs"]["EvidenceRead"]["properties"]
+        def arguments(names):
+            return {name: {k: v for k, v in deepcopy(base[name]).items() if k not in {"title", "default"}}
+                    for name in names}
+        simple = {"type": "object", "additionalProperties": False, "required": ["name"],
+            "properties": {"name": {"type": "string", "enum": [name for name in base["name"]["enum"]
+                if name not in {"context_reference", "repository_file"}]},
+                **arguments(("source_id", "source_hash"))},
+            "anyOf": [
+                {"properties": {"source_id": {"type": "null"}, "source_hash": {"type": "null"}}},
+                {"required": ["source_id", "source_hash"], "properties": {
+                    "source_id": {"type": "string", "minLength": 1},
+                    "source_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+            ]}
+        context = {"type": "object", "additionalProperties": False, "required": ["name", "reference_id"],
+            "properties": {"name": {"const": "context_reference", "type": "string"},
+                "reference_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                **arguments(("offset", "query"))}}
+        repository = {"type": "object", "additionalProperties": False, "required": ["name", "path"],
+            "properties": {"name": {"const": "repository_file", "type": "string"},
+                "path": {"type": "string", "minLength": 1, "maxLength": 300},
+                **arguments(("start_line",))}}
+        schema["$defs"]["EvidenceRead"] = {"oneOf": [simple, context, repository]}
     schema["properties"]["action"] = {"type":"string", "enum":actions}
     if known:
         schema["properties"]["references"]["items"] = {"type":"string", "enum":sorted(known)}

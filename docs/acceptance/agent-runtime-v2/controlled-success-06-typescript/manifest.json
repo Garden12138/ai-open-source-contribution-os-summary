@@ -1,0 +1,14 @@
+{
+  "classification": "controlled_archive_real_model_real_docker_fixture_plan",
+  "sample": "typescript",
+  "variant": "quota-v6",
+  "files_hash": "7224e95c9585cadb4ff4ecf0841b67c59d8e3a4bb557e983f5aeb10024e0efad",
+  "goal": "Implement a decimal quota parser accepting integer strings from 0 through 250 inclusive, with optional surrounding whitespace; blank strings mean zero. Reject negative, fractional, nonnumeric and greater-than-250 inputs with an error. Preserve valid existing inputs. First read source/tests, then add meaningful regression tests ONLY and run all approved checks to observe the genuine new failure before changing implementation. Read that actual failure, repair the implementation within scope and rerun every check. Finish only with real passing evidence. Do not weaken or remove tests.",
+  "model": "minimaxai/minimax-m3.1-flash",
+  "write_paths": [
+    "quotas.ts",
+    "test.mjs"
+  ],
+  "human_acceptance": false,
+  "counts_as_M5": false
+}

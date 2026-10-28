@@ -466,8 +466,25 @@ class ContribOSProviderWorker:
             self.publication_document.resolve_profiles = True
         from app.model_test_worker import ModelTestWorker
         self.model_test = ModelTestWorker(database, settings, worker_id=worker_id)
+        self.agent_v2 = None
+        if settings.agent_runtime_v2_enabled and self.coding is not None:
+            from app.agent_v2.adapter import StructuredModelAdapter
+            from app.agent_v2.loop import AgentModelWorker
+            def adapter_factory(session, spec):
+                from app.model_settings import ModelSettingsService, task_identity
+                from app.providers.studio import runner_for_profile
+                models = ModelSettingsService(session)
+                profile_id = models.task_profiles(spec.binding.task_id).get("implementation")
+                runner = runner_for_profile(settings, models.profile(profile_id)) if profile_id else self.coding.runner
+                identity = task_identity(session, settings, spec.binding.task_id, "implementation")
+                return StructuredModelAdapter(runner, identity, spec.binding.attempt_id)
+            self.agent_v2 = AgentModelWorker(database, settings, adapter_factory, worker_id=worker_id)
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        if getattr(self, "agent_v2", None) is not None:
+            completed = await self.agent_v2.run_once(now=now)
+            if completed is not None:
+                return completed
         completed = await self.model_test.run_once(now=now)
         if completed is not None:
             return completed
@@ -516,7 +533,7 @@ class ContribOSProviderWorker:
         # the foreground question slot. Domain effects still serialize via CAS.
         lanes = [asyncio.create_task(self._run_lane(workers, interval)) for workers in (
             (self.conversation_intent, self.execution_chat),
-            (self.model_test, self.publication_document, self.planning, self.analysis, self.coding, self.review),
+            (self.model_test, self.publication_document, self.planning, self.analysis, getattr(self, "agent_v2", None), self.coding, self.review),
         )]
         try:
             await asyncio.gather(*lanes)
@@ -547,6 +564,23 @@ class ContribOSSandboxWorker:
         from app.sandbox_worker.coding_context import DockerCodingContextRuntime
 
         docker_environment = dict(runtimes.explore.docker_environment)
+        self.agent_tools = None
+        if settings.agent_runtime_v2_enabled:
+            from app.agent_v2.loop import AgentToolWorker
+            from app.sandbox_worker.agent_tools import DockerAgentToolGateway
+            from app.executions import ExecutionAttemptService
+            def repository_for_attempt(attempt_id):
+                with database.session() as session:
+                    return ExecutionAttemptService(session).get_verified(attempt_id).repository_full_name
+            def dependency_for_attempt(attempt_id):
+                from app.sandbox_worker.dependency_jobs import load_dependency
+                from app.workbench import Workbench
+                with database.session() as session:
+                    dependency = load_dependency(Workbench(session, settings.artifact_root), attempt_id)
+                    return dependency.workspace if dependency else None
+            gateway = DockerAgentToolGateway(artifact_root=settings.artifact_root, docker_environment=docker_environment,
+                repository_for_attempt=repository_for_attempt, dependency_for_attempt=dependency_for_attempt)
+            self.agent_tools = AgentToolWorker(database, settings, gateway, worker_id=worker_id)
         from app.planner import PlanningContextWorker
         from app.sandbox_worker.planning_context import DockerPlanningContextRuntime
         self.planning_context = PlanningContextWorker(database, settings,
@@ -584,6 +618,10 @@ class ContribOSSandboxWorker:
         )
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:
+        if self.agent_tools is not None:
+            completed = await self.agent_tools.run_once(now=now)
+            if completed is not None:
+                return completed
         await self.native_resources.cleanup()
         completed = await self.native_resources.run_once(now=now)
         if completed is not None:

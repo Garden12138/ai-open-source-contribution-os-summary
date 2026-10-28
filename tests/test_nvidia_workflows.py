@@ -368,6 +368,7 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
             "0035_workspace_scopes",
             "0036_verification_environment_recovery",
             "0037_baseline_feedback",
+            "0038_agent_runtime_v2",
     )
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None
@@ -425,3 +426,23 @@ def test_malformed_nvidia_review_fails_closed_without_business_state(
             ContributionTaskStateService(session).current(task_id).to_state
             == "executing"
         )
+
+
+def test_review_provider_failure_preserves_safe_category_without_a_review(tmp_path):
+    from app.providers.contracts import ProviderRunError
+    app, execution_id, _, _ = _complete_verified_execution(tmp_path, key_prefix='review-rate-limit')
+    identity = _identity('minimaxai/minimax-m3')
+    with app.state.database.session() as session:
+        job, _ = ProviderReviewService(session, artifacts=ArtifactStore(session, app.state.settings.artifact_root)).enqueue(
+            execution_id, action=UserAction.START_REVIEW, actor_id='user-1',
+            expected_provider=identity, idempotency_key='review-rate-limit-job')
+    class Unavailable:
+        async def complete(self, invocation):
+            raise ProviderRunError('model_gateway_rate_limited', 'Model service is rate limited', retryable=True)
+    result = asyncio.run(NvidiaReviewJobWorker(app.state.database,
+        artifact_root=app.state.settings.artifact_root, runner=Unavailable(), identity=identity,
+        worker_id='review-rate-limit-worker').run_once())
+    assert result.id == job.id and result.state == 'failed'
+    assert result.error_code == 'model_gateway_rate_limited'
+    with app.state.database.session() as session:
+        assert session.scalar(select(ReviewRun).where(ReviewRun.execution_attempt_id == execution_id)) is None

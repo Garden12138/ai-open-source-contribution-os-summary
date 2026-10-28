@@ -33,6 +33,9 @@ class ContextRead(BaseModel):
     offset: int = Field(default=0, ge=0, le=2_000_000)
     max_bytes: int = Field(default=8000, ge=256, le=16000)
     query: str | None = Field(default=None, min_length=1, max_length=200)
+    start_line: int | None = Field(default=None, ge=1, le=1000000,
+        description="For an issued repository file reference, read exact source lines instead of its serialized JSON. With query, restrict search to this line range.")
+    max_lines: int = Field(default=80, ge=1, le=160)
 
 
 def _bytes(value: Any) -> int:
@@ -81,7 +84,8 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                    job_id: str | None = None, focus_paths: set[str] | None = None,
                    target_bytes: int = PLANNING_TARGET_BYTES,
                    trigger_bytes: int = PLANNING_TRIGGER_BYTES,
-                   history_cursor: int | None = None) -> tuple[str, dict]:
+                   history_cursor: int | None = None,
+                   page_source_files: bool = False) -> tuple[str, dict]:
     """Project large/background content and record exactly what the model sees."""
     ensure_no_sensitive_data(payload, context="context input")
     binding = source_binding(wb, task_id)
@@ -188,6 +192,13 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
         if isinstance(value, dict):
             if "path" in value and "content" in value and "prior_hash" in value:
                 text = value.get("content")
+                if page_source_files and isinstance(text, str) and len(text.encode()) > 4096:
+                    ref = reference(value, "repository file: " + value["path"], value.get("prior_hash"))
+                    skeleton = compress_file(value["path"], text, threshold_bytes=0)
+                    return {**value, "content": _excerpt(skeleton, 1600), "skeleton": True,
+                        "partial": True, "original_bytes": len(text.encode()),
+                        "context_reference": ref,
+                        "read_hint": "Search this reference using query, then read exact start_line/max_lines. Repeating read_paths returns this same index."}
                 if text is None or value["path"] in focus or not isinstance(text, str):
                     return value
                 if len(text.encode()) <= (3000 if large else 15000):
@@ -214,7 +225,7 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                 body["recent_dialogue"][index] = {"role":"assistant", "text":_excerpt(item["text"], 256),
                     "partial":True, "reference_id":reference(item, "historical assistant dialogue")}
     body["context_management"] = {"version": VERSION, "references": list(references.values()),
-        "read_rule": "Use read_context for these reference_id values and offsets. An inventory_partial directory list is a sample, not the full inventory; query its inventory_reference with a case-insensitive path substring using read_context.query. Other references do not support query. Repository originals may also be requested via read_paths. Never infer omitted text or treat a checkpoint as authorization."}
+        "read_rule": "Use read_context for these reference_id values and offsets. Query repository inventory by path substring, or repository file references by literal source substring to obtain line locations. Use start_line/max_lines for exact source excerpts. Other references do not support queries. Partial text is incomplete; never infer omitted text or treat a checkpoint as authorization."}
     # If the target is still exceeded, index background entries wholesale. Exact
     # requested files are pinned, and content=null retains its original meaning.
     evidence = body.get("evidence")
@@ -277,11 +288,30 @@ def read_context(wb: Workbench, task_id: str, checkpoint_hash: str, requests: li
             raise WorkbenchError("原文索引出处不匹配。", code="context_reference_invalid")
         selected = fragment["data"]
         matches = None
+        source_file = (fragment["label"].startswith("repository file: ") and isinstance(selected, dict)
+            and isinstance(selected.get("content"), str))
+        if request.start_line is not None:
+            if not source_file:
+                raise WorkbenchError("只有源码文件索引支持行读取。", code="context_reference_query_unsupported")
+            lines = selected["content"].splitlines(keepends=True)
+            if request.start_line > len(lines) + 1:
+                raise WorkbenchError("源码行号超出范围。", code="context_reference_invalid")
+            start = request.start_line - 1
+            selected = {"path": selected["path"], "start_line": request.start_line,
+                "end_line": min(len(lines), start + request.max_lines), "total_lines": len(lines),
+                "content": "".join(lines[start:start + request.max_lines])}
         if request.query is not None:
-            if fragment["label"] != 'repository inventory' or not isinstance(selected, list):
+            if source_file:
+                first = selected.get("start_line", 1)
+                rows = [{"line": first+i, "text": line} for i, line in enumerate(selected["content"].splitlines())
+                    if request.query.casefold() in line.casefold()]
+                selected = {"path": selected["path"], "matches": rows}
+                matches = len(rows)
+            elif fragment["label"] == 'repository inventory' and isinstance(selected, list):
+                selected = [path for path in selected if request.query.casefold() in path.casefold()]
+                matches = len(selected)
+            else:
                 raise WorkbenchError("该索引不支持目录查询。", code="context_reference_query_unsupported")
-            selected = [path for path in selected if request.query.casefold() in path.casefold()]
-            matches = len(selected)
         raw = canonical_json(selected).encode()
         if request.offset > len(raw) or (request.offset < len(raw) and raw[request.offset] & 0xC0 == 0x80):
             raise WorkbenchError("上下文读取偏移无效。", code="context_reference_invalid")
@@ -290,7 +320,7 @@ def read_context(wb: Workbench, task_id: str, checkpoint_hash: str, requests: li
             end -= 1
         results.append({"reference_id": request.reference_id, "source_hash": fragment["source_hash"],
             "offset": request.offset, "next_offset": end if end < len(raw) else None,
-            "total_bytes": len(raw), "partial": request.query is not None or request.offset != 0 or end < len(raw),
+            "total_bytes": len(raw), "partial": request.start_line is not None or request.query is not None or request.offset != 0 or end < len(raw),
             "query":request.query, "matches":matches,
             "text": raw[request.offset:end].decode("utf-8")})
     ensure_no_sensitive_data(results, context="context read")

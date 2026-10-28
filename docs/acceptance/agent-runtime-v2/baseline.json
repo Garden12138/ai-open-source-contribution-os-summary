@@ -1,0 +1,27 @@
+{
+  "version": "arv2-baseline-v1",
+  "base_commit": "27802bb5f1e61c3a21c61bc2dfb2ad597ab233d0",
+  "pytest": {
+    "passed": 1451,
+    "failed": 1,
+    "skipped": 46,
+    "seconds": 708.42
+  },
+  "failure": {
+    "test": "test_unified_worker_runs_one_due_daily_scan_from_local_preferences",
+    "boundary": "now and now+5minutes cross Asia/Shanghai date; test uses wall clock",
+    "status": "requires_fixed_clock_regression"
+  },
+  "focused_replays": {
+    "passed": 4
+  },
+  "focused_runtime_verification": {
+    "passed": 40
+  },
+  "real_docker_tools": {
+    "passed": 2,
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "classification": "controlled_sandbox_no_model"
+  },
+  "native_journeys_completed": 0
+}

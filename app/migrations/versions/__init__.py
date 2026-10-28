@@ -1,4 +1,5 @@
 from app.migrations.core import Migration
+from app.migrations.versions.v0038_agent_runtime_v2 import MIGRATION as AGENT_RUNTIME_V2
 from app.migrations.versions.v0034_execution_baselines import MIGRATION as EXECUTION_BASELINES
 from app.migrations.versions.v0035_workspace_scopes import MIGRATION as WORKSPACE_SCOPES
 from app.migrations.versions.v0036_verification_environment_recovery import MIGRATION as VERIFICATION_ENVIRONMENT_RECOVERY
@@ -127,6 +128,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     WORKSPACE_SCOPES,
     VERIFICATION_ENVIRONMENT_RECOVERY,
     BASELINE_FEEDBACK,
+    AGENT_RUNTIME_V2,
 )
 
 __all__ = ["MIGRATIONS"]

@@ -73,6 +73,33 @@ def selected(files):
     return inspect_environment(environment_plan(list(files), change_paths=["packages/lib/index.js"]), evidence)
 
 
+@pytest.mark.parametrize("installed", [
+    '{"scripts":{"test":"exit 0"},"private":true}',
+    '{"scripts":{"test":"node test.mjs"},"private":1}',
+    '{"scripts":{"test":"exit 0","test":"node test.mjs"},"private":true}',
+])
+def test_manager_cannot_change_or_ambiguously_rewrite_frozen_declarations(tmp_path, installed):
+    from app.sandbox_worker.node_dependencies import restore_unchanged_json_manifest
+    source, target = tmp_path/"source.json", tmp_path/"installed.json"
+    original = b'{"scripts":{"test":"node test.mjs"},"private":true}'
+    source.write_bytes(original); target.write_text(installed)
+    with pytest.raises(ValueError):
+        restore_unchanged_json_manifest(str(source), str(target), hashlib.sha256(original).hexdigest())
+    assert source.read_bytes() == original and target.read_text() == installed
+
+
+def test_manager_formatting_restores_exact_bytes_but_never_unverified_source(tmp_path):
+    from app.sandbox_worker.node_dependencies import restore_unchanged_json_manifest
+    source, target = tmp_path/"source.json", tmp_path/"installed.json"
+    original = b'{"name":"fixture","private":true}'
+    source.write_bytes(original); target.write_text(json.dumps(json.loads(original), indent=2)+"\n")
+    restore_unchanged_json_manifest(str(source), str(target), hashlib.sha256(original).hexdigest())
+    assert target.read_bytes() == original
+    source.write_bytes(b'{"name":"changed"}')
+    with pytest.raises(ValueError, match="source_hash_mismatch"):
+        restore_unchanged_json_manifest(str(source), str(target), hashlib.sha256(original).hexdigest())
+
+
 def test_dependency_hash_ignores_link_target_existence_but_detects_real_changes(tmp_path):
     import ast
     import stat

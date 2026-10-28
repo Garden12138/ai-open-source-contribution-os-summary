@@ -1,0 +1,133 @@
+{
+  "classification": "T01_T18_actual_evidence",
+  "overall": "not_accepted",
+  "cases": [
+    {
+      "case": "T01",
+      "status": "passed",
+      "level": "API and Chromium contracts",
+      "evidence": "tests/test_agent_runtime.py; tests/agent_runtime_browser.mjs",
+      "result": "Foreground facts do not dispatch, cancel or fabricate background completion."
+    },
+    {
+      "case": "T02",
+      "status": "passed",
+      "level": "Contract and actual native-model mixed reads",
+      "evidence": "native-planning-context-failure.json; native-research-plan.json; tests/test_agent_v2_planning.py",
+      "result": "Actual simultaneous archive-reference and repository reads both resolved; that earlier journey later failed on large context. New native sample uses hash-bound source search/line pages and saves a plan. Neither proves native code delivery."
+    },
+    {
+      "case": "T03",
+      "status": "passed",
+      "level": "Actual Docker tools",
+      "evidence": "macos-tool-receipts.json",
+      "result": "Two successive successful edits per language, explicit stale-hash conflict and actual diff."
+    },
+    {
+      "case": "T04",
+      "status": "passed",
+      "level": "Security contracts",
+      "evidence": "tests/test_agent_v2_tools.py; tests/test_agent_v2_api.py",
+      "result": "Write scope and exact approval cannot be expanded by a model or artifact reference."
+    },
+    {
+      "case": "T05",
+      "status": "passed",
+      "level": "Actual subprocess crash with deterministic tool backend",
+      "evidence": "tests/test_agent_v2_loop.py",
+      "result": "os._exit after committed result resumes successor exactly once; ambiguous in-flight check blocks. This is not a killed real-container journey."
+    },
+    {
+      "case": "T06",
+      "status": "passed",
+      "level": "Actual Docker verifier",
+      "evidence": "macos-tool-receipts.json",
+      "result": "Actual help-only and real unittest zero-test discovery exit zero but are environment_blocked; immutable command receipts remain unchanged."
+    },
+    {
+      "case": "T07",
+      "status": "passed",
+      "level": "Actual Docker baseline",
+      "evidence": "tests/test_agent_v2_tools.py",
+      "result": "Failing baseline prevents coding/session creation and scope expansion."
+    },
+    {
+      "case": "T08",
+      "status": "passed",
+      "level": "Controlled real model + Docker + independent Review",
+      "evidence": "controlled-success-06-typescript/journal-evidence.json",
+      "result": "Actual new test failure -> model patch -> real passing checks -> Review block -> retained-workspace attempt -> reverify -> real Review pass. Fixture plan means this is not M5 native acceptance."
+    },
+    {
+      "case": "T09",
+      "status": "passed",
+      "level": "Provider and protocol contracts plus real failures",
+      "evidence": "tests/test_agent_v2_loop.py; controlled-failure-03",
+      "result": "Malformed output preserved; retry and reservation budgets bounded, never reset."
+    },
+    {
+      "case": "T10",
+      "status": "partial",
+      "level": "Existing stale/upstream contracts; real boundary sample absent",
+      "evidence": "tests/test_execution_acceptance.py; tests/test_publisher_settings.py",
+      "result": "Exact stale approval remains rejected. No native S3 obsolete/unsupported sample has passed."
+    },
+    {
+      "case": "T11",
+      "status": "passed",
+      "level": "Deterministic four-verdict contracts and actual model block/repair/pass",
+      "evidence": "controlled-success-06-typescript/journal-evidence.json; tests/test_agent_v2_loop.py",
+      "result": "Independent real Reviewer blocked once and passed after restored-state re-verification; explicit insufficient/environment verdicts always block in contracts."
+    },
+    {
+      "case": "T12",
+      "status": "passed",
+      "level": "API/security contracts",
+      "evidence": "tests/test_agent_v2_api.py; tests/test_execution_acceptance.py",
+      "result": "Natural-language confirmation does not create exact approval or external authority."
+    },
+    {
+      "case": "T13",
+      "status": "passed",
+      "level": "Existing Publisher fault/reconciliation contracts",
+      "evidence": "tests/test_publisher_settings.py",
+      "result": "Unknown external outcome reconciles before another write. No actual Push was authorized or attempted."
+    },
+    {
+      "case": "T14",
+      "status": "passed",
+      "level": "Security contracts and actual container boundary",
+      "evidence": "tests/test_prompt_injection.py; tests/test_agent_v2_loop.py",
+      "result": "Tool allowlist, canary rejection and no host/credential/network access. No claim that model obedience alone is a security boundary."
+    },
+    {
+      "case": "T15",
+      "status": "blocked",
+      "level": "Native unfamiliar Python E2E",
+      "evidence": "native-python-paged-manifest.json; native-research-plan.json",
+      "result": "Native archive/source/search/line-paging and immutable plan saved; exact human execution approval, actual baseline, code, Review and human acceptance remain pending."
+    },
+    {
+      "case": "T16",
+      "status": "blocked",
+      "level": "Native unfamiliar TypeScript E2E",
+      "evidence": "native-python-manifest.json",
+      "result": "Not started; supported healthy provider and human exact approvals are prerequisites."
+    },
+    {
+      "case": "T17",
+      "status": "passed",
+      "level": "Actual SQLite migration/backup/restore",
+      "evidence": "tests/test_agent_v2_migration.py; isolated-deployment.json",
+      "result": "v0037 -> v0038 preserves old hashes and approvals, stale CAS trigger rejects, restored backup integrity/FKs pass."
+    },
+    {
+      "case": "T18",
+      "status": "partial",
+      "level": "Actual macOS arm64/OrbStack; Linux unavailable",
+      "evidence": "macos-doctor.json",
+      "result": "Same policy and immutable image are tested on arm64 only. No native Linux amd64 endpoint exists."
+    }
+  ],
+  "counting_rule": "Case statuses apply only to stated evidence levels; passing contracts never satisfy a missing live gate."
+}

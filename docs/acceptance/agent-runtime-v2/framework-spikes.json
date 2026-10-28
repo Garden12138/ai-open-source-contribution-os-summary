@@ -1,0 +1,18 @@
+{
+  "classification": "deterministic_framework_spike_no_model_no_credentials",
+  "versions": {
+    "langgraph": "1.2.18",
+    "langgraph-checkpoint-sqlite": "3.1.2",
+    "openai-agents": "0.24.0"
+  },
+  "langgraph": {
+    "sqlite_reopen_resume": true,
+    "separate_checkpoint_authority_required": true
+  },
+  "agents_sdk": {
+    "model_calls": 3,
+    "tool_calls": 2,
+    "sqlite_history_reopen": true,
+    "platform_approval_cas_requires_adapter": true
+  }
+}

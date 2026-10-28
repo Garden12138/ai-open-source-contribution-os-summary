@@ -3955,6 +3955,12 @@ arbitrary languages, writable executable scratch, services or browser downloads.
   Vite caches use a private module-directory view; tool temp/cache/HOME data
   uses the existing execution tmpfs. Eight real manager/runtime/recovery cases,
   a 32 MiB temporary-data case and the real Excalidraw four-check baseline pass.
+  Reopened and reverified 2026-10-28 in ARV2: two real Yarn 4/PnP cases failed
+  because Yarn reformats package.json in both acquisition and offline build.
+  Strict semantic/source-hash checks now restore only the original frozen
+  bytes; declaration changes, duplicate keys and boolean/number substitution
+  remain rejected. Both original real cases pass after repair. Earlier failed
+  receipts remain recorded in the ARV2 acceptance report.
 - [x] **ENV-T03** Separate dependency preparation, execution readiness,
   pre-change test outcome and post-change verification. Run mandatory baseline
   commands before implementation; classify existing code failures separately
@@ -4629,6 +4635,101 @@ silently substituting execution commands. R01–R05 isolated replays left
 production conversation, plan, approvals and usage untouched; the later
 R06/R07 maintenance work and newly consumed calls are recorded above. Native
 Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 stay open.
+
+### Agent Runtime v2专项重构（2026-10-27）
+
+User-directed Phase 5 extension, governed by
+[agent-runtime-v2-refactor-spec.md](agent-runtime-v2-refactor-spec.md).
+Branch `refactor/agent-runtime-v2`, origin/main baseline `27802bb5`.
+No production deployment or external write is authorized. Existing Phase 5 and
+UXR/ENV gates remain unchanged.
+
+- [x] **ARV2-M0** Safe branch, complete source/incident audit, reproducible
+  mixed-read/duplicate-edit/help-only baseline, support matrix and migration plan.
+- [x] **ARV2-M1** Framework ADR/spike; persistent single orchestrator contract,
+  concurrent observations, idempotent continue, lease/restart and v1 compatibility.
+- [x] **ARV2-M2** Typed model adapter, bounded durable tool loop, actual sandbox
+  read/search/patch/diff, scope/hash/idempotency/canary and crash tests.
+- [x] **ARV2-M3** Composable planning reads, capability/preflight and actual
+  baseline/regression feedback with exact approved commands.
+- [x] **ARV2-M4** Independent review/repair and native timeline; browser,
+  cancellation/restart/stale-approval and record-replay journey.
+- [ ] **ARV2-M5** Two frozen unfamiliar real-model/native-product deliveries
+  (Python and TypeScript with repair), one correct boundary stop, human acceptance,
+  zero operator business patches; external prerequisites remain real gates.
+- [ ] **ARV2-M6** Full regression/security/browser/migration/isolation validation,
+  honest cross-platform evidence and synchronized operator documentation.
+
+Evidence and checkpoints: [acceptance/agent-runtime-v2/README.md](acceptance/agent-runtime-v2/README.md).
+M0 evidence: clean branch based on fetched/verified origin/main; baseline **1451
+passed / 46 skipped / 1 clock-boundary test failure**. The duplicate-scan fixture
+now stays on one local date; business scan behavior is unchanged.
+
+M1–M4 checkpoint evidence (2026-10-28; native planning context repaired and reverified): actual LangGraph SQLite
+interrupt/reopen, Agents SDK two-tool/reopened-session probes and Codex
+app-server initialization are recorded in the engine ADR. The selected journal
+loop retains SQLite/Workbench authority, CAS, exact authorization/runtime
+pinning, separate leased model/tool jobs and cumulative budgets. No project
+SDK dependency was added. Final default suite: **1485 passed / 53 skipped /
+0 failed**, four disjoint shards; see machine reports in the acceptance folder.
+
+Actual macOS arm64/OrbStack container regression: **44 unique cases passed**
+(36 expanded environment/source/security/recovery cases, 3 Provider boundaries,
+5 v2 tool cases; the seven-test tool suite also includes two offline authority/UTF-8
+cases). Its source-tool observer retains **28 actual receipts**, including eight
+checks (4 pass / 2 genuine failure / 2 help-only/zero-test environment blocks). Python and
+TypeScript repeated patches and diff, failed-baseline refusal, malicious paths,
+symlinks, immutable source, pinned runtimes/compilers and missing-volume recovery
+all pass. The six malicious fixtures are included in the 36, not added again.
+Doctor **11/11**; native Chromium desktop/mobile drawer **2 passed**, four
+artifact-page reads; legacy conversation browser contracts pass. Compile,
+runtime integrity, native JS syntax and whitespace checks pass.
+
+Two controlled **real model + real Docker + real independent Review** samples
+now pass without operator business patches: Python `count-v4` (4 coding model
+calls, 5 tool calls, Review pass) and TypeScript `quota-v6` (12 coding model
+calls, 10 tools, genuine failing new tests -> repair -> real passing checks,
+Review block -> new immutable attempt with retained workspace/usage -> reverify
+-> Review pass). TypeScript cumulative usage is 60,311 input / 5,181 output
+tokens, 3 reads / 2 writes / 5 checks / 2 code repairs / 1 Provider retry; it
+was not reset. Both have **0** operator intervention during the successful run.
+These are fixture-planned controlled slices, **not M5 native deliveries**.
+Original failed samples remain in `controlled-failure-*`: ID reuse, context
+replay, Provider/schema failures and an incorrect inspect-source next step.
+Fixes occurred only after ending each affected sample and used new samples.
+No budgets or approvals were rewritten. Actual subprocess crash/restart,
+ambiguous-step refusal, full Review repair and four stopping verdicts pass.
+
+A broader real run reopened ENV-T02 on Yarn 4 JSON formatting; both affected
+cases pass after restoring only semantically identical, source-hash-verified
+original bytes at both preparation stages. Conditional conversation schemas
+were actually rejected with HTTP400; compact disjoint tool shapes return
+HTTP200 and retain input limits and full server validation. Missing empty
+read-only presentation is normalized; authority and final answers never are.
+Safe Provider failure codes survive Facade and independent Review boundaries.
+
+M5 is open: **0** completed native S1/S2 deliveries and **0** accepted S3
+boundaries. Failed native candidates are preserved separately. The latest frozen Python sample (more-itertools #1316) saved an immutable plan
+`9049db490a7071a4754f5994de8830705a56b06c81672aa183e945dddd06300c`
+through native conversation, real archived source and exact query/line paging, after the existing configuration's explicitly declared public-read-only
+GitHub credential was enabled only in isolated API/Orchestrator. Provider and
+Sandbox receive no GitHub credential. Exact human plan/execution approval,
+final acceptance and native publication preview remain outstanding; nothing
+is inferred from chat agreement. Old configured models return HTTP410;
+alternate MiniMax works with intermittent HTTP429, while DeepSeek probes fail.
+
+Only isolated port **18080** / new storage, separate Gateway **18081** and
+browser fixture **18765** are used; the user's existing **8765** and production
+instances/data remain untouched. Publisher is disabled. Backup/restore and
+v0037→v0038 migration preserve old hashes, legacy v1 authorizations and approvals.
+Credential absence scans cover changed files, evidence, business storage,
+controlled artifacts and task logs. M6 local verification is complete; native
+Linux amd64/Docker remains unavailable. A transient approval-review usage
+failure was resolved; a root-context build rejection was resolved by using a
+minimal Dockerfile-only context. No rejected action was bypassed.
+Existing P5-G06, UXR-G01 and ENV-G01 remain unchanged; Phase 6–10 are not advanced.
+
+---
 
 ## Phase 6 — Independent review and bounded repair
 

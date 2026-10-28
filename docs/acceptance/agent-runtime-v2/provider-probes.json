@@ -1,0 +1,18 @@
+{
+  "classification": "real_provider_protocol_probe_not_native_journey",
+  "external_writes": 0,
+  "probes": [
+    {
+      "stage": "IMPLEMENTATION_MODEL",
+      "model": "deepseek-ai/deepseek-v4-pro-0813",
+      "http_status": 410,
+      "seconds": 0.92
+    },
+    {
+      "stage": "REVIEW_MODEL",
+      "model": "minimaxai/minimax-m3",
+      "http_status": 410,
+      "seconds": 0.9
+    }
+  ]
+}

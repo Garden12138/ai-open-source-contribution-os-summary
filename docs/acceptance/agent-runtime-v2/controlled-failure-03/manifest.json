@@ -1,0 +1,14 @@
+{
+  "classification": "controlled_archive_real_model_real_docker_fixture_plan",
+  "sample": "python",
+  "variant": "names-v3",
+  "files_hash": "8f54d8ee5b87633265fb6c2bf8cc0db4fd68ec000fb992483f626f6a096f5ed6",
+  "goal": "Extend the name normalizer to trim surrounding whitespace before lowercasing and return \"visitor\" for empty or whitespace-only input. Preserve existing behavior for nonempty names. Add meaningful regression tests for the new behavior in the approved test file. Use only the two approved paths; read source and tests, edit incrementally, run all checks and fix any regression.",
+  "model": "minimaxai/minimax-m3.1-flash",
+  "write_paths": [
+    "names.py",
+    "tests/test_names.py"
+  ],
+  "human_acceptance": false,
+  "counts_as_M5": false
+}

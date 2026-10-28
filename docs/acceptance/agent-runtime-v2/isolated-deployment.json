@@ -1,0 +1,39 @@
+{
+  "classification": "isolated_final_deployment",
+  "origin": "http://127.0.0.1:18080",
+  "health": {
+    "status": "ok",
+    "database": "ok"
+  },
+  "roles": [
+    "serve",
+    "worker",
+    "provider-worker",
+    "sandbox-worker"
+  ],
+  "model_gateway_origin": "http://127.0.0.1:18081",
+  "new_storage_only": true,
+  "production_deployment": false,
+  "publisher_mode": "none",
+  "jobs": [
+    [
+      "conversation_intent",
+      "failed",
+      "workbench_failed",
+      1
+    ],
+    [
+      "discovery_scan",
+      "succeeded",
+      null,
+      1
+    ]
+  ],
+  "active_jobs": 0,
+  "integrity_check": "ok",
+  "foreign_key_errors": 0,
+  "backup_event_count": 11,
+  "backup_event_hashes_equal": true,
+  "event_chain_index_sha256": "87f7d9ff62d07160ba4641288fddbab17b77419104a2391bab399f342da0cab8",
+  "native_journeys_completed": 0
+}

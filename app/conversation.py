@@ -494,6 +494,19 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
         _finish(wb, task_id, message, text="你希望我解释当前结果，还是按这条要求调整工作？直接告诉我即可。")
         return
     if intent == "continue":
+        root = wb.latest(task_id, "agent_v2_session")
+        if root:
+            from app.agent_v2.journal import AgentJournal
+            from app.agent_v2.loop import schedule
+            from app.agent_v2.orchestrator import TaskOrchestrator
+            journal = AgentJournal(wb, task_id, root.payload["session_id"])
+            cp = journal.checkpoint()
+            if cp.state == "paused":
+                TaskOrchestrator(wb, settings).require_current(journal)
+                journal.control("continue", cp.revision)
+                schedule(journal)
+                _finish(wb, task_id, message, text="已按原批准范围和剩余预算继续；已有工具与测试证据保留。")
+                return
         from app.agent_runtime import enabled
         if enabled(wb, task_id) and user_status(wb, task_id)["busy"]:
             status = user_status(wb, task_id)
@@ -556,7 +569,8 @@ def _dispatch(wb: Workbench, task_id: str, message: WorkbenchEvent, intent: str,
         plan = wb.latest_plan(task_id)
         job = PlanningService(wb.session, str(wb.artifacts.root)).request(task_id, text=text,
             parent_id=plan.id if plan else None, expected_hash=plan.record_hash if plan else None,
-            refresh=intent == "refresh", key=key, commit=False)
+            refresh=intent == "refresh", key=key, commit=False,
+            runtime_version="agent-runtime-v2" if getattr(settings, "agent_runtime_v2_enabled", False) else None)
     elif not job and intent in {"publication", "publication_renew", "document"} and not published:
         view = workbench_view(wb, task_id)
         if not view["acceptance"].get("accepted"):

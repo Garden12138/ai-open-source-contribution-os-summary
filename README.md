@@ -34,6 +34,19 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 
 项目历史公开对话、全部工作台任务对话及问题处理记录见 [项目对话全记录与问题复盘](docs/conversations-and-incidents-2026-10-27.md)。该文档保留脱敏原文附录，并区分已修复行为、维护介入和未通过的验收。
 
+## Agent Runtime v2 重构分支
+
+`refactor/agent-runtime-v2` 增加持久化工具回合、精确增量编辑、真实测试反馈、
+独立审查衔接和原生工具时间线。`AGENT_RUNTIME_V2_ENABLED` 默认关闭；
+只在独立端口、数据库、Artifact 和网关的测试实例开启，禁止直接升级正式实例。
+授权时固定运行协议，已有 v1 作业继续使用其原协议。
+
+框架选择和恢复契约见 [架构](docs/agent-runtime-v2-architecture.md)、
+[ADR](docs/adr/agent-runtime-v2-engine-selection.md) 和
+[迁移说明](docs/agent-runtime-v2-migration.md)。测试与真实模型受控样例记录在
+[验收目录](docs/acceptance/agent-runtime-v2/README.md)。受控样例不等于陌生 GitHub
+Issue 的原生人工验收；M5、UXR-G01 及原生 Linux P5-G06 未通过时均保持未完成。
+
 ## 库完成 vs 生产可点
 
 | 环节 | 库 / API / UI | 默认 `serve` + `worker` |

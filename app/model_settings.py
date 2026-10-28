@@ -350,6 +350,7 @@ def bind_job_model(session: Session, job: Job) -> None:
         "pr_update_document": "planning",
         "coding_turn": "implementation",
         "change_set_proposal": "implementation",
+        "agent_v2_model": "implementation",
         "provider_review": "review",
         "model_connection_test": "analysis",
         "model_list": "analysis",

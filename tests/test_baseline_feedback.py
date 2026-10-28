@@ -194,7 +194,7 @@ def test_upgrade_preserves_approvals_and_rejects_unproven_replan_transition(tmp_
             before = [(e.id, e.record_hash) for e in wb.history(task)]
             baseline = wb.latest(task, 'execution_baseline_ready').payload['result_hash']
             baseline_bytes = wb.artifacts.read_bytes(baseline)
-    assert db.create_schema().applied == ('0037_baseline_feedback',)
+    assert db.create_schema().applied == ('0037_baseline_feedback', '0038_agent_runtime_v2')
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
         assert [(e.id, e.record_hash) for e in wb.history(task)] == before

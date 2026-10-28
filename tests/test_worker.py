@@ -139,7 +139,8 @@ def test_unified_worker_runs_one_due_daily_scan_from_local_preferences(
         github_queries=("offline-query",),
         timezone="Asia/Shanghai",
     )
-    due_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+    # Keep duplicate/replay probes on one local date even near midnight.
+    due_at = datetime.now(timezone.utc).astimezone(ZoneInfo("Asia/Shanghai")).replace(hour=12, minute=0, second=0, microsecond=0)
     local_date = due_at.astimezone(ZoneInfo("Asia/Shanghai")).date()
     try:
         with database.session() as session:

@@ -28,7 +28,7 @@ from app.models import AgentInvocation, Job
 from app.plans import PlanVersionService
 from app.provenance import canonical_json, content_hash
 from app.providers.codex_cli import CodexExecInvocation
-from app.providers.contracts import ProviderIdentity, ProviderStage
+from app.providers.contracts import ProviderIdentity, ProviderStage, ProviderRunError
 from app.providers.nvidia_nim import NvidiaNimGatewayRunner
 from app.reviews import (
     ReviewConflictError,
@@ -48,7 +48,7 @@ REVIEW_OUTPUT_SCHEMA: dict[str, object] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
-        "verdict": {"enum": ["pass", "block"]},
+        "verdict": {"enum": ["pass", "block", "insufficient_evidence", "environment_blocked"]},
         "reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,99}$"},
         "findings": {
             "type": "array",
@@ -280,7 +280,9 @@ class NvidiaReviewJobWorker:
                             ),
                         )
                     if any(f.verdict == "block" for f in findings):
-                        verdict, reason_code = "block", "verification_or_review_blocked"
+                        verdict = "block"
+                        if reason_code not in {"insufficient_evidence", "environment_blocked"}:
+                            reason_code = "verification_or_review_blocked"
                     output_payload = {
                         "verdict": verdict,
                         "reason_code": reason_code,
@@ -332,7 +334,8 @@ class NvidiaReviewJobWorker:
                     job_id, worker_id=self.worker_id
                 )
         except Exception as exc:
-            logger.warning("Review job failed: job=%s exception=%s", job_id, type(exc).__name__)
+            logger.warning("Review job failed: job=%s exception=%s code=%s", job_id, type(exc).__name__,
+                exc.code if isinstance(exc, ProviderRunError) else None)
             with self.database.session() as session:
                 current = JobService(session).get(job_id)
                 if current.cancel_requested_at is not None:
@@ -342,8 +345,10 @@ class NvidiaReviewJobWorker:
                 return JobService(session).fail(
                     job_id,
                     worker_id=self.worker_id,
-                    error_code="review_output_invalid" if isinstance(exc, ReviewOutputError) else "nvidia_review_failed",
+                    error_code=exc.code if isinstance(exc, ProviderRunError) else
+                               "review_output_invalid" if isinstance(exc, ReviewOutputError) else "nvidia_review_failed",
                     error_message=("审查输出格式校验失败：" + str(exc)) if isinstance(exc, ReviewOutputError)
+                                  else exc.safe_message if isinstance(exc, ProviderRunError)
                                   else "NVIDIA Review failed validation or execution",
                 )
 
@@ -547,6 +552,16 @@ def _parse_review(raw: str) -> tuple[str, str, tuple[ReviewFinding, ...]]:
         raise ValueError("NVIDIA Review response fields are invalid")
     verdict = str(value["verdict"]).lower()
     reason_code = str(value["reason_code"])
+    if verdict in {"insufficient_evidence", "environment_blocked"}:
+        # Storage and publication retain their strict pass/block contract. The
+        # explicit reason preserves the reviewer's non-code stopping verdict.
+        reason_code, verdict = verdict, "block"
+        value["findings"] = [*value.get("findings", [])[:99], {
+            "severity": "blocking", "location": "verification",
+            "evidence": "Independent reviewer returned " + reason_code + ".",
+            "recommendation": "Obtain the missing verified evidence before another review.",
+            "verdict": "block",
+        }]
     if not re.fullmatch(r"[a-z][a-z0-9_]{0,99}", reason_code):
         raise ValueError("NVIDIA Review reason code is invalid")
     raw_findings = value["findings"]

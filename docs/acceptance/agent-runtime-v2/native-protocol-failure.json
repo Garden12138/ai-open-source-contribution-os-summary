@@ -1,0 +1,437 @@
+{
+  "classification": "ended_native_protocol_failure",
+  "task_id": "96d73d1c-7c00-4198-960d-468eb0e74806",
+  "reason_code": "conversation_decision_invalid",
+  "operator_business_patches": 0,
+  "operator_interventions_after_end": 1,
+  "platform_change": "readonly_presentation_normalization_and_explicit_tool_argument_schema",
+  "counts_as_M5": false,
+  "events": [
+    {
+      "id": "5ec1ec0b-51d9-409a-bea3-223dac1e3720",
+      "kind": "agent_runtime_enabled",
+      "record_hash": "29706cc5319991f34131f230a29eb9f3eaab696ce2ff92df65681e30f5504fb6",
+      "payload": {
+        "version": "agent-runtime-v1",
+        "predecessor_hash": null
+      }
+    },
+    {
+      "id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+      "kind": "conversation_received",
+      "record_hash": "8b28e7f977bef140d2d9b60cbd63f67696e10b247454a07f86d48543cbd3203d",
+      "payload": {
+        "version": "conversation-v1",
+        "text": "请调查这个 Issue 的当前状态与源码、CONTRIBUTING 和已有测试，判断是否仍需修改以及平台是否支持。先给出引用实际源码、明确文件范围和原始验证命令的最小计划；不要在我精确批准计划之前开始编码或执行，也不要执行任何发布操作。"
+      }
+    },
+    {
+      "id": "59a4d7ac-c26d-4e60-b0dd-a1050ed009b1",
+      "kind": "native_journey_started",
+      "record_hash": "44b6bef579abf38bcc4808b2f098b722a904ed5871e3cb80a6b5497ac637d68c",
+      "payload": {
+        "runtime_version": "agent-runtime-v2",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+        "message_hash": "8b28e7f977bef140d2d9b60cbd63f67696e10b247454a07f86d48543cbd3203d"
+      }
+    },
+    {
+      "id": "1f7b659d-41c7-4fa9-bde7-7aafe16ab9f8",
+      "kind": "job_queued",
+      "record_hash": "86395b59ea6662d4a5f3bb23d2e23dba2efbd3507fdf6e939601fd5d0212d755",
+      "payload": {
+        "kind": "conversation_intent"
+      }
+    },
+    {
+      "id": "53e12689-8747-47c8-ab7f-97db5cb9941d",
+      "kind": "conversation_classifying",
+      "record_hash": "549d2d3cca49d86b93d7014224c9ea82077ecf52f6591df24ba6e25c80332ead",
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776"
+      }
+    },
+    {
+      "id": "a22ff35e-7675-4680-bf37-de89175ac1e6",
+      "kind": "context_checkpoint",
+      "record_hash": "dcaa7af94f437d7fe5e5b3c5f4e8a95f188455e06def91a77fadc7c3f61ed015",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "2b66c2de7f3bd0914fddc5430f932dab7464c679f58625a4db0611aa3117b237",
+        "scope": "conversation",
+        "source": {
+          "task_id": "96d73d1c-7c00-4198-960d-468eb0e74806",
+          "state_hash": "d42246255ee0023a0dc2fcf1d3a1a00b098b8d42220abb5a49e450c8716107c5",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 5157,
+          "prompt_bytes": 6780,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 0,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "source_cursor": 5
+      }
+    },
+    {
+      "id": "edb18593-994b-498d-b4d7-4f895f9b8f2a",
+      "kind": "agent_request_budget",
+      "record_hash": "529ccf53d2aa8c29b17f80eb50a92b5a46977b8dd60b880697cdf850ccd5b99d",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13272,
+        "output_limit": 4096,
+        "schema_hash": "60818515bcc474a34a39da847667280ee570b9f4a44fc0d3d1276e70d5e28a51",
+        "original_prompt_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "prompt_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "indexed": [],
+        "admitted": true
+      }
+    },
+    {
+      "id": "1fb253f7-a136-4ad9-835a-133eb783d66b",
+      "kind": "context_checkpoint",
+      "record_hash": "4f21a672532612d6517868f97183b80fc5e6b245445623433bb92d3fd2145b61",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "745edfb83d9e39673608d83df9b36993d935a05d869b5188e23cfd02ead2c29c",
+        "scope": "conversation",
+        "source": {
+          "task_id": "96d73d1c-7c00-4198-960d-468eb0e74806",
+          "state_hash": "d42246255ee0023a0dc2fcf1d3a1a00b098b8d42220abb5a49e450c8716107c5",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 5157,
+          "prompt_bytes": 6780,
+          "reference_count": 0,
+          "saved_bytes": 0,
+          "status": "within_budget",
+          "target_bytes": 9508,
+          "target_met": true
+        },
+        "prompt_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "source_cursor": 5
+      }
+    },
+    {
+      "id": "9b346732-1e2f-41f1-b2ac-8390c9c0fae0",
+      "kind": "model_call",
+      "record_hash": "61f82214a848c53671fa7fa8ce53f92197bbfb6e153f95e98828e6d37a3047f5",
+      "payload": {
+        "job_id": "9148dba7-eed5-4a9a-adf9-6d89c7026902",
+        "attempt": 0,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "context_checkpoint_hash": "745edfb83d9e39673608d83df9b36993d935a05d869b5188e23cfd02ead2c29c"
+      }
+    },
+    {
+      "id": "6a19a004-0a32-47e0-8e27-eac74193c804",
+      "kind": "conversation_usage",
+      "record_hash": "cd07723b215c6e9adb4a6dba1882cd5ce741aa87c0edc719373d1436422240bb",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3241,
+          "output_tokens": 124
+        }
+      }
+    },
+    {
+      "id": "bd56b67d-cea4-4a53-abb2-d1d937f3978f",
+      "kind": "conversation_decision_rejected",
+      "record_hash": "a08f8eb5adcf803616ad8c333fafa6581a09f288e0b1e1a29bc7fb35051182f0",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+        "attempt": 0,
+        "diagnostic": {
+          "code": "decision_schema_invalid",
+          "errors": [
+            {
+              "type": "missing",
+              "loc": [
+                "reply"
+              ]
+            },
+            {
+              "type": "context_reference_required",
+              "loc": [
+                "reads",
+                2
+              ]
+            }
+          ],
+          "instruction": "Return the required fields with the exact types. Read steps use action=respond, reply='', references=[]. Final steps use reads=[] and a non-empty reply. Unknown fields and tools are forbidden."
+        },
+        "artifact_id": "c37f1b666e7d97d07db2391a27a6015735a8c32790427a61b8fe9f71554b504d"
+      },
+      "rejection_artifact": {
+        "applied": false,
+        "basis_hash": "bdb320484dbbb9fedcd00a437ad4856518ad909902daf9becf5537b0d1087cb4",
+        "diagnostic": {
+          "code": "decision_schema_invalid",
+          "errors": [
+            {
+              "loc": [
+                "reply"
+              ],
+              "type": "missing"
+            },
+            {
+              "loc": [
+                "reads",
+                2
+              ],
+              "type": "context_reference_required"
+            }
+          ],
+          "instruction": "Return the required fields with the exact types. Read steps use action=respond, reply='', references=[]. Final steps use reads=[] and a non-empty reply. Unknown fields and tools are forbidden."
+        },
+        "input_hash": "8b81905dba6f23d6060b4e25821bb85d89ec5e6928b49cdd0b1d974a871adc66",
+        "provider": {
+          "adapter_version": "nvidia-nim-chat-v28",
+          "model": "minimaxai/minimax-m3.1-flash",
+          "model_version": "nvidia-build-catalog",
+          "provider": "nvidia_nim"
+        },
+        "raw_output": "{\"action\":\"respond\",\"reads\":[{\"name\":\"task\",\"offset\":0,\"path\":null,\"query\":null,\"reference_id\":null,\"source_hash\":null,\"source_id\":null,\"start_line\":1},{\"name\":\"history\",\"offset\":0,\"path\":null,\"query\":null,\"reference_id\":null,\"source_hash\":null,\"source_id\":null,\"start_line\":1},{\"name\":\"context_reference\",\"offset\":0,\"path\":null,\"query\":null,\"reference_id\":null,\"source_hash\":null,\"source_id\":null,\"start_line\":1}],\"references\":[]}",
+        "raw_output_hash": "6e5556dd5c4a07519fc517ca78d690863f741fc515a0acbfadf3f73cfd129374",
+        "version": "conversation-decision-rejection-v1"
+      }
+    },
+    {
+      "id": "cd9ccb1f-a726-41ca-8ab9-32434895b0eb",
+      "kind": "context_checkpoint",
+      "record_hash": "b5f6f77c790f9364f05baaffb7559e0b1313c8f73f4cddc26c30b4ee4810ae5a",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "538b5c50b920d3c37f9aac49544703716a8606ac1997a4e94757d389c7175aca",
+        "scope": "conversation",
+        "source": {
+          "task_id": "96d73d1c-7c00-4198-960d-468eb0e74806",
+          "state_hash": "d42246255ee0023a0dc2fcf1d3a1a00b098b8d42220abb5a49e450c8716107c5",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 6236,
+          "prompt_bytes": 7859,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 0,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "78348768f4680fd6956708c172aa4054ceb7a21399df216f79c930e642221c83",
+        "source_cursor": 11
+      }
+    },
+    {
+      "id": "c634caa7-2f0e-4148-8878-51479dbc2f8d",
+      "kind": "agent_request_budget",
+      "record_hash": "62729c1140ecaa0b674f004e72b460f7f0452e6a620636f54f82932ffca44eea",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13366,
+        "output_limit": 4096,
+        "schema_hash": "60818515bcc474a34a39da847667280ee570b9f4a44fc0d3d1276e70d5e28a51",
+        "original_prompt_hash": "78348768f4680fd6956708c172aa4054ceb7a21399df216f79c930e642221c83",
+        "prompt_hash": "2f57af32a9f75c98665a9d070d588f19cb4941aeff44b0f8f4201e377ac4cbf4",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "fda71d7bf01ed25ac5a2d3455418abb2045ecb906d36855dc3b36886c1666ad5"
+          }
+        ],
+        "admitted": true
+      }
+    },
+    {
+      "id": "56e752ba-58e4-4737-a9f7-3771df6ac12d",
+      "kind": "context_checkpoint",
+      "record_hash": "21428dd5dfa105bbe72cb7dfd916cb1bdd6a62a9a2a1c0dc42cea71198341e56",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "dc281e58cc3159e2e033d2195b95fbd7a8759e6cc16e501c38495666f6eedc85",
+        "scope": "conversation",
+        "source": {
+          "task_id": "96d73d1c-7c00-4198-960d-468eb0e74806",
+          "state_hash": "d42246255ee0023a0dc2fcf1d3a1a00b098b8d42220abb5a49e450c8716107c5",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 6236,
+          "prompt_bytes": 6874,
+          "reference_count": 1,
+          "saved_bytes": 0,
+          "status": "compacted",
+          "target_bytes": 9508,
+          "target_met": true
+        },
+        "prompt_hash": "2f57af32a9f75c98665a9d070d588f19cb4941aeff44b0f8f4201e377ac4cbf4",
+        "source_cursor": 11
+      }
+    },
+    {
+      "id": "9f0d6503-fd71-4f2c-bb3a-f5b8c711946f",
+      "kind": "model_call",
+      "record_hash": "d9c66e5cb0a5392365b5bbc2c4a46283ecb7ddad1f1390ac04506d5a4cd6ce3d",
+      "payload": {
+        "job_id": "9148dba7-eed5-4a9a-adf9-6d89c7026902",
+        "attempt": 1,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "2f57af32a9f75c98665a9d070d588f19cb4941aeff44b0f8f4201e377ac4cbf4",
+        "context_checkpoint_hash": "dc281e58cc3159e2e033d2195b95fbd7a8759e6cc16e501c38495666f6eedc85"
+      }
+    },
+    {
+      "id": "aa1ea5c3-c55c-48a2-a6d8-6d513b88892f",
+      "kind": "conversation_usage",
+      "record_hash": "efdf684984172c8bbf7a00950953b978f0988c85b86ae43134e817a023d97adc",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3232,
+          "output_tokens": 126
+        }
+      }
+    },
+    {
+      "id": "70e7b7da-c381-4bd6-9346-47a2761def99",
+      "kind": "conversation_decision_rejected",
+      "record_hash": "de9d76a3c0bf7a8c1ea612fb42a71c1f427c1702873f52dc89f23d6b105ba671",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+        "attempt": 1,
+        "diagnostic": {
+          "code": "decision_schema_invalid",
+          "errors": [
+            {
+              "type": "missing",
+              "loc": [
+                "reply"
+              ]
+            },
+            {
+              "type": "source_binding_required",
+              "loc": [
+                "reads",
+                0
+              ]
+            }
+          ],
+          "instruction": "Return the required fields with the exact types. Read steps use action=respond, reply='', references=[]. Final steps use reads=[] and a non-empty reply. Unknown fields and tools are forbidden."
+        },
+        "artifact_id": "d38f2dd83b70c512b7362d56c3be2f2ff57f5f8781ddfd6d07253f9c0cf0a517"
+      },
+      "rejection_artifact": {
+        "applied": false,
+        "basis_hash": "bdb320484dbbb9fedcd00a437ad4856518ad909902daf9becf5537b0d1087cb4",
+        "diagnostic": {
+          "code": "decision_schema_invalid",
+          "errors": [
+            {
+              "loc": [
+                "reply"
+              ],
+              "type": "missing"
+            },
+            {
+              "loc": [
+                "reads",
+                0
+              ],
+              "type": "source_binding_required"
+            }
+          ],
+          "instruction": "Return the required fields with the exact types. Read steps use action=respond, reply='', references=[]. Final steps use reads=[] and a non-empty reply. Unknown fields and tools are forbidden."
+        },
+        "input_hash": "2f57af32a9f75c98665a9d070d588f19cb4941aeff44b0f8f4201e377ac4cbf4",
+        "provider": {
+          "adapter_version": "nvidia-nim-chat-v28",
+          "model": "minimaxai/minimax-m3.1-flash",
+          "model_version": "nvidia-build-catalog",
+          "provider": "nvidia_nim"
+        },
+        "raw_output": "{\"action\":\"respond\",\"reads\":[{\"name\":\"context_reference\",\"offset\":0,\"reference_id\":\"fda71d7bf01ed25ac5a2d3455418abb2045ecb906d36855dc3b36886c1666ad5\",\"source_hash\":\"46402d659fec4c83ffa819defb1dbcd970309c41a921c3966f7ac70a9b501bd0\"}],\"references\":[]}",
+        "raw_output_hash": "741c3c33333fefe5a2a3f1c037d1f77d69cc67615ad02747b18c5db5479eaf28",
+        "version": "conversation-decision-rejection-v1"
+      }
+    },
+    {
+      "id": "a9306ad1-ed39-429f-80b6-88b9096515bd",
+      "kind": "conversation_finished",
+      "record_hash": "730e83220e1fccce62a644f0bdeefaddb01dcb8f3c344887ef789a15d204c5c1",
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+        "status": "failed"
+      }
+    },
+    {
+      "id": "2b169c40-689a-4b1d-83b6-a1ef02a1e059",
+      "kind": "conversation_result",
+      "record_hash": "fdb4961628d30e8547ac24157bea697645da18039e8bb7a64c98e2e74c7b0b78",
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "2322d1b0-cf34-4966-88c1-f1ecbbfc0776",
+        "text": "本轮未能完成，已有成果保留。\n本轮回答未通过校验，未派发操作；已保留原文。"
+      }
+    }
+  ]
+}

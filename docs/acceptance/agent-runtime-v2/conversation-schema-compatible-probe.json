@@ -1,0 +1,9 @@
+{
+  "classification": "trusted_credential_domain_schema_probe_not_journey",
+  "probes": [
+    {
+      "schema": "explicit_disjoint_read_tools",
+      "http_status": 200
+    }
+  ]
+}

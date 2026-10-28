@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Literal
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -58,6 +58,12 @@ class ConversationMessageReceipt(BaseModel):
     message_id: str
     status: str
     text: str
+
+
+class AgentRuntimeControlRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: Literal["pause", "continue", "cancel"]
+    expected_revision: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class ExecutePlanRequest(BaseModel):
@@ -225,6 +231,49 @@ class NativeResourcePreviewResponse(BaseModel):
 def register_workbench_routes(app, get_session, require_mutation_access) -> None:
     router = APIRouter(prefix="/api/v1/tasks/{task_id}/workbench", tags=["workbench"])
 
+    @router.get("/runtime")
+    def runtime_status(task_id: str, request: Request, session: Session = Depends(get_session)):
+        from app.agent_v2.orchestrator import runtime_view
+        return runtime_view(Workbench(session, request.app.state.settings.artifact_root), task_id)
+
+    @router.post("/runtime/control", dependencies=[Depends(require_mutation_access)])
+    def runtime_control(task_id: str, payload: AgentRuntimeControlRequest, request: Request,
+                        session: Session = Depends(get_session)):
+        from app.agent_v2.journal import AgentJournal
+        from app.agent_v2.orchestrator import TaskOrchestrator
+        from app.agent_v2.loop import schedule
+        wb = Workbench(session, request.app.state.settings.artifact_root)
+        root = wb.latest(task_id, "agent_v2_session")
+        if root is None:
+            raise WorkbenchError("本任务没有 v2 运行会话。", code="agent_session_invalid")
+        journal = AgentJournal(wb, task_id, root.payload["session_id"])
+        if payload.action == "continue":
+            TaskOrchestrator(wb, request.app.state.settings).require_current(journal)
+        cp = journal.control(payload.action, payload.expected_revision)
+        if payload.action == "cancel":
+            from app.jobs import JobService
+            for job in wb.jobs(task_id):
+                if job.payload.get("session_id") == journal.session_id and job.state not in TERMINAL_STATES:
+                    JobService(session).request_cancel(job.id, commit=False)
+        if payload.action == "continue":
+            schedule(journal)
+        session.commit()
+        return cp.model_dump()
+
+    @router.get("/runtime/artifacts/{artifact_id}")
+    def runtime_artifact(task_id: str, artifact_id: str, request: Request,
+                         offset: int = Query(default=0, ge=0, le=8000000),
+                         max_bytes: int = Query(default=4096, ge=128, le=16000), session: Session = Depends(get_session)):
+        from app.agent_v2.contracts import Page
+        page = Page(offset=offset, max_bytes=max_bytes)
+        wb = Workbench(session, request.app.state.settings.artifact_root)
+        refs = {e.payload["artifact_id"] for e in wb.history(task_id)
+                if e.kind == "agent_v2_tool_result"}
+        if artifact_id not in refs:
+            raise WorkbenchError("证据不属于本任务。", code="agent_artifact_scope_denied")
+        from app.agent_v2.tools import artifact_page
+        return {"artifact_id": artifact_id, **artifact_page(wb.artifacts.read_bytes(artifact_id),page.offset,page.max_bytes)}
+
     @router.post("/budget", response_model=PlanningBudgetResponse,
                  dependencies=[Depends(require_mutation_access)])
     def configure_budget(task_id: str, payload: PlanningBudgetRequest, request: Request,
@@ -267,13 +316,20 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
                              session: Session = Depends(get_session)):
         from app.conversation import receive_message
         try:
-            return receive_message(Workbench(session, request.app.state.settings.artifact_root), task_id,
+            wb = Workbench(session, request.app.state.settings.artifact_root)
+            receipt = receive_message(wb, task_id,
                                    text=payload.text, key=key, settings=request.app.state.settings,
                                    question_source_id=payload.question_source_id,
                                    question_source_hash=payload.question_source_hash,
                                    reply_to_message_id=payload.reply_to_message_id,
                                    reply_to_message_hash=payload.reply_to_message_hash,
                                    enable_runtime=True)
+            if request.app.state.settings.agent_runtime_v2_enabled and wb.latest(task_id, "native_journey_started") is None:
+                source = next(e for e in wb.history(task_id) if e.id == receipt["message_id"])
+                wb.append(task_id, "native_journey_started", {"runtime_version": "agent-runtime-v2",
+                    "message_id": source.id, "message_hash": source.record_hash},
+                    key="native-journey:" + task_id, actor="api")
+            return receipt
         except IntegrityError:
             session.rollback()
             raise WorkbenchError("另一条消息正在保存，请重新发送。", code="conversation_conflict") from None
@@ -611,6 +667,7 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
                 key=key,
                 refresh=payload.refresh,
                 model_profile_id=target_profile_id,
+                runtime_version="agent-runtime-v2" if request.app.state.settings.agent_runtime_v2_enabled else None,
             )
             return JobResponse.model_validate(job)
         except (IntegrityError, JobConflictError):

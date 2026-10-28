@@ -82,7 +82,13 @@ class PlanningPlan(PlanVersionCreateRequest):
 
 class PlanningEnvelope(BaseModel):
     """Conversation and tool intent survive an independently rejected plan draft."""
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"anyOf": [
+        {"required": ["reply"], "properties": {"reply": {"type": "string", "minLength": 1}}},
+        {"required": ["questions"], "properties": {"questions": {"minItems": 1}}},
+        {"required": ["read_paths"], "properties": {"read_paths": {"minItems": 1}}},
+        {"required": ["read_context"], "properties": {"read_context": {"minItems": 1}}},
+        {"required": ["plan"], "properties": {"plan": {"type": "object"}}},
+    ]})
     reply: str = Field(default="", max_length=8000,
         description="Optional top-level user-facing explanation in Simplified Chinese. A substantive reply may stand alone.")
     questions: list[Clarification] = Field(default_factory=list, max_length=3)
@@ -175,6 +181,7 @@ class PlanningService(Workbench):
         model_profile_id: str | None = None,
         recovery_source: Any | None = None,
         continuation_source: Any | None = None,
+        runtime_version: str | None = None,
         commit: bool = True,
     ) -> Job:
         state_hash = self.require_planning(task_id)
@@ -188,6 +195,10 @@ class PlanningService(Workbench):
             "expected_hash": expected_hash,
             "refresh": refresh,
         }
+        if runtime_version is not None:
+            if runtime_version != "agent-runtime-v2":
+                raise WorkbenchError("不支持的规划协议。", code="planning_runtime_version")
+            request["agent_runtime_version"] = runtime_version
         if model_profile_id is not None:
             request["model_profile_id"] = model_profile_id
         if continuation_source is not None:
@@ -228,6 +239,8 @@ class PlanningService(Workbench):
             "parent_hash": expected_hash,
             "round": 0,
         }
+        if runtime_version is not None:
+            payload["agent_runtime_version"] = runtime_version
         if model_profile_id is not None:
             payload["model_profile_id"] = model_profile_id
         if recovery_source is not None:
@@ -446,7 +459,7 @@ class PlanningArchiveWorker(WorkbenchJobWorker):
         self.settings, self.github_factory = settings, github_factory
 
     async def execute(self, job: Job) -> dict:
-        data = job.payload
+        data = dict(job.payload)
         repository = data["inputs"]["repository"]
         if not self.settings.workbench_runner_image:
             raise WorkbenchError("请配置 WORKBENCH_RUNNER_IMAGE 的固定镜像摘要")
@@ -498,7 +511,7 @@ class PlanningContextWorker(WorkbenchJobWorker):
         if job.kind == "planning_import_metadata":
             from app.baseline_metadata import complete_metadata
             return await complete_metadata(self, job)
-        data = job.payload
+        data = dict(job.payload)
         archive = RepositoryArchiveStore(self.settings.artifact_root).lookup(
             data["archive_hash"],
             repository_full_name=data["inputs"]["repository"],
@@ -552,6 +565,13 @@ class PlanningContextWorker(WorkbenchJobWorker):
                         context["entries"] = sorted(merged.values(), key=lambda e: e["path"])
             if len(canonical_json(context).encode()) > 1500000:
                 raise WorkbenchError("读取上下文超过容量，请缩小方案范围")
+            resolved_context = None
+            if data.get("context_reads"):
+                # Resolve against the original checkpoint before appending the
+                # additional source capture. The new context hash must not make
+                # the other legal read from this same round stale.
+                resolved_context = read_context(wb, data["task_id"], data["context_checkpoint_hash"],
+                    [ContextRead.model_validate(r) for r in data["context_reads"]])
             artifact_id = wb.artifact(context)
             event = wb.append(
                 data["task_id"],
@@ -569,6 +589,13 @@ class PlanningContextWorker(WorkbenchJobWorker):
                 job_id=job.id,
                 commit=False,
             )
+            if resolved_context is not None:
+                from app.context_compaction import source_binding
+                data = {**data, "context_read_cache_hash": wb.artifact({
+                    "source": source_binding(wb, data["task_id"]), "results": resolved_context,
+                    "origin_checkpoint": data["context_checkpoint_hash"]})}
+                data.pop("context_reads", None)
+                data.pop("context_checkpoint_hash", None)
             if data.get("context_only"):
                 message = (
                     "最新代码依据已读取。旧方案已过期，需保存基于新快照的方案版本；尚未批准或执行。"
@@ -684,7 +711,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                         "When current_plan is null, no editable plan has been saved yet. A request to modify the plan refers to the user's existing discussion, not an authorization to invent a prior plan. Use their previously answered choices; ask a concrete clarification if the intended change is still ambiguous.",
                         "If the current base already fixes the Issue, explain the evidence in reply and ask a clarification question with options for the user's next step. A factual explanation alone is valid; never invent a no-op implementation plan.",
                         "A plan must have no unresolved maintainer questions and at most 64 total paths and 20 commands. Keep material unresolved questions explicit; a plan with unresolved questions cannot execute. plan.files_to_inspect must ONLY contain paths that are ALREADY inspected in evidence (where content != null). Do not put unread files or new files to be created into files_to_inspect (new or modified files belong in files_likely_to_change). Any existing repository file in files_likely_to_change must already have been inspected. If clarification is needed, include questions; any accompanying plan is deferred.",
-                        "Some large background utility files in evidence are compressed to method/type skeletons (indicated by skeleton=true or ... omitted comments). Focus on their public interface without inventing implementation details. Request read_paths for exact original text when needed; explicitly requested focus files are preserved in full within the bounded planning context.",
+                        "Some source files are represented by partial method/type skeletons. Follow each file's read_hint and context_reference to retrieve exact source; read_paths captures missing files. A skeleton or prefix is not a complete implementation and does not prove inspection of omitted lines.",
                         "Keep implementation_steps, tests_to_add_or_run, and plan details concise and focused on high-level logic and method calls rather than inlining large full-file code blocks, ensuring total output fits within token budget.",
                     ],
                     "inputs": data["inputs"],
@@ -714,12 +741,25 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     "request": data["text"],
                 }
             )
-            prompt_payload["rules"].append("task_memory is a deterministic source-labelled index, never authorization or proof that assistant claims are true. Partial/skeleton text is incomplete. Retrieve context_management references using read_context:[{reference_id,offset,max_bytes}], or request read_paths for full repository source. An inventory_partial directory is only a sample; search inventory_reference with read_context.query to find exact paths not shown. Use one read tool kind per turn. Reads defer any accompanying plan and have the same bounded round limit. Keep the user's earlier decisions; do not invent omitted text.")
+            prompt_payload["rules"].append("task_memory is a deterministic source-labelled index, never authorization or proof that assistant claims are true. Partial/skeleton text is incomplete. Retrieve context_management references using read_context:[{reference_id,offset,max_bytes}], or request read_paths for full repository source. An inventory_partial directory is only a sample; search inventory_reference with read_context.query to find exact paths not shown. Authorized context and repository reads may coexist and are performed in a deterministic sequence. Reads defer any accompanying plan and have the same bounded round limit. Keep the user's earlier decisions; do not invent omitted text.")
             from app.context_compaction import planning_history_cursor
+            paged_sources = data.get("agent_runtime_version") == "agent-runtime-v2"
+            if paged_sources:
+                prompt_payload["rules"].append("Large source files, including requested paths, are indexed rather than inlined. Use read_context.query on their reference to locate code/test symbols, then start_line/max_lines for exact source. read_paths only captures missing source; repeating a captured path gives the same index. After inspecting needed evidence, finalize the pending plan. No tests or code execution is authorized here.")
+                prompt_payload["planning_state"] = {
+                    "phase": "read_only_planning", "read_rounds_remaining": max(0, MAX_READ_ROUNDS-data.get("round", 0)),
+                    "source_capture_index": [{"path": e["path"], "content_hash": e.get("prior_hash"),
+                        "available": e.get("content") is not None,
+                        "bytes": len((e.get("content") or "").encode())} for e in evidence["entries"]],
+                    "pending_plan_available": bool(data.get("pending_plan")),
+                    "next_step": "inspect_missing_source_or_finalize_pending_plan" if data.get("pending_plan") else "investigate_source_and_propose_plan",
+                    "notice": "Captured source is available by hash; it is not a claim that the model has read every omitted line."}
             prompt, context_checkpoint = compact_prompt(wb, data["task_id"], prompt_payload,
                 scope="planning", job_id=job.id, focus_paths=focus_paths,
-                history_cursor=planning_history_cursor(wb, data["task_id"], job))
-            if len(prompt.encode()) > 1800000:
+                history_cursor=planning_history_cursor(wb, data["task_id"], job),
+                page_source_files=paged_sources,
+                **({"target_bytes": 48000, "trigger_bytes": 48000} if paged_sources else {}))
+            if len(prompt.encode()) > (96000 if paged_sources else 1800000):
                 raise WorkbenchError("规划上下文已达上限")
             token_limit = (
                 getattr(getattr(self.provider, "profile", None), "get", lambda *_: None)("max_tokens")
@@ -730,6 +770,15 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             self.check(session, job)
             self._current(wb, job)
             require_planning_budget(wb, data["task_id"])
+            output_schema = PlanningReply.model_json_schema()
+            require_plan_outcome = bool(data.get("plan_repair") or data.get("pending_plan") or data.get("baseline_recovery_hash"))
+            no_more_reads = data.get("round", 0) >= MAX_READ_ROUNDS
+            output_schema["anyOf"] = [branch for branch in output_schema["anyOf"]
+                if not (require_plan_outcome and "reply" in branch["required"])
+                and not (no_more_reads and any(name in branch["required"] for name in ("read_paths", "read_context")))]
+            if no_more_reads:
+                for name in ("read_paths", "read_context"):
+                    output_schema["properties"][name]["maxItems"] = 0
             wb.append(
                 data["task_id"],
                 "model_call",
@@ -738,7 +787,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     "input_hash": content_hash(prompt),
                     "context_checkpoint_hash": context_checkpoint["artifact_id"],
                     "policy": "planning-v5-independent-actions",
-                    "output_schema_hash": content_hash(PlanningReply.model_json_schema()),
+                    "output_schema_hash": content_hash(output_schema),
                     "output_token_limit": token_limit,
                 },
                 key="call:" + job.id,
@@ -751,7 +800,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             snapshot_id=data["inputs"]["snapshot_id"],
             input_hash=content_hash(prompt),
             prompt=prompt,
-            output_schema=PlanningReply.model_json_schema(),
+            output_schema=output_schema,
             model=self.identity.model,
         )
         completion = await self.provider.complete(invocation)
@@ -835,11 +884,6 @@ class PlanningTurnWorker(WorkbenchJobWorker):
 
             domain_error = {"reason_code": "planning_output_invalid", "validation_types": ["value_error"], "fields": ["plan"]}
             result["context_checkpoint_hash"] = context_checkpoint["artifact_id"]
-            if reply.read_context and reply.read_paths:
-                reject_plan({**domain_error, "fields": ["read_context", "read_paths"],
-                    "constraint": "context_read_tool_conflict",
-                    "remediation": "Request archived context or repository paths in one turn, not both; retrieve the other kind in the following bounded turn."})
-                reply.read_context, reply.read_paths, reply.plan = [], [], None
             valid_context_reads = []
             for request in reply.read_context:
                 try:

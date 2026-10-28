@@ -1,0 +1,26 @@
+{
+  "classification": "real_structured_adapter_probe_not_journey",
+  "external_writes": 0,
+  "models": [
+    {
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "status": "failed",
+      "error_type": "ProviderRunError",
+      "reason_code": "model_gateway_upstream_failure"
+    },
+    {
+      "model": "minimaxai/minimax-m3.1-flash",
+      "status": "passed",
+      "decision": {
+        "reply": "",
+        "calls": [],
+        "outcome": "blocked"
+      },
+      "usage": {
+        "input_tokens": 949,
+        "output_tokens": 6,
+        "duration_ms": 11403
+      }
+    }
+  ]
+}

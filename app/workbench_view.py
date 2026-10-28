@@ -130,7 +130,13 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
     from app.planning_budget import planning_usage, planning_budget_view
     view["context_management"] = {**context_view(wb, task_id), "usage":planning_usage(wb, task_id)}
     view["planning_budget"] = planning_budget_view(wb, task_id)
-    view["revision"] = content_hash({**view, "jobs": [(j.id, j.state, bool(j.cancel_requested_at)) for j in jobs]})
+    from app.agent_v2.orchestrator import runtime_view
+    view["agent_runtime_v2"] = runtime_view(wb, task_id)
+    from app.agent_v2.capabilities import capability_verdict
+    view["capabilities"] = capability_verdict(wb, task_id).model_dump()
+    view["revision"] = content_hash({**view,
+        "agent_runtime_v2": view["agent_runtime_v2"]["checkpoint"]["revision"] if view["agent_runtime_v2"] else None,
+        "jobs": [(j.id, j.state, bool(j.cancel_requested_at)) for j in jobs]})
     return view
 
 
@@ -139,6 +145,12 @@ def execution_context(wb: Workbench, task_id: str) -> dict[str, Any]:
     view = workbench_view(wb, task_id)
     view.pop("context_management", None)
     view.pop("planning_budget", None)
+    runtime = view.get("agent_runtime_v2")
+    if runtime:
+        view["agent_runtime_v2"] = {"version": runtime["version"], "session_id": runtime["session_id"],
+            "state": runtime["checkpoint"]["state"], "remaining_budget": runtime["remaining_budget"],
+            "evidence_refs": [{"artifact_id": e["payload"]["artifact_id"], "record_hash": e["record_hash"]}
+                for e in runtime["timeline"] if e["kind"] == "agent_v2_tool_result"][-4:]}
     attempts = view.pop("attempts")
     view["attempt_count"] = len(attempts)
     lifecycle = view.pop("pr_lifecycle")

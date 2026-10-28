@@ -1,0 +1,10 @@
+{
+  "classification": "read_only_model_prerequisite",
+  "key_present": true,
+  "external_writes": 0,
+  "http_status": 200,
+  "configured_models_available": {
+    "IMPLEMENTATION_MODEL": false,
+    "REVIEW_MODEL": false
+  }
+}

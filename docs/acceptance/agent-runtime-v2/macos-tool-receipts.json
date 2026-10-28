@@ -1,0 +1,1708 @@
+{
+  "classification": "controlled_real_docker_tools",
+  "counts_as_M5": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "receipts": [
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-0",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-0",
+        "input_hash": "72576c8f145991c4f9d241f36f7bd231cd5aa6d39f554719c8692db91b8aa0b3",
+        "source_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "passed",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:03.738587Z",
+                "completed_at": "2026-10-28T01:00:03.761114Z",
+                "duration_ms": 22,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "fb184ea57734512b1f088f9181209901b9cd46df3eb7eaa2500ea9e48dde20b5",
+                "stderr_bytes": 98
+              }
+            ],
+            "test_results_hash": "829a4ab35eab80d4023954a5488cec8825a2a351e1999a2b83162cb066b29a40",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:03.738587Z",
+                "completed_at": "2026-10-28T01:00:03.761114Z",
+                "resource_usage": {
+                  "user_cpu_ms": 16,
+                  "system_cpu_ms": 2,
+                  "max_rss_bytes": 17817600,
+                  "minor_page_faults": 860,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 1,
+                  "involuntary_context_switches": 0
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "fb184ea57734512b1f088f9181209901b9cd46df3eb7eaa2500ea9e48dde20b5",
+                "stderr_bytes": 98,
+                "stderr_log": ".\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 22
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "5bc130877e217c487b51a44f3a01dbb637601bc8f78c8302fa1c535d0e3d3c3c",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-1",
+        "name": "list_paths",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-1",
+        "input_hash": "9ba221639f72509c0307d9bd3b43e8fbb24a9e560e93c0de9fd5d7759822103b",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "list_paths",
+          "execution_backend": "docker",
+          "content_hash": "99754cd32627ef5afd1ded17dd6854158ca15f097a7daaa0ff79e227887097b7",
+          "next_offset": null,
+          "offset": 0,
+          "text": "calc.py\nlinked-source\ntest_calc.py",
+          "total_bytes": 34
+        },
+        "failure": null
+      },
+      "result_hash": "87610894cbf637918b847cf4091bc0089dd9fb5fbcdc2dc68c6d23220c85c67b",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-2",
+        "name": "read_file",
+        "arguments": {
+          "path": "linked-source"
+        }
+      },
+      "result": {
+        "call_id": "call-2",
+        "input_hash": "99d0f646fb846568816f35fed3664dc9f66c1b946c9890150942b82bd696f52b",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker"
+        },
+        "failure": {
+          "category": "security",
+          "safe_reason_code": "symlink_denied",
+          "retryable": false,
+          "remaining_budget": {},
+          "next_allowed_action": "inspect_diagnostic",
+          "blocking_scope": "session",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "e627bb4e0ccb1c0cc925604371a7ce47ff9fd8c767e5fcd3bab6d88f9f0ea768",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-3",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.py"
+        }
+      },
+      "result": {
+        "call_id": "call-3",
+        "input_hash": "73b9f650148e44b4893e96c8c440488ab3c0c3ced76586996d755f4663450861",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23",
+          "next_offset": null,
+          "offset": 0,
+          "path": "calc.py",
+          "text": "# 编码定位测试\ndef add(a, b):\n    return a + b\n",
+          "total_bytes": 53
+        },
+        "failure": null
+      },
+      "result_hash": "c947470ffc6bf3d3858b6b89dd81c63966edcb6e03c0606960ad66399eab3905",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-4",
+        "name": "search_code",
+        "arguments": {
+          "query": "add"
+        }
+      },
+      "result": {
+        "call_id": "call-4",
+        "input_hash": "0f1791113fb6e7fd223c4597442cdf8cca6a90755dbf232aec374c539ae28d57",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "search_code",
+          "execution_backend": "docker",
+          "content_hash": "8f6061d09b817071de98bdf32144caebd43e3401a5412cb331f7575442551294",
+          "next_offset": null,
+          "offset": 0,
+          "text": "{\"byte_offset\": 21, \"file_content_hash\": \"bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23\", \"line\": 2, \"path\": \"calc.py\", \"text\": \"def add(a, b):\"}\n{\"byte_offset\": 16, \"file_content_hash\": \"f0ff8605853d0beea2340f8f06bf2bc59bb38463089cb80c6924fc71f2f32f5c\", \"line\": 2, \"path\": \"test_calc.py\", \"text\": \"from calc import add\"}\n{\"byte_offset\": 71, \"file_content_hash\": \"f0ff8605853d0beea2340f8f06bf2bc59bb38463089cb80c6924fc71f2f32f5c\", \"line\": 4, \"path\": \"test_calc.py\", \"text\": \"    def test_sum(self): self.assertEqual(add(2, 3), 5)\"}",
+          "total_bytes": 550
+        },
+        "failure": null
+      },
+      "result_hash": "7969adc92e609bca43be7202b30f17b2fcce43f23c9fab57f479e09ed8b95f2e",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-5",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.py",
+          "offset": 21,
+          "expected_hash": "bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23"
+        }
+      },
+      "result": {
+        "call_id": "call-5",
+        "input_hash": "837f070caf6ab535b7abbea0b87f0ef130987c713d974c4082bf37e118f71d5f",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23",
+          "next_offset": null,
+          "offset": 21,
+          "path": "calc.py",
+          "text": "def add(a, b):\n    return a + b\n",
+          "total_bytes": 53
+        },
+        "failure": null
+      },
+      "result_hash": "e76959ed6548a41e936fe2d2c25b347c1c24adf476e0d84bf44b63e4e882ecdc",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-6",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.py",
+          "expected_hash": "bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23",
+          "old_text": "a + b",
+          "new_text": "a - b"
+        }
+      },
+      "result": {
+        "call_id": "call-6",
+        "input_hash": "a4fd324c32da74b5de3a4d6bf989707dfd0f1946d38bc17c1fd12b5f64416811",
+        "source_hash": "77c135d11b2272b2fa7618740a48cc07856982e7b1c01f7a6d6a8dd8b5d96265",
+        "output_source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "changed_paths": [
+            "calc.py"
+          ],
+          "content_hash": "a528ea542dc818cd212ffabfab31b800c2331ef096a61fbbb2f19bef992d8fe5",
+          "path": "calc.py"
+        },
+        "failure": null
+      },
+      "result_hash": "e692c6939ca123d7403edeb2f04d0626d03d45d45d726384a2fbdef483dadd2d",
+      "snapshot_hash": "14bbb807ed3a1ba588592687756655864d2f22c2bdb24c03b650dfaff37f9865"
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-7",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.py",
+          "expected_hash": "bc2a2002986721ed032fa18419c76942b06ef1f2abef83b69b897841dc8f3b23",
+          "old_text": "a - b",
+          "new_text": "a + b"
+        }
+      },
+      "result": {
+        "call_id": "call-7",
+        "input_hash": "c8f16daf4d6fea4fe234807023863ecabe89a611abd97d92ace78cab8e06321a",
+        "source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "output_source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "current_content_hash": "a528ea542dc818cd212ffabfab31b800c2331ef096a61fbbb2f19bef992d8fe5",
+          "next_allowed_action": "read_file_without_expected_hash",
+          "partial": false,
+          "path": "calc.py",
+          "preview": "# 编码定位测试\ndef add(a, b):\n    return a - b\n"
+        },
+        "failure": {
+          "category": "protocol",
+          "safe_reason_code": "patch_hash_conflict",
+          "retryable": true,
+          "remaining_budget": {},
+          "next_allowed_action": "read_current_source",
+          "blocking_scope": "tool",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "f0ad600d3a64ce7e2c2223061d9573b08f10d642f2011c5fe2d38c257b146d90",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-8",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-8",
+        "input_hash": "b4508c7b660c5ab6c278fd6e2dd6eafe5bbd46d924e4803c11560776a539ab46",
+        "source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "output_source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "failed",
+          "verification": {
+            "succeeded": false,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "outcome": "failed",
+                "exit_code": 1,
+                "started_at": "2026-10-28T01:00:10.924816Z",
+                "completed_at": "2026-10-28T01:00:10.946469Z",
+                "duration_ms": 21,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "5cf7a6fb6b7b1cd9e59a813b13249707f514499243fb004a05ce3f1d3c4eb11d",
+                "stderr_bytes": 525
+              }
+            ],
+            "test_results_hash": "7bf8be534695ed40ab0d09dad27dd44e7aa86e087a6aa33c49ccb5e9c592cd65",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "status": "failed",
+                "exit_code": 1,
+                "started_at": "2026-10-28T01:00:10.924816Z",
+                "completed_at": "2026-10-28T01:00:10.946469Z",
+                "resource_usage": {
+                  "user_cpu_ms": 16,
+                  "system_cpu_ms": 2,
+                  "max_rss_bytes": 17821696,
+                  "minor_page_faults": 852,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 1,
+                  "involuntary_context_switches": 0
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "5cf7a6fb6b7b1cd9e59a813b13249707f514499243fb004a05ce3f1d3c4eb11d",
+                "stderr_bytes": 525,
+                "stderr_log": "F\n======================================================================\nFAIL: test_sum (test_calc.TestAdd.test_sum)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/test_calc.py\", line 4, in test_sum\n    def test_sum(self): self.assertEqual(add(2, 3), 5)\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: -1 != 5\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (failures=1)\n",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 21
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "786c2868eed8e858c31e483491f8be1fec6b4b32b83686220184c5eb40e612be",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-9",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.py"
+        }
+      },
+      "result": {
+        "call_id": "call-9",
+        "input_hash": "d7c7c63ab0ddef66094760257f430f3e832d0615170ddfee4f9828663653d523",
+        "source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "output_source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "a528ea542dc818cd212ffabfab31b800c2331ef096a61fbbb2f19bef992d8fe5",
+          "next_offset": null,
+          "offset": 0,
+          "path": "calc.py",
+          "text": "# 编码定位测试\ndef add(a, b):\n    return a - b\n",
+          "total_bytes": 53
+        },
+        "failure": null
+      },
+      "result_hash": "78445acfa7dab8b8e6c7c4896fd0dfce8f6e24cbbaa229a24a5da8a881c9f95e",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-10",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.py",
+          "expected_hash": "a528ea542dc818cd212ffabfab31b800c2331ef096a61fbbb2f19bef992d8fe5",
+          "old_text": "a - b",
+          "new_text": "a + b + 0"
+        }
+      },
+      "result": {
+        "call_id": "call-10",
+        "input_hash": "b8538d7f6dcb37c049363e7e0602c6273b7448fd27d90c6a16eea8d863fe1850",
+        "source_hash": "adbae558e3f90033f717f70ee53052a4c2c952839f29428097e400a254945158",
+        "output_source_hash": "0207fb4dcd1ac4b1cdc67839ad07892f1fe54248849615373b2fb68fce730d29",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "changed_paths": [
+            "calc.py"
+          ],
+          "content_hash": "1878e1749789de1732a73eb3d09ec3f40802eb03b75e2e8db3092af8efc7315a",
+          "path": "calc.py"
+        },
+        "failure": null
+      },
+      "result_hash": "582c9efa5f36e23327a5755f63f67ff8a8c180f3c82e540dde5cb2285efef232",
+      "snapshot_hash": "c587e4d67133fb9d637ae41854f980809072712681d01aee5b497c51f9d6ce62"
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-11",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-11",
+        "input_hash": "275584a9643a264cda9af7cc5b19e8b71b17ead3ecdfe258ce5aca7f4b31912d",
+        "source_hash": "0207fb4dcd1ac4b1cdc67839ad07892f1fe54248849615373b2fb68fce730d29",
+        "output_source_hash": "0207fb4dcd1ac4b1cdc67839ad07892f1fe54248849615373b2fb68fce730d29",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "passed",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:13.994945Z",
+                "completed_at": "2026-10-28T01:00:14.017375Z",
+                "duration_ms": 22,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "fb184ea57734512b1f088f9181209901b9cd46df3eb7eaa2500ea9e48dde20b5",
+                "stderr_bytes": 98
+              }
+            ],
+            "test_results_hash": "f96397934a2ae2ac7d907d81d44730ad1de25d2886c971c9fbc0ed84e666177c",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "b16dd006d8aaf9f3216a6114912e05629bb0b6e7346817e50791fb6ab8b1b8ae",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:13.994945Z",
+                "completed_at": "2026-10-28T01:00:14.017375Z",
+                "resource_usage": {
+                  "user_cpu_ms": 13,
+                  "system_cpu_ms": 4,
+                  "max_rss_bytes": 17838080,
+                  "minor_page_faults": 852,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 1,
+                  "involuntary_context_switches": 0
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "fb184ea57734512b1f088f9181209901b9cd46df3eb7eaa2500ea9e48dde20b5",
+                "stderr_bytes": 98,
+                "stderr_log": ".\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 22
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "53586f66adbc90de53c59cb58eeac37b3c3f8869751882c89a7b79c3ce2bd8b9",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "f9e36741830fce583cd41f6e47079ba9457c96517bab7ba31f5616d3e3f31edc",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-12",
+        "name": "read_diff",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-12",
+        "input_hash": "5453d129e6ef9b27ff499c4c8bb1b428ebfb9f09ce178c97137a856b28b73aca",
+        "source_hash": "0207fb4dcd1ac4b1cdc67839ad07892f1fe54248849615373b2fb68fce730d29",
+        "output_source_hash": "0207fb4dcd1ac4b1cdc67839ad07892f1fe54248849615373b2fb68fce730d29",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_diff",
+          "execution_backend": "docker",
+          "content_hash": "01b45c57681d3b6bf5120fef7a4460e0ad7ac26abe4a7c4b220dfa5a13ab9bc7",
+          "next_offset": null,
+          "offset": 0,
+          "text": "--- a/calc.py\n+++ b/calc.py\n@@ -1,3 +1,3 @@\n # 编码定位测试\n def add(a, b):\n-    return a + b\n+    return a + b + 0\n",
+          "total_bytes": 122
+        },
+        "failure": null
+      },
+      "result_hash": "2c6d9b2851e098b38823d58defd8b079ff54f47e68dc0abd55822d14af0c72f1",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-0",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-0",
+        "input_hash": "5ed2507801824435fcca6927c02ae062c90d6ae4db068a06230632629fed3ebd",
+        "source_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "passed",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:15.891855Z",
+                "completed_at": "2026-10-28T01:00:15.966432Z",
+                "duration_ms": 74,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0
+              }
+            ],
+            "test_results_hash": "1242a901987a7bdf4dba88508e2fe1d317d15797f8bccaf2526635069132e9bf",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:15.891855Z",
+                "completed_at": "2026-10-28T01:00:15.966432Z",
+                "resource_usage": {
+                  "user_cpu_ms": 39,
+                  "system_cpu_ms": 18,
+                  "max_rss_bytes": 61517824,
+                  "minor_page_faults": 2811,
+                  "major_page_faults": 47,
+                  "voluntary_context_switches": 28,
+                  "involuntary_context_switches": 6
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0,
+                "stderr_log": "",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 74
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "f48c1703bde29781a26736170e7db0d0e0f90c602e5ad72cfa240c72a2a80208",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-1",
+        "name": "list_paths",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-1",
+        "input_hash": "21e291bffdf09a7e11d95e22b638d0b0f14530d79b87d4726caee288cc2c95b2",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "list_paths",
+          "execution_backend": "docker",
+          "content_hash": "0744fbd17261655212537e34ea98834534172f7347be5af471dc3e9c2f682c56",
+          "next_offset": null,
+          "offset": 0,
+          "text": "calc.ts\nlinked-source\ntest.mjs",
+          "total_bytes": 30
+        },
+        "failure": null
+      },
+      "result_hash": "8c352f6950ceb0e60ad68390b3c7886776e02b2819fcbdc5e1c723c3ad5a2862",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-2",
+        "name": "read_file",
+        "arguments": {
+          "path": "linked-source"
+        }
+      },
+      "result": {
+        "call_id": "call-2",
+        "input_hash": "b8e2c5824400171cb92b561fe2cd82f098243ca3df0f900285c1a75ebcc9ba41",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker"
+        },
+        "failure": {
+          "category": "security",
+          "safe_reason_code": "symlink_denied",
+          "retryable": false,
+          "remaining_budget": {},
+          "next_allowed_action": "inspect_diagnostic",
+          "blocking_scope": "session",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "22d76fc022fcdf2cfbf4a03752eadc9f5fb365ede0bac549a92e654feb76e7f4",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-3",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.ts"
+        }
+      },
+      "result": {
+        "call_id": "call-3",
+        "input_hash": "269a25f979864c25e6f5d65d6e1753a498f3712e76e8afe8203b816218add4d4",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653",
+          "next_offset": null,
+          "offset": 0,
+          "path": "calc.ts",
+          "text": "// 编码定位测试\nexport const add = (a: number, b: number): number => a + b;\n",
+          "total_bytes": 82
+        },
+        "failure": null
+      },
+      "result_hash": "3a220858ebf9e7d8031e11d6bd237b5ca7b260bb432acdd9af52fbc4e336ea23",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-4",
+        "name": "search_code",
+        "arguments": {
+          "query": "add"
+        }
+      },
+      "result": {
+        "call_id": "call-4",
+        "input_hash": "d96534942371db1ebacd9f6f46a77ed7e1ea56d3f05e2fd91e0c34808d7a5e78",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "search_code",
+          "execution_backend": "docker",
+          "content_hash": "21c55126fcec033927c07c974ec5f8ec661a7c14d915b639b8413e5f66e47e4b",
+          "next_offset": null,
+          "offset": 0,
+          "text": "{\"byte_offset\": 22, \"file_content_hash\": \"72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653\", \"line\": 2, \"path\": \"calc.ts\", \"text\": \"export const add = (a: number, b: number): number => a + b;\"}\n{\"byte_offset\": 46, \"file_content_hash\": \"ad0f07918616556b60d70096f6bad71edc3fb9493df3f574b71ad51022ffa302\", \"line\": 2, \"path\": \"test.mjs\", \"text\": \"import {add} from './calc.ts';\"}\n{\"byte_offset\": 77, \"file_content_hash\": \"ad0f07918616556b60d70096f6bad71edc3fb9493df3f574b71ad51022ffa302\", \"line\": 3, \"path\": \"test.mjs\", \"text\": \"assert.equal(add(2,3),5);\"}",
+          "total_bytes": 568
+        },
+        "failure": null
+      },
+      "result_hash": "5055b1e66226cf4eb57320d43ced630181b49821d5ec18deb2cbbed4cd855eac",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-5",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.ts",
+          "offset": 22,
+          "expected_hash": "72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653"
+        }
+      },
+      "result": {
+        "call_id": "call-5",
+        "input_hash": "680fe893a62d55b90f7bdf4137839eb005780ffbf9c3defa3faa541a3539f987",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653",
+          "next_offset": null,
+          "offset": 22,
+          "path": "calc.ts",
+          "text": "export const add = (a: number, b: number): number => a + b;\n",
+          "total_bytes": 82
+        },
+        "failure": null
+      },
+      "result_hash": "4e3aad6e28439c8c9dfd8c334c3083a1957d0968d060a6e40f25aa459e60c220",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-6",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.ts",
+          "expected_hash": "72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653",
+          "old_text": "a + b",
+          "new_text": "a - b"
+        }
+      },
+      "result": {
+        "call_id": "call-6",
+        "input_hash": "a61e3914613be0f0566fa217d20806aeb24703a2f7484c3edb0b072c55e0cf9e",
+        "source_hash": "3aa6fd5839c81c2b002195380b3bbc7c72c5fbce069103f51065e6f7a8251173",
+        "output_source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "changed_paths": [
+            "calc.ts"
+          ],
+          "content_hash": "5a8ea72447680fdc0fc5921fec3765952ba661e97231692a5bb98c0ffe36bfb8",
+          "path": "calc.ts"
+        },
+        "failure": null
+      },
+      "result_hash": "1ab4f22f5c4f3489febb9e0302fd2d2cf7a016b35b209a33da360b485737a9e6",
+      "snapshot_hash": "6115fef9361ce43634320daef70c60421f1216077208c7c3cc8df6e1ef7a1e9c"
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-7",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.ts",
+          "expected_hash": "72fc95a7c070d462568aa281b331e8eb16728ed08f7b821186a56774eaf84653",
+          "old_text": "a - b",
+          "new_text": "a + b"
+        }
+      },
+      "result": {
+        "call_id": "call-7",
+        "input_hash": "773b8acaa3d4543af15a542c403954bfe8d7972d829fab8e5d34f200066e155b",
+        "source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "output_source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "current_content_hash": "5a8ea72447680fdc0fc5921fec3765952ba661e97231692a5bb98c0ffe36bfb8",
+          "next_allowed_action": "read_file_without_expected_hash",
+          "partial": false,
+          "path": "calc.ts",
+          "preview": "// 编码定位测试\nexport const add = (a: number, b: number): number => a - b;\n"
+        },
+        "failure": {
+          "category": "protocol",
+          "safe_reason_code": "patch_hash_conflict",
+          "retryable": true,
+          "remaining_budget": {},
+          "next_allowed_action": "read_current_source",
+          "blocking_scope": "tool",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "3c8d934173858ef72a662a36c3bec88668959ee8964f2985a4e7a7e46083eafb",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-8",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-8",
+        "input_hash": "e6a3fcd19722cf7583f868f4d1c82557b0df41ebfe4e65baff0c207712f87772",
+        "source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "output_source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "failed",
+          "verification": {
+            "succeeded": false,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "outcome": "failed",
+                "exit_code": 1,
+                "started_at": "2026-10-28T01:00:22.327715Z",
+                "completed_at": "2026-10-28T01:00:22.394879Z",
+                "duration_ms": 67,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "427679e3d3ff535e9086a66bc5ebbd451883fb70fb80fc65f1763c257514170d",
+                "stderr_bytes": 575
+              }
+            ],
+            "test_results_hash": "759ccce47ce9f0b380078bf6ffadf4ba73fc0de804b313bf84856d40d03e0705",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "status": "failed",
+                "exit_code": 1,
+                "started_at": "2026-10-28T01:00:22.327715Z",
+                "completed_at": "2026-10-28T01:00:22.394879Z",
+                "resource_usage": {
+                  "user_cpu_ms": 43,
+                  "system_cpu_ms": 3,
+                  "max_rss_bytes": 62324736,
+                  "minor_page_faults": 2856,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 25,
+                  "involuntary_context_switches": 5
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "427679e3d3ff535e9086a66bc5ebbd451883fb70fb80fc65f1763c257514170d",
+                "stderr_bytes": 575,
+                "stderr_log": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n-1 !== 5\n\n    at file:///workspace/test.mjs:3:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: -1,\n  expected: 5,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 67
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "9fbe9a7e2856a1edb8cfb9a5ff9476f0edd738a51ad039562b1b611f22883cad",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-9",
+        "name": "read_file",
+        "arguments": {
+          "path": "calc.ts"
+        }
+      },
+      "result": {
+        "call_id": "call-9",
+        "input_hash": "05d3381db20ebe8882f0ca6b86469a69cf349ebdb1f5321953b201a710b550a2",
+        "source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "output_source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_file",
+          "execution_backend": "docker",
+          "content_hash": "5a8ea72447680fdc0fc5921fec3765952ba661e97231692a5bb98c0ffe36bfb8",
+          "next_offset": null,
+          "offset": 0,
+          "path": "calc.ts",
+          "text": "// 编码定位测试\nexport const add = (a: number, b: number): number => a - b;\n",
+          "total_bytes": 82
+        },
+        "failure": null
+      },
+      "result_hash": "7323c21cb693fa76d4353e20705d7082716ad74c2554a376590773002697626c",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-10",
+        "name": "apply_patch",
+        "arguments": {
+          "path": "calc.ts",
+          "expected_hash": "5a8ea72447680fdc0fc5921fec3765952ba661e97231692a5bb98c0ffe36bfb8",
+          "old_text": "a - b",
+          "new_text": "a + b + 0"
+        }
+      },
+      "result": {
+        "call_id": "call-10",
+        "input_hash": "4512398efb86e6e7efa40955df75b03047a535c74a7813276c1aeab3cd5a3582",
+        "source_hash": "f261dea388d9970a36d0b37b4b3fad9d97320e140dcbfad4bba6fef0c194cfb2",
+        "output_source_hash": "fc1633f8be84f6db6b5649e8ea7611d53c29bb882a9f5fd679dfa106dd24b687",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "apply_patch",
+          "execution_backend": "docker",
+          "changed_paths": [
+            "calc.ts"
+          ],
+          "content_hash": "1cad22407b10c123840b469425a82c73d7f2daca1f2ad1f4560ea6b0adb7ac65",
+          "path": "calc.ts"
+        },
+        "failure": null
+      },
+      "result_hash": "a945a67b4aa36483e94ef8a9f58072b3f14594cf22c8b68bb2716ef544466f53",
+      "snapshot_hash": "6440e884a8af12a4ac757295faa386d764366a5b8a5906b4f11ae9114fe5f3e6"
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-11",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-11",
+        "input_hash": "4be1ac5765779d0c0cb16658301e20e1f8f577572defb1fbf63920046a954405",
+        "source_hash": "fc1633f8be84f6db6b5649e8ea7611d53c29bb882a9f5fd679dfa106dd24b687",
+        "output_source_hash": "fc1633f8be84f6db6b5649e8ea7611d53c29bb882a9f5fd679dfa106dd24b687",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "passed",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:25.505495Z",
+                "completed_at": "2026-10-28T01:00:25.581377Z",
+                "duration_ms": 75,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0
+              }
+            ],
+            "test_results_hash": "87b9dde2ad350699f20fab79c03cd57d5b8a32bc8705bf7a009cadc8214d5860",
+            "command_evidence": [
+              {
+                "command_id": "tests",
+                "command_hash": "2f80a65e2f7e4f7fd0298d494f9671309e796008df9d41769e8b0b3d99b69aba",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:25.505495Z",
+                "completed_at": "2026-10-28T01:00:25.581377Z",
+                "resource_usage": {
+                  "user_cpu_ms": 36,
+                  "system_cpu_ms": 9,
+                  "max_rss_bytes": 61702144,
+                  "minor_page_faults": 2866,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 27,
+                  "involuntary_context_switches": 8
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0,
+                "stderr_log": "",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 75
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": null
+      },
+      "result_hash": "9235921da4124b01fa44646a8ea87b2c8ccbdcab9bb369b974d3449cbbf56dff",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "ef1dd97b4de51246757e0278730f9810b13949e4791180549d397d7d370de4ad",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "call-12",
+        "name": "read_diff",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "call-12",
+        "input_hash": "b64e7f2eb1aa19b33d97f7209d1a1aa7e0d3abee78a6a66eab9d5a8afd656f76",
+        "source_hash": "fc1633f8be84f6db6b5649e8ea7611d53c29bb882a9f5fd679dfa106dd24b687",
+        "output_source_hash": "fc1633f8be84f6db6b5649e8ea7611d53c29bb882a9f5fd679dfa106dd24b687",
+        "status": "succeeded",
+        "artifact_id": null,
+        "data": {
+          "tool": "read_diff",
+          "execution_backend": "docker",
+          "content_hash": "dafeb82f748aee07974733ffe4c7addf3e3712aa80aae7c16e076b86e3d34d46",
+          "next_offset": null,
+          "offset": 0,
+          "text": "--- a/calc.ts\n+++ b/calc.ts\n@@ -1,2 +1,2 @@\n // 编码定位测试\n-export const add = (a: number, b: number): number => a + b;\n+export const add = (a: number, b: number): number => a + b + 0;\n",
+          "total_bytes": 193
+        },
+        "failure": null
+      },
+      "result_hash": "a1996e6ae8494c73c02f7a148557ebd71d981aa79c01163ef0eca70e9ba435fc",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "2799939878d7893f28ae65d8c9cb3c8ad043fe21835b7afbea544f11d2e3de74",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "help-probe",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "help-probe",
+        "input_hash": "a7575e9ccdf8e18da050605cbe58edd4663426513df3ceafa2da3926f29d2be3",
+        "source_hash": "2799939878d7893f28ae65d8c9cb3c8ad043fe21835b7afbea544f11d2e3de74",
+        "output_source_hash": "57f7a5d5f44eac7cce56ad74a3ec5039d286bf550bb06e71858d1ec4486cf451",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "environment_blocked",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "check",
+                "command_hash": "22afbc1ad1a395cbf2c43263cf53631007f7feeca820b05fb3d7744225e11837",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:27.431077Z",
+                "completed_at": "2026-10-28T01:00:27.438737Z",
+                "duration_ms": 7,
+                "stdout_hash": "a56491fd059bf70fd248579a00fadb3685bf054581d5bedeb5709ce93580544a",
+                "stdout_bytes": 39,
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0
+              }
+            ],
+            "test_results_hash": "3f82a51bc56e96c9c06cdf8f8439d6de8b588e27486597e2811373ce12981a45",
+            "command_evidence": [
+              {
+                "command_id": "check",
+                "command_hash": "22afbc1ad1a395cbf2c43263cf53631007f7feeca820b05fb3d7744225e11837",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:27.431077Z",
+                "completed_at": "2026-10-28T01:00:27.438737Z",
+                "resource_usage": {
+                  "user_cpu_ms": 2,
+                  "system_cpu_ms": 2,
+                  "max_rss_bytes": 17813504,
+                  "minor_page_faults": 523,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 1,
+                  "involuntary_context_switches": 0
+                },
+                "stdout_hash": "a56491fd059bf70fd248579a00fadb3685bf054581d5bedeb5709ce93580544a",
+                "stdout_bytes": 39,
+                "stdout_log": "Usage: check [options]\nFlags:\n  --help\n",
+                "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_bytes": 0,
+                "stderr_log": "",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 7
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": {
+          "category": "environment",
+          "safe_reason_code": "agent_check_environment_blocked",
+          "retryable": false,
+          "remaining_budget": {},
+          "next_allowed_action": "inspect_diagnostic",
+          "blocking_scope": "session",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "c702bd1e6f65aa8d39a50fa517bf34057c9843fe733dcf677abb21632077d253",
+      "snapshot_hash": null
+    },
+    {
+      "binding": {
+        "task_id": "task",
+        "snapshot_id": "snapshot",
+        "snapshot_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attempt_id": "attempt",
+        "attempt_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "plan_id": "plan",
+        "plan_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "plan_content_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "authorization_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "archive_hash": "4841120ebf5bb147b81fa7d773c00f87d62befd8e7f1a23cb9554313d479ae56",
+        "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+        "baseline_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "model_binding_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "call": {
+        "call_id": "help-probe",
+        "name": "run_approved_checks",
+        "arguments": {}
+      },
+      "result": {
+        "call_id": "help-probe",
+        "input_hash": "a7575e9ccdf8e18da050605cbe58edd4663426513df3ceafa2da3926f29d2be3",
+        "source_hash": "4841120ebf5bb147b81fa7d773c00f87d62befd8e7f1a23cb9554313d479ae56",
+        "output_source_hash": "57f7a5d5f44eac7cce56ad74a3ec5039d286bf550bb06e71858d1ec4486cf451",
+        "status": "rejected",
+        "artifact_id": null,
+        "data": {
+          "tool": "run_approved_checks",
+          "execution_backend": "docker",
+          "outcome": "environment_blocked",
+          "verification": {
+            "succeeded": true,
+            "test_results": [
+              {
+                "version": "normalized-test-result-v1",
+                "command_id": "check",
+                "command_hash": "a1d7c48d634f71fa560a2471f6dbcc8a73a37ea9c9e3953e7f704c3078af9ffa",
+                "outcome": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:28.360639Z",
+                "completed_at": "2026-10-28T01:00:28.383191Z",
+                "duration_ms": 22,
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stderr_hash": "0022ee81eaae586301bd919619db568337b011018f4f635ccdae17bcdd457edb",
+                "stderr_bytes": 98
+              }
+            ],
+            "test_results_hash": "13403fcae9dd8cd40a90d934dba0375200d7424726aa03c135411136197c605c",
+            "command_evidence": [
+              {
+                "command_id": "check",
+                "command_hash": "a1d7c48d634f71fa560a2471f6dbcc8a73a37ea9c9e3953e7f704c3078af9ffa",
+                "status": "passed",
+                "exit_code": 0,
+                "started_at": "2026-10-28T01:00:28.360639Z",
+                "completed_at": "2026-10-28T01:00:28.383191Z",
+                "resource_usage": {
+                  "user_cpu_ms": 12,
+                  "system_cpu_ms": 5,
+                  "max_rss_bytes": 17874944,
+                  "minor_page_faults": 848,
+                  "major_page_faults": 0,
+                  "voluntary_context_switches": 1,
+                  "involuntary_context_switches": 0
+                },
+                "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stdout_bytes": 0,
+                "stdout_log": "",
+                "stderr_hash": "0022ee81eaae586301bd919619db568337b011018f4f635ccdae17bcdd457edb",
+                "stderr_bytes": 98,
+                "stderr_log": "\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n",
+                "logs_truncated": false,
+                "raw_logs_omitted": false,
+                "duration_ms": 22
+              }
+            ]
+          },
+          "actual_checks_started": 1,
+          "actual_tests_executed": null
+        },
+        "failure": {
+          "category": "environment",
+          "safe_reason_code": "agent_check_environment_blocked",
+          "retryable": false,
+          "remaining_budget": {},
+          "next_allowed_action": "inspect_diagnostic",
+          "blocking_scope": "session",
+          "evidence_ref": null
+        }
+      },
+      "result_hash": "783157cf030895f01d484812b6162eb55f2e5caf153381a660614bd181238c28",
+      "snapshot_hash": null
+    }
+  ],
+  "scripted_fixture_tool_inputs": true,
+  "autonomous_model_journey": false
+}

@@ -3,15 +3,16 @@ import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
 const {chromium} = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({headless:true, executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE});
+const origin = process.env.CONTRIBOS_BROWSER_ORIGIN || 'http://127.0.0.1:8765';
 const page = await browser.newPage({viewport:{width:1440,height:1000}});
 const errors=[], calls=[];
 page.on('pageerror', error => errors.push(error.message));
 try {
-  await page.goto('http://127.0.0.1:8765');
+  await page.goto(origin);
   await page.locator('#sidebar-tasks a').first().click();
   await page.locator('.conversation-agent-message').first().waitFor();
   const task = (await page.evaluate(() => location.hash)).split('/').at(-1);
-  const url=`http://127.0.0.1:8765/api/v1/tasks/${task}/workbench`;
+  const url=`${origin}/api/v1/tasks/${task}/workbench`;
   const original=await (await page.request.get(url)).json();
   let reject=false;
   const source={id:'runtime-result',record_hash:'a'.repeat(64),sequence:9000,

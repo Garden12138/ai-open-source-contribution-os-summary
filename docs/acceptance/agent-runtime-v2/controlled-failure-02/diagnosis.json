@@ -1,0 +1,11 @@
+{
+  "classification": "failed_controlled_real_model_tool_loop",
+  "category": "platform_context_replay",
+  "reason_code": "repeated_source_reads_without_check_progress",
+  "operator_interventions_total": 1,
+  "counts_as_autonomous": false,
+  "operator_business_patches": 0,
+  "result_sha256": "cba79692193353479467edfc2e39bc7ed98780d98145867b67837be9e0bb6890",
+  "remediation": "Derive named tool history, current changed-file hashes and check state from durable journal; retain recent decisions and improve conflict receipts. Do not raise budgets.",
+  "counts_as_M5": false
+}

@@ -1,0 +1,7 @@
+{
+  "classification": "protocol_spike_no_model_or_credentials",
+  "cli_version": "codex-cli 0.164.0",
+  "app_server_initialize": true,
+  "model_tool_loop": "not_exercised",
+  "external_writes": 0
+}

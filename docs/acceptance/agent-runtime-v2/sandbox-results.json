@@ -1,0 +1,77 @@
+{
+  "classification": "actual_macos_arm64_orbstack_suites",
+  "runner_image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "builder_image": "sha256:6425ea7d9db3d4f9fa8d30146d1c23764ee9060d4dce2750ccbb1291f07b807a",
+  "provider_image": "sha256:8c9b7bc43b4b9e3c12da273709466eb7ad919014d6b8a508e9ac2cd56e2efbdf",
+  "expanded_legacy_oci": {
+    "tests": 36,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 36,
+    "sha256": "102877c837559b7ea53d12e66bf40179c04aa7b76159b864c7b8fc128ab2cd26"
+  },
+  "provider_boundary": {
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 3,
+    "sha256": "95fc23c6852d22f4d20d2348227bd3073817e31b26a8be697e4f5fd6210fdc00"
+  },
+  "actual_oci_cases_unique": 44,
+  "malicious_six_are_subset_of_expanded_suite": true,
+  "linux_amd64_tested": false,
+  "earlier_failures_retained": {
+    "expanded_initial": {
+      "tests": 36,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 32,
+      "sha256": "006243fa03dd112678885b6eeb9192efe60e65d221cba42303908c3fc44c52ad"
+    },
+    "yarn_first_repair_incomplete": {
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 0,
+      "sha256": "81bba15bd285818ad8c9fdf35605dc57437dff26d290f720ca8e16391a21a0c9"
+    },
+    "yarn_final_repair": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 2,
+      "sha256": "980dff8c161a6d15ac7b4250cdd2e3fb56d79d2cc0c58288685a8fc85da4f5e5"
+    }
+  },
+  "browser": {
+    "runtime_drawer_desktop_mobile": {
+      "passed": 2,
+      "failed": 0,
+      "artifact_page_reads": 4,
+      "origin": "http://127.0.0.1:18080",
+      "data_classification": "explicitly_intercepted_contract_data"
+    },
+    "legacy_conversation": "passed reply binding/reload/retry/foreground confirmation preservation/desktop/mobile"
+  },
+  "doctor": {
+    "passed": 11,
+    "total": 11
+  },
+  "counts_as_M5": false,
+  "agent_tools_with_two_offline_cases": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 7,
+    "seconds": 28.321,
+    "report_hash": "55072d72d10cb730145d1a5f4ae8fe3b1b083e17e45643b09b7d86a70c20b3e8",
+    "actual_docker_cases": 5,
+    "offline_cases": 2
+  }
+}

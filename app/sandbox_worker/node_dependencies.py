@@ -5,6 +5,41 @@ from app.node_environments import validate_node_recipe
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
 
 
+def restore_unchanged_json_manifest(source_path: str, target_path: str, expected_hash: str) -> None:
+    """Undo package-manager formatting only, preserving the frozen source bytes."""
+    import hashlib
+    import json
+    from pathlib import Path
+
+    source, target = Path(source_path), Path(target_path)
+    if source.is_symlink() or target.is_symlink():
+        raise ValueError("manifest_symlink_denied")
+    original, actual = source.read_bytes(), target.read_bytes()
+    if hashlib.sha256(original).hexdigest() != expected_hash:
+        raise ValueError("manifest_source_hash_mismatch")
+    if hashlib.sha256(actual).hexdigest() == expected_hash:
+        return
+
+    def pairs(values):
+        result = {}
+        for key, value in values:
+            if key in result:
+                raise ValueError("manifest_duplicate_key")
+            result[key] = value
+        return result
+
+    def invalid_constant(value):
+        raise ValueError("manifest_invalid_constant")
+
+    def canonical(value):
+        return json.dumps(json.loads(value, object_pairs_hook=pairs,
+            parse_constant=invalid_constant), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+    if canonical(original) != canonical(actual):
+        raise ValueError("manifest_declarations_changed")
+    target.write_bytes(original)
+
+
 def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> None:
     """Network acquisition excludes scripts; a second offline container builds."""
     import hashlib
@@ -211,9 +246,16 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
                 "binary_name":binary,"main":main,"binary_hash":digest(package_root/main)})
         # Private lock generation does not authorize changing the project's
         # package declarations, even inside the disposable installation copy.
-        if any(digest(project/m["path"]) != m["content_hash"] for m in plan["manifests"]
-               if m["path"].endswith("package.json")):
-            raise SystemExit(110)
+        for manifest in plan["manifests"]:
+            if manifest["path"].endswith("package.json"):
+                try:
+                    # Yarn 4 reformats package.json even with scripts disabled.
+                    # Preserve exact frozen bytes only after strict semantic
+                    # equality; changed declarations still fail closed.
+                    restore_unchanged_json_manifest(str(Path("/workspace")/manifest["path"]),
+                        str(project/manifest["path"]), manifest["content_hash"])
+                except (ValueError, OSError):
+                    raise SystemExit(110) from None
         hashes = {m["path"]: digest(project / m["path"]) for m in plan["manifests"]
                   if (project / m["path"]).is_file() and not m["path"].endswith((".yarnrc.yml","bunfig.toml"))}
         if not lock:
@@ -252,6 +294,12 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
         else:
             argv = [manager, "rebuild", "--offline", "--cache", str(output / "cache")]
         run(argv, "node_build", cwd=work)
+        for path, expected in receipt["manifest_hashes"].items():
+            if path.endswith("package.json"):
+                try:
+                    restore_unchanged_json_manifest(str(Path("/workspace")/path), str(project/path), expected)
+                except (ValueError, OSError):
+                    raise SystemExit(110) from None
         if any(digest(project / path) != expected for path, expected in receipt["manifest_hashes"].items()):
             raise SystemExit(110)
         # Workspace links must resolve to the current execution source, never

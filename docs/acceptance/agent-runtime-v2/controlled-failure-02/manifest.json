@@ -1,0 +1,14 @@
+{
+  "classification": "controlled_archive_real_model_real_docker_fixture_plan",
+  "sample": "python",
+  "variant": "labels-v2",
+  "files_hash": "d05f8fed12e9a9f3b65b3a1d95e93db85623f658066d920d1dfb567c1afb6383",
+  "goal": "Extend the label normalizer to trim surrounding whitespace before lowercasing and return \"guest\" for empty or whitespace-only input. Preserve existing behavior for nonempty labels. Add meaningful regression tests for the new behavior in the approved test file. Use only the two approved paths; read source and tests, edit incrementally, run all checks and fix any regression.",
+  "model": "minimaxai/minimax-m3.1-flash",
+  "write_paths": [
+    "labels.py",
+    "tests/test_labels.py"
+  ],
+  "human_acceptance": false,
+  "counts_as_M5": false
+}
