@@ -1,0 +1,133 @@
+{
+  "classification": "actual_native_research_not_code_delivery",
+  "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+  "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+  "capabilities": {
+    "version": "agent-capabilities-v1",
+    "source_readable": true,
+    "manifest_recognized": false,
+    "dependencies_preparable": "unknown",
+    "baseline_executable": "unknown",
+    "verification_supported": "unknown",
+    "reason_codes": [],
+    "source_event_hash": "5d17853eca8cb343e51b7d648607d8f089d50d90cef6df2d394650161acb507b",
+    "baseline_event_hash": null
+  },
+  "preflight": {
+    "version": "execution-capabilities-v3",
+    "status": "not_planned",
+    "issues": [],
+    "environment": {
+      "status": "pending_scope",
+      "manifests": [],
+      "reason": "仓库代码已读取；先阅读相关代码与项目规范、确定方案，再评估实施与测试依赖。"
+    },
+    "input_hash": "a6498bebb366654356001a3c636c85cf4932033b5a75fd7954624f9387a7bfb9",
+    "limits": {
+      "coding_file_bytes": 700000,
+      "coding_context_bytes": 1500000
+    },
+    "report_hash": "6ebdfb965616a47562ec5b5ea769c22cb91b32434de3b7b8ccdfacf524a9b03b"
+  },
+  "environment": {
+    "status": "pending_scope",
+    "manifests": [],
+    "reason": "仓库代码已读取；先阅读相关代码与项目规范、确定方案，再评估实施与测试依赖。"
+  },
+  "source_context_receipts": [
+    {
+      "record_hash": "7dd3a3cf47c576117b95b30e82a752d7239c844cf45fa75e5fc76ebabf09e86c",
+      "artifact_id": "526496835955d50e194e9be32d1de7a16ac3e4ed78d316f899dc6fc2901c7216",
+      "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "branch": "main",
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "inputs_hash": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    {
+      "record_hash": "5d17853eca8cb343e51b7d648607d8f089d50d90cef6df2d394650161acb507b",
+      "artifact_id": "5bf63cc0d9a1c96e22f43a0cd576b2121761a6aec1b0ef5c46e444e54a8d19b5",
+      "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
+      "branch": "main",
+      "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "inputs_hash": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    }
+  ],
+  "model_outputs": [
+    {
+      "record_hash": "a782c46e011db35a9f0a42347f46835b20601450000a7db0b58e7a472ffb1bdf",
+      "read_paths": [
+        ".github/contributing.md",
+        ".github/pull_request_template.md",
+        ".github/workflows/check-pr.yml",
+        ".github/workflows/test-pr.yml",
+        "package.json",
+        "src/typed/isObject.ts",
+        "tests/typed/isObject.test.ts",
+        "src/types.ts"
+      ],
+      "read_context": [],
+      "questions": [],
+      "reply": "",
+      "plan_receipt": {
+        "status": "not_requested",
+        "plan_id": null,
+        "execution_started": false
+      },
+      "usage": {
+        "input_tokens": 23988,
+        "output_tokens": 72,
+        "duration_ms": 67621,
+        "provider": {
+          "provider": "nvidia_nim",
+          "adapter_version": "nvidia-nim-chat-v28",
+          "model": "minimaxai/minimax-m3.1-flash",
+          "model_version": "nvidia-build-catalog"
+        }
+      }
+    }
+  ],
+  "rejections": [],
+  "jobs": [
+    {
+      "kind": "conversation_intent",
+      "state": "failed",
+      "error_code": "conversation_decision_invalid"
+    },
+    {
+      "kind": "planning_archive",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "kind": "planning_turn",
+      "state": "failed",
+      "error_code": "model_gateway_upstream_failure"
+    }
+  ],
+  "operator_business_patches": 0,
+  "counts_as_completed_delivery": false,
+  "human_plan_approved": false,
+  "human_final_acceptance": false,
+  "operator_interventions": 1,
+  "autonomous_eligible": false,
+  "active_jobs": 0
+}

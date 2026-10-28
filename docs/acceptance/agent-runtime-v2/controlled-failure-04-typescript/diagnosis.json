@@ -1,0 +1,11 @@
+{
+  "classification": "post_failed_sample_platform_maintenance",
+  "sample": "typescript-count-v4",
+  "original_result_preserved": true,
+  "sample_ended_before_platform_change": true,
+  "failure": "Independent real Review provider error after real coding and checks",
+  "subsequent_operator_platform_interventions": 1,
+  "intervention": "Preserve safe ProviderRunError reason/message through independent Review boundary",
+  "operator_business_patches": 0,
+  "counts_as_M5": false
+}

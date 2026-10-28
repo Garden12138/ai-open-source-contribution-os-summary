@@ -45,3 +45,29 @@ indexing/search/line paging and reduced prompt limits apply only to those
 requests; old pending v1 planning jobs retain their original context policy.
 Source artifacts remain complete and immutable. Approval is still required
 after planning and before dependency preparation, baseline or implementation.
+
+## Isolated operator sequence
+
+Use a fresh database/artifact directory and non-conflicting loopback port. Set
+`AGENT_RUNTIME_V2_ENABLED=1`, `SANDBOX_STAGE_RUNTIME=docker`, a digest-pinned
+`WORKBENCH_RUNNER_IMAGE` and a private sandbox job signing key. Keep
+`PUBLISHER_MODE=none`. Start `serve`, `worker`, `provider-worker` and
+`sandbox-worker` as separate roles. Model keys belong only in the credential
+Gateway; Provider uses its scoped gateway signing mechanism. Supply a declared
+read-only discovery token only to API/Orchestrator. Sandbox must receive none
+of these credentials; Docker capability belongs only to its trusted supervisor.
+Do not source a broad production `.env` into every role.
+
+Open the native task and inspect the full generated plan, exact source/base,
+write paths, all argv/cwds and current model binding before human confirmation.
+Do not approve from a stale saved screenshot. The native exact execution
+control creates authorization; a chat “continue” does not. Preparation and
+baseline run after that boundary. If Review passes, inspect actual diff/test/
+review artifacts and obtain separate final human acceptance. Publisher preview
+and any external write retain their separate exact account/action approvals.
+
+On shutdown, pause/cancel through the task control and drain in-flight work.
+On restart, use the same matched database, artifacts, code, runner and private
+signing configuration. An unacknowledged tool start blocks for reconciliation;
+never clear that event or lease to force a second execution. Preserve failed
+native samples before repairing platform code; freeze a new sample afterward.

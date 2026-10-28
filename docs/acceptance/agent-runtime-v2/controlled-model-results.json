@@ -52,5 +52,7 @@
     "controlled-failure-04-typescript",
     "controlled-failure-05-typescript"
   ],
-  "note": "Fixture discovery and exact plan approvals do not count as a native unfamiliar task or human final acceptance. Failed samples remain failed; platform fixes used new samples."
+  "note": "Fixture discovery and exact plan approvals do not count as a native unfamiliar task or human final acceptance. Failed samples remain failed; platform fixes used new samples.",
+  "failed_samples_subsequent_platform_interventions": 4,
+  "intervention_definition": "One recorded platform repair episode after an affected sample ended; successful-run intervention count stays zero. These are not business patches."
 }

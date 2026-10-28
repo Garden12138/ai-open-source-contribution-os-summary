@@ -4670,7 +4670,7 @@ interrupt/reopen, Agents SDK two-tool/reopened-session probes and Codex
 app-server initialization are recorded in the engine ADR. The selected journal
 loop retains SQLite/Workbench authority, CAS, exact authorization/runtime
 pinning, separate leased model/tool jobs and cumulative budgets. No project
-SDK dependency was added. Final default suite: **1485 passed / 53 skipped /
+SDK dependency was added. Final default suite: **1486 passed / 53 skipped /
 0 failed**, four disjoint shards; see machine reports in the acceptance folder.
 
 Actual macOS arm64/OrbStack container regression: **44 unique cases passed**
@@ -4715,7 +4715,17 @@ through native conversation, real archived source and exact query/line paging, a
 GitHub credential was enabled only in isolated API/Orchestrator. Provider and
 Sandbox receive no GitHub credential. Exact human plan/execution approval,
 final acceptance and native publication preview remain outstanding; nothing
-is inferred from chat agreement. Old configured models return HTTP410;
+is inferred from chat agreement. Native radashi #386 failed a 35-vs-32 prerequisite read bound; the sample ended
+before repair. New v2 reads drain in <=32-path batches, preserving draft, source
+hashes and original total budgets; restart regression and full **1486/0/53**
+passed. Platform fix is local commit `78347ac`, after implementation `3356921`.
+Gradio #13974 failed Gateway HTTP502, not a proven unsupported environment.
+New radashi #257 and gradio #13906 facade entries were incomplete; subsequent
+research through the product planning control is durably marked maintenance
+and permanently non-autonomous. Neither is a native delivery or accepted
+boundary. Both newest assisted research jobs ended with Gateway HTTP502 and
+no plan/code/tests/Review; all native jobs are now terminal. No remote operation
+was performed. Old configured models return HTTP410;
 alternate MiniMax works with intermittent HTTP429, while DeepSeek probes fail.
 
 Only isolated port **18080** / new storage, separate Gateway **18081** and

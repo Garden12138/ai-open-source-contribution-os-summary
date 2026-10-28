@@ -1,0 +1,63 @@
+{
+  "classification": "honest_incomplete_architecture_refactor_handoff",
+  "measured_at": "2026-10-28T02:57:27.489754+00:00",
+  "branch": "refactor/agent-runtime-v2",
+  "baseline_commit": "27802bb5f1e61c3a21c61bc2dfb2ad597ab233d0",
+  "implementation_commit": "33569218720a25780ec2e4d8887d3ac200b9a7ce",
+  "milestones": {
+    "M0": "passed",
+    "M1": "passed",
+    "M2": "passed",
+    "M3": "passed",
+    "M4": "passed",
+    "M5": "incomplete_blocked_exact_human_approval_and_native_acceptance",
+    "M6": "local_checks_passed_cross_platform_and_native_gates_incomplete"
+  },
+  "default_tests": {
+    "passed": 1486,
+    "failed": 0,
+    "skipped": 53
+  },
+  "actual_oci_unique_cases_passed": 44,
+  "controlled_live_samples": {
+    "passed": 2,
+    "failed_or_ended": 5,
+    "counts_as_M5": false,
+    "successful_operator_interventions": 0,
+    "operator_business_patches_all_samples": 0,
+    "failed_samples_subsequent_platform_interventions": 4
+  },
+  "native_human_accepted_deliveries": 0,
+  "native_accepted_boundary_samples": 0,
+  "production_deployed": false,
+  "remote_actions": {
+    "push": 0,
+    "pull_requests_created": 0,
+    "forks": 0,
+    "cla_signatures": 0,
+    "main_merges": 0
+  },
+  "remaining_gates": [
+    "Exact approval of frozen native plan before baseline and implementation",
+    "Native Python delivery, actual tests, independent Review and separate human final acceptance",
+    "Native TypeScript delivery with actual failure and code repair, independent Review and separate human final acceptance",
+    "Native upstream-fixed or unsupported-environment boundary stop",
+    "Native Publisher preview with separately supplied account configuration if required; no external write approval",
+    "Actual native Linux amd64/Docker Engine policy, tools, malicious fixtures and recovery evidence"
+  ],
+  "initial_formal_services_and_data_untouched": true,
+  "latest_platform_commit": "78347ac631e74977a700b4d11e380542d708eed4",
+  "remaining_native_entry_limitations": [
+    "Actual facade sometimes returns an empty final step or promises investigation without dispatch; bounded correction does not invent actions or approvals.",
+    "New research entered through native planning control is marked permanently non-autonomous in immutable task events."
+  ],
+  "native_assisted_research_samples": 3,
+  "native_assisted_entry_interventions": 3,
+  "external_blockers": {
+    "human_exact_approval": "S1 immutable plan is saved but no execution authorization or final human acceptance exists.",
+    "model_service": "Last three real native research jobs returned model_gateway_upstream_failure / Gateway HTTP502; prior HTTP429/410 and empty structured responses retained. A healthy supported service for full native journeys is unproven.",
+    "linux_amd64": "Only local default and OrbStack contexts are available; actual engine is linux/aarch64. No native Linux amd64 Docker endpoint supplied."
+  },
+  "active_native_jobs": 0,
+  "native_new_assisted_research_outcome": "Both newest research jobs failed at Gateway HTTP502; no plan, edits, checks or Review."
+}

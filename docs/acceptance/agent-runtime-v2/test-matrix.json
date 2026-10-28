@@ -69,8 +69,8 @@
       "case": "T10",
       "status": "partial",
       "level": "Existing stale/upstream contracts; real boundary sample absent",
-      "evidence": "tests/test_execution_acceptance.py; tests/test_publisher_settings.py",
-      "result": "Exact stale approval remains rejected. No native S3 obsolete/unsupported sample has passed."
+      "evidence": "tests/test_execution_acceptance.py; tests/test_publisher_settings.py; native-boundary-research.json; native-boundary-queue-research.json",
+      "result": "Stale approval contracts pass. Two real native source investigations reached Gateway HTTP502 before a typed environment conclusion; neither is an accepted S3 or upstream-fixed live sample."
     },
     {
       "case": "T11",
@@ -111,8 +111,8 @@
       "case": "T16",
       "status": "blocked",
       "level": "Native unfamiliar TypeScript E2E",
-      "evidence": "native-python-manifest.json",
-      "result": "Not started; supported healthy provider and human exact approvals are prerequisites."
+      "evidence": "native-typescript-manifest.json; native-typescript-batch-failure.json; native-typescript-batched-manifest.json; native-typescript-batched-research.json",
+      "result": "First frozen radashi #386 ended on prerequisite batching; platform fixed only after ending. New #257 native facade entry failed, and subsequent research is durably operator-marked non-autonomous. Exact approval and full real code/test/repair/Review/human acceptance are not complete. Latest assisted research ended with Gateway HTTP502, with no plan or implementation; no active job remains."
     },
     {
       "case": "T17",

@@ -10,7 +10,7 @@ Existing P5-G06, ENV-G01 and UXR-G01 remain open.
 
 ## Baseline and root causes
 
-Current call chain:
+Baseline call chain before this branch:
 
 ```mermaid
 flowchart TD
@@ -70,7 +70,7 @@ verification but retains native-delivery and Linux platform gates.
 
 | Verification | Passed | Failed | Skipped | Scope |
 | --- | ---: | ---: | ---: | --- |
-| Final default regression, four disjoint shards | 1485 | 0 | 53 | No real model; [machine report](regression-results.json) |
+| Final default regression, four disjoint shards | 1486 | 0 | 53 | No real model; [machine report](regression-results.json) |
 | Expanded actual OCI regressions | 36 | 0 | 0 | Environment, source, recovery, six malicious cases included |
 | Actual Provider container boundary | 3 | 0 | 0 | Read-only source, gateway-only network, injection |
 | Source-tool suite | 7 | 0 | 0 | Five actual Docker cases and two pure authority/UTF-8 cases |
@@ -129,8 +129,14 @@ all five unsuccessful/ended controlled samples. They are not a native success ra
 | Native #1268 | Hosted conditional schema HTTP400 | Equivalent disjoint schema, actually probed HTTP200 |
 | Native #1339 | Anonymous archive API rate limit | Existing declared read-only credential configured before a new sample |
 | Native #1315 | Mixed reads resolved, then large context and empty planning outcome | Hash-bound source search/line pages and nonempty output schema |
+| Native radashi #386 | 35 environment prerequisite paths exceed one 32-path read | Persist bounded batches under original budget; sample remains failed |
+| Native gradio #13974 | Gateway HTTP502 during planning | No code repair or environment-success claim |
+| New radashi #257 entry | Empty final reply and omitted reads after bounded corrections | No invented answer or dispatch; later research explicitly marked operator-assisted |
+| New gradio #13906 entry | Future-tense reply without investigation dispatch | Later native planning action explicitly marked operator-assisted |
 
-Every business patch count above is **0**. Platform changes occurred only after
+Every business patch count above is **0**. The five failed controlled samples
+record four subsequent platform repair episodes; the successful runs record zero.
+Platform changes occurred only after
 the affected sample ended and were followed by a new frozen sample. Failed raw
 reports are not rewritten; subsequent maintenance is counted in diagnoses.
 Actual provider differential probes retain rejected `allOf/if`, rejected
@@ -163,13 +169,23 @@ Preflight is admitted; **actual dependency preparation and baseline have not run
 Exact human execution approval and later final acceptance are pending.
 A general “continue” never substitutes for either approval.
 
-S2 TypeScript and S3 full-scope environment-boundary investigations are prepared
-through native discovery/conversation with their own manifests; their outcome
-is recorded separately. No implementation authorization or boundary success is
-inferred from a candidate description. No remote write is authorized.
+S2 radashi #257 and S3 gradio #13906 research uses real archived source after
+the facade entry failed or only narrated future work. The existing product
+planning control was invoked once per sample. Each has a durable
+`agent_maintenance_recorded` event and is permanently excluded from autonomous
+completion, even if subsequent research succeeds. Their manifests and research
+reports preserve this distinction. Both newest research jobs ended with `model_gateway_upstream_failure` / Gateway
+HTTP502, with no saved plan, execution authorization, edits, tests or Review.
+No native boundary success is inferred from an unsupported-looking repository.
+All native jobs are terminal; the only saved current S1 plan awaits exact human
+approval. No remote write is authorized.
 
 Remaining prerequisites and reproduction:
 
+- A healthy supported model service must complete full-size native requests.
+  The final three real native research jobs returned Gateway HTTP502; old model
+  IDs returned HTTP410, and empty/invalid responses were bounded and retained.
+  Do not raise/reset budgets or replace these failures with a tiny probe pass.
 - Human reviews/approves the exact frozen plan in the isolated product, or
   explicitly authorizes that plan/hash/base/scope/checks/model/budget. Only then
   may the product prepare baseline and run implementation. After real checks and

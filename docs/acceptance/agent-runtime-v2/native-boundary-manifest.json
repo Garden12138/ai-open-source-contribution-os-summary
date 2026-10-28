@@ -5,7 +5,7 @@
   "issue_number": 13974,
   "issue_url": "https://github.com/gradio-app/gradio/issues/13974",
   "base_sha": "56f0f8d9be57b0737b1f967fb90eed336e647212",
-  "base_verified_by_product": false,
+  "base_verified_by_product": true,
   "snapshot_id": "41a41991-c1ed-4911-a8f8-5787cf437b56",
   "task_id": "e1ce90d2-788d-42a2-a4ad-f8667db3d0cc",
   "frozen_before_native_message": true,
@@ -15,7 +15,7 @@
   "support_status": "unknown",
   "human_plan_approved": false,
   "human_final_acceptance": false,
-  "status": "investigating",
+  "status": "failed_model_gateway_upstream",
   "counts_as_completed_delivery": false,
   "external_writes": 0,
   "operator_business_patches": 0,
@@ -23,5 +23,14 @@
   "native_url": "http://127.0.0.1:18080/#/tasks/e1ce90d2-788d-42a2-a4ad-f8667db3d0cc",
   "native_message_id": "eeacc703-bbd5-4f9d-b6c6-b1451d008f71",
   "planning_job_id": "6faef832-ef0f-418d-afec-6c0d06f14c3c",
-  "native_entry_note": "Initial facade answered a future-tense investigation without dispatch; used existing native planning action, no code or approval injected."
+  "native_entry_note": "Initial facade answered a future-tense investigation without dispatch; used existing native planning action, no code or approval injected.",
+  "archive_hash": "de1bc08f1b97bb6b00f708843c8443f6eba53d3718375ce783ea1566a2fee439",
+  "execution_authorizations": 0,
+  "actual_code_edits": 0,
+  "independent_reviews": 0,
+  "correct_boundary_stop": false,
+  "sample_ended_before_platform_change": true,
+  "operator_entry_interventions": 1,
+  "independent_native_delivery_eligible": false,
+  "maintenance_event_hash": "a37b1e7ca0e35dc60129371aa8088bac2eebaa212c66ef17d9b9f647f11400aa"
 }

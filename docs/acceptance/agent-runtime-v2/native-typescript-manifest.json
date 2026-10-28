@@ -5,7 +5,7 @@
   "issue_number": 386,
   "issue_url": "https://github.com/radashi-org/radashi/issues/386",
   "base_sha": "0a0e8f4c96d141267adf02a78df7d5fbccb672ef",
-  "base_verified_by_product": false,
+  "base_verified_by_product": true,
   "snapshot_id": "bd869e41-aa50-4ec4-a0e1-c56e97a81b24",
   "task_id": "b5d5ded4-6f2b-490d-8172-6d32895487ea",
   "frozen_before_native_message": true,
@@ -15,11 +15,16 @@
   "support_status": "unknown",
   "human_plan_approved": false,
   "human_final_acceptance": false,
-  "status": "investigating",
+  "status": "failed_planning_read_batch_limit",
   "counts_as_completed_delivery": false,
   "external_writes": 0,
   "operator_business_patches": 0,
   "planning_runtime_version": "agent-runtime-v2",
   "native_url": "http://127.0.0.1:18080/#/tasks/b5d5ded4-6f2b-490d-8172-6d32895487ea",
-  "native_message_id": "f6947001-d7fb-4e87-8c41-11a4d153b370"
+  "native_message_id": "f6947001-d7fb-4e87-8c41-11a4d153b370",
+  "archive_hash": "a9107e7b3db8e3bde4be40e2784ff4ce0086827ffa7c74cbf412bcf4ea3c85b9",
+  "execution_authorizations": 0,
+  "actual_code_edits": 0,
+  "independent_reviews": 0,
+  "sample_ended_before_platform_change": true
 }
