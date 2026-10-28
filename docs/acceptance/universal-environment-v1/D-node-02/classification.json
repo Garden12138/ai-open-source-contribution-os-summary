@@ -1,0 +1,13 @@
+{
+  "classification": "D",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "passed",
+  "contract_hash": "128f4ed75e043597dca89e7b008eff05cb5975972572e4fbfee256644e0fd280",
+  "reason_code": null,
+  "reason_codes": [],
+  "executed": 2,
+  "required": 2
+}

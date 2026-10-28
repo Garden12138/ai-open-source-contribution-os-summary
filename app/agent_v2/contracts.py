@@ -65,6 +65,7 @@ class TaskSpec(StrictModel):
     goal: str = Field(min_length=1, max_length=12000)
     write_paths: list[str] = Field(min_length=1, max_length=500)
     commands: list[dict[str, Any]] = Field(min_length=1, max_length=100)
+    environment_evidence: dict[str, str] | None = None
 
     @field_validator("write_paths")
     @classmethod

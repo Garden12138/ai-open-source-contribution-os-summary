@@ -83,3 +83,14 @@ On restart, use the same matched database, artifacts, code, runner and private
 signing configuration. An unacknowledged tool start blocks for reconciliation;
 never clear that event or lease to force a second execution. Preserve failed
 native samples before repairing platform code; freeze a new sample afterward.
+
+## Forward revision 0039 and environment contracts
+
+`0039_environment_contracts` adds a guard for versioned, exact expected-Issue
+reproduction declarations in command JSON, without rewriting old rows. New
+signed dependency plan v6 and baseline v2 artifacts are opt-in and pinned to new
+plan bindings. Disabling that engine blocks its execution. Old approvals and
+preflight hashes retain their parser. Restore matched pre-upgrade code/database/
+artifacts for rollback, preserving later usage and failures. Initialize fresh
+schemas serially before starting roles. Actual upgrade/backup/hash preservation
+and unresolved acceptance are documented in [environment-engine-v1.md](environment-engine-v1.md).

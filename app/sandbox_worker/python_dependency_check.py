@@ -4,8 +4,14 @@ from __future__ import annotations
 
 def check_python_dependency_versions(packages: dict, local_versions: dict, override_edges: list) -> dict:
     """Match pip's runtime checks except for explicitly frozen local source edges."""
-    from packaging.requirements import Requirement
-    from packaging.utils import canonicalize_name
+    try:
+        from packaging.requirements import Requirement
+        from packaging.utils import canonicalize_name
+    except ModuleNotFoundError:
+        # The trusted validator belongs to the preparation toolchain. A project
+        # need not declare packaging merely to let us validate its environment.
+        from pip._vendor.packaging.requirements import Requirement
+        from pip._vendor.packaging.utils import canonicalize_name
     installed = {canonicalize_name(name):value for name,value in packages.items()}
     local = {canonicalize_name(name):version for name,version in local_versions.items()}
     edges = {(canonicalize_name(source),canonicalize_name(target)) for source,target in override_edges}

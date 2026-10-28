@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "original_event_counts": [
+    71,
+    165
+  ],
+  "all_original_event_ids_and_hashes_unchanged": true,
+  "all_original_ARV2_acceptance_files_unchanged": true,
+  "original_database_opened_readonly": true,
+  "new_business_patches": 0,
+  "new_approvals": 0,
+  "native_coding_sessions": 0
+}

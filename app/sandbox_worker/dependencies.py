@@ -34,6 +34,7 @@ WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v2"
 DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v3"
 SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v4"
 NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v5"
+ENVIRONMENT_DEPENDENCY_PLAN_VERSION = "workspace-dependency-plan-v6"
 DEPENDENCY_SIGNATURE_VERSION = "dependency-plan-hmac-sha256-v1"
 DEPENDENCY_PROXY_POLICY_VERSION = "dependency-proxy-policy-v1"
 DEPENDENCY_RESULT_VERSION = "dependency-preparation-result-v1"
@@ -186,9 +187,10 @@ class DependencyPreparationPlan:
     native_resource: dict | None = None
     project_directories: tuple[str, ...] = ()
     node_environment: dict | None = None
+    environment_contract: dict | None = None
 
     def __post_init__(self) -> None:
-        if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION}:
+        if self.version not in {DEPENDENCY_PLAN_VERSION, WORKSPACE_DEPENDENCY_PLAN_VERSION, DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION, SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION, ENVIRONMENT_DEPENDENCY_PLAN_VERSION}:
             raise ValueError("Dependency plan version is unsupported")
         workspace = self.version != DEPENDENCY_PLAN_VERSION
         if self.native_resource is not None:
@@ -196,8 +198,18 @@ class DependencyPreparationPlan:
             if not workspace or self.ecosystem != "python":
                 raise ValueError("Native resource binding is invalid")
             validate_resource_binding(self.native_resource)
-        source_build = self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION
-        node = self.version == NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION
+        universal = self.version == ENVIRONMENT_DEPENDENCY_PLAN_VERSION
+        if universal:
+            from app.environment_engine.contracts import VerificationEnvironmentContract
+            from app.provenance import canonical_json
+            contract = VerificationEnvironmentContract.model_validate_json(canonical_json(self.environment_contract))
+            if (contract.admission != "static_admitted" or contract.binding.runner_image_digest != self.runner_image_digest
+                    or contract.binding.sandbox_policy_hash != self.sandbox_policy_hash):
+                raise ValueError("Environment contract binding is invalid")
+        elif self.environment_contract is not None:
+            raise ValueError("Legacy dependency plans cannot acquire new contracts")
+        source_build = self.version == SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or universal and self.distribution_strategy == "source-wheel-v1"
+        node = self.version == NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION or universal and self.ecosystem == "node"
         if node:
             from app.node_environments import validate_node_recipe
             validate_node_recipe(self.node_environment)
@@ -234,7 +246,7 @@ class DependencyPreparationPlan:
                 raise ValueError("Node build strategy requires its builder image")
         elif self.distribution_strategy != "wheel-only-v1" or self.builder_image_digest is not None:
             raise ValueError("Legacy dependency strategies remain wheel-only")
-        if (source_build and self.metadata_strategy not in {"wheel-metadata-v1","declarative-v1"}) or (not source_build and self.metadata_strategy != ("wheel-metadata-v1" if self.version == DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION else "declarative-v1")):
+        if ((source_build or universal) and self.metadata_strategy not in {"wheel-metadata-v1","declarative-v1"}) or (not source_build and not universal and self.metadata_strategy != ("wheel-metadata-v1" if self.version == DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION else "declarative-v1")):
             raise ValueError("Dependency metadata strategy does not match its version")
         if workspace:
             if self.source_kind != "explore":
@@ -361,6 +373,10 @@ class DependencyPreparationPlan:
             value["environment_layout"] = "per-package-v1"
         if self.node_environment is not None:
             value["node_environment"] = self.node_environment
+        if self.environment_contract is not None:
+            value.update(environment_contract=self.environment_contract, metadata_strategy=self.metadata_strategy)
+            if self.builder_image_digest is not None:
+                value.update(distribution_strategy=self.distribution_strategy, builder_image_digest=self.builder_image_digest)
         return value
 
 
@@ -751,7 +767,7 @@ class DockerDependencyRuntime:
                         policy=sandbox_policy,
                         container_name=name,
                         scratch_bytes=min(536870912,sandbox_policy.memory_bytes//2,sandbox_policy.disk_bytes//4)
-                            if plan.version in {SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION} else 134217728)
+                            if plan.version in {SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION, NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION, ENVIRONMENT_DEPENDENCY_PLAN_VERSION} else 134217728)
                     if plan.native_resource is not None:
                         from pathlib import Path
                         from app.sandbox_worker.native_resources import verify_cache
@@ -790,7 +806,7 @@ class DockerDependencyRuntime:
                                 timeout_seconds=max(1, int(deadline-time.monotonic())))
                         break
                     except SourceBuildRequired as request:
-                        if plan.version!=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or build_round>=8:
+                        if plan.distribution_strategy != "source-wheel-v1" or build_round>=8:
                             raise DependencyPreparationError('Source build not authorized or budget exhausted') from None
                         from app.sandbox_worker.source_wheels import validate_source_build_request
                         value=validate_source_build_request(request.request)
@@ -945,7 +961,7 @@ class DockerDependencyRuntime:
         from app.sandbox_worker.source_wheels import OFFLINE_SOURCE_BUILD_SCRIPT, validate_source_build_request
         from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
         validate_source_build_request(request)
-        if plan.version!=SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION or not _WORKER_CONTAINER.fullmatch(container_name):
+        if plan.distribution_strategy != "source-wheel-v1" or not _WORKER_CONTAINER.fullmatch(container_name):
             raise ValueError('Source build is not authorized')
         result=[]
         index=0
@@ -1153,6 +1169,7 @@ class DockerDependencyRuntime:
             logger.error("Sandbox container failed: code=%s stderr_bytes=%s stdout_bytes=%s",
                          process.returncode, len(stderr), len(stdout))
             phase = {
+                113: ("platform_binary_unavailable", "冻结环境目标平台与容器实际架构不符；未准备依赖或修改代码。"),
                 110: ("environment_node_recipe_invalid", "Node 环境版本、工作区链接或冻结清单校验失败；尚未修改代码。"),
                 111: ("environment_node_preparation_failed", "Node 工具、依赖解析或离线构建未完成；尚未修改代码。"),
                 94: ("environment_preparation_failed", "隔离 Python 环境创建未完成；尚未修改代码。"),
@@ -1504,6 +1521,18 @@ for manifest in plan["manifests"]:
             digest.update(chunk)
     if digest.hexdigest() != manifest["content_hash"]:
         raise SystemExit(84)
+if plan.get("environment_contract"):
+    import platform
+    target = "linux/" + {"aarch64": "arm64", "x86_64": "amd64"}.get(platform.machine(), "unknown")
+    if plan["environment_contract"]["binding"]["target_platform"] != target:
+        raise SystemExit(113)
+    for evidence in plan["environment_contract"]["evidence"]:
+        source = os.path.join("/workspace", evidence["path"])
+        if os.path.islink(source) or not os.path.isfile(source):
+            raise SystemExit(84)
+        with open(source, "rb") as handle:
+            if hashlib.file_digest(handle, "sha256").hexdigest() != evidence["sha256"]:
+                raise SystemExit(84)
 
 environment = {
     "HOME": "/tmp",
@@ -1522,7 +1551,7 @@ if node_offline:
 if plan.get("node_environment") is not None:
     dependency_root = "/dependencies/output"
     __NODE_PREPARATION__
-elif plan["ecosystem"] == "python" and plan["version"] in {"workspace-dependency-plan-v2", "workspace-dependency-plan-v3", "workspace-dependency-plan-v4"} and any(m["path"].endswith("pyproject.toml") for m in plan["manifests"]):
+elif plan["ecosystem"] == "python" and plan["version"] in {"workspace-dependency-plan-v2", "workspace-dependency-plan-v3", "workspace-dependency-plan-v4", "workspace-dependency-plan-v6"} and any(m["path"].endswith("pyproject.toml") for m in plan["manifests"]):
     __WORKSPACE_PYTHON_PREPARATION__
 elif plan["ecosystem"] == "python":
     dependency_root = "/dependencies/output"

@@ -115,7 +115,7 @@ def test_environment_prerequisites_drain_in_bounded_batches_across_restart(tmp_p
         wb.append(task,'context_ready',{**source.payload,'artifact_id':wb.artifact(value)},key='prerequisite-source')
         wb.request(task,text='Plan using all required configuration',parent_id=None,expected_hash=None,
             key='batched-config',runtime_version='agent-runtime-v2')
-    def inspect(selected,evidence):
+    def inspect(selected,evidence,**kwargs):
         seen={e['path'] for e in evidence['entries'] if e.get('content') is not None}
         missing=[p for p in prerequisites if p not in seen]
         return {**selected,'required_paths':missing} if missing else selected

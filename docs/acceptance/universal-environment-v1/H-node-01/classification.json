@@ -1,0 +1,10 @@
+{
+  "classification": "H",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "unsupported",
+  "contract_hash": "e02b716fb3c5c247380c8cf1d540060e48c1ddda549debb80f68e7dd235ce352",
+  "reason_code": "unsupported_dynamic_installer"
+}

@@ -1,0 +1,98 @@
+{
+  "default": {
+    "tests": 1603,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 54,
+    "passed": 1549,
+    "reports": [
+      {
+        "path": "/tmp/upeve-shard-0.xml",
+        "sha256": "3e2f8c2841ef5f5ec24337224e373a3a4593b9368e85885e7791517e0efec28e"
+      },
+      {
+        "path": "/tmp/upeve-shard-1.xml",
+        "sha256": "9f37c6c87701c0abef849a0d88aedf6842a24ccf613019e68ecd3b86add37cb9"
+      },
+      {
+        "path": "/tmp/upeve-shard-2.xml",
+        "sha256": "3111fbfd73471b409ab2dc229854f26a93a9b9f20a14e3738116cf8a914fedbf"
+      },
+      {
+        "path": "/tmp/upeve-shard-3.xml",
+        "sha256": "4e535c440e1901fde5fe8a6e8e6da1f15ced8ed21d17d4536a2f6ff99ffe635b"
+      }
+    ]
+  },
+  "focused": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 35,
+    "reports": [
+      {
+        "path": "/tmp/upeve-final-focused.xml",
+        "sha256": "839d4beeb86144b2d4ff9ecb9596b8270a0d617c06dfaffb52de3ab42510553b"
+      }
+    ]
+  },
+  "engine": {
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 27,
+    "reports": [
+      {
+        "path": "/tmp/upeve-final-engine.xml",
+        "sha256": "1376b22286a57024192c8c867825302c2718684cf42f95918fc1cbb9f70cac20"
+      }
+    ]
+  },
+  "node_regression": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 35,
+    "reports": [
+      {
+        "path": "/tmp/upeve-node-real.xml",
+        "sha256": "ffd2600fe20d75f9ff9d0072b8718f840ee12879a3cda98881a15e4fff36a6cd"
+      }
+    ]
+  },
+  "malicious": {
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 6,
+    "reports": [
+      {
+        "path": "/tmp/upeve-malicious.xml",
+        "sha256": "de0edd7b2a1fb6b377c76640bd011ab7d1d23c3da7c595c3c5806fe5467836eb"
+      }
+    ]
+  },
+  "classification": {
+    "default": "deterministic_contract_regression",
+    "node_regression": "30 contracts + 5 actual OCI cases",
+    "malicious": "6 actual OCI cases",
+    "native_deliveries": 0
+  },
+  "browser": {
+    "classification": "browser_component_intercepted_api",
+    "viewports": 2,
+    "states": 2,
+    "passed": true,
+    "native": false
+  },
+  "packaging_dependency_review": {
+    "installed": "26.3",
+    "purpose": "PEP 508 requirement and marker parsing; no evaluation or network",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "tests": "recursive declarations, malicious flags/paths, conflicts and real pip constraints"
+  }
+}

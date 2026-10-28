@@ -72,6 +72,7 @@ class PlanCommand:
     purpose: str
     argv: tuple[str, ...]
     working_directory: str = "."
+    baseline_expectation: dict | None = None
 
     def __post_init__(self) -> None:
         if not _COMMAND_ID.fullmatch(self.command_id):
@@ -104,6 +105,13 @@ class PlanCommand:
         object.__setattr__(self, "purpose", purpose)
         object.__setattr__(self, "argv", argv)
         object.__setattr__(self, "working_directory", directory)
+        if self.baseline_expectation is not None:
+            from app.environment_engine.contracts import BaselineExpectation
+            from app.provenance import canonical_json
+            expectation = BaselineExpectation.model_validate_json(canonical_json(self.baseline_expectation))
+            if expectation.test_node not in argv:
+                raise ValueError("Expected reproduction must target an exact approved test node")
+            object.__setattr__(self, "baseline_expectation", expectation.model_dump(mode="json"))
         ensure_no_sensitive_data(
             self.hash_payload(),
             context="Plan command",
@@ -115,6 +123,7 @@ class PlanCommand:
             "purpose": self.purpose,
             "argv": list(self.argv),
             "working_directory": self.working_directory,
+            **({"baseline_expectation": self.baseline_expectation} if self.baseline_expectation else {}),
         }
 
 
@@ -596,6 +605,7 @@ class PlanVersionService:
                         value,
                         "working_directory",
                     ),
+                    baseline_expectation=value.get("baseline_expectation"),
                 )
                 for value in plan.commands_to_run
             )

@@ -13,7 +13,7 @@ def test_upgrade_backup_restore_preserves_v1_hashes_and_enforces_new_cas(tmp_pat
     import app.migrations.versions as registry
     migrations=registry.MIGRATIONS
     with monkeypatch.context() as patch:
-        patch.setattr(registry,'MIGRATIONS',migrations[:-1])
+        patch.setattr(registry,'MIGRATIONS',tuple(m for m in migrations if m.revision < '0038'))
         db,s,task,attempt,_=prepared(tmp_path)
         with db.session() as session:
             wb=Workbench(session,s.artifact_root)
@@ -22,7 +22,7 @@ def test_upgrade_backup_restore_preserves_v1_hashes_and_enforces_new_cas(tmp_pat
         with sqlite3.connect(db.engine.url.database) as source, sqlite3.connect(backup) as destination:
             source.backup(destination)
     report=db.create_schema()
-    assert report.applied==('0038_agent_runtime_v2',)
+    assert report.applied==('0038_agent_runtime_v2','0039_environment_contracts')
     with db.session() as session:
         wb=Workbench(session,s.artifact_root)
         assert [(e.id,e.record_hash) for e in wb.history(task)]==original

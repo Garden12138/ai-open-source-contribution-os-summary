@@ -135,7 +135,17 @@ def task_environment(wb: Any, task_id: str) -> dict[str, Any]:
         selected = {**selected,"distribution_strategy":"source-wheel-v1","builder_image_digest":builder}
     elif builder and selected.get("preparation_version") == "node-workspace-preparation-v1":
         selected = {**selected, "distribution_strategy": "node-offline-build-v1", "builder_image_digest": builder}
-    selected = inspect_environment(selected, evidence)
+    binding = next((e for e in reversed(wb.history(task_id)) if e.kind == "plan_bound" and e.plan_version_id == plan.id), None)
+    engine = binding.payload.get("environment_engine") if binding else None
+    selected = inspect_environment(selected, evidence, engine_version=engine["version"] if engine else None)
+    if engine and selected["status"] == "supported":
+        from app.environment_engine.service import inspect_contract
+        from app.changesets import plan_sandbox_commands
+        from app.planner import frozen_inputs
+        selected = inspect_contract(selected, evidence, [c.to_wire() for c in plan_sandbox_commands(plan)],
+            task_id=task_id, snapshot_hash=frozen_inputs(wb.session, task_id)["snapshot_hash"], plan_hash=plan.record_hash,
+            context=context.payload, configuration=engine,
+            expected_failures={c["command_id"]: c["baseline_expectation"] for c in plan.commands_to_run if c.get("baseline_expectation")})
     from app.native_resources import dependency_binding
     native = dependency_binding(wb, task_id)
     if native:
@@ -193,6 +203,8 @@ def schedule_verification(wb: Any, attempt_id: str, signer: Any) -> None:
             actual = {f["path"]: f.get("sha256") for f in result["result_inventory"]}
             if any(actual.get(m["path"]) != m["content_hash"] for m in environment_spec["manifests"]):
                 raise WorkbenchError("修改影响了冻结依赖清单，需新方案与环境。", code="environment_stale")
+            if any(actual.get(e["path"]) != e["sha256"] for e in environment_spec.get("environment_contract", {}).get("evidence", [])):
+                raise WorkbenchError("修改影响了冻结命令或工具来源，需新方案与环境。", code="environment_stale")
         inputs.append(receipt.payload["result_hash"])
     pending = attempts.advance_stage(attempt_id, expected_sequence=current.sequence,
         expected_record_hash=current.record_hash, input_hashes=tuple(inputs), reason_code="implement_succeeded",

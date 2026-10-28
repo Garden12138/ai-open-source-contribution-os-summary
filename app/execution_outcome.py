@@ -166,6 +166,15 @@ def unchanged_baseline_failures(baseline: dict[str, Any], verification: dict[str
 
 def baseline_outcome(value: dict[str, Any]) -> dict[str, Any]:
     """Project complete immutable evidence, including older stdout-less summaries."""
+    if value.get("version") == "execution-baseline-v2":
+        from app.environment_engine.contracts import BaselineVerdict
+        from app.provenance import canonical_json
+        verdict = BaselineVerdict.model_validate_json(canonical_json(value["baseline_verdict"]))
+        status = "passed" if verdict.outcome in {"passed", "expected_issue_reproduction"} else "failed" if verdict.outcome == "preexisting_failure" else "environment_blocked"
+        return {"status": status, "baseline_verdict": verdict.outcome,
+            "passed": sum(r["exit_code"] == 0 and not r["reason_codes"] for r in verdict.command_results),
+            "total": verdict.required_command_count, "missing_dependencies": list(verdict.reason_codes),
+            "failures": [r for r in verdict.command_results if r["exit_code"] != 0 or r["reason_codes"]]}
     evidence = value["inspection"]["command_evidence"]
     return classify_verification({
         "succeeded": bool(evidence) and all(e["exit_code"] == 0 for e in evidence),

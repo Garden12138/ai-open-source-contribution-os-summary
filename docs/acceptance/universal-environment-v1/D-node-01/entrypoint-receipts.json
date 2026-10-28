@@ -1,0 +1,32 @@
+{
+  "command_evidence": [
+    {
+      "command_id": "upeve-entrypoint-probe",
+      "command_hash": "1563c733bbb9acbab8a941cc9cd5353eed82327c80d377f047a9ed2bc2641406",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-28T15:49:31.904760Z",
+      "completed_at": "2026-10-28T15:49:32.088937Z",
+      "resource_usage": {
+        "user_cpu_ms": 127,
+        "system_cpu_ms": 19,
+        "max_rss_bytes": 59666432,
+        "minor_page_faults": 8029,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 201,
+        "involuntary_context_switches": 13
+      },
+      "stdout_hash": "27270e2830cec8d39047453f47d37278e9ace0b422e4a0e97fd1bcbfba2bb199",
+      "stdout_bytes": 1210,
+      "stdout_log": "{\"executables\": [{\"argv\": [\"npm\", \"run\", \"test\"], \"command_id\": \"test\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/usr/local/bin/node\", \"executable_hash\": null, \"ownership\": null, \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"test\"], \"command_id\": \"test\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/tools/node_modules/.bin/npm\", \"executable_hash\": null, \"ownership\": null, \"reason_code\": \"platform_binary_unavailable\", \"status\": \"missing\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"quality\"], \"command_id\": \"quality\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/tools/node_modules/.bin/npm\", \"executable_hash\": null, \"ownership\": null, \"reason_code\": \"platform_binary_unavailable\", \"status\": \"missing\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"quality\"], \"command_id\": \"quality\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/usr/local/bin/node\", \"executable_hash\": null, \"ownership\": null, \"reason_code\": null, \"status\": \"available\", \"working_directory\": \"quality\"}], \"target_platform\": \"linux/arm64\"}\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 184
+    }
+  ],
+  "before_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731",
+  "after_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731"
+}

@@ -134,6 +134,9 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
     view["agent_runtime_v2"] = runtime_view(wb, task_id)
     from app.agent_v2.capabilities import capability_verdict
     view["capabilities"] = capability_verdict(wb, task_id).model_dump()
+    from app.environment_engine.view import environment_view
+    view["environment_engine"] = environment_view(wb, task_id, environment, baseline, prepared=prepared,
+        review_status=latest["review"] if latest else "not_run")
     view["revision"] = content_hash({**view,
         "agent_runtime_v2": view["agent_runtime_v2"]["checkpoint"]["revision"] if view["agent_runtime_v2"] else None,
         "jobs": [(j.id, j.state, bool(j.cancel_requested_at)) for j in jobs]})

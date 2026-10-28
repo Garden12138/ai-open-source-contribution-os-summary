@@ -27,7 +27,12 @@ def freeze_spec(wb: Workbench, attempt_id: str, settings: Settings, *, limits: L
         raise WorkbenchError("需要真实的修改前测试证据。", code="agent_baseline_missing")
     if preparation_needs_restore(wb, baseline):
         raise WorkbenchError("冻结环境需要先恢复。", code="environment_stale")
-    outcome = baseline_outcome(wb.read(baseline.payload["result_hash"]))
+    baseline_value = wb.read(baseline.payload["result_hash"])
+    environment_evidence = None
+    if auth.payload.get("environment", {}).get("verification_contract_hash"):
+        from app.environment_engine.admission import require_environment_evidence
+        environment_evidence = require_environment_evidence(wb, attempt, auth, baseline_value)
+    outcome = baseline_outcome(baseline_value)
     if outcome["status"] != "passed":
         raise WorkbenchError("修改前检查未通过，不能当作代码回归修复。", code="agent_baseline_blocked")
     return TaskSpec(binding=Binding(
@@ -39,7 +44,8 @@ def freeze_spec(wb: Workbench, attempt_id: str, settings: Settings, *, limits: L
         policy_hash=attempt.sandbox_policy_hash, baseline_hash=baseline.record_hash,
         model_binding_hash=content_hash({"implementation": auth.payload["implementation"], "review": auth.payload["review"]})),
         goal=plan.goal, write_paths=list(plan.files_likely_to_change),
-        commands=[c.to_wire() for c in plan_sandbox_commands(plan)], limits=limits or Limits())
+        commands=[c.to_wire() for c in plan_sandbox_commands(plan)], limits=limits or Limits(),
+        environment_evidence=environment_evidence)
 
 
 class TaskOrchestrator:

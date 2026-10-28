@@ -1,0 +1,188 @@
+{
+  "version": "workspace-dependency-plan-v6",
+  "plan_id": "D-node-01",
+  "execution_attempt_id": "D-node-01",
+  "workspace_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731",
+  "ecosystem": "node",
+  "manifests": [
+    {
+      "path": "package-lock.json",
+      "content_hash": "0a1bc7f7eb9be20bb4cb5b218bf4af77540ebd12f6141a7b38439dc48d99985d"
+    },
+    {
+      "path": "package.json",
+      "content_hash": "eb6bf0e0cd579fc5de65e6e054803c8ecd442e011547487136c2294b897ec1e3"
+    },
+    {
+      "path": "quality/package-lock.json",
+      "content_hash": "19745096c0b7a8fe553dc81e6b5247968dbcadef821678f00b56e23e69d64213"
+    },
+    {
+      "path": "quality/package.json",
+      "content_hash": "fd08925c1ea5f556ab00fef6f688b983a8920c3d7e6336f4acd465f5d8a075fe"
+    }
+  ],
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "proxy_policy_hash": "67683582dd39140593ed3bf6fcf3658035e86a192fca2c0c209fb13231496838",
+  "disk_bytes": 4294967296,
+  "source_result_hash": "50025d942fb7fe1a88ed7e7538122575b15593705082e6659fdc6061b4c4668b",
+  "source_kind": "explore",
+  "project_directory": ".",
+  "local_projects": [],
+  "preparation_version": "node-workspace-preparation-v1",
+  "node_environment": {
+    "version": "node-environment-v1",
+    "manager": "npm",
+    "manager_version": "10.9.4",
+    "runtime_requirement": "",
+    "runtime_pin": "",
+    "project_directory": ".",
+    "package_roots": [
+      ".",
+      "quality"
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [],
+    "registry": "https://registry.npmjs.org"
+  },
+  "environment_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "D-node-01",
+      "snapshot_hash": "8f20104b3e143c0a3607659b2248371bfcfb57208b323d497e65ea72d76ee354",
+      "source_archive_hash": "5b9017c59ac337955a5594b4ddf7dd525b484a7996a14e1580eba491c68395fb",
+      "base_commit_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "plan_version_hash": "3ed24575a962b3dd013d270f88def331e7ecaed6e868de08682b0631a308f856",
+      "approved_commands_hash": "3ed24575a962b3dd013d270f88def331e7ecaed6e868de08682b0631a308f856",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "test",
+        "argv": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "package-lock.json",
+            "sha256": "0a1bc7f7eb9be20bb4cb5b218bf4af77540ebd12f6141a7b38439dc48d99985d",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "package.json",
+            "sha256": "eb6bf0e0cd579fc5de65e6e054803c8ecd442e011547487136c2294b897ec1e3",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "quality/package.json",
+            "sha256": "fd08925c1ea5f556ab00fef6f688b983a8920c3d7e6336f4acd465f5d8a075fe",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          "package.json#test",
+          ".:node --test root.test.mjs"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "node"
+          ],
+          [
+            ".",
+            "npm"
+          ]
+        ],
+        "required_executable": "npm",
+        "distributions": [],
+        "resolution": "resolved"
+      },
+      {
+        "command_id": "quality",
+        "argv": [
+          "npm",
+          "run",
+          "quality"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "package-lock.json",
+            "sha256": "0a1bc7f7eb9be20bb4cb5b218bf4af77540ebd12f6141a7b38439dc48d99985d",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "package.json",
+            "sha256": "eb6bf0e0cd579fc5de65e6e054803c8ecd442e011547487136c2294b897ec1e3",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "quality/package.json",
+            "sha256": "fd08925c1ea5f556ab00fef6f688b983a8920c3d7e6336f4acd465f5d8a075fe",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          "package.json#quality",
+          "quality/package.json#test",
+          "quality:node --test check.test.mjs"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "npm"
+          ],
+          [
+            "quality",
+            "node"
+          ]
+        ],
+        "required_executable": "npm",
+        "distributions": [],
+        "resolution": "resolved"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": "package-lock.json",
+        "sha256": "0a1bc7f7eb9be20bb4cb5b218bf4af77540ebd12f6141a7b38439dc48d99985d",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package.json",
+        "sha256": "eb6bf0e0cd579fc5de65e6e054803c8ecd442e011547487136c2294b897ec1e3",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "quality/package.json",
+        "sha256": "fd08925c1ea5f556ab00fef6f688b983a8920c3d7e6336f4acd465f5d8a075fe",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "quality/package-lock.json",
+        "sha256": "19745096c0b7a8fe553dc81e6b5247968dbcadef821678f00b56e23e69d64213",
+        "parser": "node-toolchain-v1"
+      }
+    ],
+    "preparation": {
+      "independent_directories": [
+        "quality"
+      ]
+    },
+    "unresolved": [],
+    "admission": "static_admitted",
+    "expected_failures": {}
+  },
+  "metadata_strategy": "declarative-v1"
+}

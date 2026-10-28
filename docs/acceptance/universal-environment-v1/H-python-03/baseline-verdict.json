@@ -1,0 +1,66 @@
+{
+  "version": "baseline-verdict-v1",
+  "contract_hash": "003fa7894c277abbc4fc59d5edd1a0394ad4f250e9df8c85a7c44556bda52158",
+  "preparation_receipt_hash": "3f78585e997695ea68d57c8c73a34355ab8d44106adfbe47f2fe41f316799149",
+  "baseline_artifact_hash": "c2f6cd94e5494cce4b9df4f30e3a5aa780d9a280e435e3386665542490c2ead3",
+  "required_command_count": 5,
+  "executed_command_count": 5,
+  "outcome": "environment_blocked",
+  "reason_codes": [
+    "immutable_cache_write_blocked"
+  ],
+  "command_results": [
+    {
+      "command_id": "test_more",
+      "command_hash": "c40aa2845e8cef13b85f2b4fac3c058ec39ff488b2f9a7aa15181f4a9bdd867f",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": 734,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "a2f8ae96eb548d1312487a5405ce49981f394f326f6d89f9adce9c0ce61f3ee1"
+    },
+    {
+      "command_id": "test_all",
+      "command_hash": "e9d203c1c69aa47c7c30904ffa8bd40a8f27cc9c4d8b305a1320a03b7a582fa0",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": 929,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "02aa960e66fee5a64b7e94a7b272aba314cc5cb3b12acc86c724072f08dd3450"
+    },
+    {
+      "command_id": "format_check",
+      "command_hash": "c0bd9cc0806ad2a678c26681d852924177d37dd8ca4379028704e9233fb17712",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": null,
+      "stdout_hash": "04eb0d6e6734823dcd2b2b704729e976f683df7a8f334da7216520ef1cb319bf",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "lint_check",
+      "command_hash": "45f33b3dbd74748e841d4982a60435011bf8d5eb437169120d543e46acf27cab",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": null,
+      "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "stubtest",
+      "command_hash": "5abfcb7169f36d525c34ac761cf32fdc5f8764f4f7c712e68645bd66de7ef3f9",
+      "exit_code": 1,
+      "executed": true,
+      "reason_codes": [
+        "immutable_cache_write_blocked"
+      ],
+      "test_count": null,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "a6b31f76c3b7fc7554b385e8f6577695011d42cbfabaaae7b9c614872e050f71"
+    }
+  ]
+}

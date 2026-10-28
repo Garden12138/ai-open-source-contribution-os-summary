@@ -1,0 +1,76 @@
+{
+  "version": "toolchain-preparation-receipt-v1",
+  "contract_hash": "128f4ed75e043597dca89e7b008eff05cb5975972572e4fbfee256644e0fd280",
+  "dependency_plan_hash": "907583830170f9a8fa6e2664a9d49c3bc8b539f972684680884f7d16efc0def4",
+  "dependency_result_hash": "f33bb0fcbdbb8604ac0ab8d27827d72f0d04d4e95ba11414c551ca451a3f5969",
+  "target_platform": "linux/arm64",
+  "image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "executables": [
+    {
+      "command_id": "test",
+      "argv": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "working_directory": ".",
+      "executable": "/usr/local/bin/node",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "1a638b0fe2b68da0489276aca95526c5122fc61ba54d6a2d0d00c1c92ab7b876",
+      "ownership": "runner_image",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "test",
+      "argv": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/tools/node_modules/.bin/npm",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "ownership": "frozen_dependency_inventory",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "quality",
+      "argv": [
+        "npm",
+        "run",
+        "quality"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/tools/node_modules/.bin/npm",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "ownership": "frozen_dependency_inventory",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "quality",
+      "argv": [
+        "npm",
+        "run",
+        "quality"
+      ],
+      "working_directory": "quality",
+      "executable": "/usr/local/bin/node",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "1a638b0fe2b68da0489276aca95526c5122fc61ba54d6a2d0d00c1c92ab7b876",
+      "ownership": "runner_image",
+      "status": "available",
+      "reason_code": null
+    }
+  ],
+  "status": "prepared"
+}

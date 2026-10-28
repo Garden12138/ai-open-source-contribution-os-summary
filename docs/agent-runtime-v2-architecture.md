@@ -190,3 +190,11 @@ Background v2 draft jobs require actual source reads, a complete plan or
 structured material questions. A standalone promise cannot complete a plan job;
 it uses the existing bounded repair mechanism and is recorded as rejected.
 Ordinary conversational explanations retain their read-only final-response path.
+
+## UPEVE candidate integration
+
+New opt-in plans may pin the versioned environment graph and consume separate
+preparation, entrypoint and baseline evidence before admission. Existing plans
+retain their original protocol. See [environment-engine-v1.md](environment-engine-v1.md)
+for exact activation, supported semantics, unresolved real regressions and the
+separate acceptance gates; this does not close M5/M6.

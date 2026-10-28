@@ -1623,5 +1623,15 @@
         }
       ]
     }
-  ]
+  ],
+  "event_chain_verification": {
+    "payload_hashes": true,
+    "record_hashes": true,
+    "previous_hashes": true,
+    "source": "original SQLite mode=ro",
+    "event_counts": [
+      71,
+      165
+    ]
+  }
 }

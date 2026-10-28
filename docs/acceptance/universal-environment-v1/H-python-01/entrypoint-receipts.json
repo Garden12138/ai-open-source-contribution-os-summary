@@ -1,0 +1,32 @@
+{
+  "command_evidence": [
+    {
+      "command_id": "upeve-entrypoint-probe",
+      "command_hash": "55bfc03e008002a0a5bc66ce7a3748b07ff57170245afa25f8f42bf46a725ea1",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-28T15:44:19.820472Z",
+      "completed_at": "2026-10-28T15:44:19.959651Z",
+      "resource_usage": {
+        "user_cpu_ms": 78,
+        "system_cpu_ms": 14,
+        "max_rss_bytes": 43429888,
+        "minor_page_faults": 4639,
+        "major_page_faults": 3,
+        "voluntary_context_switches": 16,
+        "involuntary_context_switches": 0
+      },
+      "stdout_hash": "3ef3f4c213fdeb0f0254fa19bb4338aae797a649e051a6931f1e58e2dfcaeaf2",
+      "stdout_bytes": 1426,
+      "stdout_log": "{\"executables\": [{\"argv\": [\"python\", \"-m\", \"unittest\", \"-v\", \"tests.test_more\"], \"command_id\": \"test_more\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/venv/bin/python\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"python\", \"-m\", \"unittest\", \"-v\"], \"command_id\": \"test_all\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/venv/bin/python\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"ruff\", \"format\", \"--check\", \".\"], \"command_id\": \"format_check\", \"distribution\": \"ruff\", \"distribution_version\": \"0.17.3\", \"executable\": \"/dependencies/output/venv/bin/ruff\", \"reason_code\": \"entrypoint_distribution_mismatch\", \"status\": \"missing\", \"working_directory\": \".\"}, {\"argv\": [\"ruff\", \"check\", \"more_itertools\", \"tests\"], \"command_id\": \"lint_check\", \"distribution\": \"ruff\", \"distribution_version\": \"0.17.3\", \"executable\": \"/dependencies/output/venv/bin/ruff\", \"reason_code\": \"entrypoint_distribution_mismatch\", \"status\": \"missing\", \"working_directory\": \".\"}, {\"argv\": [\"stubtest\", \"more_itertools.more\", \"more_itertools.recipes\"], \"command_id\": \"stubtest\", \"distribution\": \"mypy\", \"distribution_version\": \"2.4.0\", \"executable\": \"/dependencies/output/venv/bin/stubtest\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}], \"target_platform\": \"linux/arm64\"}\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 139
+    }
+  ],
+  "before_inventory_hash": "a0d64a5e033b18f2f9891940b4bc9d5928c4bf0437545f433371b88cc4cc8bbe",
+  "after_inventory_hash": "a0d64a5e033b18f2f9891940b4bc9d5928c4bf0437545f433371b88cc4cc8bbe"
+}

@@ -37,6 +37,16 @@ def dependency_builder_image() -> str | None:
     return value or None
 
 
+def environment_engine_configuration() -> dict | None:
+    """Opt in only newly frozen plans; existing authorizations never migrate."""
+    if not _bool_env("UPEVE_ENABLED"):
+        return None
+    target = os.getenv("UPEVE_TARGET_PLATFORM", "")
+    if target not in {"linux/arm64", "linux/amd64"}:
+        raise ValueError("UPEVE_TARGET_PLATFORM must explicitly select linux/arm64 or linux/amd64")
+    return {"version": "upeve-v1", "target_platform": target}
+
+
 def _split_env(value: str | None, default: tuple[str, ...]) -> tuple[str, ...]:
     if not value:
         return default

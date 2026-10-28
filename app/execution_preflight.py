@@ -134,7 +134,7 @@ def python_project_error(metadata: dict, *, allow_dynamic: bool = False, include
     return None
 
 
-def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
+def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any], *, engine_version: str | None = None) -> dict[str, Any]:
     """A recognized filename selects an adapter; inspected content admits it."""
     if selected.get("preparation_version") == "node-workspace-preparation-v1":
         from app.node_environments import inspect_node_environment
@@ -164,16 +164,16 @@ def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any]) -> d
         if path.endswith("pyproject.toml"):
             try:
                 metadata = tomllib.loads(text)
-                error = python_project_error(metadata, include_development=True)
+                error = python_project_error(metadata, include_development=engine_version is None)
                 if error == "dynamic_dependencies":
-                    error = python_project_error(metadata, allow_dynamic=True, include_development=True)
+                    error = python_project_error(metadata, allow_dynamic=True, include_development=engine_version is None)
                     if error is None:
                         selected = {**selected, "metadata_strategy":"wheel-metadata-v1"}
             except (ValueError, TypeError):
                 error = "project_metadata_invalid"
             if error:
                 reasons.append(error)
-        elif path.endswith((".txt", ".lock")):
+        elif path.endswith((".txt", ".lock")) and engine_version is None:
             requirements = [line.split(" #", 1)[0].strip() for line in text.splitlines()
                             if line.strip() and not line.lstrip().startswith("#")]
             if any(python_requirement_error(value) for value in requirements):
@@ -203,11 +203,17 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
     context = wb.latest(task_id, "context_ready")
     selected = environment if environment is not None else task_environment(wb, task_id)
     issues = []
+    if selected.get("environment_engine"):
+        from app.config import environment_engine_configuration
+        if environment_engine_configuration() != selected["environment_engine"]:
+            issues.append({"code": "environment_engine_disabled", "stage": "prepare", "paths": [],
+                "message": "此方案冻结的通用环境引擎或目标平台未启用；保留证据并阻止执行，不回退旧准备器。"})
     if plan is not None and context is not None:
         evidence = wb.read(context.payload["artifact_id"])
         entries = {entry["path"]: entry for entry in evidence["entries"]}
         known = set(evidence["inventory"])
-        changed_manifests = sorted(set(plan.files_likely_to_change) & set(selected.get("manifests", [])))
+        frozen_paths = set(selected.get("manifests", [])) | {e["path"] for e in selected.get("verification_contract", {}).get("evidence", [])}
+        changed_manifests = sorted(set(plan.files_likely_to_change) & frozen_paths)
         if changed_manifests and selected.get("mode") == "workspace-v2":
             issues.append({"code": "environment_manifest_change_unsupported", "stage": "prepare", "paths": changed_manifests,
                 "message": "方案将修改用于冻结环境的清单；当前流程会按完整文件哈希核对，不能用旧环境实施后再静默忽略清单变化。请先修订为源码修复，或完成独立的环境变更适配。"})
@@ -267,6 +273,10 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
               "input_hash":content_hash({"version":VERSION, "plan_hash":plan.record_hash if plan else None,
                                          "context_hash":context.record_hash if context else None}),
               "limits":{"coding_file_bytes":MAX_CODING_FILE_BYTES, "coding_context_bytes":MAX_CODING_CONTEXT_BYTES}}
+    if selected.get("environment_engine"):
+        report.update(readiness={"static_admitted": report["status"] == "ready",
+            "toolchain_prepared": "unverified", "baseline_verified": "unverified"},
+            readiness_label="static_admitted" if report["status"] == "ready" else "blocked")
     if selected.get("project_directories"):
         from app.baseline_feedback import POLICY
         report["baseline_failure_policy"] = POLICY

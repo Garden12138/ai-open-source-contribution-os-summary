@@ -753,6 +753,17 @@ export function mountContributionWorkbench(root, taskId, options) {
       origin:(c.results || []).find(result => result.source_id === candidate.event?.id)?.origin});
     if (!data.planner_available && !published && !state.busy) items.push({id:"setup", sequence:0.05, text:"讨论或执行服务尚未准备好。消息可以保存；请在设置中检查模型与服务配置。", action:"settings"});
     const blockers = data.execution?.readiness?.blockers || [];
+    const engine = data.execution?.environment_engine;
+    if (engine) {
+      const names = {discovery:"发现",resolution:"依赖图",preparation:"工具准备",entrypoints:"入口核验",baseline:"基线",coding:"编码",review:"独立 Review"};
+      const labels = {recorded:"已有证据",static_admitted:"静态通过",prepared:"已准备",proven:"已核实",passed:"通过",expected_issue_reproduction:"已复现批准的 Issue",preexisting_failure:"既有检查失败",no_change:"未复现原问题",environment_blocked:"环境阻塞",unsupported:"尚不支持",unknown:"证据不足",unverified:"尚未验证",not_started:"尚未开始",started:"已启动"};
+      const stages = Object.entries(engine.stages).map(([key,value]) => `${names[key] || key}：${labels[value] || value}`).join("\n");
+      const gaps = engine.gaps.map(g => `${g.reason_code}${g.paths?.length ? " · " + g.paths.join(", ") : ""}`).join("\n");
+      const tools = engine.executables.map(e => `${e.argv[0]}：${e.status === "available" ? "已核实" : e.reason_code || "缺少入口"}${e.distribution ? "（" + e.distribution + " " + e.distribution_version + "）" : ""}`).join("\n");
+      items.push({id:"environment:" + JSON.stringify([engine.contract_hash, engine.stages, engine.evidence_refs]), sequence:(data.events?.at(-1)?.sequence || 0) + 0.15,
+        text:"验证环境进度\n" + stages + (gaps ? "\n\n环境缺口\n" + gaps : "") + (tools ? "\n\n工具入口\n" + tools : "") +
+          (engine.stages.preparation === "unverified" ? (engine.stages.resolution === "static_admitted" ? "\n\n静态检查通过只代表可进入受限准备；真实工具和基线尚未验证。" : "\n\n真实工具和基线尚未验证。") : "")});
+    }
     if (blockers.length && !state.busy && !published) items.push({id:"readiness:" + JSON.stringify(blockers), sequence:(data.events?.at(-1)?.sequence || 0) + 0.2, text:blockers.map(b => b.message).join("\n")});
     if (plan && data.state === "planning" && c.pending_action?.kind === "execute"
         && c.pending_action.source_id === plan.id && data.execution?.actions?.can_execute && !published) {

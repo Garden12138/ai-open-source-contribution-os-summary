@@ -36,6 +36,11 @@ GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
 
 ## Agent Runtime v2 重构分支
 
+UPEVE 环境引擎候选版的启用、支持边界和未通过门禁见
+[工程说明](docs/environment-engine-v1.md)及
+[专项验收记录](docs/acceptance/universal-environment-v1/README.md)。默认不开启，
+静态准入、工具准备和修改前验证分别记录；历史失败不改写为成功。
+
 `refactor/agent-runtime-v2` 增加持久化工具回合、精确增量编辑、真实测试反馈、
 独立审查衔接和原生工具时间线。`AGENT_RUNTIME_V2_ENABLED` 默认关闭；
 只在独立端口、数据库、Artifact 和网关的测试实例开启，禁止直接升级正式实例。

@@ -4813,12 +4813,26 @@ User-directed Phase 5 specialization on `refactor/agent-runtime-v2`; governed by
 Evidence: [acceptance ledger](acceptance/universal-environment-v1/README.md).
 
 - [x] **UPEVE-E01** E0 branch/source/immutable historical evidence baseline.
-- [ ] **UPEVE-E02** E1 strict versioned contracts, static graph and honest readiness.
-- [ ] **UPEVE-E03** E2 recursive Python requirements/tool resolution and real OCI.
+- [x] **UPEVE-E02** E1 strict versioned contracts, static graph and honest readiness.
+- [x] **UPEVE-E03** E2 recursive Python requirements/tool resolution and real OCI.
 - [ ] **UPEVE-E04** E3 Node script/independent tool graphs, offline cache regression.
 - [ ] **UPEVE-E05** E4 bound preparation/entrypoint receipts, baseline and v2 admission.
 - [ ] **UPEVE-E06** E5 API/UI, frozen unseen projects and true native Python/TS journeys.
 - [ ] **UPEVE-E07** E6 security/recovery/regression, isolated deployment and both platforms.
+
+Checkpoint 2026-10-29: E1 contracts/readiness and E2 Python declaration/tool
+closure are verified. Controlled D Python passes 3/3 and D Node passes 2/2 real
+OCI checks. H Python now has all five actual entries; full baseline is 4/5,
+blocked by current mypy's read-only cache write. H Node safely rejects its dynamic
+installer, so E3/E4 historical gates are not checked. E4 binding/classification
+and UI are implemented and contract-tested; no native Coding/Review claimed.
+Default suite 1549 passed/54 skipped; six real malicious cases and five existing
+Node OCI cases pass. Actual Mac doctor passes; Linux endpoint absent. Forward
+0039 upgrade/backup/restore preserves old hashes. New isolated API on 18090 is
+healthy; real Provider/Gateway remains unavailable. E5/E6 remain partial and
+native human approvals are still required. Evidence and exact failures are in
+the linked ledger. Subsequent independent holdout measurements must preserve
+this candidate's rules and never close the unpassed H/native/platform gates.
 
 Original failures and approval/event hashes are retained. The original Node
 wrapper unconditionally selects network installation under Verify's CI=1;

@@ -138,6 +138,7 @@ class PlanCommandRequest(BaseModel):
     purpose: str = Field(min_length=1, max_length=1_000)
     argv: list[str] = Field(min_length=1, max_length=50)
     working_directory: str = Field(default=".", min_length=1, max_length=500)
+    baseline_expectation: dict[str, Any] | None = None
 
     @field_validator("argv", mode="before")
     @classmethod

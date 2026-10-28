@@ -1,0 +1,58 @@
+{
+  "before_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731",
+  "after_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731",
+  "command_evidence": [
+    {
+      "command_id": "test",
+      "command_hash": "20a4d4e8ee7f505b601c6a37d76d6df22f11d81b264adb2558bb964e090e9df8",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-28T15:50:56.289539Z",
+      "completed_at": "2026-10-28T15:50:56.422477Z",
+      "resource_usage": {
+        "user_cpu_ms": 78,
+        "system_cpu_ms": 14,
+        "max_rss_bytes": 60870656,
+        "minor_page_faults": 5886,
+        "major_page_faults": 1,
+        "voluntary_context_switches": 140,
+        "involuntary_context_switches": 30
+      },
+      "stdout_hash": "889ee579533ea1c89f337b97ff2c392f12fd8e2f1e9fcdf61e450f69274ef5f1",
+      "stdout_bytes": 253,
+      "stdout_log": "\n> other-layout@1.0.0 test\n> node --test root.test.mjs\n\nTAP version 13\n# Subtest: root\nok 1 - root\n  ---\n  duration_ms: 0.273669\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 24.986318\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 132
+    },
+    {
+      "command_id": "quality",
+      "command_hash": "557d32e8fc2d42f3dcd5aad140e080454cf8e0d7bad04444cf340fa4621c6dd4",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-28T15:50:56.422592Z",
+      "completed_at": "2026-10-28T15:50:56.607044Z",
+      "resource_usage": {
+        "user_cpu_ms": 124,
+        "system_cpu_ms": 21,
+        "max_rss_bytes": 64487424,
+        "minor_page_faults": 8735,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 242,
+        "involuntary_context_switches": 46
+      },
+      "stdout_hash": "b489876d91b50627381599a82db6f9433a2fd855cdc56732405faffc6a7b393b",
+      "stdout_bytes": 371,
+      "stdout_log": "\n> other-layout@1.0.0 quality\n> npm --prefix quality run test\n\n\n> independent-checks@1.0.0 test\n> node --test check.test.mjs\n\nTAP version 13\n# Subtest: independent tool environment\nok 1 - independent tool environment\n  ---\n  duration_ms: 0.270752\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 25.301404\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 184
+    }
+  ]
+}

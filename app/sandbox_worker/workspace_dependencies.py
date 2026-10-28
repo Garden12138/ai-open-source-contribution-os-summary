@@ -45,6 +45,7 @@ dynamic_mode = plan.get("metadata_strategy") == "wheel-metadata-v1"
 dynamic_projects = set()
 include_development = plan.get("preparation_version", "python-workspace-preparation-v1") in {"python-workspace-preparation-v2", "python-workspace-preparation-v3"}
 multi_package = plan.get("preparation_version") == "python-workspace-preparation-v3"
+universal = plan.get("environment_contract")
 selected_requirements = {}
 def normalize(name):
     return re.sub(r"[-_.]+", "-", name).lower()
@@ -52,7 +53,7 @@ for directory in project_dirs:
     with open(os.path.join("/workspace", directory, "pyproject.toml"), "rb") as handle:
         metadata = tomllib.load(handle)
     project_metadata = metadata.get("project", {})
-    if python_project_error(metadata, allow_dynamic=dynamic_mode, include_development=include_development):
+    if python_project_error(metadata, allow_dynamic=dynamic_mode, include_development=include_development and not universal):
         raise SystemExit(91)
     name = normalize(project_metadata["name"])
     if name in metadatas:
@@ -63,7 +64,7 @@ for directory in project_dirs:
         dynamic_projects.add(name)
     requirements += list(project_metadata.get("dependencies", []))
     requirements += list(metadata.get("build-system", {}).get("requires", []))
-    if include_development:
+    if include_development and not universal:
         requirements += python_development_requirements(metadata)
     extras = project_metadata.get("optional-dependencies", {})
     for group in ("test", "tests", "instruments", "type-check"):
@@ -72,7 +73,7 @@ for directory in project_dirs:
         selected_requirements[name] = list(requirements[first_requirement:])
 requirements += ["pytest", "pytest-asyncio", "pytest-socket"]
 for manifest in plan["manifests"]:
-    if manifest["path"].endswith((".txt", ".lock")):
+    if not universal and manifest["path"].endswith((".txt", ".lock")):
         with open(os.path.join("/workspace", manifest["path"]), encoding="utf-8") as handle:
             declarations = [line.split(" #", 1)[0].strip() for line in handle
                             if line.strip() and not line.lstrip().startswith("#")]
@@ -80,6 +81,13 @@ for manifest in plan["manifests"]:
         if multi_package:
             first_name = next(name for name, (directory, _) in metadatas.items() if directory == primary_dirs[0])
             selected_requirements[first_name] += declarations
+if universal:
+    requirements = list(universal["preparation"]["requirements"])
+    # Constraints are a separate pip input. Never turn a constraint-only name
+    # into an installation request or flatten it into requirements.
+    constraint_file = dependency_root + "/frozen-constraints.txt"
+    with open(constraint_file, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(universal["preparation"]["constraints"]) + "\n")
 if len(requirements) > 300:
     raise SystemExit(92)
 for requirement in requirements:
@@ -218,6 +226,8 @@ if source_mode:
 resolve_argv=[*pip, "download", "--only-binary=:all:", "--no-cache-dir",
      "--index-url", "https://pypi.org/simple", "--proxy", proxy,
      "--dest", wheelhouse, "-r", inputs]
+if universal:
+    resolve_argv += ["-c", constraint_file]
 if source_mode:
     resolve_argv += ['--find-links',source_wheels]
     status,tail=run(resolve_argv,95,allow_failure=True)

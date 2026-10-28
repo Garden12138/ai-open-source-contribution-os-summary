@@ -199,6 +199,12 @@ class PlanningService(Workbench):
             if runtime_version != "agent-runtime-v2":
                 raise WorkbenchError("不支持的规划协议。", code="planning_runtime_version")
             request["agent_runtime_version"] = runtime_version
+            from app.config import environment_engine_configuration
+            configuration = environment_engine_configuration()
+            if configuration and not replay:
+                request["environment_engine"] = configuration
+            elif replay and replay.payload.get("environment_engine"):
+                request["environment_engine"] = replay.payload["environment_engine"]
         if model_profile_id is not None:
             request["model_profile_id"] = model_profile_id
         if continuation_source is not None:
@@ -241,6 +247,8 @@ class PlanningService(Workbench):
         }
         if runtime_version is not None:
             payload["agent_runtime_version"] = runtime_version
+        if request.get("environment_engine"):
+            payload["environment_engine"] = request["environment_engine"]
         if model_profile_id is not None:
             payload["model_profile_id"] = model_profile_id
         if recovery_source is not None:
@@ -382,6 +390,7 @@ class PlanningService(Workbench):
         *,
         key: str,
         actor: str,
+        environment_engine: dict | None = None,
     ) -> object:
         content = plan_content(request)
         if (
@@ -435,6 +444,10 @@ class PlanningService(Workbench):
             plan = plans.create_initial(
                 task_id=task_id, content=content, idempotency_key=key, commit=False
             )
+        if environment_engine is None and request.parent_version_id:
+            parent_binding = next((e for e in reversed(self.history(task_id)) if e.kind == "plan_bound"
+                and e.plan_version_id == request.parent_version_id), None)
+            environment_engine = parent_binding.payload.get("environment_engine") if parent_binding else None
         self.append(
             task_id,
             "plan_bound",
@@ -442,6 +455,7 @@ class PlanningService(Workbench):
                 "context_hash": context.record_hash,
                 "context_id": context.id,
                 "plan_hash": plan.record_hash,
+                **({"environment_engine": environment_engine} if environment_engine else {}),
             },
             key="bind:" + key,
             actor=actor,
@@ -979,7 +993,16 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 from app.execution_environment import environment_plan
                 from app.execution_preflight import inspect_environment
                 proposed_environment = inspect_environment(environment_plan(list(known),
-                    change_paths=list(draft.files_likely_to_change)), evidence)
+                    change_paths=list(draft.files_likely_to_change)), evidence,
+                    **({"engine_version": "upeve-v1"} if data.get("environment_engine") else {}))
+                if data.get("environment_engine") and proposed_environment["status"] == "supported":
+                    from app.environment_engine.service import inspect_contract
+                    candidate = PlanVersionService._validated_content(draft) if hasattr(draft, "record_hash") else plan_content(draft)
+                    proposed_environment = inspect_contract(proposed_environment, evidence,
+                        [{"command_id": c.command_id, "argv": list(c.argv), "working_directory": c.working_directory} for c in candidate.commands_to_run],
+                        task_id=data["task_id"], snapshot_hash=data["inputs"]["snapshot_hash"], plan_hash=candidate.content_hash,
+                        context=context.payload, configuration=data["environment_engine"],
+                        expected_failures={c.command_id: c.baseline_expectation for c in candidate.commands_to_run if c.baseline_expectation})
                 needed.update(proposed_environment.get("required_paths", []))
                 requested = list(dict.fromkeys([*reply.read_paths, *sorted(needed)]))
                 v2_batch = data.get("agent_runtime_version") == "agent-runtime-v2"
@@ -1026,7 +1049,8 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             if draft and not reply.questions and not reply.read_paths and not reply.read_context and not read_feedback:
                 draft.parent_version_id = data["parent_id"]
                 # No path/command truncation or conversion of unresolved questions into risks.
-                plan = wb.persist_plan(data["task_id"], draft, context, key="ai-plan:" + job.id, actor="planner")
+                plan = wb.persist_plan(data["task_id"], draft, context, key="ai-plan:" + job.id, actor="planner",
+                    environment_engine=data.get("environment_engine"))
             result["plan_id"] = plan.id if plan else None
             if result.get("plan_error") and data.get("repair_round", 0) >= MAX_PLAN_REPAIRS:
                 result["reply"] = "方案仍未通过校验，已达到本轮自动修订上限。未保存或执行；具体字段错误已保留，可缩小范围后继续修订。"

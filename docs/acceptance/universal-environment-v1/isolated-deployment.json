@@ -1,0 +1,39 @@
+{
+  "classification": "isolated_deployment",
+  "production_modified": false,
+  "origin": "http://127.0.0.1:18090",
+  "new_database": true,
+  "fake_models": false,
+  "publisher_mode": "none",
+  "roles": {
+    "serve": "running",
+    "worker": "running",
+    "sandbox-worker": "running",
+    "provider-worker": "blocked_real_model_gateway_and_provider_configuration"
+  },
+  "upeve": {
+    "status": 200,
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "old_trial": {
+    "status": 200,
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "model_gateway": {
+    "status": "unavailable",
+    "reason_code": "URLError"
+  },
+  "schema_revision": "0039_environment_contracts",
+  "active_jobs": 0,
+  "initial_startup": {
+    "status": "failed",
+    "reason": "Concurrent role startup raced empty-database migrations; original failed instance retained, v2 initialized serially before roles.",
+    "retained_under": "/tmp/upeve-isolated-20261029"
+  }
+}

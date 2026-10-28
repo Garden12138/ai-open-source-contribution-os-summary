@@ -1,0 +1,32 @@
+{
+  "command_evidence": [
+    {
+      "command_id": "upeve-entrypoint-probe",
+      "command_hash": "1f7a5e3a5b58f8a3db181614d2b642d7504b2cf10123f4173c6e03195dc4f62a",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-28T15:50:55.590748Z",
+      "completed_at": "2026-10-28T15:50:55.878694Z",
+      "resource_usage": {
+        "user_cpu_ms": 193,
+        "system_cpu_ms": 62,
+        "max_rss_bytes": 59785216,
+        "minor_page_faults": 5974,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 125,
+        "involuntary_context_switches": 11
+      },
+      "stdout_hash": "7d182766d176711d2e896b6984e8f10a752954dc80b9b8c1890e1a595af433db",
+      "stdout_bytes": 1482,
+      "stdout_log": "{\"executables\": [{\"argv\": [\"npm\", \"run\", \"test\"], \"command_id\": \"test\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/usr/local/bin/node\", \"executable_hash\": \"1a638b0fe2b68da0489276aca95526c5122fc61ba54d6a2d0d00c1c92ab7b876\", \"ownership\": \"runner_image\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"test\"], \"command_id\": \"test\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/tools/node_modules/.bin/npm\", \"executable_hash\": \"8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7\", \"ownership\": \"frozen_dependency_inventory\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"quality\"], \"command_id\": \"quality\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/tools/node_modules/.bin/npm\", \"executable_hash\": \"8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7\", \"ownership\": \"frozen_dependency_inventory\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"npm\", \"run\", \"quality\"], \"command_id\": \"quality\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/usr/local/bin/node\", \"executable_hash\": \"1a638b0fe2b68da0489276aca95526c5122fc61ba54d6a2d0d00c1c92ab7b876\", \"ownership\": \"runner_image\", \"reason_code\": null, \"status\": \"available\", \"working_directory\": \"quality\"}], \"target_platform\": \"linux/arm64\"}\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 287
+    }
+  ],
+  "before_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731",
+  "after_inventory_hash": "248625f3c0ef88bfda8326770f877d0f2bc25618a35b3bfd85d0fdfe4da9b731"
+}

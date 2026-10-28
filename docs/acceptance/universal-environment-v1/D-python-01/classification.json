@@ -1,0 +1,10 @@
+{
+  "classification": "D",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "failed",
+  "contract_hash": "e39527a9f69628829009d13d0cc25fc1171aaf8ebbe79b8688f1ac5656d469af",
+  "reason_code": "environment_dependency_resolution_failed"
+}

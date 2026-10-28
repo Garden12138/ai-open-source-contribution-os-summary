@@ -1,0 +1,43 @@
+{
+  "version": "workspace-dependency-result-v3",
+  "execution_attempt_id": "D-node-01",
+  "plan_hash": "907583830170f9a8fa6e2664a9d49c3bc8b539f972684680884f7d16efc0def4",
+  "proxy_policy_hash": "67683582dd39140593ed3bf6fcf3658035e86a192fca2c0c209fb13231496838",
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "ecosystem": "node",
+  "dependency_inventory_hash": "ad5af610a729f07205c07504f0873f516a1580ce7f91c85b377b1fbf5dd3c697",
+  "file_count": 2305,
+  "total_bytes": 11715154,
+  "source_result_hash": "50025d942fb7fe1a88ed7e7538122575b15593705082e6659fdc6061b4c4668b",
+  "source_kind": "explore",
+  "environment_receipt": {
+    "built_offline": true,
+    "execution_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "manager_version": "10.9.4",
+    "manifest_hashes": {
+      "package-lock.json": "0a1bc7f7eb9be20bb4cb5b218bf4af77540ebd12f6141a7b38439dc48d99985d",
+      "package.json": "eb6bf0e0cd579fc5de65e6e054803c8ecd442e011547487136c2294b897ec1e3",
+      "quality/package-lock.json": "19745096c0b7a8fe553dc81e6b5247968dbcadef821678f00b56e23e69d64213",
+      "quality/package.json": "fd08925c1ea5f556ab00fef6f688b983a8920c3d7e6336f4acd465f5d8a075fe"
+    },
+    "recipe": {
+      "linker": "node-modules",
+      "manager": "npm",
+      "manager_version": "10.9.4",
+      "package_roots": [
+        ".",
+        "quality"
+      ],
+      "project_directory": ".",
+      "registry": "https://registry.npmjs.org",
+      "runtime_pin": "",
+      "runtime_requirement": "",
+      "version": "node-environment-v1",
+      "workspace_lifecycle": []
+    },
+    "runtime_bin": "/usr/local/bin",
+    "runtime_version": "22.23.2",
+    "version": "node-environment-result-v1"
+  }
+}

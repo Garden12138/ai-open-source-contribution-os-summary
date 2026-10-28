@@ -369,6 +369,7 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
             "0036_verification_environment_recovery",
             "0037_baseline_feedback",
             "0038_agent_runtime_v2",
+            "0039_environment_contracts",
     )
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None

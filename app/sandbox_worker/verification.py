@@ -151,6 +151,7 @@ class VerifyCommandEvidence:
     logs_truncated: bool
     raw_logs_omitted: bool
     duration_ms: int
+    execution_summary: dict | None = None
 
     def __post_init__(self) -> None:
         try:
@@ -277,6 +278,7 @@ class VerifyCommandEvidence:
         except (TypeError, ValueError) as exc:
             raise VerificationError("Verify command status is invalid") from exc
         raw_logs_omitted = value["raw_logs_omitted"]
+        summary = None
         if not isinstance(raw_logs_omitted, bool):
             raise VerificationError("Verify log state is invalid")
         if raw_logs_omitted:
@@ -306,6 +308,8 @@ class VerifyCommandEvidence:
             stdout_log, stdout_truncated = _sanitize_log(stdout)
             stderr_log, stderr_truncated = _sanitize_log(stderr)
             logs_truncated = stdout_truncated or stderr_truncated
+            from app.environment_engine.execution import execution_summary
+            summary = execution_summary(stdout, stderr)
         return cls(
             command_id=value["command_id"],
             command_hash=value["command_hash"],
@@ -325,6 +329,7 @@ class VerifyCommandEvidence:
             logs_truncated=logs_truncated,
             raw_logs_omitted=raw_logs_omitted,
             duration_ms=value["duration_ms"],
+            execution_summary=summary,
         )
 
     def to_wire(self) -> dict[str, object]:
@@ -345,6 +350,7 @@ class VerifyCommandEvidence:
             "logs_truncated": self.logs_truncated,
             "raw_logs_omitted": self.raw_logs_omitted,
             "duration_ms": self.duration_ms,
+            **({"execution_summary": self.execution_summary} if self.execution_summary is not None else {}),
         }
 
 

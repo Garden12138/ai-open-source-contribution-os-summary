@@ -21,6 +21,7 @@ from app.sandbox_worker.dependencies import (
     DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION,
     SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION,
     NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION,
+    ENVIRONMENT_DEPENDENCY_PLAN_VERSION,
 )
 from app.sandbox_worker.specs import SandboxPolicy
 from app.sandbox_worker.implementation import ImplementRuntime
@@ -229,7 +230,10 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
             context = wb.latest(attempt.task_id, "context_ready")
             frozen_inventory = set(wb.read(context.payload["artifact_id"])["inventory"])
             from app.verification_commands import baseline_commands
-            commands = baseline_commands(commands, frozen_inventory, set(approved.files_likely_to_change))
+            # New contracts retain the entire approved command list. An absent
+            # future test target cannot silently remove an approved check.
+            if not selected.get("verification_contract"):
+                commands = baseline_commands(commands, frozen_inventory, set(approved.files_likely_to_change))
             if not commands:
                 raise WorkbenchError("缺少可在修改前运行的验证命令，请修订方案。", code="baseline_commands_missing")
             archive = RepositoryArchiveStore(self.settings.artifact_root).lookup(
@@ -242,6 +246,8 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
         workspace = await materializer.create_workspace(image_digest=attempt.runner_image_digest, policy=policy)
         dependency = None
         environment_spec = None
+        toolchain_receipt = None
+        entrypoint_evidence = None
         retained = False
         try:
             with self.database.session() as session:
@@ -279,7 +285,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     policy=policy, query="", paths=tuple(selected["manifests"]))
                 entries = {entry["path"]: entry for entry in evidence["entries"] if entry.get("content") is not None}
                 local_projects = []
-                if selected.get("mode") == "workspace-v2" and selected["ecosystem"] == "python":
+                if selected.get("mode") == "workspace-v2" and selected["ecosystem"] == "python" and not selected.get("verification_contract"):
                     import re, tomllib
                     inventory = frozen_inventory
                     directories = selected.get("project_directories") or [selected["project_directory"]]
@@ -362,7 +368,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     manifests=tuple(DependencyManifest(path=p, content_hash=entries[p]["prior_hash"]) for p in selected["manifests"]),
                     runner_image_digest=attempt.runner_image_digest, sandbox_policy_hash=policy.policy_hash,
                     proxy_policy_hash=proxy_policy.policy_hash, disk_bytes=policy.disk_bytes,
-                    version=NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("node_environment") else SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("distribution_strategy") == "source-wheel-v1" else DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("metadata_strategy") == "wheel-metadata-v1" else WORKSPACE_DEPENDENCY_PLAN_VERSION,
+                    version=ENVIRONMENT_DEPENDENCY_PLAN_VERSION if selected.get("verification_contract") else NODE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("node_environment") else SOURCE_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("distribution_strategy") == "source-wheel-v1" else DYNAMIC_WORKSPACE_DEPENDENCY_PLAN_VERSION if selected.get("metadata_strategy") == "wheel-metadata-v1" else WORKSPACE_DEPENDENCY_PLAN_VERSION,
                     distribution_strategy=selected.get("distribution_strategy","wheel-only-v1"),
                     builder_image_digest=selected.get("builder_image_digest"),
                     preparation_version=selected.get("preparation_version", "python-workspace-preparation-v1"),
@@ -370,7 +376,7 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     metadata_strategy=selected.get("metadata_strategy", "declarative-v1"), source_kind="explore",
                     project_directory=selected.get("project_directory", "."), local_projects=tuple(local_projects),
                     project_directories=tuple(selected.get("project_directories", ())),
-                    node_environment=selected.get("node_environment"))
+                    node_environment=selected.get("node_environment"), environment_contract=selected.get("verification_contract"))
                 environment_spec = plan.to_wire()
                 if job.payload.get("recovery_stage_hash") or (job.payload.get("runtime_repair_hash") and job.payload.get("replaces_baseline_hash")):
                     previous = next(e for e in wb.history(attempt.task_id)
@@ -394,6 +400,24 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                            if selected.get("native_resource") else {}))
                 finally:
                     await self.proxy.stop(lease, ignore_missing=True)
+            if selected.get("verification_contract"):
+                from app.environment_engine.probe import probe_prepared
+                try:
+                    toolchain_receipt, entrypoint_evidence = await probe_prepared(self.verifier,
+                        contract=selected["verification_contract"], dependency=dependency,
+                        workspace=workspace, policy=policy)
+                except (ValueError, TypeError, KeyError):
+                    raise DependencyPreparationError("Entry point probe could not prove toolchain",
+                        code="environment_entrypoint_unproven", safe_message="受限入口探针未获得完整证据；未进入编码。") from None
+                if toolchain_receipt.status != "prepared":
+                    with self.database.session() as session:
+                        wb, _, _ = self.current(session, job)
+                        wb.append(attempt.task_id, "environment_entrypoint_probe", {
+                            "attempt_id": attempt.id, "contract_hash": selected["verification_contract_hash"],
+                            "result_hash": wb.artifact(toolchain_receipt.model_dump(mode="json")),
+                            "evidence_hash": wb.artifact(entrypoint_evidence)}, key="entrypoints:" + job.id, job_id=job.id)
+                    raise DependencyPreparationError("Required entrypoint missing", code="environment_entrypoint_missing",
+                        safe_message="批准命令所需入口或目标平台尚未核实；不会回退使用宿主工具。")
             kwargs = {"workspace": workspace, "commands": commands, "policy": policy}
             if dependency:
                 kwargs["dependency_workspace"] = dependency.workspace
@@ -433,6 +457,24 @@ class WorkspacePreparationWorker(WorkbenchJobWorker):
                     "commands_hash": content_hash([c.to_wire() for c in commands]), "dependency_result_hash": dependency_hash,
                     "command_selection_policy": "existing-target-commands-v1",
                     "inspection": wire, "outcome": outcome}
+                if toolchain_receipt is not None:
+                    from app.environment_engine.baseline import classify_baseline
+                    contract_hash = wb.artifact(selected["verification_contract"])
+                    receipt_hash = wb.artifact(toolchain_receipt.model_dump(mode="json"))
+                    probe_hash = wb.artifact(entrypoint_evidence)
+                    evidence_hash = wb.artifact(wire)
+                    verdict = classify_baseline(selected["verification_contract"], receipt_hash,
+                        wire["command_evidence"], evidence_hash)
+                    payload.update(version="execution-baseline-v2", environment_contract_hash=contract_hash,
+                        preparation_receipt_hash=receipt_hash, entrypoint_evidence_hash=probe_hash,
+                        baseline_verdict=verdict.model_dump(mode="json"))
+                    from app.execution_outcome import baseline_outcome
+                    outcome = baseline_outcome(payload)
+                    payload["outcome"] = outcome
+                    for kind, artifact_hash in (("environment_contract_frozen", contract_hash),
+                            ("environment_entrypoint_probe", probe_hash), ("environment_preparation_receipt", receipt_hash)):
+                        wb.append(attempt.task_id, kind, {"attempt_id": attempt.id, "contract_hash": contract_hash,
+                            "result_hash": artifact_hash}, key=kind + ":" + job.id, job_id=job.id, commit=False)
                 if job.payload.get("replaces_baseline_hash"):
                     payload["replaces_baseline_hash"] = job.payload["replaces_baseline_hash"]
                 if job.payload.get("recovery_stage_hash"):

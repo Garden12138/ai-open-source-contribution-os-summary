@@ -105,6 +105,13 @@ def authorize_execution(
     if verification_command_error(content.commands_to_run, set(evidence["inventory"]), set(content.files_likely_to_change), evidence):
         raise WorkbenchError("方案中的验证命令需要修订：依赖准备必须独立，路径必须存在。", code="verification_commands_invalid")
     environment = task_environment(wb, task_id)
+    expectations = [c.baseline_expectation for c in content.commands_to_run if c.baseline_expectation]
+    if expectations:
+        from app.planner import frozen_inputs
+        issue_url = frozen_inputs(wb.session, task_id)["issue"].get("html_url")
+        if (not environment.get("verification_contract")
+                or any(e["issue_url"] != issue_url for e in expectations)):
+            raise WorkbenchError("预期复现必须绑定当前 Issue、新环境契约及完整对照检查；请修订方案。", code="baseline_expectation_invalid")
     if environment["status"] == "unsupported":
         raise WorkbenchError(environment["reason"], code="environment_unsupported")
     from app.execution_preflight import task_preflight

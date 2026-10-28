@@ -26,12 +26,16 @@ def capability_verdict(wb: Workbench, task_id: str) -> CapabilityVerdict:
     environment = task_environment(wb, task_id)
     baseline = wb.latest(task_id, "execution_baseline_ready")
     status = baseline_outcome(wb.read(baseline.payload["result_hash"]))["status"] if baseline else "not_run"
+    if (baseline and environment.get("verification_contract_hash")
+            and wb.read(baseline.payload["result_hash"]).get("environment_contract_hash") != environment["verification_contract_hash"]):
+        status = "not_run"
     # A prior baseline from another source/base cannot prove current capability.
     if baseline and context:
         from app.executions import ExecutionAttemptService
         attempt = ExecutionAttemptService(wb.session).get_verified(baseline.payload["attempt_id"])
         if (attempt.repository_archive_hash != context.payload["archive_hash"]
-                or attempt.base_commit_sha != context.payload["base_sha"]):
+                or attempt.base_commit_sha != context.payload["base_sha"]
+                or (wb.latest_plan(task_id) and attempt.plan_version_id != wb.latest_plan(task_id).id)):
             status = "not_run"
     unsupported = environment["status"] == "unsupported"
     return CapabilityVerdict(source_readable=context is not None,

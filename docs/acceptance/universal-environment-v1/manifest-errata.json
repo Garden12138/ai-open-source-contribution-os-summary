@@ -1,0 +1,32 @@
+{
+  "errata": [
+    {
+      "samples": [
+        "H-python-02",
+        "H-python-03",
+        "H-python-01"
+      ],
+      "original_field_value": "2445bb1f765aa5018d5dbf3a3bb1cd31ce30ecc88657792dac01373780c3d183",
+      "original_meaning": "context inputs hash, not OpportunitySnapshot inputs hash",
+      "status": "legacy_unverified_controlled_binding_not_native",
+      "canonical_snapshot_hash": "dfeca5a94d74e211e30401d0aab4be191605ddd4a7586fb54c0e2155ff90df74",
+      "canonical_snapshot_id": "6a9c1886-2479-44e6-a85c-432c99d9f182",
+      "old_manifests_unchanged": true,
+      "command_exits_and_source_archive_measurements_preserved": true
+    },
+    {
+      "samples": [
+        "H-node-01",
+        "H-node-02"
+      ],
+      "original_field_value": "97acb5aee41c3c4cee2e3d50c1787ae4de28e6c29a47d8db2f10fae6f772afd3",
+      "original_meaning": "context inputs hash, not OpportunitySnapshot inputs hash",
+      "status": "legacy_unverified_controlled_binding_not_native",
+      "canonical_snapshot_hash": "e7877488a8672581ad7f0029bdda44abca3ec21f4f5dc2112b68face4c74fc32",
+      "canonical_snapshot_id": "0f9e7cf8-b839-4e63-8a10-00dcef32a3c1",
+      "old_manifests_unchanged": true,
+      "command_exits_and_source_archive_measurements_preserved": true
+    }
+  ],
+  "product_binding_corrected_and_tested": true
+}

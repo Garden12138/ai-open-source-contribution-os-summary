@@ -210,6 +210,16 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
         if not lock:
             argv = [a for a in argv if a not in {"--immutable","--frozen-lockfile"}]
         run(argv, "node_resolve", cwd=work)
+        independent = plan.get("environment_contract", {}).get("preparation", {}).get("independent_directories", [])
+        for directory in independent:
+            child = project / directory
+            expected_lock = {"npm": "package-lock.json", "pnpm": "pnpm-lock.yaml", "yarn": "yarn.lock", "bun": "bun.lock"}[manager]
+            if not (child / expected_lock).is_file() or (child / expected_lock).is_symlink():
+                raise SystemExit(110)
+            metadata = json.loads((child / "package.json").read_text())
+            if metadata.get("packageManager", manager + "@" + version) != manager + "@" + version:
+                raise SystemExit(110)
+            run(argv, "node_independent_resolve", cwd=child)
         native_packages = []
         # NAPI workspaces are source links, so their published optional platform
         # packages are not installed as registry dependencies. Acquire exact
@@ -295,6 +305,8 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
         else:
             argv = [manager, "rebuild", "--offline", "--cache", str(output / "cache")]
         run(argv, "node_build", cwd=work)
+        for directory in plan.get("environment_contract", {}).get("preparation", {}).get("independent_directories", []):
+            run(argv, "node_independent_build", cwd=project / directory)
         for path, expected in receipt["manifest_hashes"].items():
             if path.endswith("package.json"):
                 try:
