@@ -5018,6 +5018,24 @@ prompt allocation correction, not new execution authority or a native pass.
 Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](acceptance/universal-environment-v1/history-headroom-checks.json). No additional stage gate passed.
 
 
+Final isolated checkpoint `b9bf5de`: 1610 passed / 62 skipped / 0 failed;
+32 focused cases, compileall and diff checks pass. Five owned roles restarted
+from idle; API/Gateway/Publisher and older trial health pass. A final same-goal
+D retest makes six actual MiniMax calls (18 lifetime, 388,140 input / 17,764
+output tokens), retains inline older pages where they fit, and reaches at most
+78,699 bytes. Exact frozen source and lifetime limits are unchanged. Three
+proposals fail strict `extra_forbidden`/`missing` envelope validation; bounded
+repairs end without a Plan. No schema coercion, added call budget, operator
+business fix, execution approval, native Coding, Verify or Review.
+[Final live record](acceptance/universal-environment-v1/history-headroom-live-retest.json),
+[deployment](acceptance/universal-environment-v1/history-headroom-deployment.json)
+and [audit](acceptance/universal-environment-v1/history-headroom-audit.json)
+retain all original files/events; credential scan has no findings. No jobs
+remain active. E0–E2 pass; E3/H Node is failed/unsupported, E4 partial, E5 native
+deliveries remain **0/3**, E6/Linux amd64 blocked/not_run. First specialty task
+stays UPEVE-E04; no Push, PR, third-party mutation or formal data modification.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

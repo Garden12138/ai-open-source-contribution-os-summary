@@ -55,5 +55,6 @@
   "read_round_limit": 4,
   "profile_changed": false,
   "lifetime_budget_limits_changed": false,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266"
 }

@@ -244,9 +244,10 @@
         "authenticated-resume.json",
         "planning-page-live-retest.json",
         "native-cohort7-results.json",
-        "read-history-live-retest.json"
+        "read-history-live-retest.json",
+        "history-headroom-live-retest.json"
       ],
-      "limit": "Original N5 Python conversation failure retained. Authenticated D source access now passes; 448f43f resolves context admission but real MiniMax retest terminates minimax_completion_invalid (19 lifetime calls). Fresh frozen N7 Python first measurement uses native read/plan control, 7 real calls, then read-round exhaustion/clarification and no Plan. No exact approval, Coding, Verify, Review or final acceptance. No operator business patches; native deliveries remain zero. b5738de D retest preserves bounded read history under 96 KB, but after 5 additional calls (12 lifetime) still asks unresolved semantics/evidence questions without Plan. Narrative reproduction is not an executed test."
+      "limit": "Original N5 Python conversation failure retained. Authenticated D source access now passes; 448f43f resolves context admission but real MiniMax retest terminates minimax_completion_invalid (19 lifetime calls). Fresh frozen N7 Python first measurement uses native read/plan control, 7 real calls, then read-round exhaustion/clarification and no Plan. No exact approval, Coding, Verify, Review or final acceptance. No operator business patches; native deliveries remain zero. b5738de D retest preserves bounded read history under 96 KB, but after 5 additional calls (12 lifetime) still asks unresolved semantics/evidence questions without Plan. Narrative reproduction is not an executed test. Final b9bf5de D retest keeps inline history within existing ceiling (max 78,699 bytes); six actual calls, 18 lifetime, then strict extra_forbidden/missing envelope rejection after bounded repairs. No Plan or native delivery."
     },
     {
       "id": "UE-T24",
@@ -307,7 +308,7 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "b5738deaa9b76312c6e57a96b227c4f4c6e94030",
+  "engine_revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
     "tests": 1672,
@@ -349,7 +350,7 @@
         "sha256": "e2944c6315c1b256fde2fc54669289a869f8944927e8127f070a3f2befb888c1"
       }
     ],
-    "revision": "pending_current_local_stage_commit",
+    "revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266",
     "evidence": "history-headroom-checks.json"
   },
   "holdout_current": {
@@ -366,5 +367,8 @@
     "N5": 2,
     "N7": 1,
     "environment_holdout_denominator_separate": true
-  }
+  },
+  "latest_native_retest": "history-headroom-live-retest.json",
+  "latest_isolated_deployment": "history-headroom-deployment.json",
+  "latest_history_and_security_audit": "history-headroom-audit.json"
 }

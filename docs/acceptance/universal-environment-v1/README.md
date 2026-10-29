@@ -592,3 +592,27 @@ an already over-soft-target prompt. It does not resolve the material Issue
 semantics questions or prove an executed reproduction.
 
 Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](history-headroom-checks.json). No additional stage gate passed.
+
+
+## Latest isolated checkpoint: b9bf5de
+
+[Final verification](history-headroom-checks.json): **1610 passed / 62 skipped /
+0 failed**, 32 focused cases, compileall and diff checks pass.
+[Deployment](history-headroom-deployment.json) is healthy with five owned roles
+restarted from idle and no formal-data/Publisher change.
+
+[Final same-goal D model retest](history-headroom-live-retest.json) uses six real
+MiniMax calls, 18 lifetime / 388,140 input / 17,764 output tokens. Prior exact
+pages are inlined where they fit, otherwise referenced; maximum prompt size is
+78,699 bytes below the original 96,000-byte ceiling. Frozen source and budget
+limits match. Three proposed outputs fail strict `extra_forbidden`/`missing`
+envelope validation, ending at the existing repair limit without a Plan. No
+invented defaults, schema coercion or extra budget is used to manufacture a pass.
+All Jobs completing is not Plan success. Native deliveries remain 0/3; no exact
+approval/Coding/Baseline/Verify/Review/final acceptance is inferred.
+
+[Final audit](history-headroom-audit.json) checks original ARV2 74 files and
+71+165 events, N5 first 36 and N7 first 37 events, credential patterns and zero
+active Jobs. E0–E2 pass; E3/H Node remains failed/unsupported, E4 partial, E5
+native/generalization gates failed, E6/Linux amd64 blocked/not_run. Current
+specialty task remains UPEVE-E04. No Push, PR or third-party write occurred.
