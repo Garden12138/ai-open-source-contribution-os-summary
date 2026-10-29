@@ -6,7 +6,7 @@ export function mountPublisherSettings(root, options) {
   let data = null, busy = false, timer = null, pending = null, disconnecting = false;
   const shell = el("section", "", "studio-model-settings");
   shell.id = "github-publisher-settings";
-  shell.append(el("h2", "GitHub 发布"), el("p", "连接用于创建 Draft PR 的 GitHub 账号。连接和检测只读取账号信息，每次发布仍需确认精确预览。"));
+  shell.append(el("h2", "GitHub 连接"), el("p", "连接 GitHub 账号。连接和检测只读取账号信息，每次发布仍需确认精确预览。"));
   const status = el("p", "正在检查发布服务…", "settings-status"); status.setAttribute("role", "status");
   const content = el("div", "", "settings-section"); shell.append(status, content); root.replaceChildren(shell);
   async function mutate(path, body, key = crypto.randomUUID()) {
@@ -35,6 +35,7 @@ export function mountPublisherSettings(root, options) {
       verification_failed:data.error || "账号检测未完成，请重新检测或更换 Token。"};
     status.textContent = labels[data.state];
     if (!data.available) { content.append(action("重新检查服务", load)); return; }
+    if (data.discovery_shared) content.append(el("p", "保存一次即可用于公开仓库的机会发现、源码读取和后续 Draft PR。读取通过独立只读接口进行；Token 仅保存在发布服务，模型与沙箱无法获得。", "muted settings-wide"));
     if (data.connected) {
       const account = el("a", `在 GitHub 查看 @${data.login}`); account.href = `https://github.com/${encodeURIComponent(data.login)}`;
       account.target = "_blank"; account.rel = "noopener noreferrer";

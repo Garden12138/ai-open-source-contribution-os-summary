@@ -1,0 +1,26 @@
+{
+  "classification": "isolated_service_deployment_not_native_delivery",
+  "recorded_at": "2026-10-29T08:24:06.381705+00:00",
+  "publisher_container": "upeve-publisher-20261029-shared",
+  "image": "sha256:6685a463e8b85c6a9f9541f29d095143fa2b37de2c87e0b1b9a5e0ed70b086f6",
+  "platform": "linux/arm64",
+  "public_origin": "http://127.0.0.1:18090",
+  "publisher_health": "passed",
+  "business_copy_integrity": "ok",
+  "all_table_counts_preserved": true,
+  "workbench_event_ids_and_hashes_preserved": 57,
+  "original_trial_db_snapshot_retained": "/tmp/upeve-isolated-20261029-v2/state.db",
+  "current_business_db": "/tmp/upeve-isolated-20261029-v2/business/state.db",
+  "schema_changed": false,
+  "publisher_nonroot_readonly": true,
+  "mounts": [
+    "isolated_business",
+    "isolated_publisher_private"
+  ],
+  "github_token_read_by_agent": false,
+  "model_credentials_in_publisher": false,
+  "docker_socket_in_publisher": false,
+  "app_publisher_mode": "none",
+  "production_modified": false,
+  "third_party_writes": 0
+}

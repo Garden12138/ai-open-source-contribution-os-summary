@@ -2,7 +2,7 @@ import { mountContributionWorkbench } from "./workbench.js?v=pr-status-live-v1";
 import { createExecutionChanges } from "./execution-changes.js?v=execution-changes-v1";
 import { initStudioChrome, compactOpportunity, renderSidebarTasks, renderMarkdown, changeScopeSummary } from "./studio.js?v=small-change-v2";
 import { mountModelSettings } from "./model-settings.js?v=conversation-agent-v1";
-import { mountPublisherSettings } from "./publisher-settings.js?v=publisher-v1";
+import { mountPublisherSettings } from "./publisher-settings.js?v=github-shared-v1";
 import { requestArtifact, requestJSON, sleep } from "./api.js?v=analysis-context-v2";
 
 (function () {

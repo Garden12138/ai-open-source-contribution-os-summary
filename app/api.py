@@ -754,10 +754,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current = replace(current, **overrides)
         return MetaResponse(
             app_name=current.app_name,
-            token_configured=(
-                bool(current.github_token)
-                or current.github_discovery_token_configured
-            ),
+            token_configured=(account_status(session)["connected"] if current.github_read_proxy_url else
+                bool(current.github_token) or current.github_discovery_token_configured),
             local_access_token_required=bool(current.local_access_token),
             csrf_token=request.app.state.csrf_token,
             preferred_languages=list(current.preferred_languages),

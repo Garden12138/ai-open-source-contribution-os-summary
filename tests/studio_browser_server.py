@@ -37,6 +37,9 @@ def main():
     _seed_candidates(db)
     from tests.test_analysis_evidence import _scan
     _scan(db, count=3)
+    import os
+    if os.getenv("CONTRIBOS_BROWSER_SHARED_GITHUB") == "1":
+        settings = replace(settings, github_read_proxy_url="http://publisher:8002", github_read_proxy_key=bytes.fromhex("bc" * 32))
     app = create_app(
         replace(settings, model_gateway_management_key=bytes.fromhex("ef" * 32),
                 publisher_management_key=bytes.fromhex("ab" * 32))

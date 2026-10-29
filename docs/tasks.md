@@ -4909,6 +4909,33 @@ forced-installer source proof retains E3 failure instead of treating safe refusa
 as baseline success. Linux amd64, exact execution/final approval and real native
 Coding/Verify/Review remain open. No remote changes or third-party writes.
 
+User-directed access follow-up (2026-10-29): the user wants one newly created
+Classic Token for both discovery/source reads and later public Draft PRs. This
+supersedes the earlier dedicated read-only-file request. Only `public_repo` is
+needed. Raw token ownership remains solely in isolated Publisher; a separate
+HMAC capability exposes bounded public GETs to API/coordinator. It cannot change
+credentials or publish. Model/Sandbox environments receive neither capability
+nor GitHub token. Existing exact publication approval remains unchanged.
+
+- [x] **UPEVE-ACCESS01** Shared settings connection and isolated public-read relay:
+  strict path/query/public-repository/redirect/secret/account-change guards,
+  browser-sealed save/test/retry/disconnect and deployment verified. Default
+  regression 1605 passed / 62 skipped; one asset-version assertion was updated
+  and its entire failed shard rerun. Browser component exit/route cleanup also
+  corrected and passed. These are component/deployment checks, not native success.
+- Actual new token save/authenticated reads remain pending the user's settings
+  action; no real token was read by Codex. The native journey gates stay open.
+
+The isolated 18090 settings page now exposes **GitHub 连接** with shared-read
+mode. Publisher runs separately in a nonroot, read-only-root container on 18092;
+no Docker socket, host HOME, model credential or Sandbox key is mounted. API
+publication mode stays `none`. The five owned roles were restarted with zero
+active Jobs. SQLite backup preserved all table counts and 57 event IDs/hashes;
+old trial state/artifacts are retained, current trial storage moved under
+`/tmp/upeve-isolated-20261029-v2/business/`. Formal services/data are untouched.
+See [shared connection](github-shared-connection.md) and
+[deployment evidence](acceptance/universal-environment-v1/shared-github-deployment.json).
+
 
 ---
 

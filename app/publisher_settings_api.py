@@ -46,6 +46,7 @@ class PublisherStatus(BaseModel):
     job_id: str | None = None
     job_state: str | None = None
     error: str | None = None
+    discovery_shared: bool = False
 
 
 class AccountJobResponse(BaseModel):
@@ -85,7 +86,7 @@ def register_publisher_settings_routes(app, require_mutation_access) -> None:
     async def status(request: Request):
         try:
             value = await app.state.publisher_manage(request.app.state.settings, "status", {})
-            return PublisherStatus.model_validate(value)
+            return PublisherStatus.model_validate({**value, "discovery_shared": bool(request.app.state.settings.github_read_proxy_url)})
         except (HTTPException, ValueError):
             return PublisherStatus(available=False, state="unavailable")
 

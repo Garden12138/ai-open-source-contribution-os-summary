@@ -178,7 +178,8 @@ class ManagedPRLifecycleWorker(PRLifecycleWorker):
 
 def create_publisher_app(settings: Settings, database: Database,
                          vault: GatewaySecretStore, *, run_workers: bool = True,
-                         probe: AccountProbe = probe_github_account) -> FastAPI:
+                         probe: AccountProbe = probe_github_account,
+                         read_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
     account_worker = AccountProbeWorker(database, vault, worker_id="publisher-account-" + uuid4().hex, probe=probe)
     publisher = ManagedPublicationWorker(database, settings, vault, worker_id="publisher-managed-" + uuid4().hex)
     cla = ManagedCLAWorker(database, settings, vault, worker_id="publisher-cla-" + uuid4().hex)
@@ -215,6 +216,8 @@ def create_publisher_app(settings: Settings, database: Database,
 
     app = FastAPI(title="ContribOS Publisher", docs_url=None, redoc_url=None,
                   openapi_url=None, lifespan=lifespan)
+    from app.github_read_proxy import PublicGitHubRelay, register_public_read
+    register_public_read(app, settings, database, vault, PublicGitHubRelay(transport=read_transport))
 
     @app.get("/health")
     async def health():

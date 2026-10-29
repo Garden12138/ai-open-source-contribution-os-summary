@@ -52,6 +52,8 @@ services:
       MODEL_GATEWAY_BASE_URL: http://contribos-model-gateway:8001/v1
       PUBLISHER_MANAGEMENT_KEY: ${PUBLISHER_MANAGEMENT_KEY:-}
       PUBLISHER_MANAGEMENT_URL: http://publisher:8002
+      GITHUB_READ_PROXY_URL: ${GITHUB_READ_PROXY_URL:-}
+      GITHUB_READ_PROXY_KEY: ${GITHUB_READ_PROXY_KEY:-}
     networks:
       - app-internal
       - api-host
@@ -76,6 +78,8 @@ services:
     environment:
       <<: *app-environment
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_READ_PROXY_URL: ${GITHUB_READ_PROXY_URL:-}
+      GITHUB_READ_PROXY_KEY: ${GITHUB_READ_PROXY_KEY:-}
       GITHUB_ALLOWED_HOSTS: ${GITHUB_ALLOWED_HOSTS:-api.github.com}
       GITHUB_ARCHIVE_HOSTS: ${GITHUB_ARCHIVE_HOSTS:-codeload.github.com}
       SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}
@@ -84,6 +88,7 @@ services:
     networks:
       - app-internal
       - external-egress
+      - publisher-management
     depends_on:
       api:
         condition: service_healthy
@@ -166,6 +171,7 @@ services:
       PUBLISHER_MODE: gh
       PUBLISHER_MANAGEMENT_KEY: ${PUBLISHER_MANAGEMENT_KEY:-}
       PUBLISHER_SECRET_ROOT: /publisher-private
+      GITHUB_READ_PROXY_KEY: ${GITHUB_READ_PROXY_KEY:-}
     volumes:
       - contribos-data:/data
       - publisher-secrets:/publisher-private

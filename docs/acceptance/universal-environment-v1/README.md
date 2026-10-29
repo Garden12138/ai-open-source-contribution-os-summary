@@ -470,3 +470,28 @@ separates the child node_modules existence check from the later unconditional
 CI global install. Merely extending wrapper parsing or preinstalling child
 dependencies cannot make that branch offline. E3 stays failed under the fixed
 source/CI/no-install Verify contract, with all eight commands retained.
+
+## User-selected shared GitHub connection
+
+The user now wants one Classic `public_repo` token for discovery/source and
+later Draft PRs; the separate read-only-file request is superseded. The existing
+encrypted Publisher settings form now displays **GitHub 连接** and shared-read
+status. [Architecture/recovery](../../github-shared-connection.md) documents
+separate token ownership and a distinct GET-only HMAC capability. No raw GitHub
+token enters API/coordinator, Provider or Sandbox environments.
+
+[Checks](shared-github-checks.json): 21 new proxy cases plus existing Publisher
+contracts pass; the complete default selection is 1605 passed / 62 skipped.
+An old static-asset-version assertion failed, was updated, and its entire shard
+was rerun. Chromium desktop/mobile tests verify real encryption and the native
+form using a deterministic fake account probe; a teardown route race was fixed
+and the rerun exits 0. These are component checks, not native deliveries.
+
+[Deployment](shared-github-deployment.json) is actual OrbStack arm64: a new
+nonroot Publisher container with read-only root and two narrow mounts, no host
+HOME/Docker/model credential access. Five isolated roles restarted from idle;
+SQLite backup preserves every table count and 57 event IDs/hashes, and original
+trial data remains available. Current storage is under `business/`; formal and
+older 18080 services are untouched. Live API reports settings available and
+`discovery_shared=true`; token connection/authenticated reads await the user's
+new settings action. No external write or native success is inferred.

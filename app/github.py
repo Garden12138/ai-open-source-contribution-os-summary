@@ -71,9 +71,11 @@ class GitHubClient:
         etag_cache: ETagCache | None = None,
         sleep: Sleep = asyncio.sleep,
         random_value: RandomValue = random.random,
+        publisher_transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.settings = settings
         self._transport = transport
+        self._publisher_transport = publisher_transport
         self._etag_cache = etag_cache or MemoryETagCache()
         self._sleep = sleep
         self._random_value = random_value
@@ -88,14 +90,19 @@ class GitHubClient:
             "User-Agent": "contribos/0.2",
             "X-GitHub-Api-Version": "2022-11-28",
         }
-        if self.settings.github_token:
+        transport = self._transport
+        if self.settings.github_read_proxy_url:
+            from app.github_read_proxy import PublisherReadTransport
+            transport = PublisherReadTransport(self.settings, transport=self._publisher_transport)
+        elif self.settings.github_token:
             headers["Authorization"] = f"Bearer {self.settings.github_token}"
         self._client = httpx.AsyncClient(
             base_url=self.settings.github_api_url,
             headers=headers,
             timeout=self.settings.request_timeout_seconds,
             follow_redirects=False,
-            transport=self._transport,
+            transport=transport,
+            trust_env=False,
         )
         return self
 
@@ -384,6 +391,7 @@ class GitHubClient:
             timeout=timeout,
             follow_redirects=False,
             transport=self._transport,
+            trust_env=False,
         ) as client:
             async with client.stream("GET", url) as response:
                 if response.is_redirect:

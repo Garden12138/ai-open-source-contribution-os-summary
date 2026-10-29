@@ -6,6 +6,7 @@ const browser = await chromium.launch({headless:true, executablePath:process.env
 const page = await browser.newPage({viewport:{width:1440,height:1000}});
 const errors = [], bodies = [];
 const token = "ghp_BrowserPublisherCanary1234567890123456";
+const origin = process.env.CONTRIBOS_BROWSER_ORIGIN || "http://127.0.0.1:8765";
 page.on("pageerror",e=>errors.push(e.message));
 page.on("request",r=>{if(r.method()==="POST")bodies.push({url:r.url(),body:r.postData() || ""});});
 try {
@@ -16,9 +17,10 @@ try {
     await new Promise(resolve=>setTimeout(resolve,400));
     await route.fulfill({response});
   });
-  await page.goto("http://127.0.0.1:8765/#/settings");
+  await page.goto(origin + "/#/settings");
   const section = page.locator("#github-publisher-settings");
   await section.getByText("尚未连接 GitHub 发布账号。",{exact:true}).waitFor();
+  if (process.env.CONTRIBOS_BROWSER_SHARED_GITHUB === "1") await section.getByText(/保存一次即可用于公开仓库的机会发现/).waitFor();
   await page.getByLabel("GitHub 发布 Token").fill(token);
   await section.getByRole("button",{name:"连接 GitHub 账号",exact:true}).click();
   await section.getByText("已连接 @browser-contributor · 可准备 Draft PR 发布预览。",{exact:true}).waitFor();
@@ -29,7 +31,8 @@ try {
   assert.ok(envelope.ciphertext && envelope.wrapped_key);
   assert.equal(bodies.some(r=>r.body.includes(token)),false);
   assert.equal((await page.content()).includes(token),false);
-  const before = await (await page.request.get("http://127.0.0.1:8765/api/v1/publisher-settings")).json();
+  const before = await (await page.request.get(origin + "/api/v1/publisher-settings")).json();
+  if (process.env.CONTRIBOS_BROWSER_SHARED_GITHUB === "1") assert.equal(before.discovery_shared,true);
   await section.getByRole("button",{name:"重新检测账号",exact:true}).click();
   await page.waitForFunction(async old=>{
     const next=await (await fetch("/api/v1/publisher-settings")).json();
@@ -41,7 +44,7 @@ try {
   assert.equal(bodies.length,mutationsBeforeDisconnect);
   await page.getByRole("group",{name:"断开 GitHub 发布连接确认"}).getByRole("button",{name:"确认断开",exact:true}).click();
   await section.getByText("尚未连接 GitHub 发布账号。",{exact:true}).waitFor();
-  assert.equal((await (await page.request.get("http://127.0.0.1:8765/api/v1/publisher-settings")).json()).connected,false);
+  assert.equal((await (await page.request.get(origin + "/api/v1/publisher-settings")).json()).connected,false);
   assert.equal(bodies.some(r=>/publication|execute/.test(r.url)),false);
   for (const width of [1440,390]) {
     await page.setViewportSize({width,height:1000});
@@ -57,4 +60,4 @@ try {
 } catch(error) {
   console.error(await page.locator("#github-publisher-settings .settings-status").textContent());
   throw error;
-} finally {await browser.close();}
+} finally {await page.unrouteAll({behavior:"wait"}); await browser.close();}

@@ -136,6 +136,8 @@ class Settings:
     local_access_token: str | None = None
     github_token: str | None = None
     github_discovery_token_configured: bool = False
+    github_read_proxy_url: str | None = None
+    github_read_proxy_key: bytes | None = None
     github_api_url: str = "https://api.github.com"
     github_allowed_hosts: tuple[str, ...] = ("api.github.com",)
     github_archive_hosts: tuple[str, ...] = ("codeload.github.com",)
@@ -177,6 +179,16 @@ class Settings:
     publisher_secret_root: str = "/publisher-private"
 
     def __post_init__(self) -> None:
+        if self.github_read_proxy_key is not None:
+            if len(self.github_read_proxy_key) < 32 or self.github_read_proxy_key == self.publisher_management_key:
+                raise ValueError("GITHUB_READ_PROXY_KEY must be independent and at least 32 bytes")
+        if self.github_read_proxy_url:
+            from urllib.parse import urlsplit
+            target = urlsplit(self.github_read_proxy_url)
+            if (target.scheme not in {"http", "https"} or target.hostname not in {"publisher", "localhost", "127.0.0.1", "::1"}
+                    or target.username or target.password or target.query or target.fragment or target.path not in {"", "/"}
+                    or not self.github_read_proxy_key or self.github_api_url != "https://api.github.com"):
+                raise ValueError("GitHub read proxy requires an authenticated local Publisher and the official GitHub API")
         if self.publisher_management_key is not None and len(self.publisher_management_key) < 32:
             raise ValueError("PUBLISHER_MANAGEMENT_KEY must contain at least 32 bytes")
         if self.publisher_mode not in {"none", "fake", "gh"}:
@@ -257,6 +269,8 @@ class Settings:
             artifact_root=os.getenv("ARTIFACT_ROOT", defaults.artifact_root),
             local_access_token=os.getenv("LOCAL_ACCESS_TOKEN") or None,
             github_token=token,
+            github_read_proxy_url=os.getenv("GITHUB_READ_PROXY_URL") or None,
+            github_read_proxy_key=_hex_key_env("GITHUB_READ_PROXY_KEY"),
             github_discovery_token_configured=_bool_env(
                 "GITHUB_DISCOVERY_TOKEN_CONFIGURED"
             ),

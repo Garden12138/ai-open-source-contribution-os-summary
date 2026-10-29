@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.venv
+node_modules
+data
+logs
+artifacts
+.agents
+.codex
+.aws
+.ssh
+**/__pycache__
+**/*.pyc
