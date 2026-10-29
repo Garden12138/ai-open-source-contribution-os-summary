@@ -1,0 +1,82 @@
+{
+  "version": "upeve-native-routing-maintenance-v1",
+  "recorded_at": "2026-10-29T06:37:57.962529+00:00",
+  "predecessor_engine_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "source_file": "app/conversation_reasoning.py",
+  "source_sha256": "a72d015d3986ead4a22bb4571575cf157cbb3b2e74762734997b96cc4e8145f3",
+  "trigger": "N5-python actual MiniMax first attempt: observe-only classification, repeated context reads, two rejected outputs and no source ingestion",
+  "change": "Clarify that requesting repository investigation or preparing/revising a plan is a command for read-only planning, not implementation approval. An available planning workflow can ingest missing source. No output coercion, budget increase, capability expansion or authorization inference.",
+  "affected_samples": [
+    "N5-python",
+    "N5-typescript"
+  ],
+  "subsequent_measurement_classification": "D; preserve first frozen U-native selection outcomes permanently",
+  "actual_native_rerun": "not_run",
+  "deployment_after_patch": "pending_default_regression",
+  "model_profile_changed": false,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "focused_tests": {
+    "passed": 123,
+    "failed": 0,
+    "skipped": 0,
+    "xml": "/tmp/upeve-native-routing-focused.xml"
+  },
+  "full_default_tests": {
+    "tests": 1646,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1584,
+    "classification": "default_component_regression_not_native_or_opt_in_OCI",
+    "source_sha256": "a72d015d3986ead4a22bb4571575cf157cbb3b2e74762734997b96cc4e8145f3",
+    "shards": [
+      {
+        "tests": 412,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 10,
+        "path": "/tmp/upeve-native-routing-shard-0.xml",
+        "sha256": "bb8457b4bd84709aee6957b31c57c1524bd93f1402d9d0f143ca36e2a27a9fdc"
+      },
+      {
+        "tests": 412,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 8,
+        "path": "/tmp/upeve-native-routing-shard-1.xml",
+        "sha256": "985d94ca2e0abc0de3e89420d1e23ccc1aa498b1849a2b663a7569dbf8ff65fd"
+      },
+      {
+        "tests": 411,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 32,
+        "path": "/tmp/upeve-native-routing-shard-2.xml",
+        "sha256": "ec5f75922c9c4fb47203b93c2df588f543b874a82e1fc030a9cb00d5528849d5"
+      },
+      {
+        "tests": 411,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-native-routing-shard-3.xml",
+        "sha256": "690045734ffac297af9a1e1ed4321a162333fafe58e158fe4561ed1d6de8d70c"
+      }
+    ],
+    "verified_at": "2026-10-29T06:44:07.410391+00:00"
+  },
+  "automatic_review_failure": {
+    "action": "read-only isolated local API status query",
+    "executed": false,
+    "reason": "approval review service usage limit; not a safety rejection",
+    "retry_or_bypass": false,
+    "recovery": {
+      "at": "2026-10-29T06:41:14.805735+00:00",
+      "health_query_approved": true,
+      "isolated_health": "ok",
+      "old_trial_health": "ok",
+      "bypass": false
+    }
+  }
+}

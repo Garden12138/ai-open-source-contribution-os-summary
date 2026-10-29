@@ -1,0 +1,10 @@
+{
+  "classification": "D_maintenance_same_target_not_replacement",
+  "started_at": "2026-10-29T06:41:14.719786+00:00",
+  "first_result": "native-planning-results.json#N5-typescript",
+  "job_id": "86e8d90f-e262-4a05-b149-b0770904dea1",
+  "state": "queued",
+  "counts_as_native_delivery": false,
+  "operator_business_patches": 0,
+  "external_writes": 0
+}

@@ -1,0 +1,953 @@
+{
+  "engine_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+  "original_first_attempt_events": [
+    {
+      "id": "02f98aef-f8b7-4287-b206-7c504a84faac",
+      "sequence": 1,
+      "kind": "agent_runtime_enabled",
+      "job_id": null,
+      "payload": {
+        "version": "agent-runtime-v1",
+        "predecessor_hash": null
+      },
+      "payload_hash": "efa51ce18430165337b66515a79b5d0a395e29a5a34ff23285dc4b8dbe387102",
+      "previous_hash": null,
+      "record_hash": "902f697dab5e8ce00334743e22c696483e81203638802a72ec254cf408cd0bc6"
+    },
+    {
+      "id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+      "sequence": 2,
+      "kind": "conversation_received",
+      "job_id": null,
+      "payload": {
+        "version": "conversation-v1",
+        "text": "请调查这个 Issue，读取实际源码、现有测试、环境声明和项目规范，先判断报告的问题在冻结的默认分支上是否仍然存在，以及是否能用离线测试可靠复现。不得连接交易服务、使用交易账户或令牌、发起任何真实交易或外部写入。若属于服务端配额、上游已修复、没有足够证据或当前能力不支持，请明确报告，不制造业务补丁。若证据充分，制定最小修复方案：先新增离线回归测试并证明真实失败，再修改实现、运行相关项目测试与静态检查、最后独立 Review。保留项目批准的检查，不用 help/version/echo 代替检查。当前仅原生调查和保存可审阅方案，等待人工对精确 PlanVersion 批准，不实施、不发布。"
+      },
+      "payload_hash": "7fbfa729b1d19529b00c9ffc8bd9ae4a6bbe8a4425e7b3dbe56ea8a8fce89f47",
+      "previous_hash": "902f697dab5e8ce00334743e22c696483e81203638802a72ec254cf408cd0bc6",
+      "record_hash": "4f1a05bdf6b71bb3fda673db378779f5a6ad9c78dff79046e31e2a72c0fa00c4"
+    },
+    {
+      "id": "df0ea63d-e4f7-418e-81b8-e0f742121b43",
+      "sequence": 3,
+      "kind": "native_journey_started",
+      "job_id": null,
+      "payload": {
+        "runtime_version": "agent-runtime-v2",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "message_hash": "4f1a05bdf6b71bb3fda673db378779f5a6ad9c78dff79046e31e2a72c0fa00c4"
+      },
+      "payload_hash": "237392bdfc20ab6f96a8ac9d70a7022cc9453f9642d45949b74271f4d62a32ff",
+      "previous_hash": "4f1a05bdf6b71bb3fda673db378779f5a6ad9c78dff79046e31e2a72c0fa00c4",
+      "record_hash": "60d51d15188b783fd002b3c2e28bd0fc717e51b2cc25f4865ed1717ca49d6886"
+    },
+    {
+      "id": "723c3ac4-5f69-40bd-9ee4-e19daa76d8da",
+      "sequence": 4,
+      "kind": "job_queued",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "kind": "conversation_intent"
+      },
+      "payload_hash": "85ab4be6975678e4fc7312e536468786a0a9d2af69bc38fa0b74965862e21029",
+      "previous_hash": "60d51d15188b783fd002b3c2e28bd0fc717e51b2cc25f4865ed1717ca49d6886",
+      "record_hash": "38ff2403dd79c3c9281e8b6514235ea5f558fe38ed0c7c7f317c7b47e23b63b2"
+    },
+    {
+      "id": "2483a8eb-4c97-48f6-b792-f8cc462d49f5",
+      "sequence": 5,
+      "kind": "conversation_classifying",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025"
+      },
+      "payload_hash": "0560efb2164d89ae080a7f6b1ce57cf56378a56779e27b186d71001d71462951",
+      "previous_hash": "38ff2403dd79c3c9281e8b6514235ea5f558fe38ed0c7c7f317c7b47e23b63b2",
+      "record_hash": "1338069859c8e7e5fcb283cb5c7e674fd086109fb75d44dba6735cbc73866288"
+    },
+    {
+      "id": "8374a955-f561-49bf-beaf-1b40bc65745c",
+      "sequence": 6,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "bd1d3885472ca2d551bf939e9567e3cf2bb7df811d065230d4283080e71e4749",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 6131,
+          "prompt_bytes": 8477,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 1,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "2511522159947b8cd7b19fdd0d7c99722b19e935156497ec12f8a32e94f10201",
+        "source_cursor": 5
+      },
+      "payload_hash": "8908651a4b45536c0e5d59fb6eb00626c5446ac53a84ec034a4e756a58a7dd2a",
+      "previous_hash": "1338069859c8e7e5fcb283cb5c7e674fd086109fb75d44dba6735cbc73866288",
+      "record_hash": "1850d4ea475024d59eae0ae776382101d918938cf6995899a56301856fa21195"
+    },
+    {
+      "id": "0fd4139d-8007-4888-af11-37dfdadd6214",
+      "sequence": 7,
+      "kind": "agent_request_budget",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13855,
+        "output_limit": 4096,
+        "schema_hash": "b7490ff5d0c90ef113dd9ed679b662b66c018126e8def8c8085a5ac06fcdcfc4",
+        "original_prompt_hash": "2511522159947b8cd7b19fdd0d7c99722b19e935156497ec12f8a32e94f10201",
+        "prompt_hash": "9a8cdba77470ad0eea8a712ed240c1a0d3d8c94c14000e7be78194b7d8324091",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "325cc4c7f27f13b07cdf0db4ed74e51557e9814096afbea2be181500202ee224"
+          }
+        ],
+        "admitted": true
+      },
+      "payload_hash": "f3d56b408994436b1223d33b63bc6f604ea931333e7e4d3ee73da38206035987",
+      "previous_hash": "1850d4ea475024d59eae0ae776382101d918938cf6995899a56301856fa21195",
+      "record_hash": "77de6fff21d040c57057e5261853432e0bf1f66c9cccfd8d8c943cbb3fdb8ac1"
+    },
+    {
+      "id": "db4d7e17-ca71-4e68-bfca-3a1ddd91da79",
+      "sequence": 8,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "09e6d100ba2f462842ae83ba1bee96b8bbfecc117e73b40b92b334739ea258a0",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 6131,
+          "prompt_bytes": 6973,
+          "reference_count": 2,
+          "saved_bytes": 0,
+          "status": "compacted",
+          "target_bytes": 9118,
+          "target_met": true
+        },
+        "prompt_hash": "9a8cdba77470ad0eea8a712ed240c1a0d3d8c94c14000e7be78194b7d8324091",
+        "source_cursor": 5
+      },
+      "payload_hash": "8b69efc01ed64d0fb7814f6856a36e1ab2a9182a4f266258c5a7a7d6c0583401",
+      "previous_hash": "77de6fff21d040c57057e5261853432e0bf1f66c9cccfd8d8c943cbb3fdb8ac1",
+      "record_hash": "4e295532aa8cf076688074e14d898018265e5da9b748904fe16b96de7a6d5b6b"
+    },
+    {
+      "id": "338244e9-ece7-47c0-b326-fe771424797f",
+      "sequence": 9,
+      "kind": "model_call",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+        "attempt": 0,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "9a8cdba77470ad0eea8a712ed240c1a0d3d8c94c14000e7be78194b7d8324091",
+        "context_checkpoint_hash": "09e6d100ba2f462842ae83ba1bee96b8bbfecc117e73b40b92b334739ea258a0"
+      },
+      "payload_hash": "8ba25bd586985a776a03e1248789c9a3d19a705333420622e7c7e64235ce85a9",
+      "previous_hash": "4e295532aa8cf076688074e14d898018265e5da9b748904fe16b96de7a6d5b6b",
+      "record_hash": "f625316d5f787c50cb53f886ab9637d40f5f18d3c902712509cfbc79ddd4de2f"
+    },
+    {
+      "id": "d0cec494-60ad-449d-8fa2-13763cd79d7a",
+      "sequence": 10,
+      "kind": "conversation_usage",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3348,
+          "output_tokens": 382
+        }
+      },
+      "payload_hash": "a742b93b9c07c1068bdf0f52fc2196c240190ff8e84423d2f8561a812e68f84b",
+      "previous_hash": "f625316d5f787c50cb53f886ab9637d40f5f18d3c902712509cfbc79ddd4de2f",
+      "record_hash": "de75657d52473e0142dd854f82f9cbb0c59228d185c262640f3d04e4b3f9921f"
+    },
+    {
+      "id": "52a6b228-b5ff-4468-abbb-9901a439b89a",
+      "sequence": 11,
+      "kind": "agent_turn_classified",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "agent-runtime-v1",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "effect": "observe"
+      },
+      "payload_hash": "189593e3359faead8b719b591d19cd0693a1cb2d7e4e4eaa0191c99e7e0b02bc",
+      "previous_hash": "de75657d52473e0142dd854f82f9cbb0c59228d185c262640f3d04e4b3f9921f",
+      "record_hash": "8b2e57746c315055adaec453b37d2c86a25ff120c3b5d5e64b99da2aa4b7eed0"
+    },
+    {
+      "id": "f939f126-104e-4384-a395-eaed333142d8",
+      "sequence": 12,
+      "kind": "conversation_read_requested",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "artifact_id": "4f7106b658dbe1dac314586e0c17e61a96c05e73d94a53566749676da03f436c",
+        "output_hash": "98d385ba233715748457afd81d2c0fb6e5c1c73f15426401bd9b86a12a62b1fc",
+        "ignored_presentation": true,
+        "workflow_dispatched": false
+      },
+      "payload_hash": "5e9ac6c310fbd44f1eeee18d5e7aa820e9fe625bb9c593ad123a5f56a76351a3",
+      "previous_hash": "8b2e57746c315055adaec453b37d2c86a25ff120c3b5d5e64b99da2aa4b7eed0",
+      "record_hash": "b54c51f59d0148014d031a80bf5a47ed7cbae8e0785a68a52bcd1696600ba19a"
+    },
+    {
+      "id": "a2507617-5e6c-4f86-aea9-a9220314b8c5",
+      "sequence": 13,
+      "kind": "conversation_tool_result",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "tool": {
+          "name": "context_reference",
+          "path": null,
+          "query": null,
+          "start_line": 1,
+          "reference_id": "eb6f5baa6e80333d6e95fc99951b9e03f9df9c3f8285e70d86ccba0817a6d2b4",
+          "offset": 0,
+          "source_id": null,
+          "source_hash": null
+        },
+        "artifact_id": "3c5a4a653a799caa9817a81feddd45fc982c3b02eac953392d4e7a25fa1972af",
+        "basis_hash": "e41397a41f2fcc7f92cfe2c738da42ce6348c58291e1d37c1d76e307e35eac19"
+      },
+      "payload_hash": "f05d526cd86484ddd3bb6bb16b8ec246fae34bde16eca03479fd1782dd0f00f6",
+      "previous_hash": "b54c51f59d0148014d031a80bf5a47ed7cbae8e0785a68a52bcd1696600ba19a",
+      "record_hash": "d09bfcd1312803d860f8d1ce3d829d07aae243baaaa9116d9528e2b5b7df78c4"
+    },
+    {
+      "id": "4b88e24b-5d53-4145-b227-2aa11c5e4166",
+      "sequence": 14,
+      "kind": "conversation_tool_result",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "tool": {
+          "name": "context_reference",
+          "path": null,
+          "query": null,
+          "start_line": 1,
+          "reference_id": "325cc4c7f27f13b07cdf0db4ed74e51557e9814096afbea2be181500202ee224",
+          "offset": 0,
+          "source_id": null,
+          "source_hash": null
+        },
+        "artifact_id": "d59d87b11e54ec45faf3455c67f95a6ad883936a1cd5492c2ffd3bb9ecbdb881",
+        "basis_hash": "e41397a41f2fcc7f92cfe2c738da42ce6348c58291e1d37c1d76e307e35eac19"
+      },
+      "payload_hash": "8a7c1bfd43ee2df48bb8d9b4c9d4a14fc2fcfb488c43fb69e0e0ed9bc3e81b57",
+      "previous_hash": "d09bfcd1312803d860f8d1ce3d829d07aae243baaaa9116d9528e2b5b7df78c4",
+      "record_hash": "938e3ccfbc2463e69b868d6030acea8b3ae43e5807f866792807c064dc4e88fa"
+    },
+    {
+      "id": "e4b9deeb-25dd-492e-8db4-1deb57362fd2",
+      "sequence": 15,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "80feadb6bf0718acf5880fe7e670d4977c82019c876ecfa677fe8741ffa47b63",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 9494,
+          "prompt_bytes": 11840,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 1,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "c3fe15a880fe0a31f539f3b32ab0551ccb40a2dfee3557743e9784eba0fd7496",
+        "source_cursor": 14
+      },
+      "payload_hash": "df3786cff0c3bf29c92f9b1980302e87c8d7474135e56743dd2bf3214fc817bd",
+      "previous_hash": "938e3ccfbc2463e69b868d6030acea8b3ae43e5807f866792807c064dc4e88fa",
+      "record_hash": "ba158dcd2960702e90c7d69bd47213daa8fb5425c1b9b816145f5b9981676f97"
+    },
+    {
+      "id": "171768b6-6411-4c2e-baf2-ef92a1bedc80",
+      "sequence": 16,
+      "kind": "agent_request_budget",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 14258,
+        "output_limit": 4096,
+        "schema_hash": "e9140f938adac4ef0795afc9a3d5a87572c6f090bee210ea4bc59bb2096a3113",
+        "original_prompt_hash": "c3fe15a880fe0a31f539f3b32ab0551ccb40a2dfee3557743e9784eba0fd7496",
+        "prompt_hash": "05219366d8e868f729a8f41d66f55146cc3b15ada607e1659f314729d8d2ecc3",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "325cc4c7f27f13b07cdf0db4ed74e51557e9814096afbea2be181500202ee224"
+          },
+          {
+            "label": "recent_dialogue",
+            "artifact_id": "8c6d0e7a841fbbcf575c6bbf1a0ee921594c1a76c66c0f51044b42c6d919c98a"
+          },
+          {
+            "label": "execution_status",
+            "artifact_id": "e8135664796ccfcb9303a2ca43a4e1b25592ecbc12135fcacde2afe0ff833b50"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "afea4a1b0e31bb16a51b960dd67f747e36ca973f0ddd8b44c39039e9759f9efa"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "4319eff5e460d7869552ad5a94e44d574a21dc42e75cb1f6f94a526161e3037a"
+          }
+        ],
+        "admitted": true
+      },
+      "payload_hash": "628f426f2b5c440b8fe6b7ba47578f06dc85628f4beeb0098e1deac289f0df4d",
+      "previous_hash": "ba158dcd2960702e90c7d69bd47213daa8fb5425c1b9b816145f5b9981676f97",
+      "record_hash": "6f5433c83e9b17884535aacdc9f1bc561e9f84030147b3fb1c2523ce96b465c7"
+    },
+    {
+      "id": "969c9c3d-cfb0-45c5-babd-18fa1ca0b282",
+      "sequence": 17,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "4fbe9528c333201691dc70d778548a70becf0f7e92994d6f717cf3bc3a91f0fd",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 9494,
+          "prompt_bytes": 8072,
+          "reference_count": 6,
+          "saved_bytes": 1422,
+          "status": "compacted",
+          "target_bytes": 9814,
+          "target_met": true
+        },
+        "prompt_hash": "05219366d8e868f729a8f41d66f55146cc3b15ada607e1659f314729d8d2ecc3",
+        "source_cursor": 14
+      },
+      "payload_hash": "6ad9297b9c18759d29c6a07834d4df0cffcbf90f7f31301df4fb4a8ca36d6952",
+      "previous_hash": "6f5433c83e9b17884535aacdc9f1bc561e9f84030147b3fb1c2523ce96b465c7",
+      "record_hash": "3e1ed640b0a1ee47d5bc7d2bc65fa2773524c93fa14f4e1a4f207dd4e91b5072"
+    },
+    {
+      "id": "bf2a61d1-22ed-4d05-b817-e2e27305f5f5",
+      "sequence": 18,
+      "kind": "model_call",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+        "attempt": 1,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "05219366d8e868f729a8f41d66f55146cc3b15ada607e1659f314729d8d2ecc3",
+        "context_checkpoint_hash": "4fbe9528c333201691dc70d778548a70becf0f7e92994d6f717cf3bc3a91f0fd"
+      },
+      "payload_hash": "e367985f58fa662fe78c2de4c9741d5db508ff619d8b94bc2ebc7ea75293a577",
+      "previous_hash": "3e1ed640b0a1ee47d5bc7d2bc65fa2773524c93fa14f4e1a4f207dd4e91b5072",
+      "record_hash": "e98eed6c9f6fa84b27f5fc0d8a7dfe44c64b6ed9b0e17430b54ce0cbb877143e"
+    },
+    {
+      "id": "9111dc27-4b3c-432f-904d-30a7712b3a5a",
+      "sequence": 19,
+      "kind": "conversation_usage",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3605,
+          "output_tokens": 423
+        }
+      },
+      "payload_hash": "02b9e0ccaef69d94869ee4a952d9766ed02c04a3e663d1575d9405906eb52d12",
+      "previous_hash": "e98eed6c9f6fa84b27f5fc0d8a7dfe44c64b6ed9b0e17430b54ce0cbb877143e",
+      "record_hash": "5aadaa900e3caca418707959c8f69341e361a7bf6bed31d6bc7d44adf0ea5a8d"
+    },
+    {
+      "id": "d0a614f5-3bfe-4cb1-9bd7-f80f8e4122da",
+      "sequence": 20,
+      "kind": "conversation_read_requested",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "artifact_id": "ac498a0e8e266123f75fdfb4e22bde6fc5da3a21b2ba88a0afae9b12f2014e5d",
+        "output_hash": "a6e21b2a2fdd4ea3cef374accb0ab8cdfda83d165a1b96ed63ede3f1403b9266",
+        "ignored_presentation": true,
+        "workflow_dispatched": false
+      },
+      "payload_hash": "5da55548070bf0a5e779d8ee15c1211471e8eaf7b1854d7c06cf712c9bb48803",
+      "previous_hash": "5aadaa900e3caca418707959c8f69341e361a7bf6bed31d6bc7d44adf0ea5a8d",
+      "record_hash": "4a86e237997de72668dbdca0b56c846f0557d2386589932b92c73e1ed7939830"
+    },
+    {
+      "id": "7439aae6-1720-4d60-a130-51719aa7c0a8",
+      "sequence": 21,
+      "kind": "conversation_tool_result",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "tool": {
+          "name": "context_reference",
+          "path": null,
+          "query": null,
+          "start_line": 1,
+          "reference_id": "afea4a1b0e31bb16a51b960dd67f747e36ca973f0ddd8b44c39039e9759f9efa",
+          "offset": 0,
+          "source_id": null,
+          "source_hash": null
+        },
+        "artifact_id": "cc71fd283eeb33e22f4ed3be407b68d6917bf3158b765de1909a90df23206132",
+        "basis_hash": "e41397a41f2fcc7f92cfe2c738da42ce6348c58291e1d37c1d76e307e35eac19"
+      },
+      "payload_hash": "1b3886e135dbc7c403e97749b0d0c2b68873252c13aabcd9ab93e841df980769",
+      "previous_hash": "4a86e237997de72668dbdca0b56c846f0557d2386589932b92c73e1ed7939830",
+      "record_hash": "80a3bcd321dddcabbeee7d2be8c12f44a5805b715c467a6bed2516c948233b88"
+    },
+    {
+      "id": "81651765-c4bb-499d-8a85-257c45d24656",
+      "sequence": 22,
+      "kind": "conversation_tool_result",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "tool": {
+          "name": "context_reference",
+          "path": null,
+          "query": null,
+          "start_line": 1,
+          "reference_id": "e8135664796ccfcb9303a2ca43a4e1b25592ecbc12135fcacde2afe0ff833b50",
+          "offset": 0,
+          "source_id": null,
+          "source_hash": null
+        },
+        "artifact_id": "c4202592f5580c9c88588126cf970e10f689b8a21ad2b7d4cda617d19ffd92a5",
+        "basis_hash": "e41397a41f2fcc7f92cfe2c738da42ce6348c58291e1d37c1d76e307e35eac19"
+      },
+      "payload_hash": "ef5ce7e15b2171e2b4124fb30ca169fbfe5ed1f7c2c7ecd6433d4632ebec3912",
+      "previous_hash": "80a3bcd321dddcabbeee7d2be8c12f44a5805b715c467a6bed2516c948233b88",
+      "record_hash": "869afc8d9bdeff377cf231e514b2597cf2ccd2ee66cc5ebe62283d97ee5de951"
+    },
+    {
+      "id": "3d61d0b4-1b4b-4e54-b44a-35b0c6eaca6a",
+      "sequence": 23,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "95e13f6a61d219548cdbbea26a2170c3503e5a086c6e9f95677c1109ea30efb6",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 13051,
+          "prompt_bytes": 15397,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 1,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "3af719cd221394546e31a562a36745d87cb07adde4ec4c3e89958b607239813f",
+        "source_cursor": 22
+      },
+      "payload_hash": "632344cf8fe467b558561fcf35bd6c45a7677cb3288dc44fd98488a986da1b13",
+      "previous_hash": "869afc8d9bdeff377cf231e514b2597cf2ccd2ee66cc5ebe62283d97ee5de951",
+      "record_hash": "46a2e03a690eddf328e908d29b456e6b78c3562d5e39d7ec1c3da64a74ffc901"
+    },
+    {
+      "id": "2b0b1746-2530-4caf-b6b9-809db6f0ae87",
+      "sequence": 24,
+      "kind": "agent_request_budget",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13674,
+        "output_limit": 4096,
+        "schema_hash": "e9140f938adac4ef0795afc9a3d5a87572c6f090bee210ea4bc59bb2096a3113",
+        "original_prompt_hash": "3af719cd221394546e31a562a36745d87cb07adde4ec4c3e89958b607239813f",
+        "prompt_hash": "06574d7d3c07806d6fa2f23a443be3bb91c4c5ec5211c79ca640533e9f62918c",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "325cc4c7f27f13b07cdf0db4ed74e51557e9814096afbea2be181500202ee224"
+          },
+          {
+            "label": "recent_dialogue",
+            "artifact_id": "8c6d0e7a841fbbcf575c6bbf1a0ee921594c1a76c66c0f51044b42c6d919c98a"
+          },
+          {
+            "label": "execution_status",
+            "artifact_id": "e8135664796ccfcb9303a2ca43a4e1b25592ecbc12135fcacde2afe0ff833b50"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "afea4a1b0e31bb16a51b960dd67f747e36ca973f0ddd8b44c39039e9759f9efa"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "fb99aa83441f173228f847f08f48b67ab65a81d389cf2551afac6e9c398eae03"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "4319eff5e460d7869552ad5a94e44d574a21dc42e75cb1f6f94a526161e3037a"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "52af6c65aa495d994ece2349bc78673c5e08f12b82dedcf4dd0ae144e282dd1c"
+          }
+        ],
+        "admitted": true
+      },
+      "payload_hash": "e12604ea7d31341f4d997caed762a778ce21988005d3a440d8727057d95326b4",
+      "previous_hash": "46a2e03a690eddf328e908d29b456e6b78c3562d5e39d7ec1c3da64a74ffc901",
+      "record_hash": "0c0a77c3d7d771724464d617dd1c30a455d37cb51929e1936a4d4fd728fc21c6"
+    },
+    {
+      "id": "9a0de43e-3b1e-4e81-974a-252fdbe8e211",
+      "sequence": 25,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "cfce357a7da3bf90ae189411dc81cade4cd85a4d9c0142856db76e816aadf341",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 13051,
+          "prompt_bytes": 7488,
+          "reference_count": 8,
+          "saved_bytes": 5563,
+          "status": "compacted",
+          "target_bytes": 9814,
+          "target_met": true
+        },
+        "prompt_hash": "06574d7d3c07806d6fa2f23a443be3bb91c4c5ec5211c79ca640533e9f62918c",
+        "source_cursor": 22
+      },
+      "payload_hash": "1f249d879df7c81b1e9b9f0bd5db322daae952855070b31bd950923c0cdd89e7",
+      "previous_hash": "0c0a77c3d7d771724464d617dd1c30a455d37cb51929e1936a4d4fd728fc21c6",
+      "record_hash": "0676ccc0f3645ddc026685f934b1b5a6744837e6a5655e1e5fda353eb9d1e7d0"
+    },
+    {
+      "id": "31ce01b9-9f6a-409f-8da0-7c71d7fe2474",
+      "sequence": 26,
+      "kind": "model_call",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+        "attempt": 2,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "06574d7d3c07806d6fa2f23a443be3bb91c4c5ec5211c79ca640533e9f62918c",
+        "context_checkpoint_hash": "cfce357a7da3bf90ae189411dc81cade4cd85a4d9c0142856db76e816aadf341"
+      },
+      "payload_hash": "d5beef9d8cdd161ba0d9ae75ec95da1a9136a68d339215aa9e1d6ab1cc851dba",
+      "previous_hash": "0676ccc0f3645ddc026685f934b1b5a6744837e6a5655e1e5fda353eb9d1e7d0",
+      "record_hash": "6347f216aa3c56e90085d0d61ce7949622f8434797fe1b2dfed23c44a66b141e"
+    },
+    {
+      "id": "806bcf33-61ba-4d86-8096-c2fe840c774d",
+      "sequence": 27,
+      "kind": "conversation_usage",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3513,
+          "output_tokens": 252
+        }
+      },
+      "payload_hash": "b70f1c52738f6a8b162c9a98714d85b8f402e59948d882c43f9e39d40bd5ce89",
+      "previous_hash": "6347f216aa3c56e90085d0d61ce7949622f8434797fe1b2dfed23c44a66b141e",
+      "record_hash": "e33c052011d09bd56318d1254c321630d7d4378dec55226145d8fe31cdb28f38"
+    },
+    {
+      "id": "0195e08e-3d76-4a7c-a694-3d3d173b3825",
+      "sequence": 28,
+      "kind": "conversation_decision_rejected",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "attempt": 2,
+        "diagnostic": {
+          "code": "decision_schema_invalid",
+          "errors": [
+            {
+              "type": "string_type",
+              "loc": [
+                "reply"
+              ]
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "action"
+              ]
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "reads"
+              ]
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "references"
+              ]
+            }
+          ],
+          "instruction": "Return the required fields with the exact types. Read steps use action=respond, reply='', references=[]. Final steps use reads=[] and a non-empty reply. Unknown fields and tools are forbidden."
+        },
+        "artifact_id": "0876b162cad5d78911389b923f9eda7cc34ba93218ede5ca0c6eb4ef249c48bb"
+      },
+      "payload_hash": "ab813708c7de4e00ebc54e51b37d3ded70c2f87f33cc249f657618f28b550653",
+      "previous_hash": "e33c052011d09bd56318d1254c321630d7d4378dec55226145d8fe31cdb28f38",
+      "record_hash": "52d9a761dc2f088f75afaef4a6b898302559703a662a9aa2edc679044e256c89"
+    },
+    {
+      "id": "bff933ff-0e50-44cd-a3f7-bcdcacfb7991",
+      "sequence": 29,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "e0cee923ab93e78a77cded9301bbb1db44a03b2f4e8c282f2cb099d3348c5f61",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "original_bytes": 14070,
+          "prompt_bytes": 16416,
+          "saved_bytes": 0,
+          "target_bytes": 48000,
+          "target_met": true,
+          "reference_count": 1,
+          "instruction_count": 1,
+          "status": "within_budget"
+        },
+        "prompt_hash": "6e173e0f04b450f468f69f517fd7ab7bc9d9d883a59cbcf6d2ddb45d2877a95c",
+        "source_cursor": 28
+      },
+      "payload_hash": "914c4a7b73bd4fb48ad1612266d6538f2317bf9f3c7d3fa375587c194ec638e6",
+      "previous_hash": "52d9a761dc2f088f75afaef4a6b898302559703a662a9aa2edc679044e256c89",
+      "record_hash": "c67f5698b78dfef79b33b173814f3a90eddad897f4d53575c036dfdcca46f051"
+    },
+    {
+      "id": "b9579a79-a89b-483f-9496-130e87057ffd",
+      "sequence": 30,
+      "kind": "agent_request_budget",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "agent-request-budget-v1",
+        "input_limit": 16000,
+        "input_upper_bound": 13938,
+        "output_limit": 4096,
+        "schema_hash": "3993c67bad767720cd7313b50e09049dcc5a288df90ece7af461d80f644f1c46",
+        "original_prompt_hash": "6e173e0f04b450f468f69f517fd7ab7bc9d9d883a59cbcf6d2ddb45d2877a95c",
+        "prompt_hash": "5f971dacc6ee29bb9eb063054dfb3517fdad93849f922aad09a5461ed863b343",
+        "indexed": [
+          {
+            "label": "task_memory",
+            "artifact_id": "325cc4c7f27f13b07cdf0db4ed74e51557e9814096afbea2be181500202ee224"
+          },
+          {
+            "label": "recent_dialogue",
+            "artifact_id": "8c6d0e7a841fbbcf575c6bbf1a0ee921594c1a76c66c0f51044b42c6d919c98a"
+          },
+          {
+            "label": "correction",
+            "artifact_id": "4cd591d6292153b12fd8929f1aab42dcdc95a2241f42b4662429f92a3ca6aad0"
+          },
+          {
+            "label": "execution_status",
+            "artifact_id": "e8135664796ccfcb9303a2ca43a4e1b25592ecbc12135fcacde2afe0ff833b50"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "afea4a1b0e31bb16a51b960dd67f747e36ca973f0ddd8b44c39039e9759f9efa"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "fb99aa83441f173228f847f08f48b67ab65a81d389cf2551afac6e9c398eae03"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "4319eff5e460d7869552ad5a94e44d574a21dc42e75cb1f6f94a526161e3037a"
+          },
+          {
+            "label": "tool_evidence",
+            "artifact_id": "52af6c65aa495d994ece2349bc78673c5e08f12b82dedcf4dd0ae144e282dd1c"
+          }
+        ],
+        "admitted": true
+      },
+      "payload_hash": "81d7cc7ec4d2a71d62cb9734f5edec436e04bdf9d12b90ccc128a0d7097a22a0",
+      "previous_hash": "c67f5698b78dfef79b33b173814f3a90eddad897f4d53575c036dfdcca46f051",
+      "record_hash": "bc3dc5efc86f165c61e76b614614b9fe42ade53752f41a3126a2920dd5b48507"
+    },
+    {
+      "id": "cd1c99fe-839e-4fcd-82f8-d4b98310c5ee",
+      "sequence": 31,
+      "kind": "context_checkpoint",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "task-context-v1",
+        "artifact_id": "126fd61c332754bcfb0922d5fa4ffc9d53e401af9a7e3aa0e49a8cec59556c56",
+        "scope": "conversation",
+        "source": {
+          "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+          "state_hash": "1bc9921a1dea8c905487995d67ef89137e0396081caa187cff276f20004361cf",
+          "context_hash": null,
+          "plan_hash": null,
+          "base_sha": null,
+          "archive_hash": null,
+          "policy_hash": null,
+          "image": null,
+          "authorization_hash": null,
+          "approved_plan_id": null,
+          "baseline_result_hash": null,
+          "result_event_hash": null
+        },
+        "stats": {
+          "instruction_count": 1,
+          "original_bytes": 14070,
+          "prompt_bytes": 8114,
+          "reference_count": 9,
+          "saved_bytes": 5956,
+          "status": "compacted",
+          "target_bytes": 10176,
+          "target_met": true
+        },
+        "prompt_hash": "5f971dacc6ee29bb9eb063054dfb3517fdad93849f922aad09a5461ed863b343",
+        "source_cursor": 28
+      },
+      "payload_hash": "135768277e8d1043c56df25b98cd4a9d9ada23e63f244fd0e1f026b287695694",
+      "previous_hash": "bc3dc5efc86f165c61e76b614614b9fe42ade53752f41a3126a2920dd5b48507",
+      "record_hash": "1835dce3451a20e94408a431124895e03a2b104173cbdb283988a6e73310c517"
+    },
+    {
+      "id": "bf01d390-1992-4e97-a49e-3bc6090252f6",
+      "sequence": 32,
+      "kind": "model_call",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+        "attempt": 3,
+        "purpose": "conversation_intent",
+        "reasoning_version": "conversation-reasoning-v4",
+        "input_hash": "5f971dacc6ee29bb9eb063054dfb3517fdad93849f922aad09a5461ed863b343",
+        "context_checkpoint_hash": "126fd61c332754bcfb0922d5fa4ffc9d53e401af9a7e3aa0e49a8cec59556c56"
+      },
+      "payload_hash": "c9c6aa68ac40dd98603215a71846858d9d42155ada1a04d7264f119561db975a",
+      "previous_hash": "1835dce3451a20e94408a431124895e03a2b104173cbdb283988a6e73310c517",
+      "record_hash": "6e0a1e72ae5473b04d8afd1ebb335e28fcec1ddd36b8183c3a5126da7d7caf16"
+    },
+    {
+      "id": "0adc9806-ab95-4267-b246-b0dedb576cfc",
+      "sequence": 33,
+      "kind": "conversation_usage",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "usage": {
+          "input_tokens": 3533,
+          "output_tokens": 293
+        }
+      },
+      "payload_hash": "e3e1eced665849f0f28ffbbf71d56ca71e926a0d0bdac6993263a54f5045a42b",
+      "previous_hash": "6e0a1e72ae5473b04d8afd1ebb335e28fcec1ddd36b8183c3a5126da7d7caf16",
+      "record_hash": "50e3e9873abd2e9db7cdc7251719a5bcb0eb2b1af5d8451779d07fc3a3fd0e63"
+    },
+    {
+      "id": "8389d092-c138-4301-ad59-b19a5905d251",
+      "sequence": 34,
+      "kind": "conversation_decision_rejected",
+      "job_id": "a31418dc-dd33-4d32-b017-9ffaed8d1861",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "attempt": 3,
+        "diagnostic": {
+          "code": "reads_after_budget",
+          "errors": [],
+          "instruction": "No model calls remain after this one. Answer from tool_results with reads:[]; state any evidence limitation.",
+          "available_actions": [
+            "respond"
+          ],
+          "reference_names_available_now": [
+            "context_reference",
+            "context_reference",
+            "context_reference",
+            "context_reference"
+          ]
+        },
+        "artifact_id": "1a78fc38361875b0acb81f29abc4fb15427301def230952efaf36cdaf505d743"
+      },
+      "payload_hash": "e1840a58b86d8e12c0982192a3e2b83f87a38932ba31577008176a1c58dae152",
+      "previous_hash": "50e3e9873abd2e9db7cdc7251719a5bcb0eb2b1af5d8451779d07fc3a3fd0e63",
+      "record_hash": "ddff1b7c91c291f89e3a93f9aa0751d42890a661340e5d13843dce2a719641bc"
+    },
+    {
+      "id": "c6101298-72be-4927-97d0-ba61327f5448",
+      "sequence": 35,
+      "kind": "conversation_finished",
+      "job_id": null,
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "status": "failed"
+      },
+      "payload_hash": "de1f5024361bd98b1c3b7ef045ee7d95f3d4580746efb45045bcc051247617a5",
+      "previous_hash": "ddff1b7c91c291f89e3a93f9aa0751d42890a661340e5d13843dce2a719641bc",
+      "record_hash": "ea18cdc1154b0d7e68e224e2199621c648a6c40d9248666d59ac989efc290846"
+    },
+    {
+      "id": "d1a73bc4-c77b-4fd9-bf72-434c9ccb7ed1",
+      "sequence": 36,
+      "kind": "conversation_result",
+      "job_id": null,
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+        "text": "本轮未能完成，已有成果保留。\n本轮回答未通过校验，未派发操作；已保留原文。"
+      },
+      "payload_hash": "ac2c8e47f49b7adbc5d648627e17a6a03a016e637fdc75bff57dab8d5e06a805",
+      "previous_hash": "ea18cdc1154b0d7e68e224e2199621c648a6c40d9248666d59ac989efc290846",
+      "record_hash": "42c3a73e405e0439b5085de5392db8c43d627c3e82174c5b89f9402eabacbac2"
+    }
+  ]
+}

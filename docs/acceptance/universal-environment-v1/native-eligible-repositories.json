@@ -1,0 +1,105 @@
+{
+  "engine_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "excluded": [
+    {
+      "repository": "lastmile-ai/mcp-agent",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "42school/norminette",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "andreasgerstmayr/fava-dashboards",
+      "reason": "language"
+    },
+    {
+      "repository": "yandex-research/tabm",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "jbarrow/commonforms",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "CZ-NIC/knot-resolver",
+      "reason": "language"
+    },
+    {
+      "repository": "smocker-dev/smocker",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "saas-js/saas-ui",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "4Catalyzer/found",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "farirpgs/fari-app",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "unjs/node-fetch-native",
+      "reason": "metadata_or_rights"
+    },
+    {
+      "repository": "CircuitVerse/cv-frontend-vue",
+      "reason": "language"
+    },
+    {
+      "repository": "ricardomatias/playa",
+      "reason": "language"
+    },
+    {
+      "repository": "aiji42/next-qs-props",
+      "reason": "metadata_or_rights"
+    }
+  ],
+  "ordered_issue_query_candidates": [
+    {
+      "ecosystem": "python",
+      "repository": "ig-python/trading-ig",
+      "default_branch": "master",
+      "repository_id": 28721302,
+      "license": "BSD-3-Clause"
+    },
+    {
+      "ecosystem": "python",
+      "repository": "NVlabs/physical_ai_av",
+      "default_branch": "main",
+      "repository_id": 1079989992,
+      "license": "MIT"
+    },
+    {
+      "ecosystem": "python",
+      "repository": "fastapi/asyncer",
+      "default_branch": "main",
+      "repository_id": 444565271,
+      "license": "MIT"
+    },
+    {
+      "ecosystem": "node",
+      "repository": "jeremy-prt/bloub",
+      "default_branch": "main",
+      "repository_id": 1335104760,
+      "license": "MIT"
+    },
+    {
+      "ecosystem": "node",
+      "repository": "unjs/std-env",
+      "default_branch": "main",
+      "repository_id": 127458049,
+      "license": "MIT"
+    },
+    {
+      "ecosystem": "node",
+      "repository": "lloydrichards/shadcn-storybook-registry",
+      "default_branch": "main",
+      "repository_id": 918776588,
+      "license": "MIT"
+    }
+  ]
+}

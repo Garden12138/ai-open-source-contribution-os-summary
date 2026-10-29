@@ -1,0 +1,20 @@
+{
+  "engine_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "profile_id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+  "sample": "N5-python",
+  "scan_job_id": "60eab386-1412-4c73-9a3b-7a789563b826",
+  "snapshot_id": "f802190d-7992-47c7-9cb1-58f9f42a60a7",
+  "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+  "native_url": "http://127.0.0.1:18090/#/tasks/80806342-b959-41a4-8454-68c9c3322148",
+  "started_at": "2026-10-29T03:55:30.171524+00:00",
+  "counts_as_completed_delivery": false,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "human_plan_approved": false,
+  "human_final_acceptance": false,
+  "native_message_receipt": {
+    "message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+    "status": "queued",
+    "text": "已收到，会按顺序处理。"
+  }
+}

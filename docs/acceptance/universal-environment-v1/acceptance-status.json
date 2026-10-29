@@ -7,7 +7,7 @@
     "E2": "passed",
     "E3": "partial_historical_Node_failed",
     "E4": "implemented_partial_historical_Node_gate_open",
-    "E5": "generalization_failed_native_blocked",
+    "E5": "generalization_failed_native_first_attempt_failed_or_blocked",
     "E6": "partial_native_Linux_blocked"
   },
   "native_deliveries": 0,
@@ -229,27 +229,33 @@
     },
     {
       "id": "UE-T23",
-      "status": "not_run",
+      "status": "failed",
       "evidence": [
         "gateway-proposal.json",
         "isolated-deployment.json",
         "gateway-proposal-minimax.json",
         "minimax-readiness.json",
-        "minimax-live-connection.json"
+        "minimax-live-connection.json",
+        "native-targets.json",
+        "native-planning-results.json",
+        "native-routing-maintenance.json"
       ],
-      "limit": "User-saved native MiniMax-M3 profile verified across all four stages; actual connection and model catalog jobs succeeded. Full new native planning/approval/coding/verify/review/final acceptance not yet run; no delivery claimed."
+      "limit": "Actual native MiniMax conversation failed after four calls, before source ingestion or plan creation; malformed decision and exhausted read budget. No Coding/Verify/Review/approval/final acceptance. First result retained; revised routing is maintenance, not native success."
     },
     {
       "id": "UE-T24",
-      "status": "not_run",
+      "status": "blocked",
       "evidence": [
         "gateway-proposal.json",
         "isolated-deployment.json",
         "gateway-proposal-minimax.json",
         "minimax-readiness.json",
-        "minimax-live-connection.json"
+        "minimax-live-connection.json",
+        "native-targets.json",
+        "native-planning-results.json",
+        "native-routing-maintenance.json"
       ],
-      "limit": "User-saved native MiniMax-M3 profile verified across all four stages; actual connection and model catalog jobs succeeded. Full new native planning/approval/coding/verify/review/final acceptance not yet run; no delivery claimed."
+      "limit": "Real discovery completed with repository metadata rate-limited; snapshot excluded by metadata/license filters. No native Task/model plan or baseline. No replacement; later live inspection/redeploy also blocked by approval-review service usage limit."
     },
     {
       "id": "UE-T25",

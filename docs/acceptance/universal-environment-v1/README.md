@@ -1,11 +1,14 @@
 # UPEVE v1 acceptance ledger
 
-Latest frozen engine: `05c573e264da97d667308dc0e353f69141ad8e64`.
+Latest frozen engine: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1570 passed / 60 skipped / 0 failed. Current unseen cohort is 0/4 complete
-baselines, cumulative initial outcomes 0/15. Native Python/TS and native Linux
-amd64 remain blocked/not_run. [All 28 cases](acceptance-status.json) distinguish
+1584 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
+first baselines. MiniMax credentials and four-stage Profile binding are verified;
+fresh native Python planning failed before source ingestion, and TypeScript
+discovery was blocked by metadata rate limiting. Neither reached approval or
+Coding. Native Linux amd64 remains blocked/not_run.
+[All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
 Current branch: `refactor/agent-runtime-v2`. Phase 5 stays current. Historical
@@ -363,7 +366,8 @@ The authenticated Gateway management query succeeds. Offline configuration
 contracts passed 44, with 1 opt-in skip. No live upstream model request or native
 contribution success is claimed.
 
-The accessible encrypted stores, model configurations and MiniMax environment
+Historical readiness before the user saved settings (superseded by the next
+checkpoint): the accessible encrypted stores, model configurations and MiniMax environment
 fields contain no MiniMax key. The user must add a connection through
 `http://127.0.0.1:18090/#/settings`; no key is requested in chat. Model profile
 binding and actual connection testing wait for that input. This is a missing
@@ -403,3 +407,49 @@ Default regression is **1584 passed, 62 skipped, 0 failed**; opt-in skips are no
 OCI passes. These are controlled platform checks, not native deliveries. The
 historical installer still requires a supported generic boundary/recipe; E3 and
 dependent gates remain open. The earlier 0/15 holdout first outcomes stay intact.
+
+## Fresh native planning on the frozen Node v2 engine
+
+[Protocol](native-planning-protocol.json), [candidate metadata](native-candidate-metadata.json),
+[eligibility](native-eligible-repositories.json) and [Issue selection](native-issue-selection.json)
+retain metadata-only search history, exclusions and deterministic ordering.
+[Targets](native-targets.json) freeze trading-ig #374 and std-env #174 before any
+native message or source read. Both were open, unassigned Issues at selection;
+observed branch refs are not asserted as product-verified provenance.
+
+[Native results](native-planning-results.json) retain actual first outcomes on
+isolated 18090. Python discovery produced a real Snapshot/Task; MiniMax made four
+calls (13,999 input / 1,350 output tokens), classified the request observe-only,
+repeated context reads and failed with `conversation_decision_invalid`. Both
+rejected outputs and all 36 first-attempt events are saved. No source archive,
+plan, baseline, Coding or Review was produced. TypeScript discovery completed
+with metadata unavailable after GitHub HTTP403 rate-limit responses; metadata
+and license filters excluded its Snapshot. This does not prove its license is
+absent. No Task/model plan was created for it, and no target was replaced.
+
+The observer initially stopped polling at 180 seconds, then incorrectly looked
+for the earlier Python recommendation in the newer scan's feed. Its status is
+reconciled from actual persisted Jobs/Snapshot/events without changing the
+database. These are two native selection outcomes, not two extra OCI baseline
+measurements; the prior 0/15 environment denominator is unchanged.
+
+[Routing maintenance](native-routing-maintenance.json) clarifies that requesting
+an investigation/plan is a command for read-only preparation, even when
+implementation is forbidden. It changes no parser, output coercion, budget,
+capability or exact approval boundary. The 123 focused boundary tests pass;
+the complete default regression passes 1584 / 62 skipped / 0 failed. This prompt change is not a measured
+model improvement. Affected targets become D for subsequent revised-runtime
+measurements; original first outcomes remain frozen.
+
+An automatic approval review could not run a later read-only localhost status
+query because its service usage limit was exhausted. The action was not
+executed; this was not a safety rejection. No retry/bypass was attempted.
+After the reported recovery time, a fresh reviewed health query was approved:
+isolated and old trial services were both healthy. That temporary review-service
+block is resolved; deployment of the maintenance revision and live retests are
+next. Repeated GitHub anonymous limits still block repository metadata; a
+dedicated read-only discovery token was requested without requesting it in chat.
+[Local audit](native-readiness-audit.json) checks original file/event hashes and
+sanitized evidence without reading model credentials. One public Issue's prose
+matched the credential detector, was redacted with its original hash retained,
+and the scan passed; the initial failing scan is also retained.

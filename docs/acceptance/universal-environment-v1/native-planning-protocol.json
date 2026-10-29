@@ -1,0 +1,100 @@
+{
+  "version": "upeve-native-planning-protocol-v2",
+  "created_at": "2026-10-29T03:39:38.535359+00:00",
+  "engine_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "known_repositories": [
+    "BayesWitnesses/m2cgen",
+    "Dhaxor/super-utils-plus",
+    "Garden12138/ai-open-source-contribution-os-summary",
+    "can1357/oh-my-pi",
+    "fangpenlin/avataaars-generator",
+    "fixture/fixture",
+    "gradio-app/gradio",
+    "maninak/ts-xor",
+    "mixelpixx/KiCAD-MCP-Server",
+    "more-itertools/more-itertools",
+    "nadeesha/ts-prune",
+    "obskyr/colorgram.py",
+    "projectstorm/dynamouse",
+    "pytest-dev/pytest-flask",
+    "pytest-dev/pytest-testinfra",
+    "python-openapi/openapi-spec-validator",
+    "radashi-org/radashi",
+    "radashi-org/radashi.git",
+    "sepandhaghighi/art",
+    "shadcn-labs/pdfcn",
+    "signalityjs/signality",
+    "sirfz/tesserocr"
+  ],
+  "queries": {
+    "python": "language:Python topic:python-library topic:uv stars:100..5000 size:<10000 archived:false fork:false",
+    "node": "language:TypeScript topic:vitest stars:100..5000 size:<10000 archived:false fork:false"
+  },
+  "metadata_page": 1,
+  "metadata_per_page": 12,
+  "eligible_licenses": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC"
+  ],
+  "selection": "Metadata-only candidates exclude previously source-inspected repos, private/fork/archived and nonlisted license. Sort by sha256(engine_revision+newline+full_name). Query up to the first three repos per ecosystem for open unassigned bug issues, no PRs. Select the first hash-ordered issue in the first repo with an eligible issue before reading any source. No replacement after native planning/preparation fails. Record all candidate/exclusion results.",
+  "issue_query": "is:issue is:open no:assignee label:bug",
+  "issue_per_repo": 5,
+  "profile": {
+    "id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+    "record_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883",
+    "model": "MiniMax-M3",
+    "max_tokens": 8192,
+    "timeout_seconds": 180,
+    "connection_id": "b46cc88d-988e-44a5-b13a-be10f1d0b442"
+  },
+  "authorized_scope": "public read-only discovery and native product conversation/planning only; no code execution approval or external writes inferred",
+  "exact_plan_human_approval": false,
+  "final_human_acceptance": false,
+  "engine_mutation_during_measurements": "forbidden; any change demotes affected repository to D, retains first outcome",
+  "preceding_gates": "E3 historical dynamic installer still unsupported; this independent native planning does not close E3/E4.",
+  "metadata_search_history": [
+    {
+      "queries": {
+        "python": "language:Python topic:python-library topic:uv stars:100..5000 size:<10000 archived:false fork:false",
+        "node": "language:TypeScript topic:vitest stars:100..5000 size:<10000 archived:false fork:false"
+      },
+      "results": {
+        "python": 0,
+        "node": 12
+      },
+      "source_or_issue_content_read": false,
+      "native_targets_selected": 0
+    },
+    {
+      "code_queries": {
+        "python": "filename:pyproject.toml \"[dependency-groups]\" \"pytest\" \"version\"",
+        "node": "filename:package.json \"vitest run\" \"typescript\""
+      },
+      "results": {
+        "python_root_matches": 7,
+        "node_root_matches": 0
+      },
+      "source_contents_read": false,
+      "reason": "Legacy filename search also matched suffixes such as package.json.jinja; enforce extension as well as exact root-path filter."
+    }
+  ],
+  "selector_revision_reason": "First Python topic intersection returned no candidates. Before reading any source/Issue or starting a native task, supplement metadata-only GitHub code search for root declarative manifests; retain all search history.",
+  "code_queries": {
+    "python": "filename:pyproject.toml extension:toml \"[dependency-groups]\" \"pytest\" \"version\"",
+    "node": "filename:package.json extension:json \"vitest run\" \"typescript\""
+  },
+  "source_metadata_eligibility": "Code search returns filenames/blob IDs, not text matches. Only root manifests, non-template names (exclude boilerplate/template/clone/example/demo), public nonfork nonarchived license-eligible repositories with at least 100 stars and size below 10000 KiB. All candidate and exclusion records retained. No source contents or test outcomes used before selecting native Issue targets.",
+  "updated_at": "2026-10-29T03:41:45.802344+00:00",
+  "issue_selection_history": [
+    {
+      "query": "is:issue is:open no:assignee label:bug",
+      "python_repositories_with_eligible_results": 0,
+      "node_selected_pre_source": "https://github.com/unjs/std-env/issues/174",
+      "source_or_model_planning_started": false
+    }
+  ],
+  "python_issue_query_fallback": "is:issue is:open no:assignee, up to five per same three frozen candidates; qualify literal bug/error/fail/crash/wrong/incorrect/broken/not in title; preserve all results and do not replace after planning outcome"
+}

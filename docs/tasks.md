@@ -4844,8 +4844,8 @@ Final cache revision `05c573e` has matching H/D/U4 source hashes; H five and D
 fresh-repeat checks pass, U4 static gaps remain failed/pending_scope. Earlier
 first outcomes are not retroactive successes.
 E5 generalization remains failed, E3 Node still needs a supported generic semantic
-boundary/environment recipe, and true native Python/TS journeys require real
-model access and exact human approvals. Linux amd64 has no real endpoint and is
+boundary/environment recipe, and true native Python/TS journeys require exact
+human approvals. MiniMax model access is now verified. Linux amd64 has no real endpoint and is
 blocked/not_run. None of these conditions closes ENV-G01, UXR-G01, ARV2-M5/M6 or
 P5-G06. Current first unchecked specialty task remains **UPEVE-E04**.
 
@@ -4873,6 +4873,27 @@ Job `4d3b31d4-d81d-4213-ba53-8b31928f6d89` succeeded with the exact frozen Profi
 hash. Credential/model readiness is resolved; this is not native contribution
 success. Exact plan/execution/final approvals remain separate. No fake provider, external business patch or historical
 approval reuse is counted as success.
+
+Fresh native targets were selected before source reads on frozen `4d72db5`:
+trading-ig #374 and std-env #174, with full candidate/exclusion/Issue records.
+Python's real Scan → Snapshot → Task → conversation made four MiniMax calls,
+then failed `conversation_decision_invalid` before source ingestion/Plan creation.
+Its 36 original events and rejected outputs are retained. TypeScript discovery
+completed but metadata rate limiting caused exclusion; no Task/model plan or
+baseline ran. Both first outcomes remain, with zero native deliveries. The prior
+environment holdout denominator remains 0/15, not 0/17.
+
+Generic runtime prompt guidance now separates read-only plan preparation from
+implementation authorization; no output repair, privilege or budget change.
+123 focused contracts and the full 1584 passed / 62 skipped default suite pass. This is
+maintenance, not a proven model improvement, and subsequent measurements of
+these two targets are D. Automatic approval review could not execute a later
+localhost status query because the review service's usage limit was exhausted
+(not an unsafe-action determination). Live escalation/redeployment is blocked
+until that review service recovers; it subsequently recovered and approved a
+fresh health query, both instances healthy. No bypass, remote write or formal data
+change. Exact approvals and actual Coding/Verify/Review/final acceptance remain
+not_run. Current specialty task remains UPEVE-E04; no stage gate is checked.
 
 
 ---

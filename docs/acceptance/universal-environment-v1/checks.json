@@ -436,5 +436,56 @@
         "sha256": "5189ee90a0f62c3c1b3beac64c316dc754aec8db1ff48f2f74e6c2357233390a"
       }
     ]
+  },
+  "native_routing_default": {
+    "tests": 1646,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1584,
+    "classification": "default_component_regression_not_native_or_opt_in_OCI",
+    "source_sha256": "a72d015d3986ead4a22bb4571575cf157cbb3b2e74762734997b96cc4e8145f3",
+    "shards": [
+      {
+        "tests": 412,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 10,
+        "path": "/tmp/upeve-native-routing-shard-0.xml",
+        "sha256": "bb8457b4bd84709aee6957b31c57c1524bd93f1402d9d0f143ca36e2a27a9fdc"
+      },
+      {
+        "tests": 412,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 8,
+        "path": "/tmp/upeve-native-routing-shard-1.xml",
+        "sha256": "985d94ca2e0abc0de3e89420d1e23ccc1aa498b1849a2b663a7569dbf8ff65fd"
+      },
+      {
+        "tests": 411,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 32,
+        "path": "/tmp/upeve-native-routing-shard-2.xml",
+        "sha256": "ec5f75922c9c4fb47203b93c2df588f543b874a82e1fc030a9cb00d5528849d5"
+      },
+      {
+        "tests": 411,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-native-routing-shard-3.xml",
+        "sha256": "690045734ffac297af9a1e1ed4321a162333fafe58e158fe4561ed1d6de8d70c"
+      }
+    ],
+    "verified_at": "2026-10-29T06:44:07.410391+00:00"
+  },
+  "native_routing_focused": {
+    "tests": 123,
+    "passed": 123,
+    "failures": 0,
+    "skipped": 0,
+    "xml": "/tmp/upeve-native-routing-focused.xml"
   }
 }
