@@ -1,0 +1,25 @@
+{
+  "version": "typescript-authenticated-investigation-v1",
+  "classification": "D_real_model_investigation_unverified_no_bug_claim_not_native_delivery",
+  "event_id": "620cb76e-15a3-43cd-a2de-3cea2d1c70ae",
+  "event_hash": "f83ba5ce0d9ed8aec7a9881b87fe665124e319c8218ad2695feb124d9fda9758",
+  "reply_excerpt": "调查结论：Issue #174（unjs/std-env，NODE_ENV not being picked）报告的行为**不是 std-env 在当前冻结默认分支上的缺陷**，而是导入时快照 + 构建工具替换 `process.env.NODE_ENV` 的既有约定，因此不制造业务补丁。下面是我的判断依据和证据边界。\n\n## 关键源码事实（已读实际源码）\n\n1. `src/env.ts`：`export const env = globalThis.process?.env || Object.create(null)`；`nodeENV = (typeof process !== \"undefined\" && process.env && process.env.NODE_ENV) || undefined`。\n2. `src/flags.ts`（第 40-56 行区间已读）：`isC",
+  "questions": [
+    {
+      "id": "next_step",
+      "prompt": "基于当前调查结论（Issue #174 报告的 nodeENV 为空 / isDevelopment 为 false 属于构建期导入快照 + 构建工具静态替换的既有约定，非当前分支上的实现缺陷），你希望我接下来产出哪种可审阅成果？",
+      "options": [
+        "只产出英文 Issue 回复草稿（解释构建期快照与静态替换语义），不改代码、不加测试",
+        "在语义明确的前提下，补一个离线回归测试锁定“NODE_ENV 在导入时求值”的既有约定（不改实现）",
+        "先补齐 src/flags.ts 前 39 行与 src/env.ts 全文的确切源码证据，再决定是否需要修复",
+        "由你提供运行时（非构建期）加载 std-env 的最小复现，再重新评估是否存在真实缺陷"
+      ]
+    }
+  ],
+  "source_gaps_admitted": true,
+  "no_change_verified": false,
+  "plan_id": null,
+  "business_patches": 0,
+  "external_writes": 0,
+  "counts_as_native_delivery": false
+}

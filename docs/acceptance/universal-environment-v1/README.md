@@ -495,3 +495,36 @@ trial data remains available. Current storage is under `business/`; formal and
 older 18080 services are untouched. Live API reports settings available and
 `discovery_shared=true`; token connection/authenticated reads await the user's
 new settings action. No external write or native success is inferred.
+
+## Authenticated source access and planning context maintenance
+
+The user saved the new connection in the native page. The actual durable account
+probe succeeded; reported scope is `repo` (not the narrower minimum previously
+recommended). Only Publisher holds it, and the relay still enforces public GETs.
+[Resume record](authenticated-resume.json) preserves the two original targets,
+original Python task/budget and actual refreshed Node Snapshot/task. Actual
+repository/commit/archive access now succeeds, including an unauthenticated
+codeload redirect. No credentials were read by Codex or passed to the model or
+Sandbox. This resolves access readiness, not contribution acceptance.
+
+[Measured planning failures](authenticated-planning-failures.json) retain the
+Python context-ceiling stop and TypeScript conversation read-budget stop before
+any code change. Explicit TypeScript planning later returned a no-bug narrative
+with admitted source gaps and clarification choices; it is unverified, no Plan,
+no business patch, and not a native pass.
+
+Generic v2 compaction now indexes redundant copies of captured files, including
+focus files already available by hash, and removes duplicated capture-index
+metadata. Exact requested pages/current plan/rules/commands remain complete.
+Read results add source_path/source_complete: only complete returned bytes that
+match the captured file hash prove a complete capture; partial wrappers alone
+do not mean source is missing, and query excerpts/legacy skeletons never prove a
+full file. No budget or safety limit is increased; legacy checkpoints remain
+unchanged. [Checks](planning-page-checks.json): 75 focused cases and complete
+1607 passed / 62 skipped / 0 failed regression pass.
+
+[Actual frozen-payload clone replay](planning-page-shape-replay.json) reproduces
+the old pre-provider rejection. New code delivers the same three pages and
+unchanged request at 74,131 bytes, below the original 96,000-byte hard ceiling.
+The diagnostic provider deliberately stops there; no real model runs in that
+check and no live database is modified. It is component evidence only.

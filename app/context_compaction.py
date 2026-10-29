@@ -6,6 +6,7 @@ Original source and journal rows are retained; omitted data is retrieved by hash
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 from pathlib import PurePosixPath
 from typing import Any
 
@@ -241,6 +242,31 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
             body["context_management"]["references"] = list(references.values())
             if _bytes(body) <= target_bytes:
                 break
+    if page_source_files and _bytes(body) > target_bytes:
+        # The v2 capture index duplicates evidence.entries. Keep one source of
+        # path/hash/availability facts instead of spending the page budget twice.
+        planning = body.get("planning_state")
+        if isinstance(planning, dict) and isinstance(planning.get("source_capture_index"), list):
+            planning["source_capture_count"] = len(planning.pop("source_capture_index"))
+            planning["source_capture_basis"] = "Use evidence.entries for captured paths, hashes and availability; indexed source is not fully inspected."
+        # V2 already permits paging requested files. Focus must not pin another
+        # copy of their skeleton beside exact context_reads. Small files can
+        # also dominate collectively; index them before rejecting the request.
+        if isinstance(evidence, dict):
+            for entry in sorted(evidence.get("entries", []),
+                    key=lambda e: (e.get("path") in focus, -_bytes(e))):
+                text = entry.get("content")
+                if not isinstance(text, str) or len(text.encode()) < 256:
+                    continue
+                ref = entry.get("context_reference") or reference(entry,
+                    "repository file: " + entry["path"], entry.get("prior_hash"))
+                source_bytes = entry.get("original_bytes", len(text.encode()))
+                entry.update(content="[Source indexed; read context_reference for exact content.]",
+                    context_reference=ref, skeleton=True, partial=True, original_bytes=source_bytes)
+                entry.pop("read_hint", None)  # Shared read_rule carries the protocol.
+                body["context_management"]["references"] = list(references.values())
+                if _bytes(body) <= target_bytes:
+                    break
     ensure_no_sensitive_data(body, context="compacted prompt")
     prompt = canonical_json(body)
     prompt_bytes = len(prompt.encode())
@@ -290,6 +316,9 @@ def read_context(wb: Workbench, task_id: str, checkpoint_hash: str, requests: li
         matches = None
         source_file = (fragment["label"].startswith("repository file: ") and isinstance(selected, dict)
             and isinstance(selected.get("content"), str))
+        source_path = selected.get("path") if source_file else None
+        source_lines = len(selected["content"].splitlines()) if source_file else None
+        exact_source = bool(source_file and hashlib.sha256(selected["content"].encode()).hexdigest() == fragment["source_hash"])
         if request.start_line is not None:
             if not source_file:
                 raise WorkbenchError("只有源码文件索引支持行读取。", code="context_reference_query_unsupported")
@@ -318,10 +347,14 @@ def read_context(wb: Workbench, task_id: str, checkpoint_hash: str, requests: li
         end = min(len(raw), request.offset + request.max_bytes)
         while end < len(raw) and raw[end] & 0xC0 == 0x80:
             end -= 1
+        source_complete = bool(exact_source and request.query is None and request.offset == 0 and end == len(raw)
+            and (request.start_line is None or (request.start_line == 1 and selected["end_line"] == source_lines)))
         results.append({"reference_id": request.reference_id, "source_hash": fragment["source_hash"],
             "offset": request.offset, "next_offset": end if end < len(raw) else None,
             "total_bytes": len(raw), "partial": request.start_line is not None or request.query is not None or request.offset != 0 or end < len(raw),
             "query":request.query, "matches":matches,
+            "source_path":source_path, "source_lines":source_lines,
+            "source_complete":source_complete if source_file else None,
             "text": raw[request.offset:end].decode("utf-8")})
     ensure_no_sensitive_data(results, context="context read")
     return results

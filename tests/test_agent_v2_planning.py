@@ -96,6 +96,72 @@ def test_v2_planning_protocol_is_pinned_only_for_new_requests(tmp_path):
     db.close()
 
 
+def test_v2_many_captured_files_do_not_duplicate_pinned_source_pages(tmp_path):
+    from app.context_compaction import ContextRead, compact_prompt, read_context
+    from tests.test_context_compaction import packet
+    db,s,task,content,_=large_fixture(tmp_path)
+    entries=[]
+    for i in range(32):
+        text=f'SOURCE_SENTINEL_{i}\n'+'# Actual captured source\n'*110
+        entries.append({'path':f'package/file_{i}.py','content':text,
+            'prior_hash':hashlib.sha256(text.encode()).hexdigest(),'executable':False})
+    pinned=[{'reference_id':str(i)*64,'text':'exact source page '+str(i)+'x'*8000,'partial':True} for i in range(3)]
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        payload.update(evidence={'entries':entries,'inventory':[e['path'] for e in entries]},
+            context_reads=pinned,current_plan=content.hash_payload(),
+            planning_state={'source_capture_index':[{'path':e['path'],'content_hash':e['prior_hash'],
+                'available':True,'bytes':len(e['content'].encode())} for e in entries]})
+        prompt,cp=compact_prompt(wb,task,payload,scope='planning',focus_paths={e['path'] for e in entries},
+            page_source_files=True,target_bytes=48000,trigger_bytes=48000)
+        assert cp['original_bytes']>96000 and len(prompt.encode())<96000
+        actual=json.loads(prompt)
+        assert actual['context_reads']==pinned and actual['current_plan']==content.hash_payload()
+        assert actual['planning_state']['source_capture_count']==32
+        projected=next(e for e in actual['evidence']['entries'] if e.get('partial'))
+        page=read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=projected['context_reference'],max_bytes=8000)])[0]
+        source=next(e for e in entries if e['path']==projected['path'])
+        assert json.loads(page['text'])['content']==source['content']
+        assert page['source_hash']==source['prior_hash']
+        assert not wb.latest(task,'execution_authorized')
+    db.close()
+
+
+def test_source_completeness_uses_original_hash_and_returned_bytes(tmp_path):
+    from app.context_compaction import ContextRead, compact_prompt, read_context
+    from tests.test_context_compaction import packet
+    db,s,task,_,_=large_fixture(tmp_path)
+    text='FIRST_LINE\n'+'# original source line\n'*220
+    entry={'path':'full_source.py','content':text,'prior_hash':hashlib.sha256(text.encode()).hexdigest(),'executable':False}
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        payload['evidence']={'entries':[entry],'inventory':[entry['path']]}
+        _,cp=compact_prompt(wb,task,payload,scope='planning',page_source_files=True)
+        ref=next(r['reference_id'] for r in wb.read(cp['artifact_id'])['references'] if r['label']=='repository file: full_source.py')
+        full=read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=ref,max_bytes=16000)])[0]
+        assert full['source_complete'] is True and full['source_path']=='full_source.py'
+        assert full['source_lines']==221
+        for request in [ContextRead(reference_id=ref,max_bytes=256),ContextRead(reference_id=ref,start_line=2),ContextRead(reference_id=ref,query='FIRST_LINE')]:
+            assert read_context(wb,task,cp['artifact_id'],[request])[0]['source_complete'] is False
+        # A complete line selection still has a partial wrapper; distinguish
+        # that from missing file bytes without weakening the existing flag.
+        short='FIRST_LINE\n'+'# original source line\n'*100
+        short_entry={**entry,'path':'short_source.py','content':short,'prior_hash':hashlib.sha256(short.encode()).hexdigest()}
+        payload['evidence']={'entries':[short_entry],'inventory':['short_source.py']}
+        # Force an issued reference through the collective-size fallback.
+        payload['background']='large background '*400
+        _,cp2=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,target_bytes=1000,trigger_bytes=1000)
+        ref2=next(r['reference_id'] for r in wb.read(cp2['artifact_id'])['references'] if r['label']=='repository file: short_source.py')
+        selected=read_context(wb,task,cp2['artifact_id'],[ContextRead(reference_id=ref2,start_line=1,max_lines=160,max_bytes=16000)])[0]
+        assert selected['partial'] is True and selected['source_complete'] is True
+        # A legacy skeleton carrying the original file hash is not full source.
+        payload['evidence']['entries']=[{**short_entry,'content':'COMPRESSED_BODY\n'*20}]
+        _,cp3=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,target_bytes=1000,trigger_bytes=1000)
+        ref3=next(r['reference_id'] for r in wb.read(cp3['artifact_id'])['references'] if r['label']=='repository file: short_source.py')
+        assert read_context(wb,task,cp3['artifact_id'],[ContextRead(reference_id=ref3,max_bytes=16000)])[0]['source_complete'] is False
+    db.close()
+
+
 def test_planning_schema_does_not_offer_empty_object_as_a_valid_outcome():
     import pytest
     from app.planner import PlanningReply

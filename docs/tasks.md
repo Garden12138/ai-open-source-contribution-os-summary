@@ -4936,6 +4936,31 @@ old trial state/artifacts are retained, current trial storage moved under
 See [shared connection](github-shared-connection.md) and
 [deployment evidence](acceptance/universal-environment-v1/shared-github-deployment.json).
 
+Authenticated continuation: the user saved the shared Token in the page. The
+durable Publisher account probe succeeded (reported scopes: `repo`, broader than
+the documented minimum `public_repo`); raw credential remains Publisher-only
+and relay access remains public GET-only. Actual repository/commit/archive
+requests now succeed. The same Python source base is verified by the product,
+and the original TypeScript Issue is eligible on a real refreshed scan.
+These are D maintenance continuations; no first failure is replaced.
+
+Python then failed the planning context ceiling after five additional actual
+model calls; TypeScript chat exhausted its read count. Its explicit planning
+workflow read source and produced an unverified no-bug explanation with admitted
+source gaps and a clarification, no Plan. Neither is a native delivery.
+The exact source, Job outcomes, cumulative usage and limits are retained in
+[authenticated failures](acceptance/universal-environment-v1/authenticated-planning-failures.json).
+
+Generic v2 context maintenance now compresses duplicated captured-source metadata
+and indexed file copies while preserving exact requested pages, rules, current
+plan and commands. Source-read results distinguish a partial wrapper from a full
+captured file verified by its hash; queries/short pages/legacy skeletons cannot
+claim completeness. Limits, old checkpoints, authorizations and lifetime budgets
+are unchanged. 75 focused cases and full 1607 passed / 62 skipped regression pass. A clone of the
+actual failed request rejects before provider admission on old code and reaches
+a fake diagnostic hook with all three pages at 74,131 bytes on new code (hard
+limit remains 96,000). This is a component replay, never native/model success.
+
 
 ---
 

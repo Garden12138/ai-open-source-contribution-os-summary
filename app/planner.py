@@ -760,6 +760,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             paged_sources = data.get("agent_runtime_version") == "agent-runtime-v2"
             if paged_sources:
                 prompt_payload["rules"].append("Large source files, including requested paths, are indexed rather than inlined. Use read_context.query on their reference to locate code/test symbols, then start_line/max_lines for exact source. read_paths only captures missing source; repeating a captured path gives the same index. After inspecting needed evidence, finalize the pending plan. No tests or code execution is authorized here.")
+                prompt_payload["rules"].append("Each context read identifies its actual source_path. source_complete=true proves the full original file was returned and matched its content hash, even when partial=true describes a line selection or serialized envelope. Reuse that inspected source; do not spend another read round requesting the same complete file. source_complete=false never proves omitted source.")
                 prompt_payload["planning_state"] = {
                     "phase": "read_only_planning", "read_rounds_remaining": max(0, MAX_READ_ROUNDS-data.get("round", 0)),
                     "source_capture_index": [{"path": e["path"], "content_hash": e.get("prior_hash"),
