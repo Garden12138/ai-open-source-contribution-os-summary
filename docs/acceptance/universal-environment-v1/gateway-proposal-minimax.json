@@ -1,0 +1,18 @@
+{
+  "status": "model_choice_authorized_credential_missing",
+  "provider": "minimax",
+  "model": "MiniMax-M3",
+  "upstream": "https://api.minimax.cn/v1",
+  "listen": "http://127.0.0.1:18091",
+  "settings_entry": "http://127.0.0.1:18090/#/settings",
+  "credential_storage": "/tmp/upeve-isolated-20261029-v2/gateway-private",
+  "authorization_source": "user selected MiniMax in the current conversation",
+  "credential_trust_domain": "Gateway only; browser encrypts key before sending it through API",
+  "existing_upstream_credential_reused": false,
+  "nvidia_proposal": "superseded by explicit user model choice; original rejection record retained",
+  "production_environment_modified": false,
+  "profiles_bound": false,
+  "reason": "No MiniMax credential is present. User must add connection via the encrypted local settings form.",
+  "external_model_call": "not_run",
+  "plan_execution_and_final_acceptance": "still require separate exact human confirmation"
+}

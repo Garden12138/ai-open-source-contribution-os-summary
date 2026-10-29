@@ -232,18 +232,22 @@
       "status": "blocked",
       "evidence": [
         "gateway-proposal.json",
-        "isolated-deployment.json"
+        "isolated-deployment.json",
+        "gateway-proposal-minimax.json",
+        "minimax-readiness.json"
       ],
-      "limit": "No credential-use authorization; exact human plan/execution/final acceptance still required; native deliveries 0"
+      "limit": "User chose MiniMax; isolated Gateway/Provider and encrypted UI are ready. Blocked on missing MiniMax credential, then separate exact human plan/execution/final approvals. Native deliveries remain 0."
     },
     {
       "id": "UE-T24",
       "status": "blocked",
       "evidence": [
         "gateway-proposal.json",
-        "isolated-deployment.json"
+        "isolated-deployment.json",
+        "gateway-proposal-minimax.json",
+        "minimax-readiness.json"
       ],
-      "limit": "No credential-use authorization; exact human plan/execution/final acceptance still required; native deliveries 0"
+      "limit": "User chose MiniMax; isolated Gateway/Provider and encrypted UI are ready. Blocked on missing MiniMax credential, then separate exact human plan/execution/final approvals. Native deliveries remain 0."
     },
     {
       "id": "UE-T25",

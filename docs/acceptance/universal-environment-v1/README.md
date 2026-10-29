@@ -343,3 +343,29 @@ v2 M5/M6 and Phase 5 are **not declared complete**. Next current task remains
 UPEVE-E04: a supported generic Node semantic boundary/environment recipe that
 preserves all required checks. A changed exact recipe requires a fresh child
 plan and human authorization; Verify networking or code permissions stay closed.
+
+## MiniMax selection follow-up
+
+The user explicitly selected MiniMax after the NVIDIA proposal. That is accepted
+as the model choice, without asking for the same confirmation again. The original
+rejected NVIDIA proposal is retained as history and was never activated.
+[MiniMax proposal](gateway-proposal-minimax.json) selects the repository's native
+`minimax` / `MiniMax-M3` preset and fixed domestic endpoint. No NVIDIA credential
+or upstream is enabled in the new launch configuration.
+
+[Live readiness](minimax-readiness.json) confirms API 18090, Gateway 18091,
+coordinator, Sandbox Worker and Provider Worker are running. Only the Gateway
+will hold the upstream key; API gets its distinct management key, Provider its
+short-lived-task signing key, and Sandbox neither. The old trial stays healthy.
+[Actual UI check](minimax-settings-browser.json) proves the password input is
+enabled, official endpoint locked, WebCrypto available and zero browser errors.
+The authenticated Gateway management query succeeds. Offline configuration
+contracts passed 44, with 1 opt-in skip. No live upstream model request or native
+contribution success is claimed.
+
+The accessible encrypted stores, model configurations and MiniMax environment
+fields contain no MiniMax key. The user must add a connection through
+`http://127.0.0.1:18090/#/settings`; no key is requested in chat. Model profile
+binding and actual connection testing wait for that input. This is a missing
+credential, not pending model-choice consent; exact plan/execution/final approval
+and all remaining E3–E6 gates remain separate.

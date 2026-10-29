@@ -385,5 +385,15 @@
         "sha256": "84d5a4beb18b8649382e44c6be565ddd0d61cf4f3374edfd3b199162ae4d42fc"
       }
     ]
+  },
+  "minimax_configuration_followup": {
+    "tests": 45,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "report_sha256": "2259f2f4e46dd549a7f98843bca29aea25c9248f64156a6ceb79761e4be920b5",
+    "classification": "offline model-settings/gateway contracts, not live MiniMax acceptance",
+    "live_browser_readiness": true,
+    "upstream_calls": 0
   }
 }

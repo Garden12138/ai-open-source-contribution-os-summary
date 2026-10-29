@@ -4851,9 +4851,16 @@ P5-G06. Current first unchecked specialty task remains **UPEVE-E04**.
 
 Automatic approval review rejected using the existing NVIDIA secret to start a
 new Gateway before execution. No key was read and no workaround attempted. The
-concrete isolated Gateway proposal remains pending explicit credential/upstream
-consent; user "continue" was not treated as that consent. No fake provider,
-external business patch or historical approval reuse is counted as success.
+NVIDIA proposal was not activated. On the following user request to use MiniMax,
+the isolated 18091 Gateway and Provider Worker were started without a NVIDIA key;
+all five isolated roles and the encrypted settings entry are healthy. Target is
+the existing native `minimax` / `MiniMax-M3` preset at `https://api.minimax.cn/v1`.
+No MiniMax credential exists in the accessible stores/environment, so profile
+binding and live connection/native acceptance remain blocked until the user saves
+it in `http://127.0.0.1:18090/#/settings`. The model choice is authorized; it is
+not awaiting another model confirmation. Exact plan/execution/final approvals
+remain separate. No fake provider, external business patch or historical
+approval reuse is counted as success.
 
 
 ---
