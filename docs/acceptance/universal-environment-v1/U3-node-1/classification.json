@@ -1,0 +1,10 @@
+{
+  "classification": "U",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "unsupported",
+  "contract_hash": "355e2b1c7413bec2dc04073859b82234c538ffaa1f4db452d18cd18a94fc2bd0",
+  "reason_code": "unsupported_dynamic_script"
+}

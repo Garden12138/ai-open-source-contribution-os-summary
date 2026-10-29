@@ -1,0 +1,224 @@
+{
+  "version": "workspace-dependency-plan-v6",
+  "plan_id": "D-python-cache-01",
+  "execution_attempt_id": "D-python-cache-01",
+  "workspace_inventory_hash": "ebbf5d9510adf7ec18827ae339b18cb9503fac12ef28e17bc05f799397702e6b",
+  "ecosystem": "python",
+  "manifests": [
+    {
+      "path": "config/pins.txt",
+      "content_hash": "3b8e228eb2a3b83a774c7770ce936b575a4300ebc933f57601fd3c59406e4015"
+    },
+    {
+      "path": "config/tools.txt",
+      "content_hash": "0afe93233bb0afc575e3518ae939916498e7b8af2f525ce09d0f0e586dd39ad4"
+    },
+    {
+      "path": "pyproject.toml",
+      "content_hash": "a0770378e44ebfa6280cc0e0e55d2af2a4ad01b731fd4fd41bdc07f4480eb643"
+    }
+  ],
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "proxy_policy_hash": "18ff3da5771b22faceed98b64f4bfd0bb93f804a136585f57f012022f0b14b63",
+  "disk_bytes": 4294967296,
+  "source_result_hash": "f355097b2f629abeacefbafd6a9cb31a5db059a3d5449e83ce48fdfb35af29f2",
+  "source_kind": "explore",
+  "project_directory": ".",
+  "local_projects": [],
+  "preparation_version": "python-workspace-preparation-v2",
+  "environment_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "D-python-cache-01",
+      "snapshot_hash": "c763670afed0caa4098adcb6e39dc1271afcb067090f720075d820df53ac99ce",
+      "source_archive_hash": "26a37ba047ca25828df70d1fe032b32d7ac464673a342ff1e8214ce1876f6720",
+      "base_commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "plan_version_hash": "b392e9958bc5d67519c776592a15cf7eac91c619069008e30be44cde6f1fe9e3",
+      "approved_commands_hash": "e45ca0df68ab02952dffe7fdc66521dcef2b6f1aae665a28ab97cdcf9d9cf6b0",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "python-toolchain-v3"
+    },
+    "commands": [
+      {
+        "command_id": "unit",
+        "argv": [
+          "python",
+          "-m",
+          "unittest",
+          "-v"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "python",
+        "required_module": "unittest",
+        "distributions": [],
+        "resolution": "resolved"
+      },
+      {
+        "command_id": "lint",
+        "argv": [
+          "ruff",
+          "check",
+          "."
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "config/tools.txt",
+            "sha256": "0afe93233bb0afc575e3518ae939916498e7b8af2f525ce09d0f0e586dd39ad4",
+            "parser": "python-requirements-v1"
+          }
+        ],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "ruff",
+        "required_module": null,
+        "distributions": [
+          "ruff"
+        ],
+        "resolution": "resolved"
+      },
+      {
+        "command_id": "stubtest",
+        "argv": [
+          "stubtest",
+          "env_fixture"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": ".github/workflows/quality.yml",
+            "sha256": "de5ed901f749fd6206102f3d5c4df29a517eb66e4f3a42ee78c84ce3d9ac14e6",
+            "parser": "literal-pip-declaration-v2"
+          },
+          {
+            "path": "config/pins.txt",
+            "sha256": "3b8e228eb2a3b83a774c7770ce936b575a4300ebc933f57601fd3c59406e4015",
+            "parser": "python-requirements-v1"
+          }
+        ],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "stubtest",
+        "required_module": null,
+        "distributions": [
+          "mypy"
+        ],
+        "resolution": "resolved"
+      }
+    ],
+    "declarations": [
+      {
+        "requirement": "flit_core<4,>=3.9",
+        "distribution": "flit-core",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "a0770378e44ebfa6280cc0e0e55d2af2a4ad01b731fd4fd41bdc07f4480eb643",
+          "parser": "python-toolchain-v3"
+        },
+        "line": null
+      },
+      {
+        "requirement": "mypy>=1",
+        "distribution": "mypy",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/quality.yml",
+          "sha256": "de5ed901f749fd6206102f3d5c4df29a517eb66e4f3a42ee78c84ce3d9ac14e6",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 6
+      },
+      {
+        "requirement": "ruff==0.11.0",
+        "distribution": "ruff",
+        "constraint": false,
+        "source": {
+          "path": "config/tools.txt",
+          "sha256": "0afe93233bb0afc575e3518ae939916498e7b8af2f525ce09d0f0e586dd39ad4",
+          "parser": "python-requirements-v1"
+        },
+        "line": 1
+      },
+      {
+        "requirement": "mypy==2.4.0",
+        "distribution": "mypy",
+        "constraint": true,
+        "source": {
+          "path": "config/pins.txt",
+          "sha256": "3b8e228eb2a3b83a774c7770ce936b575a4300ebc933f57601fd3c59406e4015",
+          "parser": "python-requirements-v1"
+        },
+        "line": 1
+      },
+      {
+        "requirement": "peppercorn==0.6",
+        "distribution": "peppercorn",
+        "constraint": true,
+        "source": {
+          "path": "config/pins.txt",
+          "sha256": "3b8e228eb2a3b83a774c7770ce936b575a4300ebc933f57601fd3c59406e4015",
+          "parser": "python-requirements-v1"
+        },
+        "line": 2
+      }
+    ],
+    "evidence": [
+      {
+        "path": "pyproject.toml",
+        "sha256": "a0770378e44ebfa6280cc0e0e55d2af2a4ad01b731fd4fd41bdc07f4480eb643",
+        "parser": "python-toolchain-v3"
+      },
+      {
+        "path": ".github/workflows/quality.yml",
+        "sha256": "de5ed901f749fd6206102f3d5c4df29a517eb66e4f3a42ee78c84ce3d9ac14e6",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": "config/tools.txt",
+        "sha256": "0afe93233bb0afc575e3518ae939916498e7b8af2f525ce09d0f0e586dd39ad4",
+        "parser": "python-requirements-v1"
+      },
+      {
+        "path": "config/pins.txt",
+        "sha256": "3b8e228eb2a3b83a774c7770ce936b575a4300ebc933f57601fd3c59406e4015",
+        "parser": "python-requirements-v1"
+      }
+    ],
+    "preparation": {
+      "requirements": [
+        "flit_core<4,>=3.9",
+        "mypy>=1",
+        "ruff==0.11.0"
+      ],
+      "constraints": [
+        "mypy==2.4.0",
+        "peppercorn==0.6"
+      ],
+      "requirements_roots": [
+        "config/tools.txt"
+      ],
+      "cache_policy": {
+        "version": "python-data-cache-v1",
+        "source": "platform_capability_registry",
+        "distribution": "mypy",
+        "distribution_version": "2.4.0",
+        "directory": ".mypy_cache",
+        "max_bytes": 16777216
+      }
+    },
+    "unresolved": [],
+    "admission": "static_admitted",
+    "expected_failures": {}
+  },
+  "metadata_strategy": "declarative-v1"
+}

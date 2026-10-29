@@ -26,8 +26,10 @@
     }
   },
   "model_gateway": {
-    "status": "unavailable",
-    "reason_code": "URLError"
+    "status": "blocked_pending_explicit_credential_use_approval",
+    "reason_code": "URLError",
+    "upstream_reference": "https://integrate.api.nvidia.com/v1",
+    "proposed_isolated_port": 18091
   },
   "schema_revision": "0039_environment_contracts",
   "active_jobs": 0,
@@ -35,5 +37,7 @@
     "status": "failed",
     "reason": "Concurrent role startup raced empty-database migrations; original failed instance retained, v2 initialized serially before roles.",
     "retained_under": "/tmp/upeve-isolated-20261029"
-  }
+  },
+  "deployed_engine_revision": "b52a81e390d90ed69140a44b4cad89ccf7e2f47e",
+  "verified_at": "2026-10-29T01:17:46.797096+00:00"
 }

@@ -245,5 +245,119 @@
     "skipped": 8,
     "report_sha256": "3f8b75cbdb0b7f5568c343b007535b4f6a096d97c1c2882beaae02f4b5229c76",
     "classification": "deterministic contracts; skipped OCI not counted"
+  },
+  "delivery_default": {
+    "tests": 1623,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 59,
+    "passed": 1564,
+    "revision": "b52a81e390d90ed69140a44b4cad89ccf7e2f47e",
+    "scope": "complete production engine code; subsequent extra OCI assertion test is separate",
+    "reports": [
+      {
+        "path": "/tmp/upeve-delivery-shard-0.xml",
+        "sha256": "0b530a9f34c8cdcc454f0071a8e873aaead87719c8aa29f01a427efd04f54123"
+      },
+      {
+        "path": "/tmp/upeve-delivery-shard-1.xml",
+        "sha256": "bebc8d6687fded7b360d87746460e0f2d995a3798a5edd6a9094ca896891b677"
+      },
+      {
+        "path": "/tmp/upeve-delivery-shard-2.xml",
+        "sha256": "e7e614f7a62bcd05c932be01907df25cc1cfb0e2d522fb0ee8dfc9e578bee42a"
+      },
+      {
+        "path": "/tmp/upeve-delivery-shard-3.xml",
+        "sha256": "a82b9803072bd0bc6aa18e3e8b67b5e22edf54b9284d03644f1aca24da5fce3b"
+      }
+    ]
+  },
+  "actual_assertion_classification": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "a1939ecc06813e09adafb34f326e7482f510a7883430155db7fe941aa7d977b3",
+    "classification": "controlled actual OCI; no human approval or native coding"
+  },
+  "cache_boundaries": {
+    "tests": 135,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 11,
+    "report_sha256": "e388b32130ccbb0f88c61baf3b18e5d4cc11c550ec8dacd0c886818f7b6a79ed",
+    "classification": "deterministic contracts; opt-in OCI skips not passes"
+  },
+  "cache_focused_v4": {
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "report_sha256": "14b67276b50ce26c46363cea6bf1246ae63a87dfe180db3ea9042420eeb01451",
+    "classification": "deterministic contracts; opt-in OCI skips not passes"
+  },
+  "cache_browser": {
+    "passed": true,
+    "report_sha256": "ebe4d5d895431d0fda49e92bbc414757f6d0148f1836727b90314334f60c61e1",
+    "classification": "browser_component_intercepted_API_not_native",
+    "viewports": 2,
+    "states": 2
+  },
+  "cache_final_default": {
+    "tests": 1627,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 60,
+    "passed": 1567,
+    "source": "final cache adapter code before local commit",
+    "reports": [
+      {
+        "path": "/tmp/upeve-cache-final-shard-0.xml",
+        "sha256": "8f796f275e6ef5755e718299d3d7a2b39fe037da7e1822b63731442e0746181e"
+      },
+      {
+        "path": "/tmp/upeve-cache-final-shard-1.xml",
+        "sha256": "79baeebafc0d0bb9ac752001582ddf9bfa625644356d745190b0edf87f7c20ef"
+      },
+      {
+        "path": "/tmp/upeve-cache-final-shard-2.xml",
+        "sha256": "f7fc63705d72d1f2385ee9d9c7419b56e8058734baa8b1d344a635ff4aee5c8a"
+      },
+      {
+        "path": "/tmp/upeve-cache-final-shard-3.xml",
+        "sha256": "3f559b8c54c1f4b7f62d1bdc3a6d91f54a2980961c93814276e5d6f5f6c8b986"
+      }
+    ]
+  },
+  "cache_node_regression": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "33172edab370df04cbf2f9f0ff900df0b94caf53ee883fdfff276f28ff0c7ad2",
+    "classification": "30 contracts plus 5 actual OCI; not native model journey"
+  },
+  "cache_malicious": {
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "eb9f38cd26dd6e0f81d5f8fcd68610570c6f75b8054dfc8809b24a1cb22d496b",
+    "classification": "6 actual malicious OCI cases"
+  },
+  "cache_final_resolution": {
+    "tests": 48,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "22e2c610a2ab1c4ea874eb24a57c5540442ce462886d54d936f2fb23d480b96e",
+    "classification": "focused declarations, stale receipts, baseline, API and supplemental budget boundaries"
+  },
+  "supplemental_budget_initial": {
+    "status": "failed_test_code_then_corrected",
+    "path": "/tmp/upeve-cache-final-resolution.xml",
+    "reason": "unknown-version assertions were inadvertently placed under parametrized budget test; moved back and rerun focused core successfully",
+    "native": false
   }
 }

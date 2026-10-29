@@ -1,0 +1,61 @@
+{
+  "repository": "pytest-dev/pytest-flask",
+  "base_sha": "df72228f099f8f8a7c98f6f3bbffa83e8bb47e9f",
+  "sample_id": "U3-python-2",
+  "repository_id": 23620005,
+  "default_branch": "master",
+  "license": "MIT",
+  "ecosystem": "python",
+  "expected_capability": "boundary_unknown_until_static_evidence",
+  "archive_hash": "aef8f5e6ff078e6de922793ffb2ce1113110a3df39a6a6e6b639375c0ca075c8",
+  "archive_bytes": 29227,
+  "downloaded_at": "2026-10-29T01:15:01.485166+00:00",
+  "classification": "U",
+  "commands": [
+    {
+      "command_id": "check-1",
+      "argv": [
+        "coverage",
+        "run",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-2",
+      "argv": [
+        "coverage",
+        "combine"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-3",
+      "argv": [
+        "coverage",
+        "report"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "change_paths": [
+    "src/pytest_flask/__init__.py"
+  ],
+  "workspace_paths": [],
+  "plan_hash": "221fd491cdeed6f5d3653c2d60d9a63c4dea12e7bc5b56fbc2c8711efb0dfc94",
+  "snapshot_hash": "67b153b40ce3b2bd18229f6e8ba72fb2086d872974d8a9143d0b044266e6a379",
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "target_platform": "linux/arm64",
+  "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+  "command_source": "frozen tox default check argv or complete package build/test scripts; no tests removed after preparation",
+  "engine_revision": "b52a81e390d90ed69140a44b4cad89ccf7e2f47e",
+  "engine_source_hash": "3e02e774195b89aa6bc04ad0863dfe51e38010525006cbce944fab932e00a918",
+  "measured_at": "2026-10-29T01:16:48.931609+00:00",
+  "host_platform": {
+    "system": "Darwin",
+    "architecture": "arm64"
+  }
+}

@@ -157,3 +157,60 @@ def test_selected_project_self_install_is_not_an_external_dependency_or_host_exe
     roots, constraints, inline = declared_pip_inputs(source, "pkg")
     assert not roots and not constraints
     assert [d.distribution for d in inline] == ["pytest"]
+
+
+def test_data_cache_capability_is_versioned_declared_and_never_a_package_pin():
+    commands = [{"command_id": "types", "argv": ["stubtest", "other"], "working_directory": "."}]
+    files = {"pyproject.toml": '[project]\nname="different"\nversion="1"\n[dependency-groups]\ntest=["mypy"]\n'}
+    value = contract(files, commands)
+    assert value.admission == "static_admitted"
+    assert value.preparation["cache_policy"]["directory"] == ".mypy_cache"
+    assert value.preparation["cache_policy"]["distribution_versions"] == ["2.4.0", "2.4.1"]
+    assert value.preparation["constraints"] == []
+    files[".mypy_cache/tracked.py"] = "must not be hidden"
+    blocked = contract(files, commands)
+    assert blocked.unresolved[0].reason_code == "tool_data_cache_source_conflict"
+    files.pop(".mypy_cache/tracked.py")
+    files["pyproject.toml"] = files["pyproject.toml"].replace('["mypy"]', '["mypy==1.15.0"]')
+    assert contract(files, commands).preparation["cache_policy"] is None
+
+
+def test_cache_contract_cannot_grant_code_writes_or_unknown_tool_versions():
+    from app.sandbox_worker.python_cache import validate_python_cache, MYPY_CACHE_CAPABILITY
+    record = {**MYPY_CACHE_CAPABILITY, "distribution_version": "2.4.0", "contract_hash": "a" * 64, "plan_hash": "b" * 64}
+    assert validate_python_cache(record) == record
+    for key, value in [("directory", "src"), ("max_bytes", 999999999), ("distribution_version", "9")]:
+        with pytest.raises(ValueError):
+            validate_python_cache({**record, key: value})
+
+
+def test_cache_metadata_receipt_binds_exact_plan_and_rejects_unknown_distribution(tmp_path):
+    from app.sandbox_worker.python_cache import record_python_cache, MYPY_CACHE_CAPABILITY
+    metadata = tmp_path / "venv/lib/python3.11/site-packages/mypy-2.4.0.dist-info"
+    metadata.mkdir(parents=True)
+    (metadata / "METADATA").write_text("Metadata-Version: 2.1\nName: mypy\nVersion: 2.4.0\n")
+    plan = {"environment_contract": {"preparation": {"cache_policy": MYPY_CACHE_CAPABILITY}}}
+    receipt = record_python_cache(plan, str(tmp_path))
+    assert receipt["plan_hash"] == content_hash(plan)
+    assert receipt["contract_hash"] == content_hash(plan["environment_contract"])
+    with pytest.raises(ValueError, match="receipt_conflict"):
+        record_python_cache(plan, str(tmp_path))
+    (tmp_path / "python-data-cache.json").unlink()
+    (metadata / "METADATA").write_text("Metadata-Version: 2.1\nName: mypy\nVersion: 2.5.0\n")
+    with pytest.raises(ValueError, match="tool_version_unsupported"):
+        record_python_cache(plan, str(tmp_path))
+
+
+@pytest.mark.parametrize("case,reason", [("depth", "requirements_depth_limit"),
+    ("count", "requirements_count_limit"), ("file_bytes", "environment_evidence_budget")])
+def test_untrusted_declaration_budgets_fail_at_the_parser_boundary(case, reason):
+    if case == "depth":
+        files = {f"r{i}.txt": f"-r r{i + 1}.txt\n" for i in range(9)}
+        files["r9.txt"] = "ruff\n"
+    elif case == "count":
+        files = {"r0.txt": "ruff\n" * 301}
+    else:
+        files = {"r0.txt": "#" + "x" * (512 * 1024)}
+    with pytest.raises(ResolutionError) as error:
+        requirements(FrozenSource(evidence(files)), ["r0.txt"])
+    assert error.value.code == reason

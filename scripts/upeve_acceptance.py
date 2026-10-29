@@ -153,6 +153,21 @@ async def measure(manifest: dict, target: Path) -> dict:
             save("baseline-verdict.json", verdict.model_dump(mode="json"))
             result.update(status=verdict.outcome, reason_codes=list(verdict.reason_codes),
                 executed=verdict.executed_command_count, required=verdict.required_command_count)
+            repeats = manifest.get("repeat_baseline", 1)
+            if type(repeats) is not int or repeats not in {1, 2}:
+                raise ValueError("acceptance_repeat_budget_invalid")
+            if repeats == 2:
+                repeated = await verifier.run(workspace=workspace, commands=tuple(SandboxCommand.from_wire(c) for c in manifest["commands"]),
+                    policy=policy, dependency_workspace=dependency.workspace)
+                repeated_wire = {"before_inventory_hash": repeated.before_inventory_hash, "after_inventory_hash": repeated.after_inventory_hash,
+                    "command_evidence": [e.to_wire() for e in repeated.command_evidence]}
+                assert repeated.before_inventory_hash == repeated.after_inventory_hash == inventory
+                second_verdict = classify_baseline(selected["verification_contract"], content_hash(receipt.model_dump(mode="json")),
+                    repeated_wire["command_evidence"], content_hash(repeated_wire))
+                save("baseline-repeat-2.json", {"inspection": repeated_wire, "verdict": second_verdict.model_dump(mode="json")})
+                result["fresh_verify_repetition"] = second_verdict.outcome
+                if second_verdict.outcome != "passed":
+                    result.update(status=second_verdict.outcome, reason_codes=list(second_verdict.reason_codes))
     except Exception as exc:
         # No raw external errors, credentials or subprocess output in evidence.
         result.update(status="failed", reason_code=getattr(exc, "code", "acceptance_" + type(exc).__name__))

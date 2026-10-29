@@ -21,7 +21,7 @@ PYTHON_TOOLS = {"pytest": "pytest", "ruff": "ruff", "mypy": "mypy", "stubtest": 
 
 
 class PythonResolver:
-    version = "python-toolchain-v2"
+    version = "python-toolchain-v4"
 
     def resolve(self, source: FrozenSource, selected: dict, commands: list[dict]) -> tuple[list, list[CommandNode], dict]:
         if selected.get("project_directories"):
@@ -53,9 +53,11 @@ class PythonResolver:
             refs = tuple(dict.fromkeys(d.source for d in declarations if d.distribution == distribution))
             nodes.append(CommandNode(**{**cmd, "argv": argv}, required_executable=executable,
                 required_module=module, distributions=(distribution,) if distribution else (), source_refs=refs))
+        from app.environment_engine.cache import python_cache_policy
         return declarations, nodes, {"requirements": [d.requirement for d in declarations if not d.constraint],
             "constraints": [d.requirement for d in declarations if d.constraint],
-            "requirements_roots": list(dict.fromkeys(roots))}
+            "requirements_roots": list(dict.fromkeys(roots)),
+            "cache_policy": python_cache_policy(source, declarations, commands)}
 
 
 class NodeResolver:

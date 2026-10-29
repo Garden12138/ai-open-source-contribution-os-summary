@@ -16,6 +16,7 @@ try {
   let blocked = false;
   await page.route(endpoint, route => route.fulfill({json:{...original, execution:{...original.execution,
     environment_engine:{version:'environment-engine-view-v1',contract_hash:'a'.repeat(64),evidence_refs:{},executables:[],
+      data_cache_policy:blocked?null:{distribution:'mypy',distribution_version:'2.4.0',directory:'.mypy_cache',max_bytes:16777216},
       stages:{discovery:'recorded',resolution:blocked?'unsupported':'static_admitted',preparation:'unverified',entrypoints:'unverified',baseline:'unverified',coding:'not_started',review:'unverified'},
       gaps:blocked?[{reason_code:'unsupported_dynamic_installer',paths:['tools/check.js']}]:[]}}}}));
   for (const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
@@ -27,6 +28,8 @@ try {
     assert.match(text,/修改前测试：尚未验证/);
     assert.match(text,/编码：尚未开始/);
     assert.match(text,/真实工具和修改前测试尚未验证/);
+    assert.match(text,/\.mypy_cache/);
+    assert.match(text,/不能执行程序/);
     blocked=true; await page.reload();
     await page.getByText('unsupported_dynamic_installer', {exact:false}).first().waitFor();
     assert.match(await page.locator('main').innerText(),/tools\/check\.js/);

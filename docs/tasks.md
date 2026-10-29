@@ -4820,37 +4820,38 @@ Evidence: [acceptance ledger](acceptance/universal-environment-v1/README.md).
 - [ ] **UPEVE-E06** E5 API/UI, frozen unseen projects and true native Python/TS journeys.
 - [ ] **UPEVE-E07** E6 security/recovery/regression, isolated deployment and both platforms.
 
-Checkpoint 2026-10-29: E1 contracts/readiness and E2 Python declaration/tool
-closure are verified. Controlled D Python passes 3/3 and D Node passes 2/2 real
-OCI checks. H Python now has all five actual entries; full baseline is 4/5,
-blocked by current mypy's read-only cache write. H Node safely rejects its dynamic
-installer, so E3/E4 historical gates are not checked. E4 binding/classification
-and UI are implemented and contract-tested; no native Coding/Review claimed.
-Default suite 1549 passed/54 skipped; six real malicious cases and five existing
-Node OCI cases pass. Actual Mac doctor passes; Linux endpoint absent. Forward
-0039 upgrade/backup/restore preserves old hashes. New isolated API on 18090 is
-healthy; real Provider/Gateway remains unavailable. E5/E6 remain partial and
-native human approvals are still required. Evidence and exact failures are in
-the linked ledger. First frozen holdouts were 0/4 complete baselines; their failures remain. A generic
-legacy-gap/builtin fallback correction was tested after preserving that cohort,
-so those four projects become development samples for the revised engine.
-Gateway credential use was rejected by automatic approval review and remains
-blocked pending explicit authorization; no bypass was attempted.
-Second frozen cohort at `c275c55` also failed 0/4 complete baselines; cumulative
-0/8 stays recorded without replacement. A generic mypy 1.15.0 compatibility
-experiment ran all H Python checks but failed type metadata and was rejected,
-not activated. Nested diagnostic/zero-evidence guards and legacy TaskSpec wire
-compatibility passed full regression (1557 passed, 57 skipped). A subsequent
-versioned literal CI adapter passed a different real D Python fixture (3/3)
-and focused boundary checks; H still executes all five with the cache failure.
-Five real OCI negative guards passed, including zero tests and platform mismatch.
-Subsequent independent holdout measurements must preserve
-this candidate's rules and never close the unpassed H/native/platform gates.
+Checkpoint 2026-10-29: E0/E1 and E2 declaration/tool closure are verified.
+Versioned literal CI requirements retain source lines, separate constraints and
+fail-closed shell boundaries. A measured 16 MiB data-cache capability for mypy
+2.4.0/2.4.1 preserves source/dependency read-only mounts and noexec cache data.
+Different-layout D Python passes 3/3 in two fresh Verify runs with EROFS/EACCES
+assertions. H Python now executes and passes all five original commands (734 and
+929 unit tests, Ruff format/lint, stubtest); old failures/approvals remain intact.
+D Node passes 2/2; existing npm/pnpm/Yarn/Vitest suite passes 30 contracts and
+5 real OCI cases. H Node still rejects its CI-time global installer with all
+8 exact commands retained, so E3 and the full E4 historical gates remain open.
 
-Original failures and approval/event hashes are retained. The original Node
-wrapper unconditionally selects network installation under Verify's CI=1;
-preparing child dependencies alone cannot satisfy that contract. Unsupported
-semantics must block with evidence. P5-G06, ENV-G01, UXR-G01 and ARV2-M5/M6 stay open.
+Latest complete default regression: 1567 passed, 60 skipped, 0 failed. Six
+original malicious OCI cases and the new actual origin/platform/help/zero-test/
+assertion-control boundaries have separate evidence. Forward 0039 upgrade,
+backup/restore and legacy wire/hash compatibility preserve history. The isolated
+API/coordinator/Sandbox Worker are healthy on 18090; formal services/data are
+untouched. Final cache code redeploy and security rerun are recorded in the ledger.
+
+Three independently frozen cohorts retain first outcomes 0/4, 0/4 and 0/3;
+cumulative **0/11 full baselines**, no replacement or native delivery. Cache work
+creates a new engine revision; those first results are not retroactive successes.
+E5 generalization remains failed, E3 Node still needs a supported generic semantic
+boundary/environment recipe, and true native Python/TS journeys require real
+model access and exact human approvals. Linux amd64 has no real endpoint and is
+blocked/not_run. None of these conditions closes ENV-G01, UXR-G01, ARV2-M5/M6 or
+P5-G06. Current first unchecked specialty task remains **UPEVE-E04**.
+
+Automatic approval review rejected using the existing NVIDIA secret to start a
+new Gateway before execution. No key was read and no workaround attempted. The
+concrete isolated Gateway proposal remains pending explicit credential/upstream
+consent; user "continue" was not treated as that consent. No fake provider,
+external business patch or historical approval reuse is counted as success.
 
 
 ---

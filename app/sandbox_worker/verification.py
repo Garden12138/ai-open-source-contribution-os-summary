@@ -43,6 +43,7 @@ from app.sandbox_worker.specs import (
     SignedJobSpec,
 )
 from app.security import ensure_no_sensitive_data, redact_text
+from app.sandbox_worker.python_cache import python_cache_tmpfs
 from app.sandbox_worker.python_sources import build_python_source_overlay
 
 
@@ -878,6 +879,8 @@ class DockerVerifyRuntime:
         }
         if dependency_workspace is not None and dependency_workspace.node_environment is not None:
             wrapper["node_environment"] = dependency_workspace.node_environment
+        if dependency_workspace is not None and dependency_workspace.python_cache is not None:
+            wrapper["python_cache"] = dependency_workspace.python_cache
         encoded = (
             json.dumps(
                 wrapper,
@@ -901,6 +904,22 @@ class DockerVerifyRuntime:
             with open(command_path, "xb") as handle:
                 handle.write(encoded)
             os.chmod(command_path, 0o444)
+            if dependency_workspace is not None and dependency_workspace.python_cache is not None:
+                # Trusted preparation only: create an empty data mountpoint.
+                # Never execute repository code with a writable source mount.
+                init_name = f"contribos-verify-{uuid4().hex}"
+                init = list(self.build_argv(workspace=workspace, commands_path=command_path,
+                    policy=policy, container_name=init_name, dependency_workspace=dependency_workspace))
+                at = init.index(python_cache_tmpfs(policy))
+                del init[at - 1:at + 1]
+                mount = f"type=volume,src={workspace.volume_name},dst=/workspace,readonly"
+                init[init.index(mount)] = mount.removesuffix(",readonly")
+                command_at = init.index("--entrypoint") + 3
+                init[command_at:] = ["-I", "-c", "import os,stat; p='/workspace/.mypy_cache'; "
+                    "m=os.lstat(p) if os.path.lexists(p) else None; "
+                    "assert m is None or (stat.S_ISDIR(m.st_mode) and not os.listdir(p)), 'cache source conflict'; "
+                    "os.mkdir(p,0o700) if m is None else None"]
+                await self._run_container(tuple(init), container_name=init_name, timeout_seconds=min(5, policy.timeout_seconds))
             name = f"contribos-verify-{uuid4().hex}"
             stdout = await self._run_container(
                 self.build_argv(
@@ -957,6 +976,8 @@ class DockerVerifyRuntime:
             )
             if dependency_workspace.node_environment is not None:
                 dependency_mount += ("--tmpfs", f"/execution:rw,nosuid,nodev,size={min(policy.disk_bytes // 2, policy.memory_bytes // 2)},mode=1777")
+            if dependency_workspace.python_cache is not None:
+                dependency_mount += ("--tmpfs", python_cache_tmpfs(policy))
         return (
             self.docker_executable,
             "run",
@@ -1177,6 +1198,7 @@ import time
 root = "/workspace"
 __PYTHON_SOURCE_OVERLAY__
 __NODE_EXECUTION__
+__PYTHON_CACHE_VALIDATION__
 git_environment_names = __GIT_ENVIRONMENT_NAMES__
 git_environment = {}
 for name in git_environment_names:
@@ -1186,12 +1208,21 @@ for name in git_environment_names:
     git_environment[name] = value
 with open("/input/commands.json", encoding="utf-8") as handle:
     specification = json.load(handle)
-if set(specification) - {"node_environment"} != {
+if set(specification) - {"node_environment", "python_cache"} != {
     "expected_inventory_hash", "max_log_bytes", "timeout_seconds", "commands",
     "dependency_inventory_hash",
     "native_resource",
 }:
     raise SystemExit(80)
+python_cache = specification.get("python_cache")
+if python_cache is not None:
+    validate_python_cache(python_cache)
+    cache_receipt = "/dependencies/output/python-data-cache.json"
+    if os.path.islink(cache_receipt):
+        raise SystemExit(91)
+    with open(cache_receipt, encoding="utf-8") as handle:
+        if json.load(handle) != python_cache:
+            raise SystemExit(91)
 commands = specification["commands"]
 if not commands or len(commands) > 20:
     raise SystemExit(81)
@@ -1205,6 +1236,11 @@ def inventory_hash():
     ):
         directories.sort()
         files.sort()
+        if current == root and python_cache is not None and ".mypy_cache" in directories:
+            # This exact receipt-bound mount is data, not frozen source. Any
+            # tracked file hidden by it still makes expected_inventory_hash
+            # disagree, so a cache cannot conceal approved source or changes.
+            directories.remove(".mypy_cache")
         for name in list(directories):
             absolute = os.path.join(current, name)
             if os.path.islink(absolute):
@@ -1623,6 +1659,8 @@ print(json.dumps({
     repr(GIT_SAFETY_ENVIRONMENT_NAMES),
 ).strip()
 _VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__PYTHON_SOURCE_OVERLAY__", getsource(build_python_source_overlay))
+from app.sandbox_worker.python_cache import validate_python_cache
+_VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__PYTHON_CACHE_VALIDATION__", getsource(validate_python_cache))
 from app.node_environments import validate_node_recipe, validate_node_receipt
 from app.sandbox_worker.node_execution import prepare_node_execution, verify_node_source
 _VERIFY_SCRIPT = _VERIFY_SCRIPT.replace("__NODE_EXECUTION__",

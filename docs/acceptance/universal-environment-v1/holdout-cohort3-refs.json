@@ -1,0 +1,35 @@
+{
+  "source": "GitHub connector branch GET; refs frozen before archive analysis",
+  "samples": [
+    {
+      "repository": "pytest-dev/pytest-testinfra",
+      "base_sha": "04cccc3969ab786e88e2d67462c409c8778005e8",
+      "sample_id": "U3-python-1",
+      "repository_id": 32283257,
+      "default_branch": "main",
+      "license": "Apache-2.0",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "repository": "pytest-dev/pytest-flask",
+      "base_sha": "df72228f099f8f8a7c98f6f3bbffa83e8bb47e9f",
+      "sample_id": "U3-python-2",
+      "repository_id": 23620005,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "repository": "maninak/ts-xor",
+      "base_sha": "8f09ffdc49ca6414ceb5636d7162a266571f3f74",
+      "sample_id": "U3-node-1",
+      "repository_id": 172384015,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    }
+  ]
+}

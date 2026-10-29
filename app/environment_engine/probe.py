@@ -118,6 +118,7 @@ async def probe_prepared(verifier, *, contract: dict, dependency, workspace, pol
         dependency_plan_hash=dependency.result.plan_hash, dependency_result_hash=dependency.result.result_hash,
         target_platform=data["target_platform"], image_digest=dependency.workspace.execution_image_digest or contract["binding"]["runner_image_digest"],
         policy_hash=policy.policy_hash, executables=tuple(ExecutableReceipt.model_validate_json(canonical_json(e)) for e in data["executables"]),
+        data_cache=dependency.workspace.python_cache,
         status="prepared" if data["executables"] and all(e["status"] == "available" for e in data["executables"]) else "partial")
     if inspection.before_inventory_hash != inspection.after_inventory_hash or inspection.before_inventory_hash != workspace.inventory_hash:
         raise ValueError("entrypoint_source_changed")

@@ -1,8 +1,8 @@
 """Immutable wire contracts shared by inspection, preparation and admission."""
 from __future__ import annotations
 
-from typing import Literal, Self
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from typing import Any, Literal, Self
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, model_serializer
 from app.provenance import content_hash
 
 Hash = str
@@ -113,10 +113,16 @@ class VerificationEnvironmentContract(StrictModel):
             raise ValueError("expected_reproduction_requires_exact_target_and_control")
         if self.admission == "static_admitted":
             adapter = self.resolver_versions.get("adapter")
-            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "node-toolchain-v1"}:
+            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1"}:
                 raise ValueError("environment_adapter_version_unsupported")
-            python = adapter in {"python-toolchain-v1", "python-toolchain-v2"}
+            python = adapter in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4"}
             required = {"requirements", "constraints", "requirements_roots"} if python else {"independent_directories"}
+            if adapter in {"python-toolchain-v3", "python-toolchain-v4"}:
+                from app.sandbox_worker.python_cache import MYPY_CACHE_CAPABILITY, MYPY_CACHE_CAPABILITY_V1
+                required.add("cache_policy")
+                expected_cache = MYPY_CACHE_CAPABILITY_V1 if adapter == "python-toolchain-v3" else MYPY_CACHE_CAPABILITY
+                if self.preparation.get("cache_policy") not in (None, expected_cache):
+                    raise ValueError("environment_cache_policy_invalid")
             if set(self.preparation) != required:
                 raise ValueError("environment_recipe_schema_invalid")
             if python and (self.preparation["requirements"] != [d.requirement for d in self.declarations if not d.constraint]
@@ -153,11 +159,24 @@ class ToolchainPreparationReceipt(StrictModel):
     policy_hash: str
     executables: tuple[ExecutableReceipt, ...]
     status: Literal["prepared", "partial", "unsupported", "failed"]
+    data_cache: dict | None = None
+
+    @model_serializer(mode="wrap")
+    def legacy_wire(self, handler: Any) -> dict:
+        value = handler(self)
+        if self.data_cache is None:
+            value.pop("data_cache", None)
+        return value
 
     @model_validator(mode="after")
     def complete(self) -> ToolchainPreparationReceipt:
         if self.status == "prepared" and (not self.executables or any(e.status != "available" for e in self.executables)):
             raise ValueError("entrypoint_evidence_missing")
+        if self.data_cache is not None:
+            from app.sandbox_worker.python_cache import validate_python_cache
+            validate_python_cache(self.data_cache)
+            if self.data_cache["contract_hash"] != self.contract_hash or self.data_cache["plan_hash"] != self.dependency_plan_hash:
+                raise ValueError("environment_cache_receipt_stale")
         return self
 
 

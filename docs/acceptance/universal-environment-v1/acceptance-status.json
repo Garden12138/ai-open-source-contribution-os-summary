@@ -1,0 +1,283 @@
+{
+  "version": "upeve-acceptance-status-v1",
+  "overall": "incomplete",
+  "phase_status": {
+    "E0": "passed",
+    "E1": "passed",
+    "E2": "passed",
+    "E3": "partial_historical_Node_failed",
+    "E4": "implemented_partial_historical_Node_gate_open",
+    "E5": "generalization_failed_native_blocked",
+    "E6": "partial_native_Linux_blocked"
+  },
+  "native_deliveries": 0,
+  "controlled_tests_are_not_native": true,
+  "cases": [
+    {
+      "id": "UE-T01",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_final_default",
+        "../../../tests/test_environment_engine_resolution.py"
+      ],
+      "limit": "Pure/schema evidence; not native"
+    },
+    {
+      "id": "UE-T02",
+      "status": "passed",
+      "evidence": [
+        "D-python-ci-01",
+        "D-python-cache-241",
+        "checks.json#cache_focused_v4"
+      ],
+      "limit": null
+    },
+    {
+      "id": "UE-T03",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_final_default",
+        "checks.json#malicious"
+      ],
+      "limit": "Bounded declarations, cycles, malicious flags/paths and real archive rejection; no claim arbitrary parser support"
+    },
+    {
+      "id": "UE-T04",
+      "status": "passed",
+      "evidence": [
+        "D-python-ci-01/command-graph.json",
+        "checks.json#cache_focused_v4"
+      ],
+      "limit": "Literal safe subset only; no workflow execution"
+    },
+    {
+      "id": "UE-T05",
+      "status": "passed",
+      "evidence": [
+        "H-python-cache-04/entrypoint-receipts.json",
+        "H-python-cache-04/preparation-receipt.json"
+      ],
+      "limit": null
+    },
+    {
+      "id": "UE-T06",
+      "status": "partial",
+      "evidence": [
+        "D-node-02",
+        "checks.json#cache_node_regression",
+        "H-node-canonical"
+      ],
+      "limit": "Explicit locked independent roots pass; historical subprocess wrapper unsupported"
+    },
+    {
+      "id": "UE-T07",
+      "status": "passed",
+      "evidence": [
+        "H-node-canonical/classification.json",
+        "holdout-cohort3-results.json",
+        "checks.json#cache_node_regression"
+      ],
+      "limit": "Static rejection is a negative boundary pass, never full baseline success"
+    },
+    {
+      "id": "UE-T08",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_node_regression"
+      ],
+      "limit": "Includes actual Vitest 2.1.9 data-only cache OCI case"
+    },
+    {
+      "id": "UE-T09",
+      "status": "partial",
+      "evidence": [
+        "target-platform-probe.json",
+        "source-shadow-probe-v3.json"
+      ],
+      "limit": "Actual wrong-target negative on arm64; not native amd64 or exhaustive ABI coverage"
+    },
+    {
+      "id": "UE-T10",
+      "status": "partial",
+      "evidence": [
+        "H-python-cache-04",
+        "D-node-02",
+        "H-node-canonical"
+      ],
+      "limit": "Historical Python exact five pass; historical Node exact eight remain unsupported"
+    },
+    {
+      "id": "UE-T11",
+      "status": "passed",
+      "evidence": [
+        "nested-help-probe.json",
+        "nested-version-probe.json",
+        "zero-tests-probe.json",
+        "checks.json#cache_focused_v4"
+      ],
+      "limit": null
+    },
+    {
+      "id": "UE-T12",
+      "status": "passed",
+      "evidence": [
+        "assertion-reproduction-probe.json",
+        "H-python-ci-parser-01",
+        "H-python-cache-04"
+      ],
+      "limit": "Actual controlled assertion + passing control; expectation is a fixture contract, not human authorization"
+    },
+    {
+      "id": "UE-T13",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_browser",
+        "checks.json#cache_focused_v4"
+      ],
+      "limit": "API/browser component evidence, no native model journey"
+    },
+    {
+      "id": "UE-T14",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_final_default",
+        "final-audit.json"
+      ],
+      "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
+    },
+    {
+      "id": "UE-T15",
+      "status": "partial",
+      "evidence": [
+        "checks.json#cache_final_default",
+        "D-python-cache-repeat-02/baseline-repeat-2.json",
+        "D-python-cache-241/baseline-repeat-2.json"
+      ],
+      "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
+    },
+    {
+      "id": "UE-T16",
+      "status": "passed",
+      "evidence": [
+        "checks.json#cache_final_default",
+        "checks.json#malicious",
+        "final-audit.json"
+      ],
+      "limit": "Default security contracts + actual credential/network/resource boundary checks"
+    },
+    {
+      "id": "UE-T17",
+      "status": "passed",
+      "evidence": [
+        "H-python-cache-04/baseline-results.json",
+        "H-python-cache-04/baseline-verdict.json"
+      ],
+      "limit": "Historical regression only; final frozen-code recheck follows separately"
+    },
+    {
+      "id": "UE-T18",
+      "status": "failed",
+      "evidence": [
+        "H-node-canonical/classification.json",
+        "e0-baseline.json"
+      ],
+      "limit": "CI wrapper attempts global installation; all eight commands retained, no network relaxation/shim"
+    },
+    {
+      "id": "UE-T19",
+      "status": "failed",
+      "evidence": [
+        "holdout-results.json",
+        "holdout-cohort2-results.json",
+        "holdout-cohort3-results.json"
+      ],
+      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+    },
+    {
+      "id": "UE-T20",
+      "status": "failed",
+      "evidence": [
+        "holdout-results.json",
+        "holdout-cohort2-results.json",
+        "holdout-cohort3-results.json"
+      ],
+      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+    },
+    {
+      "id": "UE-T21",
+      "status": "failed",
+      "evidence": [
+        "holdout-results.json",
+        "holdout-cohort2-results.json",
+        "holdout-cohort3-results.json"
+      ],
+      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+    },
+    {
+      "id": "UE-T22",
+      "status": "failed",
+      "evidence": [
+        "holdout-results.json",
+        "holdout-cohort2-results.json",
+        "holdout-cohort3-results.json"
+      ],
+      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+    },
+    {
+      "id": "UE-T23",
+      "status": "blocked",
+      "evidence": [
+        "gateway-proposal.json",
+        "isolated-deployment.json"
+      ],
+      "limit": "No credential-use authorization; exact human plan/execution/final acceptance still required; native deliveries 0"
+    },
+    {
+      "id": "UE-T24",
+      "status": "blocked",
+      "evidence": [
+        "gateway-proposal.json",
+        "isolated-deployment.json"
+      ],
+      "limit": "No credential-use authorization; exact human plan/execution/final acceptance still required; native deliveries 0"
+    },
+    {
+      "id": "UE-T25",
+      "status": "partial",
+      "evidence": [
+        "holdout-cohort2-results.json",
+        "H-node-canonical"
+      ],
+      "limit": "Unknown/native/dynamic projects stop without coding; specific external-service native journey not verified"
+    },
+    {
+      "id": "UE-T26",
+      "status": "passed",
+      "evidence": [
+        "macos-doctor.json",
+        "checks.json#cache_node_regression",
+        "H-python-cache-04"
+      ],
+      "limit": "Actual Darwin arm64 + OrbStack OCI; controlled classification"
+    },
+    {
+      "id": "UE-T27",
+      "status": "blocked",
+      "evidence": [
+        "macos-doctor.json",
+        "isolated-deployment.json"
+      ],
+      "limit": "not_run: no native Linux amd64 Docker Engine endpoint; no emulation claimed"
+    },
+    {
+      "id": "UE-T28",
+      "status": "passed",
+      "evidence": [
+        "final-audit.json",
+        "checks.json#cache_final_default",
+        "history-preservation.json"
+      ],
+      "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
+    }
+  ]
+}

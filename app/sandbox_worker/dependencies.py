@@ -500,6 +500,7 @@ class DependencyWorkspace:
     native_resource: dict | None = None
     node_environment: dict | None = None
     execution_image_digest: str | None = None
+    python_cache: dict | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -520,6 +521,11 @@ class DependencyWorkspace:
             validate_node_recipe(self.node_environment)
         if self.execution_image_digest is not None and (self.node_environment is None or not _IMAGE.fullmatch(self.execution_image_digest)):
             raise ValueError("Execution image requires a frozen Node environment")
+        if self.python_cache is not None:
+            from app.sandbox_worker.python_cache import validate_python_cache
+            validate_python_cache(self.python_cache)
+            if self.node_environment is not None or self.python_cache["plan_hash"] != self.plan_hash:
+                raise ValueError("Python cache requires its exact frozen dependency plan")
 
 
 @dataclass(frozen=True, slots=True)
@@ -833,14 +839,21 @@ class DockerDependencyRuntime:
                 raise DependencyPreparationError(
                     "Dependency preparation returned invalid JSON"
                 ) from exc
+            cache_policy = (plan.environment_contract or {}).get("preparation", {}).get("cache_policy")
             if not isinstance(raw, dict) or set(raw) != {
                 "inventory_hash",
                 "file_count",
                 "total_bytes",
-            } | ({"environment_receipt"} if plan.node_environment is not None else set()):
+            } | ({"environment_receipt"} if plan.node_environment is not None else set()) | ({"python_cache"} if cache_policy else set()):
                 raise DependencyPreparationError(
                     "Dependency preparation evidence is invalid"
                 )
+            if cache_policy:
+                from app.sandbox_worker.python_cache import validate_python_cache
+                cache = validate_python_cache(raw["python_cache"])
+                if cache != {**cache_policy, "distribution_version": cache["distribution_version"],
+                        "contract_hash": content_hash(plan.environment_contract), "plan_hash": plan.plan_hash}:
+                    raise DependencyPreparationError("Python cache receipt does not match frozen authorization")
             inventory_hash = _hash(
                 raw["inventory_hash"],
                 name="inventory hash",
@@ -875,6 +888,7 @@ class DockerDependencyRuntime:
                 native_resource=plan.native_resource,
                 node_environment=plan.node_environment,
                 execution_image_digest=(plan.builder_image_digest or plan.runner_image_digest) if plan.node_environment else None,
+                python_cache=raw.get("python_cache"),
             )
             return DependencyExecution(
                 result=result,
@@ -1621,6 +1635,8 @@ if native_resource is not None:
     with open(native_directory + "/receipt.json", "x", encoding="utf-8") as handle:
         json.dump(native_resource, handle, sort_keys=True, separators=(",", ":"))
 
+__PYTHON_DATA_CACHE__
+python_cache = record_python_cache(plan, "/dependencies/output")
 entries = []
 total = 0
 for current, directories, files in os.walk(
@@ -1664,6 +1680,7 @@ print(json.dumps({
     "total_bytes": total,
     **({"environment_receipt": json.load(open("/dependencies/output/node-environment.json"))}
        if plan.get("node_environment") is not None else {}),
+    **({"python_cache": python_cache} if python_cache is not None else {}),
 }, sort_keys=True, separators=(",", ":")))
 """.replace(
     "__GIT_ENVIRONMENT_NAMES__",
@@ -1676,6 +1693,8 @@ from app.node_environments import validate_node_recipe
 from app.sandbox_worker.node_dependencies import prepare_node_dependencies, restore_unchanged_json_manifest
 from app.sandbox_worker.node_cache import prepare_node_cache_files
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
+from app.sandbox_worker.python_cache import validate_python_cache, record_python_cache
+_PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("__PYTHON_DATA_CACHE__", getsource(validate_python_cache) + getsource(record_python_cache))
 _node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(restore_unchanged_json_manifest) + getsource(prepare_node_cache_files) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
 _PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __NODE_PREPARATION__", "\n".join("    " + line for line in _node_program.splitlines()))
 _workspace_program = "if plan.get('preparation_version') == 'python-workspace-preparation-v3':\n" + "\n".join(

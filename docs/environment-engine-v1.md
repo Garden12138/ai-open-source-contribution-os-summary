@@ -62,11 +62,30 @@ separate from real model journeys.
   evaluation, inline Python checks with unproven semantics and unsupported
   multi-Python-package contracts remain explicit gaps. They do not become ready.
 
-Known unresolved real regressions: current mypy 2.4.0 stubtest writes
-`.mypy_cache` into read-only source; the historical Node wrapper installs tsx
-under CI even after child dependencies are prepared. No source/package patch,
-network exception, writable code mount, command deletion or installer-success
-shim was introduced to conceal those failures. These gates remain unpassed.
+Historical Python now passes all five original commands using a versioned,
+16 MiB data-only cache for measured mypy 2.4.0/2.4.1. No dependency downgrade,
+source/package patch or command change is involved. The historical Node wrapper
+still installs tsx under CI after child dependencies are prepared. It remains
+unsupported; no network exception or installer-success shim is provided.
+
+`python-toolchain-v4` freezes an explicit `python-data-cache-v2` capability in
+the exact environment preview. It selects only a declared mypy/stubtest at root
+cwd with the default cache path; conflicting tracked cache content, custom
+paths, unsupported versions and stale bindings fail closed. Preparation records
+actual installed metadata in an inventory-hashed receipt; entrypoint/admission
+receipts bind that record to the contract and signed plan. Old v1/v2 toolchain
+contracts and the initial single-version cache candidate stay readable.
+
+A fixed, isolated supervisor creates only an empty `.mypy_cache` mountpoint.
+It uses `python -I`, has no network/credentials/model access, and executes no
+repository code. Actual probes/checks mount source and dependencies read-only;
+only that precise data directory has a fresh `rw,noexec,nosuid,nodev` tmpfs,
+capped at 16 MiB and further limited by existing memory/disk budgets. Nonempty
+or linked mountpoints reject. Logical source hashing excludes only this declared
+data mount; tracked files hidden by it still cause the expected source inventory
+to disagree. No source file may become writable or disappear from provenance.
+Two fresh real Verify runs prove cache data does not survive into the next run.
+Unknown tool versions do not inherit this capability automatically.
 
 ## Upgrade and recovery
 

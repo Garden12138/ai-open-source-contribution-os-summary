@@ -1,0 +1,42 @@
+{
+  "command_evidence": [
+    {
+      "command_id": "upeve-entrypoint-probe",
+      "command_hash": "f5e53325735c818fe9eb8f4f0c4a2dc53abcd0ef845014ce60d9d0e5e652156d",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-29T01:38:23.295399Z",
+      "completed_at": "2026-10-29T01:38:23.485077Z",
+      "resource_usage": {
+        "user_cpu_ms": 126,
+        "system_cpu_ms": 24,
+        "max_rss_bytes": 43438080,
+        "minor_page_faults": 5215,
+        "major_page_faults": 6,
+        "voluntary_context_switches": 18,
+        "involuntary_context_switches": 0
+      },
+      "stdout_hash": "9b8cad2b1305cc4e7eafd77cb520848151374494a13864bede515e9eed8233fd",
+      "stdout_bytes": 1245,
+      "stdout_log": "{\"executables\": [{\"argv\": [\"python\", \"-m\", \"unittest\", \"-v\"], \"command_id\": \"unit\", \"distribution\": null, \"distribution_version\": null, \"executable\": \"/dependencies/output/venv/bin/python\", \"executable_hash\": \"2ceb9199570aaf34a254b9ea88b1d77f38530833e2a12688d002a59c905b51b2\", \"ownership\": \"frozen_dependency_inventory\", \"reason_code\": null, \"requested_executable\": \"python\", \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"ruff\", \"check\", \".\"], \"command_id\": \"lint\", \"distribution\": \"ruff\", \"distribution_version\": \"0.11.0\", \"executable\": \"/dependencies/output/venv/bin/ruff\", \"executable_hash\": \"cec8db3b27baa291febaf8626a838dda26642d1923bc2e20c3879fbbf1b066d8\", \"ownership\": \"wheel_record\", \"reason_code\": null, \"requested_executable\": \"ruff\", \"status\": \"available\", \"working_directory\": \".\"}, {\"argv\": [\"stubtest\", \"env_fixture\"], \"command_id\": \"stubtest\", \"distribution\": \"mypy\", \"distribution_version\": \"2.4.1\", \"executable\": \"/dependencies/output/venv/bin/stubtest\", \"executable_hash\": \"f5799d290a1799d66a63354a7dc6c4bf17b9650a8c52a2ed0c57c892840d893f\", \"ownership\": \"wheel_record\", \"reason_code\": null, \"requested_executable\": \"stubtest\", \"status\": \"available\", \"working_directory\": \".\"}], \"target_platform\": \"linux/arm64\"}\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 189,
+      "execution_summary": {
+        "version": "verification-log-summary-v1",
+        "stdout_hash": "9b8cad2b1305cc4e7eafd77cb520848151374494a13864bede515e9eed8233fd",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_count": null,
+        "zero_tests": false,
+        "help_only": false,
+        "assertion_failure": false,
+        "environment_reason_codes": []
+      }
+    }
+  ],
+  "before_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56",
+  "after_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56"
+}

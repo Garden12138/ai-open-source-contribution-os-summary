@@ -1,0 +1,264 @@
+{
+  "version": "workspace-dependency-plan-v6",
+  "plan_id": "U3-python-1",
+  "execution_attempt_id": "U3-python-1",
+  "workspace_inventory_hash": "36aaf934c0b40b294007aa04b652e4a5fe218f305d2bd4270cb693adc4db6d4b",
+  "ecosystem": "python",
+  "manifests": [
+    {
+      "path": "pyproject.toml",
+      "content_hash": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0"
+    }
+  ],
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "proxy_policy_hash": "18ff3da5771b22faceed98b64f4bfd0bb93f804a136585f57f012022f0b14b63",
+  "disk_bytes": 4294967296,
+  "source_result_hash": "d3f85890f61f3e4d500176d5af5516f045a99acdec4b7938d509e5089b06edea",
+  "source_kind": "explore",
+  "project_directory": ".",
+  "local_projects": [],
+  "preparation_version": "python-workspace-preparation-v2",
+  "environment_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U3-python-1",
+      "snapshot_hash": "ca3773dad23ead3e2b9cafdc4b103d0dfcd191bf55db877d89a5ab4b91655bc7",
+      "source_archive_hash": "068cbf3940d11bbb09dca2cc3bd86e2d939e52ae437a1049de884af044d81b1c",
+      "base_commit_sha": "04cccc3969ab786e88e2d67462c409c8778005e8",
+      "plan_version_hash": "41882a0615b0ae179c10c4d884258d43343b44d1bef1c99fc3ab2594f7ff58ae",
+      "approved_commands_hash": "ee91436faec5191dfa3bb02f49919437d172c9e00a6df227151812bf76c0f101",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "python-toolchain-v2"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "pytest",
+          "-v",
+          "-n",
+          "4",
+          "--cov",
+          "testinfra",
+          "--cov-report",
+          "xml",
+          "--cov-report",
+          "term",
+          "test"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": "pyproject.toml",
+            "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+            "parser": "python-toolchain-v2"
+          }
+        ],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pytest",
+        "required_module": null,
+        "distributions": [
+          "pytest"
+        ],
+        "resolution": "resolved"
+      }
+    ],
+    "declarations": [
+      {
+        "requirement": "pytest>=6",
+        "distribution": "pytest",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "hatchling",
+        "distribution": "hatchling",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "hatch-vcs",
+        "distribution": "hatch-vcs",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "pytest-cov",
+        "distribution": "pytest-cov",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "pytest-xdist",
+        "distribution": "pytest-xdist",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "pytest-testinfra[ansible,paramiko,salt,winrm]",
+        "distribution": "pytest-testinfra",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "pytest-testinfra[doc,lint,test,typing]",
+        "distribution": "pytest-testinfra",
+        "constraint": false,
+        "source": {
+          "path": "pyproject.toml",
+          "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+          "parser": "python-toolchain-v2"
+        },
+        "line": null
+      },
+      {
+        "requirement": "pip",
+        "distribution": "pip",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/release.yml",
+          "sha256": "59836bf8fe6f20bcf38b888b0bc210fd498675a8f71dfc202a4bea802c784818",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 28
+      },
+      {
+        "requirement": "tox",
+        "distribution": "tox",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/release.yml",
+          "sha256": "59836bf8fe6f20bcf38b888b0bc210fd498675a8f71dfc202a4bea802c784818",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 29
+      },
+      {
+        "requirement": "pip",
+        "distribution": "pip",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/tox.yml",
+          "sha256": "13ebce986b0f29618522670c1dc6ae8d0127acc9bcec2c820ec5b1ac9533b1d9",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 36
+      },
+      {
+        "requirement": "tox",
+        "distribution": "tox",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/tox.yml",
+          "sha256": "13ebce986b0f29618522670c1dc6ae8d0127acc9bcec2c820ec5b1ac9533b1d9",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 37
+      },
+      {
+        "requirement": "pip",
+        "distribution": "pip",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/tox.yml",
+          "sha256": "13ebce986b0f29618522670c1dc6ae8d0127acc9bcec2c820ec5b1ac9533b1d9",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 58
+      },
+      {
+        "requirement": "tox",
+        "distribution": "tox",
+        "constraint": false,
+        "source": {
+          "path": ".github/workflows/tox.yml",
+          "sha256": "13ebce986b0f29618522670c1dc6ae8d0127acc9bcec2c820ec5b1ac9533b1d9",
+          "parser": "literal-pip-declaration-v2"
+        },
+        "line": 59
+      }
+    ],
+    "evidence": [
+      {
+        "path": "pyproject.toml",
+        "sha256": "04dddf375a3e2d207942792a16b3566e9d586c3d483156183c7ce9551610ecd0",
+        "parser": "python-toolchain-v2"
+      },
+      {
+        "path": ".github/workflows/release.yml",
+        "sha256": "59836bf8fe6f20bcf38b888b0bc210fd498675a8f71dfc202a4bea802c784818",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": ".github/workflows/tox.yml",
+        "sha256": "13ebce986b0f29618522670c1dc6ae8d0127acc9bcec2c820ec5b1ac9533b1d9",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": "Makefile",
+        "sha256": "29dbb30e5c22105aac01491adabdc973f3e7a267f037bae06e5c054711ad36d8",
+        "parser": "literal-pip-declaration-v2"
+      }
+    ],
+    "preparation": {
+      "requirements": [
+        "pytest>=6",
+        "hatchling",
+        "hatch-vcs",
+        "pytest-cov",
+        "pytest-xdist",
+        "pytest-testinfra[ansible,paramiko,salt,winrm]",
+        "pytest-testinfra[doc,lint,test,typing]",
+        "pip",
+        "tox",
+        "pip",
+        "tox",
+        "pip",
+        "tox"
+      ],
+      "constraints": [],
+      "requirements_roots": []
+    },
+    "unresolved": [],
+    "admission": "static_admitted",
+    "expected_failures": {}
+  },
+  "metadata_strategy": "declarative-v1"
+}

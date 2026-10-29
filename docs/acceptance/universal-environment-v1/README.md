@@ -228,3 +228,61 @@ failed **0**. The later CI extension has a separate focused boundary report in
 checks.json; final broad verification is recorded separately. A command with an
 incorrect test filename collected zero tests and failed before running anything;
 it was corrected, not counted as verification.
+
+## Third frozen exploratory cohort
+
+The CI adapter was frozen at `b52a81e390d90ed69140a44b4cad89ccf7e2f47e`
+before [protocol](holdout-cohort3-protocol.json), metadata search and first source
+reads. Only one license-eligible Node repository was returned; no query expansion
+or replacement followed. All three first measurements kept the same production
+source hash. [Results](holdout-cohort3-results.json): testinfra actually reached
+project build and failed (`environment_build_failed`, detailed cause unproven);
+pytest-flask lacked supported project metadata; ts-xor's complete build/test
+script chain was unsupported. **Cumulative first full baseline success remains
+0/11**, not 0/8 with three conveniently omitted failures. The subsequent general
+cache work is a new engine revision; these repositories are now known development
+inputs for future selection, while their initial U records stay untouched.
+
+## Bounded Python data cache — measured implementation
+
+The cache primitive first failed to mount over an absent directory (exit 125).
+A separate fixed supervisor creating an empty mountpoint made the precise tmpfs
+mount possible; [measurement](cache-mount-probe.json) proves source `ro`, cache
+`noexec`, source write EROFS and direct cache execution EACCES. This is a primitive
+measurement, not native delivery or a full engine pass.
+
+The first candidate supported only mypy 2.4.0. H runs failed its version guard;
+[redacted diagnostic](cache-tool-version-diagnostic.json) preserves that failure.
+The actual earlier H CI receipt and later H measurement show mypy 2.4.1. That
+version was separately measured, not silently treated as compatible. Current
+`python-toolchain-v4` freezes `python-data-cache-v2` with the exact two measured
+versions; it never changes source requirements or installs a guessed CLI package.
+Actual installed metadata, immutable dependency inventory, exact plan and
+contract hashes bind the cache receipt. Unknown versions stop, not fallback.
+
+`D-python-cache-repeat-02` (2.4.0) and `D-python-cache-241` (2.4.1) each pass all
+3 commands in **two fresh actual Verify containers**. Their unit checks assert
+cache starts empty, source writes fail EROFS, cache execution fails EACCES and
+mount flags contain noexec. Cache data stays on the bounded 16 MiB data mount;
+source/dependency volumes stay read-only. Source inventories agree before/after.
+`D-python-cache-01` preceded the repeated-run harness and counts as one run only.
+
+`H-python-cache-04` preserves the original five IDs/argv/cwds and actual snapshot
+binding: test_more 734, test_all 929, format, lint and stubtest all exit 0. **5/5
+historical OCI regression passed**, native Coding/Review remains 0. Original
+failures, approval/event hashes and all rejected candidates remain unchanged.
+A final frozen-code recheck is recorded separately; no past result is replaced.
+
+Current complete default regression: **1567 passed, 60 skipped, 0 failed**.
+Node regression on this cache implementation: **30 contracts + 5 actual OCI**,
+all passed. The cache UI browser check is intercepted API/component evidence.
+The extra actual assertion/control OCI check demonstrates preexisting failure
+versus an exact expected-reproduction contract; it creates no human consent.
+No component, fake model, plan save or cache fix counts as native delivery.
+
+E3 H Node and therefore the full E4 historical gate remain unpassed. E5's real
+cross-project success minimum is failed; native journeys wait for actual model
+credential authorization plus separate exact human plan/final approval. E6 has
+Mac evidence and an isolated deployment, but Linux amd64 is blocked/not_run.
+These are distinct failures/blockers, not a claim that credentials explain all
+unfinished engineering work.

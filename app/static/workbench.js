@@ -393,6 +393,8 @@ export function mountContributionWorkbench(root, taskId, options) {
       drawerBody.append(node("h3", "验证命令"));
       for (const command of plan.commands_to_run) drawerBody.append(node("pre", JSON.stringify(command, null, 2)));
     }
+    const cachePolicy = data.execution?.environment_engine?.data_cache_policy;
+    if (cachePolicy) drawerBody.append(node("p", `验证工具 ${cachePolicy.distribution} ${cachePolicy.distribution_versions?.join(" / ") || cachePolicy.distribution_version} 使用临时数据缓存 ${cachePolicy.directory}（最多 ${cachePolicy.max_bytes / 1048576} MiB）。缓存不能执行程序，源文件和依赖保持只读。此准备范围随当前方案确认。`));
     drawerBody.append(node("p", "确认后先准备隔离环境并运行修改前测试，再实现、断网验证和独立审查。范围内最多自动修复两轮。"));
     const start = confirmation("确认方案并开始", true, () => executePlan(plan, binding, modelBinding));
     start.validate = () => canExecutePlan(plan, binding);
@@ -762,6 +764,7 @@ export function mountContributionWorkbench(root, taskId, options) {
       const tools = engine.executables.map(e => `${e.argv[0]}：${e.status === "available" ? "已核实" : e.reason_code || "缺少入口"}${e.distribution ? "（" + e.distribution + " " + e.distribution_version + "）" : ""}`).join("\n");
       items.push({id:"environment:" + JSON.stringify([engine.contract_hash, engine.stages, engine.evidence_refs]), sequence:(data.events?.at(-1)?.sequence || 0) + 0.15,
         text:"验证环境进度\n" + stages + (gaps ? "\n\n环境缺口\n" + gaps : "") + (tools ? "\n\n工具入口\n" + tools : "") +
+          (engine.data_cache_policy ? `\n\n临时数据缓存：${engine.data_cache_policy.directory}，最多 ${engine.data_cache_policy.max_bytes / 1048576} MiB；不能执行程序，源文件和依赖保持只读。` : "") +
           (engine.stages.preparation === "unverified" ? (engine.stages.resolution === "static_admitted" ? "\n\n静态检查通过只代表可进入受限准备；真实工具和基线尚未验证。" : "\n\n真实工具和基线尚未验证。") : "")});
     }
     if (blockers.length && !state.busy && !published) items.push({id:"readiness:" + JSON.stringify(blockers), sequence:(data.events?.at(-1)?.sequence || 0) + 0.2, text:blockers.map(b => b.message).join("\n")});

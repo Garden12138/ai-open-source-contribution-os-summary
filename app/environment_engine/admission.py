@@ -22,6 +22,9 @@ def require_environment_evidence(wb, attempt, authorization, baseline: dict) -> 
             for cwd, name in (c.entrypoints or ((c.working_directory, c.argv[0]),))}
         actual_entries = {(e.command_id, e.working_directory, e.requested_executable) for e in receipt.executables}
         commands = {c.command_id: c for c in contract.commands}
+        cache_policy = contract.preparation.get("cache_policy")
+        expected_cache = {**cache_policy, "distribution_version": (receipt.data_cache or {}).get("distribution_version"),
+            "contract_hash": expected, "plan_hash": content_hash(spec)} if cache_policy else None
         if (binding.plan_version_hash != authorization.payload["plan_hash"]
                 or binding.snapshot_hash != attempt.snapshot_inputs_hash
                 or binding.base_commit_sha != attempt.base_commit_sha
@@ -30,6 +33,7 @@ def require_environment_evidence(wb, attempt, authorization, baseline: dict) -> 
                 or binding.runner_image_digest != attempt.runner_image_digest
                 or binding.sandbox_policy_hash != attempt.sandbox_policy_hash
                 or receipt.contract_hash != expected or receipt.status != "prepared"
+                or receipt.data_cache != expected_cache
                 or receipt.target_platform != binding.target_platform
                 or receipt.image_digest != ((spec.get("builder_image_digest") or binding.runner_image_digest)
                     if spec.get("node_environment") else binding.runner_image_digest)

@@ -1,0 +1,42 @@
+{
+  "version": "baseline-verdict-v1",
+  "contract_hash": "45695fadc5b36e10f3901b1fd5ceb22396a651f3f465dd92f32e2cf00108caae",
+  "preparation_receipt_hash": "d47c8cf30374d24acc942f943a5e19c461b5e395f42c88b68d4f69421b055dd4",
+  "baseline_artifact_hash": "faa4856c33fa2c9b4a0a31904c4a2d3df0602461cd74705c4f38e59294c5e682",
+  "required_command_count": 3,
+  "executed_command_count": 3,
+  "outcome": "passed",
+  "reason_codes": [],
+  "command_results": [
+    {
+      "command_id": "unit",
+      "command_hash": "fe590cdc33654523d8e454b213019eceff85adaeb9f8e50969fe27db623a4d69",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": 2,
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_hash": "84c304d414ef1b1edc1c6e34fca366db1f929309301d5a8595b91e08ec541182"
+    },
+    {
+      "command_id": "lint",
+      "command_hash": "190965ebfaeec4037664e3dd5158a6348b4ff4b15414aa60d4f66f5a4a48d1b3",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": null,
+      "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "stubtest",
+      "command_hash": "4383c865bb7aedebc8db416b542e0f9c815f2f713d18768919dfafafb477075c",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": null,
+      "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

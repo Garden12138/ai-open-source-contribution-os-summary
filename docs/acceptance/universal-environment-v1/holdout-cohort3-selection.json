@@ -1,0 +1,59 @@
+{
+  "engine_revision": "b52a81e390d90ed69140a44b4cad89ccf7e2f47e",
+  "selected_at": "2026-10-29T01:14:28.684459+00:00",
+  "source_inspected_before_selection": false,
+  "excluded": [
+    {
+      "repository": "pytest-dev/pytest-django",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "pytest-dev/pytest-html",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "dbfixtures/pytest-postgresql",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "CodelyTV/awesome-typescript-examples",
+      "reason": "rights_or_metadata"
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "U3-python-1",
+      "repository": "pytest-dev/pytest-testinfra",
+      "repository_id": 32283257,
+      "default_branch": "main",
+      "license": "Apache-2.0",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "sample_id": "U3-python-2",
+      "repository": "pytest-dev/pytest-flask",
+      "repository_id": 23620005,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "sample_id": "U3-node-1",
+      "repository": "maninak/ts-xor",
+      "repository_id": 172384015,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    }
+  ],
+  "selection_shortfall": {
+    "node": {
+      "planned": 2,
+      "selected": 1,
+      "reason": "only one returned candidate has an eligible license; no query expansion or replacement"
+    }
+  }
+}

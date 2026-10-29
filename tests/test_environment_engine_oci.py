@@ -110,6 +110,62 @@ def test_real_zero_tests_with_zero_exit_is_not_baseline_proof(tmp_path):
     asyncio.run(run())
 
 
+@pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="actual offline assertion/reproduction classification")
+def test_real_assertion_and_passing_control_require_exact_reproduction_expectation(tmp_path):
+    from app.environment_engine.baseline import classify_baseline
+    from app.environment_engine.contracts import BaselineExpectation
+    from tests.test_environment_engine_resolution import contract
+    image = os.environ["CONTRIBOS_SANDBOX_RUNNER_IMAGE"]
+    files = {"pyproject.toml": '[project]\nname="reproduction-fixture"\nversion="1"\n',
+        "test_failure.py": 'import unittest\nclass TestFailure(unittest.TestCase):\n    def test_actual(self):\n        self.fail("frozen reproduction sentinel")\n',
+        "test_control.py": 'import unittest\nclass TestControl(unittest.TestCase):\n    def test_control(self):\n        self.assertEqual(2 + 2, 4)\n'}
+    path = tmp_path / "source.tar.gz"
+    inventory = []
+    with tarfile.open(path, "w:gz") as bundle:
+        for name, text in sorted(files.items()):
+            member = tarfile.TarInfo("fixture-" + "a" * 40 + "/" + name)
+            member.size, member.mode = len(text.encode()), 0o644
+            bundle.addfile(member, io.BytesIO(text.encode()))
+            inventory.append({"path": name, "type": "file", "size": len(text.encode()),
+                "sha256": hashlib.sha256(text.encode()).hexdigest(), "executable": False})
+    inventory_hash = content_hash(inventory)
+    archive = RepositoryArchive.capture(repository_full_name="fixture/fixture", base_commit_sha="a" * 40,
+        path=path, allowed_root=tmp_path)
+    commands = (SandboxCommand(command_id="reproduce", argv=("python3", "-m", "unittest", "-v", "test_failure.TestFailure.test_actual")),
+        SandboxCommand(command_id="control", argv=("python3", "-m", "unittest", "-v", "test_control")))
+    value = contract(files, [c.to_wire() for c in commands]).model_dump(mode="json")
+    expectation = BaselineExpectation(issue_url="https://github.com/fixture/fixture/issues/1",
+        test_node="test_failure.TestFailure.test_actual", failure_literal="AssertionError: frozen reproduction sentinel")
+    policy = SandboxPolicy()
+    env = {k: v for k, v in os.environ.items() if k in {"HOME", "PATH", "TMPDIR", "DOCKER_HOST", "DOCKER_CONTEXT"}}
+    runtime = DockerImplementRuntime(docker_environment=env)
+    async def run():
+        workspace = await runtime.create_workspace(image_digest=image, policy=policy)
+        try:
+            await runtime.materialize(workspace=workspace, archive=archive, policy=policy)
+            inspection = await DockerVerifyRuntime(docker_environment=env).run(workspace=replace(workspace, inventory_hash=inventory_hash),
+                policy=policy, commands=commands)
+            assert inspection.before_inventory_hash == inspection.after_inventory_hash == inventory_hash
+            evidence = [e.to_wire() for e in inspection.command_evidence]
+            assert [e["exit_code"] for e in evidence] == [1, 0]
+            ordinary = classify_baseline(value, "c" * 64, evidence, content_hash(evidence))
+            assert ordinary.outcome == "preexisting_failure"
+            value["expected_failures"] = {"reproduce": expectation.model_dump(mode="json")}
+            expected = classify_baseline(value, "c" * 64, evidence, content_hash(evidence))
+            assert expected.outcome == "expected_issue_reproduction"
+            value["expected_failures"]["reproduce"]["failure_literal"] = "AssertionError: different sentinel"
+            assert classify_baseline(value, "c" * 64, evidence, content_hash(evidence)).outcome == "preexisting_failure"
+            if os.getenv("UPEVE_ASSERTION_EVIDENCE"):
+                Path(os.environ["UPEVE_ASSERTION_EVIDENCE"]).write_text(json.dumps({
+                    "classification": "controlled_actual_OCI_assertion_contract_not_human_approval", "native": False,
+                    "image": image, "policy_hash": policy.policy_hash, "commands": [c.to_wire() for c in commands],
+                    "expectation": expectation.model_dump(mode="json"), "command_evidence": evidence,
+                    "without_expectation": ordinary.model_dump(mode="json"), "exact_expectation": expected.model_dump(mode="json")}, indent=2) + "\n")
+        finally:
+            await runtime.destroy(workspace)
+    asyncio.run(run())
+
+
 @pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="actual offline nested diagnostic guard")
 @pytest.mark.parametrize("diagnostic", ["--help", "--version"])
 def test_real_zero_exit_package_script_is_not_baseline_proof(tmp_path, diagnostic):
