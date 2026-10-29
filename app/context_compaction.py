@@ -28,6 +28,18 @@ PLANNING_TRIGGER_BYTES = 220_000
 MAX_REFERENCES = 512
 
 
+def previous_context_reads(cached: dict | None, current: list[dict]) -> list[dict]:
+    """Keep distinct actual reads from this job lineage, never assistant claims."""
+    seen = {content_hash(result) for result in current}
+    previous = []
+    for result in reversed([*(cached or {}).get("history", []), *(cached or {}).get("results", [])]):
+        digest = content_hash(result)
+        if digest not in seen:
+            previous.append(result)
+            seen.add(digest)
+    return list(reversed(previous))
+
+
 class ContextRead(BaseModel):
     model_config = ConfigDict(extra="forbid")
     reference_id: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -188,7 +200,7 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
         # Frozen requirements, exact commands/current plan, the newest request
         # and explicitly returned tool reads must remain complete.
         if path and path[0] in {"rules", "request", "message", "current_plan", "approved_plan",
-                               "context_reads", "tool_results", "plan_repair", "read_feedback"}:
+                               "context_reads", "context_read_history", "tool_results", "plan_repair", "read_feedback"}:
             return value
         if isinstance(value, dict):
             if "path" in value and "content" in value and "prior_hash" in value:
@@ -267,6 +279,19 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                 body["context_management"]["references"] = list(references.values())
                 if _bytes(body) <= target_bytes:
                     break
+    if page_source_files and _bytes(body) > target_bytes:
+        # Older tool responses remain facts about what was returned, even when
+        # their exact text no longer fits. Issue retrievable references instead
+        # of silently replacing them with the newest round's pages.
+        for result in body.get("context_read_history", []):
+            if _bytes(body) <= target_bytes:
+                break
+            if not isinstance(result.get("text"), str):
+                continue
+            result["history_reference"] = reference(result, "previous context read")
+            result.pop("text")
+            result["text_indexed"] = True
+            body["context_management"]["references"] = list(references.values())
     ensure_no_sensitive_data(body, context="compacted prompt")
     prompt = canonical_json(body)
     prompt_bytes = len(prompt.encode())

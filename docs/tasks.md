@@ -4923,8 +4923,9 @@ nor GitHub token. Existing exact publication approval remains unchanged.
   regression 1605 passed / 62 skipped; one asset-version assertion was updated
   and its entire failed shard rerun. Browser component exit/route cleanup also
   corrected and passed. These are component/deployment checks, not native success.
-- Actual new token save/authenticated reads remain pending the user's settings
-  action; no real token was read by Codex. The native journey gates stay open.
+- Actual token save and authenticated public reads subsequently passed (see
+  continuation below); no real token was read by Codex. Native journey gates
+  stay open.
 
 The isolated 18090 settings page now exposes **GitHub 连接** with shared-read
 mode. Publisher runs separately in a nonroot, read-only-root container on 18092;
@@ -4960,6 +4961,39 @@ are unchanged. 75 focused cases and full 1607 passed / 62 skipped regression pas
 actual failed request rejects before provider admission on old code and reaches
 a fake diagnostic hook with all three pages at 74,131 bytes on new code (hard
 limit remains 96,000). This is a component replay, never native/model success.
+
+
+Authenticated model retest on `448f43f` passed source/context admission but did
+not produce Plans. Python's one bounded transport retry ends
+`minimax_completion_invalid` (19 lifetime calls); TypeScript returns an
+unverified no-change narrative and clarification (11 lifetime calls). No exact
+execution approval, Coding, Verify, Review or final acceptance exists.
+[Live outcomes](acceptance/universal-environment-v1/planning-page-live-retest.json)
+retain both earlier failures and unchanged lifetime limits.
+
+New frozen N6 metadata sampling yielded no eligible targets; N7 selected one
+unseen Python Issue before source reads, with no eligible TypeScript target.
+The real native read/plan control made seven MiniMax calls, exhausted its four
+read rounds and asked material questions without a Plan. Its first 37 events
+and failure remain immutable; native first targets are now 0/3 deliveries,
+separate from environment holdouts 0/15. Neither empty metadata cohorts nor
+successful background Jobs count as delivery.
+
+The N7 checkpoints exposed a generic state-loss defect: earlier exact source
+reads were overwritten by each newest read round and lost during source-only
+capture. Eight of eleven actual responses were absent from the final prompt.
+New v2 jobs now retain and deduplicate actual tool results in their bounded
+lineage, preserve them across same-archive capture/restart, and index older
+text by hash when it exceeds the existing prompt target. Current exact pages,
+legacy behavior, schemas, four read rounds, Profile, lifetime limits and exact
+approvals remain unchanged. No repository-specific rule or business patch.
+[Diagnosis](acceptance/universal-environment-v1/read-history-diagnosis.json) and
+[checks](acceptance/universal-environment-v1/read-history-checks.json): 31 focused
+and full **1609 passed / 62 skipped / 0 failed**; compileall, diff and credential
+scans pass. Historical ARV2 74 files / 71+165 events, N5 first 36 and N7 first
+37 event IDs/hashes are preserved. N7 is now D for any maintenance retest.
+E3/H Node remains failed; Linux amd64 is blocked/not_run. Current specialty
+task stays UPEVE-E04; no additional stage gate is checked.
 
 
 ---

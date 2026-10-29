@@ -1,0 +1,27 @@
+{
+  "version": "upeve-native-readiness-audit-v1",
+  "recorded_at": "2026-10-29T10:25:34.039677+00:00",
+  "native_first_attempt_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
+  "engine_revision": "448f43f4fdb1b97168c1c4c4772aec66ce1ea75f",
+  "changed_historical_files": [],
+  "history": [
+    {
+      "task_id": "6727af39-e005-4551-a1ad-93ecf1ad1015",
+      "original_count": 71,
+      "current_count": 71,
+      "original_ids_and_hashes_preserved": true
+    },
+    {
+      "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+      "original_count": 165,
+      "current_count": 165,
+      "original_ids_and_hashes_preserved": true
+    }
+  ],
+  "credential_scan": {
+    "files": 342,
+    "findings": [],
+    "actual_credentials_read": false
+  },
+  "production_modified": false
+}

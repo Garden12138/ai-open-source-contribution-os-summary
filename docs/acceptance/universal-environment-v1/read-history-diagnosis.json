@@ -1,0 +1,167 @@
+{
+  "version": "upeve-read-history-diagnosis-v1",
+  "classification": "actual_native_checkpoint_observation_not_native_success",
+  "engine_revision": "448f43f4fdb1b97168c1c4c4772aec66ce1ea75f",
+  "task_id": "6b07f3d8-33a1-4f15-871e-d22d05748d4a",
+  "checkpoints": [
+    {
+      "sequence": 9,
+      "artifact_id": "88d74cdb9101b3283be3e559d56f6de4663a54818f666da16186b0dce0069670",
+      "event_hash": "1b96ddd5ce8a2aeb53df45e3dd7b901ce9face6674ae766893de567e4d4d92ce",
+      "returned_results": [],
+      "history_results": 0,
+      "prompt_bytes": 43793
+    },
+    {
+      "sequence": 13,
+      "artifact_id": "ba1b628df92b948fe981dbbe13121a135ee87758d557de8d417dd5eb2dfad805",
+      "event_hash": "8c855cdcdcfe9107a6fc4e6a2fdc6dbfb5a7343e675f60100c4b404026c06fa8",
+      "returned_results": [
+        "b5bb050e70aa99d268951a71349ea31ba3ecdb8d9b789e2d7fae782c7bb0b116",
+        "a1ba85e232f3de428b2ede7d0069db94fccf35a9a439f56c97f72a144595d049"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 47952
+    },
+    {
+      "sequence": 17,
+      "artifact_id": "ffc465a3ece77f073f3630d46bcc928a1ed005fbf2e84b4cf9fa1cdd91448b6f",
+      "event_hash": "ec9df6c164878a37761b8b6aa73ae22954f9abe14faeed90c578020d09325435",
+      "returned_results": [
+        "ef841a13b07b6ebc7f971ff60dc005785a98bcae6305ed0d39c4751d0b24f39c",
+        "ae38d87cc047c3efd3a0a04f33dcc4a64d7503baa8ab9a1062de06b7cc16b31d",
+        "7e84adeac6d7913c347f7d9d17c6578ce05ca3598f5e169a70a3752ba49999d0",
+        "03975572a54241c132aee99de430ca40f8c878ea6091262915243bfddc4611a5"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 63645
+    },
+    {
+      "sequence": 21,
+      "artifact_id": "ac3c01fcb0f70e7d2d3e1f381acc4f1167df05d0c2c51a123f1c1524c91fcaa3",
+      "event_hash": "aaf33b9f1aae9446b7d123a25974e2fcba7adf2989c8b9770bb9b26f0a6070eb",
+      "returned_results": [
+        "ef841a13b07b6ebc7f971ff60dc005785a98bcae6305ed0d39c4751d0b24f39c",
+        "ae38d87cc047c3efd3a0a04f33dcc4a64d7503baa8ab9a1062de06b7cc16b31d",
+        "7e84adeac6d7913c347f7d9d17c6578ce05ca3598f5e169a70a3752ba49999d0",
+        "03975572a54241c132aee99de430ca40f8c878ea6091262915243bfddc4611a5"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 64053
+    },
+    {
+      "sequence": 25,
+      "artifact_id": "db4d850df31ea322f17bd0ecb7ddff863a62d43d14ad51665b366c041bfcceb5",
+      "event_hash": "606d7dd29b8093af6cdb362c122524a184aa14e66555c3f9e3b63ff086994b15",
+      "returned_results": [
+        "a8d2fac0bf5b75d201efc9fe90b41c2fd146ae73bc02c30891c799abc2c91ebf",
+        "8f0ac6f16c1ee645d7b9ec667f3287087d803c7fbeb0ca9d780f213f66ecde92",
+        "91f59206de2904cee85f3e17beda87ed57ea4414d277da6b71a65493da3728b8",
+        "fd6f21054803897a5e2083195d6d219f54cdd3aee08488887875f7825498e5b9"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 51306
+    },
+    {
+      "sequence": 29,
+      "artifact_id": "d823f99f3e2a3605ce35fa9cf8847118703f0c2dcdc06c53c4ba6ab491c6f080",
+      "event_hash": "d8639b502882da0925e0f90ee022903f606a431e9871ab1ccdbae0df481e99c9",
+      "returned_results": [
+        "ef841a13b07b6ebc7f971ff60dc005785a98bcae6305ed0d39c4751d0b24f39c",
+        "3b7797a36aacc9430899a3764c36eb107bd7f35d061eb448a819c23ca2dfb22f",
+        "7e84adeac6d7913c347f7d9d17c6578ce05ca3598f5e169a70a3752ba49999d0"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 52307
+    },
+    {
+      "sequence": 34,
+      "artifact_id": "78990a9e138b5162fc7340d1c56be4231b4046a4568d9d6edb714be330b7ddea",
+      "event_hash": "9b11ca84200dacb5c36309851f10c77ac41b9373cd0f761aa68a2cb1746b5569",
+      "returned_results": [
+        "ef841a13b07b6ebc7f971ff60dc005785a98bcae6305ed0d39c4751d0b24f39c",
+        "3b7797a36aacc9430899a3764c36eb107bd7f35d061eb448a819c23ca2dfb22f",
+        "7e84adeac6d7913c347f7d9d17c6578ce05ca3598f5e169a70a3752ba49999d0"
+      ],
+      "history_results": 0,
+      "prompt_bytes": 53226
+    }
+  ],
+  "previous_actual_reads_missing_from_final_prompt": [
+    {
+      "result_hash": "b5bb050e70aa99d268951a71349ea31ba3ecdb8d9b789e2d7fae782c7bb0b116",
+      "path": "prodict/__init__.py",
+      "source_hash": "da7c2f2342cf7dc1937889827d7627d401c14d73864966475cdd4c1578785784",
+      "query": "get_constructor",
+      "source_complete": false,
+      "start_line": null,
+      "end_line": null
+    },
+    {
+      "result_hash": "a1ba85e232f3de428b2ede7d0069db94fccf35a9a439f56c97f72a144595d049",
+      "path": "AGENTS.md",
+      "source_hash": "12cc23d8afae29e0a9f69182f7de7b40e2e66607711b649443f89c40810c19db",
+      "query": null,
+      "source_complete": true,
+      "start_line": null,
+      "end_line": null
+    },
+    {
+      "result_hash": "ae38d87cc047c3efd3a0a04f33dcc4a64d7503baa8ab9a1062de06b7cc16b31d",
+      "path": "prodict/__init__.py",
+      "source_hash": "da7c2f2342cf7dc1937889827d7627d401c14d73864966475cdd4c1578785784",
+      "query": "Dict",
+      "source_complete": false,
+      "start_line": null,
+      "end_line": null
+    },
+    {
+      "result_hash": "03975572a54241c132aee99de430ca40f8c878ea6091262915243bfddc4611a5",
+      "path": "test_prodict.py",
+      "source_hash": "6dda318d71bf9589a2edf9e192c315f25cbf2f1f1ab855deda2719c8975e6b12",
+      "query": "Dict",
+      "source_complete": false
+    },
+    {
+      "result_hash": "a8d2fac0bf5b75d201efc9fe90b41c2fd146ae73bc02c30891c799abc2c91ebf",
+      "path": "prodict/__init__.py",
+      "source_hash": "da7c2f2342cf7dc1937889827d7627d401c14d73864966475cdd4c1578785784",
+      "query": null,
+      "source_complete": false,
+      "start_line": 1,
+      "end_line": 100
+    },
+    {
+      "result_hash": "8f0ac6f16c1ee645d7b9ec667f3287087d803c7fbeb0ca9d780f213f66ecde92",
+      "path": "prodict/__init__.py",
+      "source_hash": "da7c2f2342cf7dc1937889827d7627d401c14d73864966475cdd4c1578785784",
+      "query": null,
+      "source_complete": false,
+      "start_line": 219,
+      "end_line": 278
+    },
+    {
+      "result_hash": "91f59206de2904cee85f3e17beda87ed57ea4414d277da6b71a65493da3728b8",
+      "path": "AGENTS.md",
+      "source_hash": "12cc23d8afae29e0a9f69182f7de7b40e2e66607711b649443f89c40810c19db",
+      "query": "test",
+      "source_complete": false,
+      "start_line": null,
+      "end_line": null
+    },
+    {
+      "result_hash": "fd6f21054803897a5e2083195d6d219f54cdd3aee08488887875f7825498e5b9",
+      "path": "test_prodict.py",
+      "source_hash": "6dda318d71bf9589a2edf9e192c315f25cbf2f1f1ab855deda2719c8975e6b12",
+      "query": "issubclass",
+      "source_complete": false,
+      "start_line": null,
+      "end_line": null
+    }
+  ],
+  "root_cause": "PlanningTurnWorker overwrote results cache each round and discarded it after a source-only capture; earlier actual source pages were absent from subsequent model prompts.",
+  "fix": "Retain deduplicated actual tool results within the bounded job lineage, rebind across verified same-archive source capture, index older exact responses when prompt target is exceeded.",
+  "limits_unchanged": true,
+  "business_patch_authored": false,
+  "native_delivery": false
+}

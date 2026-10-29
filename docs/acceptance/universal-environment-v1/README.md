@@ -493,8 +493,8 @@ HOME/Docker/model credential access. Five isolated roles restarted from idle;
 SQLite backup preserves every table count and 57 event IDs/hashes, and original
 trial data remains available. Current storage is under `business/`; formal and
 older 18080 services are untouched. Live API reports settings available and
-`discovery_shared=true`; token connection/authenticated reads await the user's
-new settings action. No external write or native success is inferred.
+`discovery_shared=true`; the subsequent actual account probe and authenticated
+reads are recorded below. No external write or native success is inferred.
 
 ## Authenticated source access and planning context maintenance
 
@@ -528,3 +528,45 @@ the old pre-provider rejection. New code delivers the same three pages and
 unchanged request at 74,131 bytes, below the original 96,000-byte hard ceiling.
 The diagnostic provider deliberately stops there; no real model runs in that
 check and no live database is modified. It is component evidence only.
+
+
+## Real planning outcomes and preserved source-read history
+
+[448f43f live retests](planning-page-live-retest.json) pass actual source/context
+admission but produce no Plans: Python ends `minimax_completion_invalid` after
+one bounded transport retry (19 lifetime calls); TypeScript ends in unverified
+no-change discussion/clarification (11 lifetime calls). No baseline, code,
+Review or human acceptance ran. Failed-call upstream usage remains unknown,
+not assumed free. This is D evidence, preserving both original first outcomes.
+
+Frozen [N6 protocol](native-cohort6-protocol.json) and
+[metadata record](native-cohort6-selection.json) contain no eligible samples.
+Frozen [N7 protocol](native-cohort7-protocol.json) and
+[selection](native-cohort7-selection.json) select only one unseen Python Issue;
+no TypeScript candidate meets the same bounds. Source was not read before
+selection, and production code stayed frozen during its first measurement.
+The existing native read/plan control invokes actual MiniMax seven times, then
+stops for read-limit/material clarification with no Plan.
+[First result](native-cohort7-results.json) retains all 37 event IDs/hashes.
+Natural-language routing is not claimed. Cumulative native first targets are
+0/3 deliveries; the separate environment first-baseline denominator stays 0/15.
+Empty metadata searches are not extra failed baseline executions.
+
+[Actual checkpoint diagnosis](read-history-diagnosis.json): eight of eleven
+previously returned source responses disappear from the final prompt because
+the job cache is replaced each round. The generic fix retains/deduplicates
+actual tool results within the bounded v2 job lineage and through verified
+same-archive capture/restart. Older text can be indexed by a retrievable hash;
+metadata alone never substitutes for exact source. No model/output coercion,
+extra read round, budget increase, repository exception or business fix.
+Legacy jobs remain compatible, and no persistent schema migration is needed.
+N7 first failure stays unchanged and subsequent tests of it are D.
+
+[Checks](read-history-checks.json): 31 focused tests and full **1609 passed /
+62 skipped / 0 failed**, compileall and diff check. These include actual worker
+rounds/capture/restart with fake models and an over-target response history
+roundtrip, so they are component evidence. [History audit](read-history-audit.json)
+and [credential audit](read-history-security-audit.json) preserve original ARV2
+74 files/71+165 events, N5 first 36 and N7 first 37 events. No credentials were
+read, no third-party writes or operator business patches. E3/H Node, native
+approvals/Coding/Verify/Review/final acceptance and Linux amd64 remain open.

@@ -240,13 +240,16 @@
         "native-targets.json",
         "native-planning-results.json",
         "native-routing-maintenance.json",
-        "native-python-routing-retest.json"
+        "native-python-routing-retest.json",
+        "authenticated-resume.json",
+        "planning-page-live-retest.json",
+        "native-cohort7-results.json"
       ],
-      "limit": "Actual native MiniMax conversation failed after four calls, before source ingestion or plan creation; malformed decision and exhausted read budget. No Coding/Verify/Review/approval/final acceptance. First result retained; revised routing is maintenance, not native success. Maintenance 8d97e14 passes actual two-call MiniMax routing, keeps 6-call lifetime usage, but real source acquisition then hits GitHub403. This D retest does not replace the first failure or satisfy end-to-end acceptance."
+      "limit": "Original N5 Python conversation failure retained. Authenticated D source access now passes; 448f43f resolves context admission but real MiniMax retest terminates minimax_completion_invalid (19 lifetime calls). Fresh frozen N7 Python first measurement uses native read/plan control, 7 real calls, then read-round exhaustion/clarification and no Plan. No exact approval, Coding, Verify, Review or final acceptance. No operator business patches; native deliveries remain zero."
     },
     {
       "id": "UE-T24",
-      "status": "blocked",
+      "status": "failed",
       "evidence": [
         "gateway-proposal.json",
         "isolated-deployment.json",
@@ -256,9 +259,13 @@
         "native-targets.json",
         "native-planning-results.json",
         "native-routing-maintenance.json",
-        "native-node-maintenance-rescan.json"
+        "native-node-maintenance-rescan.json",
+        "authenticated-resume.json",
+        "planning-page-live-retest.json",
+        "native-cohort6-selection.json",
+        "native-cohort7-selection.json"
       ],
-      "limit": "First real discovery and same-target D recheck both excluded by rate-limited repository metadata. No Task/model plan/baseline. No replacement; model credentials are ready and automatic review service recovered."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run."
     },
     {
       "id": "UE-T25",
@@ -302,30 +309,47 @@
   "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1630,
+    "tests": 1671,
     "failures": 0,
     "errors": 0,
-    "skipped": 60,
-    "passed": 1570,
-    "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
-    "reports": [
+    "skipped": 62,
+    "passed": 1609,
+    "shards": [
       {
-        "path": "/tmp/upeve-release-shard-0.xml",
-        "sha256": "64bb6f4c7a667d8643305177bf55d3dcd4133afb48d963e08296e579326a65e0"
+        "tests": 418,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-read-history-shard-0.xml",
+        "sha256": "7e03200c7f22e6e0a982fe006916b2712f1e119fe5af726cac5dffd535246d48"
       },
       {
-        "path": "/tmp/upeve-release-shard-1.xml",
-        "sha256": "d534ebd3cdb165b2f6503c9cecb4fef70150019474cfae8e4fd6f3c07ce37521"
+        "tests": 418,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 6,
+        "path": "/tmp/upeve-read-history-shard-1.xml",
+        "sha256": "79ee85173ac57fdf4b18b3b96c7b5d0712e9219e0ddb57ae42622a0b9e1b82a2"
       },
       {
-        "path": "/tmp/upeve-release-shard-2.xml",
-        "sha256": "e4a92a26f6add57ad8df77f8f4185e34413481d5f7038037e1dad77f1f804e89"
+        "tests": 418,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 14,
+        "path": "/tmp/upeve-read-history-shard-2.xml",
+        "sha256": "5cc74029f54a08ceae588feb66ad9fbcf63ccb25f030cd4d9806c0e4924e359a"
       },
       {
-        "path": "/tmp/upeve-release-shard-3.xml",
-        "sha256": "84d5a4beb18b8649382e44c6be565ddd0d61cf4f3374edfd3b199162ae4d42fc"
+        "tests": 417,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 30,
+        "path": "/tmp/upeve-read-history-shard-3.xml",
+        "sha256": "77463587a6d3ea5aabb22c1f6255c1cff82f3fcee5ca556cb30b7af0142c53f2"
       }
-    ]
+    ],
+    "revision": "pending_current_local_stage_commit",
+    "evidence": "read-history-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -333,5 +357,14 @@
     "selected": 4,
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
+  },
+  "latest_engine_parent": "448f43f4fdb1b97168c1c4c4772aec66ce1ea75f",
+  "latest_default_evidence": "read-history-checks.json",
+  "native_first_attempts": {
+    "selected": 3,
+    "deliveries": 0,
+    "N5": 2,
+    "N7": 1,
+    "environment_holdout_denominator_separate": true
   }
 }

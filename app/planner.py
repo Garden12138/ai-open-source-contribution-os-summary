@@ -21,7 +21,7 @@ from app.planning_diagnostics import planning_validation_details, planning_domai
 from app.planning_reads import planning_read_paths
 from app.workbench import Workbench, WorkbenchError
 from app.workbench_worker import WorkbenchJobWorker
-from app.context_compaction import ContextRead, compact_prompt, read_context
+from app.context_compaction import ContextRead, compact_prompt, previous_context_reads, read_context
 
 ARCHIVE = "planning_archive"
 CONTEXT = "planning_context"
@@ -580,6 +580,12 @@ class PlanningContextWorker(WorkbenchJobWorker):
             if len(canonical_json(context).encode()) > 1500000:
                 raise WorkbenchError("读取上下文超过容量，请缩小方案范围")
             resolved_context = None
+            cached_context = None
+            if data.get("agent_runtime_version") == "agent-runtime-v2" and data.get("context_read_cache_hash"):
+                from app.context_compaction import source_binding
+                candidate = wb.read(data["context_read_cache_hash"])
+                if candidate.get("source") == source_binding(wb, data["task_id"]):
+                    cached_context = candidate
             if data.get("context_reads"):
                 # Resolve against the original checkpoint before appending the
                 # additional source capture. The new context hash must not make
@@ -603,11 +609,15 @@ class PlanningContextWorker(WorkbenchJobWorker):
                 job_id=job.id,
                 commit=False,
             )
-            if resolved_context is not None:
+            if resolved_context is not None or cached_context is not None:
                 from app.context_compaction import source_binding
+                results = resolved_context if resolved_context is not None else cached_context["results"]
+                read_history = (previous_context_reads(cached_context, results) if resolved_context is not None
+                    else cached_context.get("history", []))
                 data = {**data, "context_read_cache_hash": wb.artifact({
-                    "source": source_binding(wb, data["task_id"]), "results": resolved_context,
-                    "origin_checkpoint": data["context_checkpoint_hash"]})}
+                    "source": source_binding(wb, data["task_id"]), "results": results,
+                    "history": read_history,
+                    "origin_checkpoint": data.get("context_checkpoint_hash", cached_context.get("origin_checkpoint") if cached_context else None)})}
                 data.pop("context_reads", None)
                 data.pop("context_checkpoint_hash", None)
             if data.get("context_only"):
@@ -674,17 +684,25 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             require_planning_budget(wb, data["task_id"])
             from app.context_compaction import source_binding
             context_results = []
+            context_read_history = []
+            cached = None
+            if data.get("context_read_cache_hash"):
+                candidate = wb.read(data["context_read_cache_hash"])
+                if candidate.get("source") == source_binding(wb, data["task_id"]):
+                    cached = candidate
+                else:
+                    data.pop("context_read_cache_hash")
             if data.get("context_reads"):
                 context_results = read_context(wb, data["task_id"], data["context_checkpoint_hash"],
                     [ContextRead.model_validate(r) for r in data["context_reads"]])
+                if data.get("agent_runtime_version") == "agent-runtime-v2":
+                    context_read_history = previous_context_reads(cached, context_results)
                 data["context_read_cache_hash"] = wb.artifact({"source":source_binding(wb, data["task_id"]),
-                                                             "results":context_results})
-            elif data.get("context_read_cache_hash"):
-                cached = wb.read(data["context_read_cache_hash"])
-                if cached.get("source") == source_binding(wb, data["task_id"]):
-                    context_results = cached["results"]
-                else:
-                    data.pop("context_read_cache_hash")
+                    "results":context_results, "history":context_read_history})
+            elif cached is not None:
+                context_results = cached["results"]
+                if data.get("agent_runtime_version") == "agent-runtime-v2":
+                    context_read_history = cached.get("history", [])
             data.pop("context_reads", None)
             data.pop("context_checkpoint_hash", None)
             latest = wb.latest_plan(data["task_id"])
@@ -759,8 +777,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             from app.context_compaction import planning_history_cursor
             paged_sources = data.get("agent_runtime_version") == "agent-runtime-v2"
             if paged_sources:
+                prompt_payload["context_read_history"] = context_read_history
                 prompt_payload["rules"].append("Large source files, including requested paths, are indexed rather than inlined. Use read_context.query on their reference to locate code/test symbols, then start_line/max_lines for exact source. read_paths only captures missing source; repeating a captured path gives the same index. After inspecting needed evidence, finalize the pending plan. No tests or code execution is authorized here.")
                 prompt_payload["rules"].append("Each context read identifies its actual source_path. source_complete=true proves the full original file was returned and matched its content hash, even when partial=true describes a line selection or serialized envelope. Reuse that inspected source; do not spend another read round requesting the same complete file. source_complete=false never proves omitted source.")
+                prompt_payload["rules"].append("context_read_history retains earlier actual tool responses in this planning job lineage. Reuse their exact text alongside context_reads; a newer round does not undo earlier inspection. text_indexed=true retains metadata only: retrieve history_reference for omitted text when necessary. A query result is only matching lines, not a complete file. All read limits and approval requirements still apply.")
                 prompt_payload["planning_state"] = {
                     "phase": "read_only_planning", "read_rounds_remaining": max(0, MAX_READ_ROUNDS-data.get("round", 0)),
                     "source_capture_index": [{"path": e["path"], "content_hash": e.get("prior_hash"),

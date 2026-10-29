@@ -162,6 +162,81 @@ def test_source_completeness_uses_original_hash_and_returned_bytes(tmp_path):
     db.close()
 
 
+def test_v2_prior_source_pages_survive_multiple_rounds_capture_and_restart(tmp_path, monkeypatch):
+    from app.database import Database
+    db,s,task,content,_=large_fixture(tmp_path)
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root)
+        context=wb.latest(task,'context_ready');source=wb.read(context.payload['artifact_id'])
+        source['inventory'].append('safe.py')
+        wb.append(task,'context_ready',{**context.payload,'artifact_id':wb.artifact(source)},key='history-source')
+        wb.request(task,text='Read both pages and the helper before planning',parent_id=None,expected_hash=None,
+            key='history-rounds',runtime_version='agent-runtime-v2')
+    pages=[]
+    for line in (2,4):
+        runner=ScriptedRunner();complete=runner.complete
+        async def response(invocation):
+            prompt=json.loads(invocation.prompt)
+            if pages:
+                assert prompt['context_reads']==[pages[-1]]
+            ref=next(r['reference_id'] for r in prompt['context_management']['references']
+                if r['label']=='repository file: background.py')
+            runner.contents.append(json.dumps({'read_context':[{'reference_id':ref,'start_line':line,'max_lines':2}]}))
+            return await complete(invocation)
+        runner.complete=response
+        job=asyncio.run(PlanningTurnWorker(db,s,runner,_identity(s.implementation_model),worker_id='pages').run_once())
+        assert job.state=='succeeded',job.error_message
+        if line==4:
+            pages.append(json.loads(runner.invocations[0].prompt)['context_reads'][0])
+        db.close();db=Database(s.database_url)
+    job,model=run_turn(db,s,json.dumps({'read_paths':['safe.py']}))
+    assert job.state=='succeeded',job.error_message
+    prompt=json.loads(model.invocations[0].prompt)
+    assert prompt['context_read_history']==pages
+    latest=prompt['context_reads']
+    class Reader:
+        async def inspect(self,**kw):
+            return {**source,'entries':[*source['entries'],{'path':'safe.py','content':'captured helper',
+                'prior_hash':hashlib.sha256(b'captured helper').hexdigest(),'executable':False}]}
+    monkeypatch.setattr(RepositoryArchiveStore,'lookup',lambda *a,**kw:object())
+    read=asyncio.run(PlanningContextWorker(db,s,Reader(),worker_id='helper').run_once())
+    assert read.state=='succeeded',read.error_message
+    db.close();db=Database(s.database_url)
+    final,model=run_turn(db,s,result(content))
+    assert final.state=='succeeded',final.error_message
+    actual=json.loads(model.invocations[0].prompt)
+    assert actual['context_read_history']==pages and actual['context_reads']==latest
+    assert 'ORIGINAL_BODY_SENTINEL' in pages[0]['text']
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root)
+        assert wb.latest_plan(task) and not wb.latest(task,'execution_authorized')
+    db.close()
+
+
+def test_v2_older_tool_results_are_retrievable_within_the_existing_prompt_limit(tmp_path):
+    from app.context_compaction import ContextRead, compact_prompt, read_context
+    from tests.test_context_compaction import packet
+    db,s,task,_,_=large_fixture(tmp_path)
+    older=[{'reference_id':hashlib.sha256(str(i).encode()).hexdigest(),
+        'source_path':f'file_{i}.py','source_complete':False,'text':f'ACTUAL_OLD_PAGE_{i} '+'x'*8000}
+        for i in range(12)]
+    current=[{'text':'EXACT_CURRENT_PAGE'+'y'*8000} for _ in range(2)]
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        payload.update(context_read_history=older,context_reads=current)
+        prompt,cp=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,
+            target_bytes=48000,trigger_bytes=48000)
+        actual=json.loads(prompt)
+        assert len(prompt.encode())<96000 and actual['context_reads']==current
+        assert len(actual['context_read_history'])==12
+        indexed=next(r for r in actual['context_read_history'] if r.get('text_indexed'))
+        found=read_context(wb,task,cp['artifact_id'],[ContextRead(reference_id=indexed['history_reference'],max_bytes=16000)])[0]
+        restored=json.loads(found['text'])
+        assert restored==next(r for r in older if r['reference_id']==indexed['reference_id'])
+        assert 'text_indexed' not in older[0] and not wb.latest(task,'execution_authorized')
+    db.close()
+
+
 def test_planning_schema_does_not_offer_empty_object_as_a_valid_outcome():
     import pytest
     from app.planner import PlanningReply

@@ -1,0 +1,12 @@
+{
+  "version": "upeve-read-history-audit-v1",
+  "recorded_at": "2026-10-29T10:26:34.893002+00:00",
+  "N5_original_events_preserved": 36,
+  "N7_first_events_preserved": 37,
+  "historical_ARV2_audit": "read-history-security-audit.json",
+  "old_trial_database_opened_readonly": true,
+  "live_database_opened_readonly": true,
+  "new_execution_approvals": 0,
+  "business_patches": 0,
+  "external_writes": 0
+}
