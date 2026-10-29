@@ -1,0 +1,114 @@
+{
+  "before_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56",
+  "after_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56",
+  "command_evidence": [
+    {
+      "command_id": "unit",
+      "command_hash": "fe590cdc33654523d8e454b213019eceff85adaeb9f8e50969fe27db623a4d69",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-29T01:51:20.788159Z",
+      "completed_at": "2026-10-29T01:51:20.812635Z",
+      "resource_usage": {
+        "user_cpu_ms": 17,
+        "system_cpu_ms": 5,
+        "max_rss_bytes": 22650880,
+        "minor_page_faults": 929,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 3,
+        "involuntary_context_switches": 0
+      },
+      "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stdout_log": "",
+      "stderr_hash": "154f829db5634dd0c0a7da4df0aab0828a0b5b95045edb6aacf97224b95bd935",
+      "stderr_bytes": 216,
+      "stderr_log": "test_cache_boundary (test_env.TestValue.test_cache_boundary) ... ok\ntest_value (test_env.TestValue.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 24,
+      "execution_summary": {
+        "version": "verification-log-summary-v1",
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "154f829db5634dd0c0a7da4df0aab0828a0b5b95045edb6aacf97224b95bd935",
+        "test_count": 2,
+        "zero_tests": false,
+        "help_only": false,
+        "assertion_failure": false,
+        "environment_reason_codes": []
+      }
+    },
+    {
+      "command_id": "lint",
+      "command_hash": "190965ebfaeec4037664e3dd5158a6348b4ff4b15414aa60d4f66f5a4a48d1b3",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-29T01:51:20.812769Z",
+      "completed_at": "2026-10-29T01:51:20.824456Z",
+      "resource_usage": {
+        "user_cpu_ms": 1,
+        "system_cpu_ms": 2,
+        "max_rss_bytes": 22650880,
+        "minor_page_faults": 771,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 19,
+        "involuntary_context_switches": 0
+      },
+      "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stdout_bytes": 19,
+      "stdout_log": "All checks passed!\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 11,
+      "execution_summary": {
+        "version": "verification-log-summary-v1",
+        "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_count": null,
+        "zero_tests": false,
+        "help_only": false,
+        "assertion_failure": false,
+        "environment_reason_codes": []
+      }
+    },
+    {
+      "command_id": "stubtest",
+      "command_hash": "4383c865bb7aedebc8db416b542e0f9c815f2f713d18768919dfafafb477075c",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-29T01:51:20.824591Z",
+      "completed_at": "2026-10-29T01:51:21.228547Z",
+      "resource_usage": {
+        "user_cpu_ms": 359,
+        "system_cpu_ms": 20,
+        "max_rss_bytes": 99172352,
+        "minor_page_faults": 6089,
+        "major_page_faults": 2,
+        "voluntary_context_switches": 265,
+        "involuntary_context_switches": 38
+      },
+      "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+      "stdout_bytes": 37,
+      "stdout_log": "Success: no issues found in 1 module\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 403,
+      "execution_summary": {
+        "version": "verification-log-summary-v1",
+        "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_count": null,
+        "zero_tests": false,
+        "help_only": false,
+        "assertion_failure": false,
+        "environment_reason_codes": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "status": "unsupported",
+  "ecosystem": "node",
+  "mode": "workspace-v2",
+  "preparation_version": "node-workspace-preparation-v1",
+  "project_directory": ".",
+  "manifests": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    "package-lock.json",
+    "package.json"
+  ],
+  "lockfiles": [
+    "package-lock.json"
+  ],
+  "change_paths": [
+    "src/index.ts"
+  ],
+  "reason": "环境命令依赖图尚未闭合：unsupported_dynamic_installer。不能开始编码；需补充冻结证据或生成新方案并重新确认。",
+  "manifest_hashes": {
+    ".github/workflows/ci.yml": "d06cdb1176b2d9083d21facbc9854b1b7ff16cfe9a0ea90aa0d2daa7a4f65e0e",
+    ".github/workflows/release.yml": "6d42d78a9a4b80e045d3e3146777233e9a95144b9a83790205d8e5bb5a3f1968",
+    "package.json": "24e8f56d4b79b24af9ef0d2415eb152ec2e642cfdc1d8e21ebfe21ee95a7a583"
+  },
+  "node_environment": {
+    "version": "node-environment-v2",
+    "manager": "npm",
+    "manager_version": "",
+    "runtime_requirement": ">=14.0.0",
+    "runtime_pin": "",
+    "project_directory": ".",
+    "package_roots": [
+      "."
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [
+      {
+        "directory": ".",
+        "script": "prepare"
+      }
+    ],
+    "registry": "https://registry.npmjs.org",
+    "manager_constraint": ">=1.0.0",
+    "lockfile": "package-lock.json",
+    "lock_strategy": "existing"
+  },
+  "capability_version": "node-environment-v2",
+  "required_paths": [],
+  "environment_engine": {
+    "version": "upeve-v1",
+    "target_platform": "linux/arm64"
+  },
+  "reason_code": "unsupported_dynamic_installer",
+  "verification_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U4-node-2",
+      "snapshot_hash": "df34596d5fd03fe96dfed2279b30b60bafac293cdd6b1ab66cf585393236556b",
+      "source_archive_hash": "e1b6ead0b6fe010c37267e563fd2969163ccd2c6d4ec4efcb79a6764433a67b6",
+      "base_commit_sha": "a4ff593d8d53052f2e99680f54b7f576933682d7",
+      "plan_version_hash": "ea3ade61b66b058d970a4e69918e4e9ba9fa6a9c5b75ac789f48953949bb21be",
+      "approved_commands_hash": "15681275705350450bdb006fbdcf469b7fa4843fdb087d359cd67a9ffa50c91c",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-2",
+        "argv": [
+          "npm",
+          "run",
+          "format:check"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-3",
+        "argv": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-4",
+        "argv": [
+          "npm",
+          "run",
+          "test:coverage"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-5",
+        "argv": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-6",
+        "argv": [
+          "node",
+          "scripts/verify-package.mjs"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "node",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "d06cdb1176b2d9083d21facbc9854b1b7ff16cfe9a0ea90aa0d2daa7a4f65e0e",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/release.yml",
+        "sha256": "6d42d78a9a4b80e045d3e3146777233e9a95144b9a83790205d8e5bb5a3f1968",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package-lock.json",
+        "sha256": "aa24e1df8d528b56f3a496bd5d7706180dc0dbff4934473bd030ad8fd7aa74fc",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package.json",
+        "sha256": "24e8f56d4b79b24af9ef0d2415eb152ec2e642cfdc1d8e21ebfe21ee95a7a583",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/build.mjs",
+        "sha256": "e96be93b8927ed4e32e5ec573e5c6b6efd9bb44091f8b4bbc05f180f8eec296e",
+        "parser": "node-script-chain-v1"
+      }
+    ],
+    "preparation": {},
+    "unresolved": [
+      {
+        "reason_code": "unsupported_dynamic_installer",
+        "paths": [
+          "scripts/build.mjs"
+        ],
+        "command_id": null
+      }
+    ],
+    "admission": "unsupported",
+    "expected_failures": {}
+  },
+  "verification_contract_hash": "d10288650a6b725191524ad4045f57b0774b6c2dea19feaef792b96337721663"
+}

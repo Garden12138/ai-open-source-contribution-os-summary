@@ -4831,16 +4831,18 @@ D Node passes 2/2; existing npm/pnpm/Yarn/Vitest suite passes 30 contracts and
 5 real OCI cases. H Node still rejects its CI-time global installer with all
 8 exact commands retained, so E3 and the full E4 historical gates remain open.
 
-Latest complete default regression: 1567 passed, 60 skipped, 0 failed. Six
+Latest complete default regression on frozen `05c573e`: 1570 passed, 60 skipped, 0 failed. Six
 original malicious OCI cases and the new actual origin/platform/help/zero-test/
 assertion-control boundaries have separate evidence. Forward 0039 upgrade,
 backup/restore and legacy wire/hash compatibility preserve history. The isolated
 API/coordinator/Sandbox Worker are healthy on 18090; formal services/data are
 untouched. Final cache code redeploy and security rerun are recorded in the ledger.
 
-Three independently frozen cohorts retain first outcomes 0/4, 0/4 and 0/3;
-cumulative **0/11 full baselines**, no replacement or native delivery. Cache work
-creates a new engine revision; those first results are not retroactive successes.
+Four independently frozen cohorts retain first outcomes 0/4, 0/4, 0/3 and
+0/4; cumulative **0/15 full baselines**, no replacement or native delivery.
+Final cache revision `05c573e` has matching H/D/U4 source hashes; H five and D
+fresh-repeat checks pass, U4 static gaps remain failed/pending_scope. Earlier
+first outcomes are not retroactive successes.
 E5 generalization remains failed, E3 Node still needs a supported generic semantic
 boundary/environment recipe, and true native Python/TS journeys require real
 model access and exact human approvals. Linux amd64 has no real endpoint and is

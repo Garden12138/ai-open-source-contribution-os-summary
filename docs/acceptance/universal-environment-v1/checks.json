@@ -359,5 +359,31 @@
     "path": "/tmp/upeve-cache-final-resolution.xml",
     "reason": "unknown-version assertions were inadvertently placed under parametrized budget test; moved back and rerun focused core successfully",
     "native": false
+  },
+  "final_frozen_default": {
+    "tests": 1630,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 60,
+    "passed": 1570,
+    "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+    "reports": [
+      {
+        "path": "/tmp/upeve-release-shard-0.xml",
+        "sha256": "64bb6f4c7a667d8643305177bf55d3dcd4133afb48d963e08296e579326a65e0"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-1.xml",
+        "sha256": "d534ebd3cdb165b2f6503c9cecb4fef70150019474cfae8e4fd6f3c07ce37521"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-2.xml",
+        "sha256": "e4a92a26f6add57ad8df77f8f4185e34413481d5f7038037e1dad77f1f804e89"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-3.xml",
+        "sha256": "84d5a4beb18b8649382e44c6be565ddd0d61cf4f3374edfd3b199162ae4d42fc"
+      }
+    ]
   }
 }

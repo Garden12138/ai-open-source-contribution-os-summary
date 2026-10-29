@@ -54,8 +54,8 @@
       "id": "UE-T05",
       "status": "passed",
       "evidence": [
-        "H-python-cache-04/entrypoint-receipts.json",
-        "H-python-cache-04/preparation-receipt.json"
+        "H-python-cache-final/entrypoint-receipts.json",
+        "H-python-cache-final/preparation-receipt.json"
       ],
       "limit": null
     },
@@ -100,7 +100,7 @@
       "id": "UE-T10",
       "status": "partial",
       "evidence": [
-        "H-python-cache-04",
+        "H-python-cache-final",
         "D-node-02",
         "H-node-canonical"
       ],
@@ -123,7 +123,7 @@
       "evidence": [
         "assertion-reproduction-probe.json",
         "H-python-ci-parser-01",
-        "H-python-cache-04"
+        "H-python-cache-final"
       ],
       "limit": "Actual controlled assertion + passing control; expectation is a fixture contract, not human authorization"
     },
@@ -169,10 +169,10 @@
       "id": "UE-T17",
       "status": "passed",
       "evidence": [
-        "H-python-cache-04/baseline-results.json",
-        "H-python-cache-04/baseline-verdict.json"
+        "H-python-cache-final/baseline-results.json",
+        "H-python-cache-final/baseline-verdict.json"
       ],
-      "limit": "Historical regression only; final frozen-code recheck follows separately"
+      "limit": "Passed on exact frozen production engine code; historical OCI regression only, not a new native user journey."
     },
     {
       "id": "UE-T18",
@@ -189,9 +189,10 @@
       "evidence": [
         "holdout-results.json",
         "holdout-cohort2-results.json",
-        "holdout-cohort3-results.json"
+        "holdout-cohort3-results.json",
+        "holdout-cohort4-results.json"
       ],
-      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+      "limit": "Current frozen revision 0/4; cumulative first outcomes 0/15. This cohort performed discovery/graph checks only, not complete baseline execution."
     },
     {
       "id": "UE-T20",
@@ -199,9 +200,10 @@
       "evidence": [
         "holdout-results.json",
         "holdout-cohort2-results.json",
-        "holdout-cohort3-results.json"
+        "holdout-cohort3-results.json",
+        "holdout-cohort4-results.json"
       ],
-      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+      "limit": "Current frozen revision 0/4; cumulative first outcomes 0/15. This cohort performed discovery/graph checks only, not complete baseline execution."
     },
     {
       "id": "UE-T21",
@@ -209,9 +211,10 @@
       "evidence": [
         "holdout-results.json",
         "holdout-cohort2-results.json",
-        "holdout-cohort3-results.json"
+        "holdout-cohort3-results.json",
+        "holdout-cohort4-results.json"
       ],
-      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+      "limit": "Current frozen revision 0/4; cumulative first outcomes 0/15. This cohort performed discovery/graph checks only, not complete baseline execution."
     },
     {
       "id": "UE-T22",
@@ -219,9 +222,10 @@
       "evidence": [
         "holdout-results.json",
         "holdout-cohort2-results.json",
-        "holdout-cohort3-results.json"
+        "holdout-cohort3-results.json",
+        "holdout-cohort4-results.json"
       ],
-      "limit": "First full-baseline success 0/11 cumulatively; safe unsupported is not generalized success"
+      "limit": "Current frozen revision 0/4; cumulative first outcomes 0/15. This cohort performed discovery/graph checks only, not complete baseline execution."
     },
     {
       "id": "UE-T23",
@@ -256,7 +260,7 @@
       "evidence": [
         "macos-doctor.json",
         "checks.json#cache_node_regression",
-        "H-python-cache-04"
+        "H-python-cache-final"
       ],
       "limit": "Actual Darwin arm64 + OrbStack OCI; controlled classification"
     },
@@ -279,5 +283,40 @@
       ],
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
-  ]
+  ],
+  "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "current_phase": "E3 / UPEVE-E04",
+  "default_regression": {
+    "tests": 1630,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 60,
+    "passed": 1570,
+    "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+    "reports": [
+      {
+        "path": "/tmp/upeve-release-shard-0.xml",
+        "sha256": "64bb6f4c7a667d8643305177bf55d3dcd4133afb48d963e08296e579326a65e0"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-1.xml",
+        "sha256": "d534ebd3cdb165b2f6503c9cecb4fef70150019474cfae8e4fd6f3c07ce37521"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-2.xml",
+        "sha256": "e4a92a26f6add57ad8df77f8f4185e34413481d5f7038037e1dad77f1f804e89"
+      },
+      {
+        "path": "/tmp/upeve-release-shard-3.xml",
+        "sha256": "84d5a4beb18b8649382e44c6be565ddd0d61cf4f3374edfd3b199162ae4d42fc"
+      }
+    ]
+  },
+  "holdout_current": {
+    "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+    "complete_baselines": 0,
+    "selected": 4,
+    "cumulative_complete_baselines": 0,
+    "cumulative_selected": 15
+  }
 }

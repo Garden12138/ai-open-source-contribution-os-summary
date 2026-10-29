@@ -1,0 +1,41 @@
+{
+  "repository": "python-openapi/openapi-spec-validator",
+  "base_sha": "2121137e4832871202b96a276b225b90f3aece50",
+  "sample_id": "U4-python-1",
+  "repository_id": 102581313,
+  "default_branch": "master",
+  "license": "Apache-2.0",
+  "ecosystem": "python",
+  "expected_capability": "boundary_unknown_until_static_evidence",
+  "archive_hash": "fc2b6d34999aabf6a832a38f69fdd281b3fb128875a2c5a9d68519006e7fce5a",
+  "archive_bytes": 1873713,
+  "downloaded_at": "2026-10-29T01:50:54.180130+00:00",
+  "classification": "U",
+  "commands": [
+    {
+      "command_id": "check-1",
+      "argv": [
+        "pytest"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "change_paths": [
+    "openapi_spec_validator/__init__.py"
+  ],
+  "workspace_paths": [],
+  "plan_hash": "f55520c46ac5423bfeb1d8c3827057f95d5022aa568b0a9dcaf1a11ee75848a2",
+  "snapshot_hash": "3c36ead3a88538d61fa179dced7ae2da25c87d0bff104aebd1ee1c0e64a1d899",
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "target_platform": "linux/arm64",
+  "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+  "command_source": "frozen CI/tox/package check scripts; release/publish mutations excluded; full checks never removed after outcome",
+  "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "engine_source_hash": "cf04ab292cb2e6d2aaca3b5c339367cebaa1f31e32cea11595c2c06ef0a00d8c",
+  "measured_at": "2026-10-29T01:56:10.200649+00:00",
+  "host_platform": {
+    "system": "Darwin",
+    "architecture": "arm64"
+  }
+}

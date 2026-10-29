@@ -5,16 +5,15 @@
     165
   ],
   "original_ARV2_file_count": 74,
-  "all_original_event_ids_and_hashes_unchanged": true,
-  "all_original_ARV2_acceptance_files_unchanged": true,
-  "historical_exact_5_and_8_command_hashes_unchanged": true,
+  "original_files_events_and_command_hashes_unchanged": true,
   "original_database_opened_readonly": true,
   "credential_scan": {
-    "json_files": 199,
+    "json_files": 295,
     "findings": 0,
-    "method": "repository ensure_no_sensitive_data on persisted UPEVE JSON; real canary denial covered by OCI malicious suite"
+    "method": "repository sensitive data validator on all persisted UPEVE JSON and retained candidate patch; actual secret/network canaries separately covered in real OCI"
   },
   "new_business_patches": 0,
-  "new_approvals": 0,
-  "native_coding_sessions": 0
+  "new_human_approvals": 0,
+  "native_coding_sessions": 0,
+  "third_party_writes": 0
 }

@@ -38,6 +38,6 @@
     "reason": "Concurrent role startup raced empty-database migrations; original failed instance retained, v2 initialized serially before roles.",
     "retained_under": "/tmp/upeve-isolated-20261029"
   },
-  "deployed_engine_revision": "b52a81e390d90ed69140a44b4cad89ccf7e2f47e",
-  "verified_at": "2026-10-29T01:17:46.797096+00:00"
+  "deployed_engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "verified_at": "2026-10-29T01:59:56.320454+00:00"
 }

@@ -1,0 +1,158 @@
+{
+  "inspection": {
+    "before_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56",
+    "after_inventory_hash": "af0c71d11e76daa5e29fea8d66dfd685536c221666b1d1088e71c8cadb9f5b56",
+    "command_evidence": [
+      {
+        "command_id": "unit",
+        "command_hash": "fe590cdc33654523d8e454b213019eceff85adaeb9f8e50969fe27db623a4d69",
+        "status": "passed",
+        "exit_code": 0,
+        "started_at": "2026-10-29T01:51:22.150256Z",
+        "completed_at": "2026-10-29T01:51:22.188628Z",
+        "resource_usage": {
+          "user_cpu_ms": 21,
+          "system_cpu_ms": 1,
+          "max_rss_bytes": 22634496,
+          "minor_page_faults": 932,
+          "major_page_faults": 0,
+          "voluntary_context_switches": 3,
+          "involuntary_context_switches": 0
+        },
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_bytes": 0,
+        "stdout_log": "",
+        "stderr_hash": "154f829db5634dd0c0a7da4df0aab0828a0b5b95045edb6aacf97224b95bd935",
+        "stderr_bytes": 216,
+        "stderr_log": "test_cache_boundary (test_env.TestValue.test_cache_boundary) ... ok\ntest_value (test_env.TestValue.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n",
+        "logs_truncated": false,
+        "raw_logs_omitted": false,
+        "duration_ms": 38,
+        "execution_summary": {
+          "version": "verification-log-summary-v1",
+          "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_hash": "154f829db5634dd0c0a7da4df0aab0828a0b5b95045edb6aacf97224b95bd935",
+          "test_count": 2,
+          "zero_tests": false,
+          "help_only": false,
+          "assertion_failure": false,
+          "environment_reason_codes": []
+        }
+      },
+      {
+        "command_id": "lint",
+        "command_hash": "190965ebfaeec4037664e3dd5158a6348b4ff4b15414aa60d4f66f5a4a48d1b3",
+        "status": "passed",
+        "exit_code": 0,
+        "started_at": "2026-10-29T01:51:22.188735Z",
+        "completed_at": "2026-10-29T01:51:22.200805Z",
+        "resource_usage": {
+          "user_cpu_ms": 1,
+          "system_cpu_ms": 2,
+          "max_rss_bytes": 22634496,
+          "minor_page_faults": 761,
+          "major_page_faults": 0,
+          "voluntary_context_switches": 16,
+          "involuntary_context_switches": 0
+        },
+        "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+        "stdout_bytes": 19,
+        "stdout_log": "All checks passed!\n",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_log": "",
+        "logs_truncated": false,
+        "raw_logs_omitted": false,
+        "duration_ms": 12,
+        "execution_summary": {
+          "version": "verification-log-summary-v1",
+          "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+          "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_count": null,
+          "zero_tests": false,
+          "help_only": false,
+          "assertion_failure": false,
+          "environment_reason_codes": []
+        }
+      },
+      {
+        "command_id": "stubtest",
+        "command_hash": "4383c865bb7aedebc8db416b542e0f9c815f2f713d18768919dfafafb477075c",
+        "status": "passed",
+        "exit_code": 0,
+        "started_at": "2026-10-29T01:51:22.200886Z",
+        "completed_at": "2026-10-29T01:51:22.636107Z",
+        "resource_usage": {
+          "user_cpu_ms": 403,
+          "system_cpu_ms": 24,
+          "max_rss_bytes": 98668544,
+          "minor_page_faults": 5982,
+          "major_page_faults": 0,
+          "voluntary_context_switches": 242,
+          "involuntary_context_switches": 53
+        },
+        "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+        "stdout_bytes": 37,
+        "stdout_log": "Success: no issues found in 1 module\n",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_log": "",
+        "logs_truncated": false,
+        "raw_logs_omitted": false,
+        "duration_ms": 435,
+        "execution_summary": {
+          "version": "verification-log-summary-v1",
+          "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+          "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_count": null,
+          "zero_tests": false,
+          "help_only": false,
+          "assertion_failure": false,
+          "environment_reason_codes": []
+        }
+      }
+    ]
+  },
+  "verdict": {
+    "version": "baseline-verdict-v1",
+    "contract_hash": "45695fadc5b36e10f3901b1fd5ceb22396a651f3f465dd92f32e2cf00108caae",
+    "preparation_receipt_hash": "aa165260106c088722de859350296234d22d3054966839f8e04ffd828630e515",
+    "baseline_artifact_hash": "c2fec8a80d7855078558c360b62f8eda08b2f012e1e7cf79e3cc0021dedec373",
+    "required_command_count": 3,
+    "executed_command_count": 3,
+    "outcome": "passed",
+    "reason_codes": [],
+    "command_results": [
+      {
+        "command_id": "unit",
+        "command_hash": "fe590cdc33654523d8e454b213019eceff85adaeb9f8e50969fe27db623a4d69",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [],
+        "test_count": 2,
+        "stdout_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_hash": "154f829db5634dd0c0a7da4df0aab0828a0b5b95045edb6aacf97224b95bd935"
+      },
+      {
+        "command_id": "lint",
+        "command_hash": "190965ebfaeec4037664e3dd5158a6348b4ff4b15414aa60d4f66f5a4a48d1b3",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [],
+        "test_count": null,
+        "stdout_hash": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command_id": "stubtest",
+        "command_hash": "4383c865bb7aedebc8db416b542e0f9c815f2f713d18768919dfafafb477075c",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [],
+        "test_count": null,
+        "stdout_hash": "62da4fc54c562df868a008dec15c01dbe2e33b26f8fb0c43f41c446e2d7c5f60",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}

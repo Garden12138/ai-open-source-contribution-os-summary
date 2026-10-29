@@ -1,5 +1,13 @@
 # UPEVE v1 acceptance ledger
 
+Latest frozen engine: `05c573e264da97d667308dc0e353f69141ad8e64`.
+**Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
+Python passes 5/5; historical Node remains unsupported. Latest default suite is
+1570 passed / 60 skipped / 0 failed. Current unseen cohort is 0/4 complete
+baselines, cumulative initial outcomes 0/15. Native Python/TS and native Linux
+amd64 remain blocked/not_run. [All 28 cases](acceptance-status.json) distinguish
+passed, partial, failed and blocked evidence.
+
 Current branch: `refactor/agent-runtime-v2`. Phase 5 stays current. Historical
 ARV2-M5/M6, ENV-G01, UXR-G01 and P5-G06 are unchanged. No production database,
 approval, upstream repository or remote branch is modified by this work.
@@ -286,3 +294,52 @@ credential authorization plus separate exact human plan/final approval. E6 has
 Mac evidence and an isolated deployment, but Linux amd64 is blocked/not_run.
 These are distinct failures/blockers, not a claim that credentials explain all
 unfinished engineering work.
+
+## Final frozen-code rechecks and fourth unseen cohort
+
+`H-python-cache-final` and `D-python-cache-final` use the exact final frozen
+engine. H again passes the original five commands; D passes all three checks
+in two fresh real Verify containers. [Source verification](frozen-source-verification.json)
+confirms the same engine revision and source hash across H, D and all four U4
+measurements. No production engine changes occurred during selection/measurement.
+
+The [fourth protocol](holdout-cohort4-protocol.json) selected two real public
+Python libraries and two TypeScript utility projects before source inspection.
+[Results](holdout-cohort4-results.json):
+
+| Sample | First outcome | Complete baseline |
+| --- | --- | --- |
+| U4-python-1, openapi-spec-validator | `tool_distribution_unresolved`; Poetry dev group not closed by current adapter | not_run |
+| U4-python-2, colorgram.py | `pending_scope`; legacy Python root plus nested Node test package requires an explicit supported scope | not_run |
+| U4-node-1, signality | `environment_evidence_budget`; full declared source graph exceeds inspection bound | not_run |
+| U4-node-2, super-utils-plus | `unsupported_dynamic_installer`; JS subprocess build wrapper not statically admitted | not_run |
+
+**Current frozen cohort 0/4; cumulative first full-baseline success 0/15.** U4
+performed real OCI source inspection and static graph evaluation, but no full
+preparation/baseline. Those rejections are never counted as successful baselines.
+No failure is replaced or excused as missing model credentials. Generic legacy/
+Poetry/JS-wrapper support and scope handling remain real engineering gaps.
+
+Final complete default regression on the frozen code: **1570 passed, 60 skipped,
+0 failed** (four XML reports and hashes in checks.json). Node regression is
+30 contracts plus 5 actual OCI cases, all passed. The six real malicious cases
+were rerun on the cache implementation and passed. Additional six real engine
+boundary cases cover source shadowing, wrong target, help/version, zero tests
+and assertion/control classification. These categories remain separate from
+native journeys and are not summed as contribution deliveries.
+
+[Final audit](final-audit.json) rechecks 74 original ARV2 files, all 71 + 165 old
+events and the exact original 5 + 8 command hashes; all unchanged. Sanitized
+UPEVE JSON and the retained rejected patch have zero credential findings. No
+human approval, business patch, model call or third-party write was fabricated.
+`compileall`, JavaScript syntax and diff whitespace checks pass. [Deployment](isolated-deployment.json)
+confirms the frozen engine in the separate 18090 API/coordinator/Sandbox Worker,
+SQLite integrity and healthy old trial endpoint; active jobs 0. Model Provider
+is blocked on explicit credential/upstream authorization, not replaced with a
+Fake. A current full native crash/restart journey and Linux amd64 are not proven.
+
+The branch contains local stage commits only. UPEVE v1, E3–E6, original Runtime
+v2 M5/M6 and Phase 5 are **not declared complete**. Next current task remains
+UPEVE-E04: a supported generic Node semantic boundary/environment recipe that
+preserves all required checks. A changed exact recipe requires a fresh child
+plan and human authorization; Verify networking or code permissions stay closed.

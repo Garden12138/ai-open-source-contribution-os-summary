@@ -1,0 +1,61 @@
+{
+  "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "engine_unchanged_during_measurements": true,
+  "first_attempt_denominator": 4,
+  "first_attempt_full_baseline_successes": 0,
+  "prior_cohorts_first_attempt_denominator": 11,
+  "prior_cohorts_full_baseline_successes": 0,
+  "cumulative_selected": 15,
+  "cumulative_first_attempt_baseline_successes": 0,
+  "replacements": 0,
+  "samples": [
+    {
+      "sample_id": "U4-python-1",
+      "repository": "python-openapi/openapi-spec-validator",
+      "base_sha": "2121137e4832871202b96a276b225b90f3aece50",
+      "status": "unsupported",
+      "reason_code": "tool_distribution_unresolved",
+      "diagnostic": null,
+      "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+      "engine_source_hash": "cf04ab292cb2e6d2aaca3b5c339367cebaa1f31e32cea11595c2c06ef0a00d8c",
+      "native": false
+    },
+    {
+      "sample_id": "U4-python-2",
+      "repository": "obskyr/colorgram.py",
+      "base_sha": "44df90e15453d0637c11bd9508d04f9ede146ce0",
+      "status": "pending_scope",
+      "reason_code": null,
+      "diagnostic": null,
+      "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+      "engine_source_hash": "cf04ab292cb2e6d2aaca3b5c339367cebaa1f31e32cea11595c2c06ef0a00d8c",
+      "native": false
+    },
+    {
+      "sample_id": "U4-node-1",
+      "repository": "signalityjs/signality",
+      "base_sha": "c76c0c6197198fdf3dda583f8efc0030c53fc377",
+      "status": "unsupported",
+      "reason_code": "environment_evidence_budget",
+      "diagnostic": null,
+      "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+      "engine_source_hash": "cf04ab292cb2e6d2aaca3b5c339367cebaa1f31e32cea11595c2c06ef0a00d8c",
+      "native": false
+    },
+    {
+      "sample_id": "U4-node-2",
+      "repository": "Dhaxor/super-utils-plus",
+      "base_sha": "a4ff593d8d53052f2e99680f54b7f576933682d7",
+      "status": "unsupported",
+      "reason_code": "unsupported_dynamic_installer",
+      "diagnostic": null,
+      "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+      "engine_source_hash": "cf04ab292cb2e6d2aaca3b5c339367cebaa1f31e32cea11595c2c06ef0a00d8c",
+      "native": false
+    }
+  ],
+  "gate_result": "failed_real_generalization_minimum_not_satisfied",
+  "native_deliveries": 0,
+  "baseline_execution_count": 0,
+  "no_static_rejection_counted_as_full_OCI_baseline": true
+}

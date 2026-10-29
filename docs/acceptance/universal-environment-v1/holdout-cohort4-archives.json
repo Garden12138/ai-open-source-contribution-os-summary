@@ -1,0 +1,61 @@
+{
+  "source": "existing GitHubClient; anonymous GET only; no upstream mutation",
+  "samples": [
+    {
+      "repository": "python-openapi/openapi-spec-validator",
+      "base_sha": "2121137e4832871202b96a276b225b90f3aece50",
+      "sample_id": "U4-python-1",
+      "repository_id": 102581313,
+      "default_branch": "master",
+      "license": "Apache-2.0",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "archive_hash": "fc2b6d34999aabf6a832a38f69fdd281b3fb128875a2c5a9d68519006e7fce5a",
+      "archive_bytes": 1873713,
+      "downloaded_at": "2026-10-29T01:50:54.180130+00:00",
+      "status": "downloaded"
+    },
+    {
+      "repository": "obskyr/colorgram.py",
+      "base_sha": "44df90e15453d0637c11bd9508d04f9ede146ce0",
+      "sample_id": "U4-python-2",
+      "repository_id": 68206487,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "archive_hash": "8579ca2599d5bf700b4d140fbae998c336eedd57c9597354d2b9ae2ce3a65791",
+      "archive_bytes": 587351,
+      "downloaded_at": "2026-10-29T01:51:00.077796+00:00",
+      "status": "downloaded"
+    },
+    {
+      "repository": "signalityjs/signality",
+      "base_sha": "c76c0c6197198fdf3dda583f8efc0030c53fc377",
+      "sample_id": "U4-node-1",
+      "repository_id": 1126746223,
+      "default_branch": "main",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "archive_hash": "440c2a97cc989afd2519b7c59973754264c9fcc0a4bfafd0b1c5b56be482034b",
+      "archive_bytes": 761316,
+      "downloaded_at": "2026-10-29T01:51:10.006629+00:00",
+      "status": "downloaded"
+    },
+    {
+      "repository": "Dhaxor/super-utils-plus",
+      "base_sha": "a4ff593d8d53052f2e99680f54b7f576933682d7",
+      "sample_id": "U4-node-2",
+      "repository_id": 989542973,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "archive_hash": "e1b6ead0b6fe010c37267e563fd2969163ccd2c6d4ec4efcb79a6764433a67b6",
+      "archive_bytes": 142586,
+      "downloaded_at": "2026-10-29T01:51:15.416553+00:00",
+      "status": "downloaded"
+    }
+  ]
+}

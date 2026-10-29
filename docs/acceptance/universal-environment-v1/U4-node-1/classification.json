@@ -1,0 +1,10 @@
+{
+  "classification": "U",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "unsupported",
+  "contract_hash": "a95cce82e4ff9a993db95f92b09ed4e818d0d004cfc57768cd1a46ada7cf11e6",
+  "reason_code": "environment_evidence_budget"
+}

@@ -1,0 +1,73 @@
+{
+  "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "selected_at": "2026-10-29T01:49:35.418687+00:00",
+  "source_inspected_before_selection": false,
+  "excluded": [
+    {
+      "repository": "alexdelorenzo/cast_control",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "python-xlib/python-xlib",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "awangga/outlook",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "celery/py-amqp",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "sksalahuddin2828/Python",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "DavidHDev/haiku",
+      "reason": "rights_or_metadata"
+    },
+    {
+      "repository": "StableLib/stablelib",
+      "reason": "rights_or_metadata"
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "U4-python-1",
+      "repository": "python-openapi/openapi-spec-validator",
+      "repository_id": 102581313,
+      "default_branch": "master",
+      "license": "Apache-2.0",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "sample_id": "U4-python-2",
+      "repository": "obskyr/colorgram.py",
+      "repository_id": 68206487,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "python",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "sample_id": "U4-node-1",
+      "repository": "signalityjs/signality",
+      "repository_id": 1126746223,
+      "default_branch": "main",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    },
+    {
+      "sample_id": "U4-node-2",
+      "repository": "Dhaxor/super-utils-plus",
+      "repository_id": 989542973,
+      "default_branch": "master",
+      "license": "MIT",
+      "ecosystem": "node",
+      "expected_capability": "boundary_unknown_until_static_evidence"
+    }
+  ]
+}

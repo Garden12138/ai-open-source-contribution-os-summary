@@ -1,0 +1,5 @@
+{
+  "status": "pending_scope",
+  "manifests": [],
+  "reason": "仓库包含多个子包；保存具体改动范围后选择对应测试环境。"
+}

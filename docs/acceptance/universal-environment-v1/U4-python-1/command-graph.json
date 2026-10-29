@@ -1,0 +1,104 @@
+{
+  "status": "unsupported",
+  "ecosystem": "python",
+  "mode": "workspace-v2",
+  "project_directory": ".",
+  "manifests": [
+    "pyproject.toml"
+  ],
+  "reason": "环境命令依赖图尚未闭合：tool_distribution_unresolved。不能开始编码；需补充冻结证据或生成新方案并重新确认。",
+  "preparation_version": "python-workspace-preparation-v2",
+  "manifest_hashes": {
+    "pyproject.toml": "3ffc248506b0ff6328f9d079eb0cd53de2ef558ce5954dced07c479b6db33721"
+  },
+  "capability_version": "execution-capabilities-v3",
+  "required_paths": [],
+  "environment_engine": {
+    "version": "upeve-v1",
+    "target_platform": "linux/arm64"
+  },
+  "reason_code": "tool_distribution_unresolved",
+  "verification_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U4-python-1",
+      "snapshot_hash": "3c36ead3a88538d61fa179dced7ae2da25c87d0bff104aebd1ee1c0e64a1d899",
+      "source_archive_hash": "fc2b6d34999aabf6a832a38f69fdd281b3fb128875a2c5a9d68519006e7fce5a",
+      "base_commit_sha": "2121137e4832871202b96a276b225b90f3aece50",
+      "plan_version_hash": "f55520c46ac5423bfeb1d8c3827057f95d5022aa568b0a9dcaf1a11ee75848a2",
+      "approved_commands_hash": "24a3ed90e19d8e54986d81bf1a196cea085ef3e6352f15a360bb5cd4065c9227",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "python-toolchain-v4"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "pytest"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "pytest",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": "pyproject.toml",
+        "sha256": "3ffc248506b0ff6328f9d079eb0cd53de2ef558ce5954dced07c479b6db33721",
+        "parser": "python-toolchain-v4"
+      },
+      {
+        "path": ".github/workflows/docker-publish-manual.yml",
+        "sha256": "7db165411c8307f2cc5b5201e9aeb455ed190e60038be75df57d1b1d81d56255",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": ".github/workflows/docker-publish.yml",
+        "sha256": "f2a12f304a02ae3aa7466251fee2124a45581aa088219a356c735ff8cbfa7374",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": ".github/workflows/docs-build.yml",
+        "sha256": "f3cbc4687dfb3a70e7326b29c140e06ffd9761e02548587a901712324e79473a",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": ".github/workflows/python-publish.yml",
+        "sha256": "695bce82e35f55f1c43ec4fba1fb8d3824bfe005acc6a6f7d5a272caf99d687e",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": ".github/workflows/python-tests.yml",
+        "sha256": "ad0934a4474cee185f06d28ee6d87abf769c03654957e30450de2097be2e428d",
+        "parser": "literal-pip-declaration-v2"
+      },
+      {
+        "path": "Makefile",
+        "sha256": "6a518a18f7f1affd1bca5c635598b21ccdeaeb53fbc73f301cfa0ca68ef7825a",
+        "parser": "literal-pip-declaration-v2"
+      }
+    ],
+    "preparation": {},
+    "unresolved": [
+      {
+        "reason_code": "tool_distribution_unresolved",
+        "paths": [],
+        "command_id": null
+      }
+    ],
+    "admission": "unsupported",
+    "expected_failures": {}
+  },
+  "verification_contract_hash": "b67c20de38b369fd6fed365352079ac79f1ea6bcf10f420e1615d80b59561470"
+}
