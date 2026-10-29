@@ -53,5 +53,6 @@
   "safety": "Existing read rounds/model limits/schema/approvals unchanged; no new dependency or persistent schema change",
   "diagnosis": "read-history-diagnosis.json",
   "history_audit": "read-history-audit.json",
-  "credential_audit": "read-history-security-audit.json"
+  "credential_audit": "read-history-security-audit.json",
+  "engine_revision": "b5738deaa9b76312c6e57a96b227c4f4c6e94030"
 }

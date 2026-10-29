@@ -25,6 +25,9 @@ VERSION = "task-context-v1"
 EVENT = "context_checkpoint"
 PLANNING_TARGET_BYTES = 160_000
 PLANNING_TRIGGER_BYTES = 220_000
+# Keep useful prior pages when pinned current evidence already exceeds the
+# 48 KB soft target. Leave 16 KB below v2's unchanged 96 KB admission ceiling.
+PAGED_HISTORY_TARGET_BYTES = 80_000
 MAX_REFERENCES = 512
 
 
@@ -279,12 +282,13 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                 body["context_management"]["references"] = list(references.values())
                 if _bytes(body) <= target_bytes:
                     break
-    if page_source_files and _bytes(body) > target_bytes:
+    history_target = max(target_bytes, PAGED_HISTORY_TARGET_BYTES)
+    if page_source_files and _bytes(body) > history_target:
         # Older tool responses remain facts about what was returned, even when
         # their exact text no longer fits. Issue retrievable references instead
         # of silently replacing them with the newest round's pages.
         for result in body.get("context_read_history", []):
-            if _bytes(body) <= target_bytes:
+            if _bytes(body) <= history_target:
                 break
             if not isinstance(result.get("text"), str):
                 continue

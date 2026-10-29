@@ -4996,6 +4996,28 @@ E3/H Node remains failed; Linux amd64 is blocked/not_run. Current specialty
 task stays UPEVE-E04; no additional stage gate is checked.
 
 
+`b5738de` is deployed only to the isolated trial; all five owned roles restarted
+from idle and API/Gateway/Publisher/older trial health passed. The same N7 goal
+was explicitly retried once through the existing read-only planning control.
+Five actual MiniMax calls retain previous tool-response metadata/references,
+with prompts 48,323–75,680 bytes under the unchanged 96,000-byte hard ceiling.
+Lifetime usage is 12 calls / 236,952 input / 5,775 output tokens; limits and
+source binding are unchanged. It still returns unresolved annotation semantics
+and evidence questions, **no Plan**. Its narrative's proposed reproduction is
+not an executed assertion. [Actual D result](acceptance/universal-environment-v1/read-history-live-retest.json)
+is not native success or human approval. E3 remains the first unchecked task.
+
+
+Follow-up compaction preserves useful old page text while pinned current
+content already exceeds the 48 KB soft target: only history above 80 KB is
+indexed, leaving 16 KB before the unchanged 96 KB hard admission ceiling.
+Source projection still targets 48 KB, model Profile/read rounds/lifetime
+budgets are unchanged, and any hard overflow still fails closed. This is a
+prompt allocation correction, not new execution authority or a native pass.
+
+Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](acceptance/universal-environment-v1/history-headroom-checks.json). No additional stage gate passed.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

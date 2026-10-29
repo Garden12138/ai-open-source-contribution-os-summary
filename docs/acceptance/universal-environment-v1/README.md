@@ -570,3 +570,25 @@ and [credential audit](read-history-security-audit.json) preserve original ARV2
 74 files/71+165 events, N5 first 36 and N7 first 37 events. No credentials were
 read, no third-party writes or operator business patches. E3/H Node, native
 approvals/Coding/Verify/Review/final acceptance and Linux amd64 remain open.
+
+
+[Deployment of b5738de](read-history-deployment.json) restarts the five owned
+roles from idle; API/Gateway/Publisher and prior trial health pass. The Publisher
+image is unchanged because this maintenance changes only context/planner code.
+[One same-goal D retest](read-history-live-retest.json) makes five real MiniMax
+calls (12 lifetime, 236,952 input / 5,775 output tokens), retains prior read
+metadata/references and stays at 48,323–75,680 bytes. Source binding and limits
+match the pre-retest record. It ends with material semantics/evidence questions,
+no Plan; proposed reproduction claims remain unverified. No Coding, baseline,
+Verify, Review, approval or delivery is inferred.
+
+
+The follow-up allocation correction retains prior page text until 80 KB total
+prompt size when pinned current evidence already exceeds the 48 KB soft target.
+This leaves 16 KB below the unchanged 96 KB hard admission limit; oversized
+requests still reject, and source compaction/model Profile/read rounds/lifetime
+budgets/approval rules stay unchanged. It prevents indexing every old page in
+an already over-soft-target prompt. It does not resolve the material Issue
+semantics questions or prove an executed reproduction.
+
+Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](history-headroom-checks.json). No additional stage gate passed.

@@ -2,7 +2,7 @@
   "version": "upeve-native-readiness-audit-v1",
   "recorded_at": "2026-10-29T10:25:34.039677+00:00",
   "native_first_attempt_revision": "4d72db55cd56ea14edc7c70eae7187ef64175054",
-  "engine_revision": "448f43f4fdb1b97168c1c4c4772aec66ce1ea75f",
+  "engine_revision": "b5738deaa9b76312c6e57a96b227c4f4c6e94030",
   "changed_historical_files": [],
   "history": [
     {
@@ -23,5 +23,11 @@
     "findings": [],
     "actual_credentials_read": false
   },
-  "production_modified": false
+  "production_modified": false,
+  "post_retest_credential_scan": {
+    "files": 347,
+    "findings": [],
+    "actual_credentials_read": false,
+    "recorded_at": "2026-10-29T10:34:00.390188+00:00"
+  }
 }

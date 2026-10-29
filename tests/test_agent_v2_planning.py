@@ -245,6 +245,24 @@ def test_planning_schema_does_not_offer_empty_object_as_a_valid_outcome():
     with pytest.raises(ValueError):PlanningReply.model_validate({})
 
 
+def test_v2_prior_pages_use_headroom_when_pinned_content_exceeds_soft_target(tmp_path):
+    from app.context_compaction import compact_prompt
+    from tests.test_context_compaction import packet
+    db,s,task,_,_=large_fixture(tmp_path)
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        pinned='FROZEN_RULES_'+('x'*48000)
+        older=[{'source_path':'previous.py','text':'ACTUAL_PREVIOUS_BODY '+('y'*8000)}]
+        payload.update(rules=[pinned],context_read_history=older)
+        prompt,cp=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,
+            target_bytes=48000,trigger_bytes=48000)
+        actual=json.loads(prompt)
+        assert 48000<len(prompt.encode())<80000 and not cp['target_met']
+        assert actual['context_read_history']==older and actual['rules']==[pinned]
+        assert not wb.latest(task,'execution_authorized')
+    db.close()
+
+
 def test_environment_prerequisites_drain_in_bounded_batches_across_restart(tmp_path, monkeypatch):
     from app.workbench import Workbench
     db,s,task,content,_=large_fixture(tmp_path)

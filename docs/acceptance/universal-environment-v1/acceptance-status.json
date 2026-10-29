@@ -243,9 +243,10 @@
         "native-python-routing-retest.json",
         "authenticated-resume.json",
         "planning-page-live-retest.json",
-        "native-cohort7-results.json"
+        "native-cohort7-results.json",
+        "read-history-live-retest.json"
       ],
-      "limit": "Original N5 Python conversation failure retained. Authenticated D source access now passes; 448f43f resolves context admission but real MiniMax retest terminates minimax_completion_invalid (19 lifetime calls). Fresh frozen N7 Python first measurement uses native read/plan control, 7 real calls, then read-round exhaustion/clarification and no Plan. No exact approval, Coding, Verify, Review or final acceptance. No operator business patches; native deliveries remain zero."
+      "limit": "Original N5 Python conversation failure retained. Authenticated D source access now passes; 448f43f resolves context admission but real MiniMax retest terminates minimax_completion_invalid (19 lifetime calls). Fresh frozen N7 Python first measurement uses native read/plan control, 7 real calls, then read-round exhaustion/clarification and no Plan. No exact approval, Coding, Verify, Review or final acceptance. No operator business patches; native deliveries remain zero. b5738de D retest preserves bounded read history under 96 KB, but after 5 additional calls (12 lifetime) still asks unresolved semantics/evidence questions without Plan. Narrative reproduction is not an executed test."
     },
     {
       "id": "UE-T24",
@@ -306,50 +307,50 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "05c573e264da97d667308dc0e353f69141ad8e64",
+  "engine_revision": "b5738deaa9b76312c6e57a96b227c4f4c6e94030",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1671,
+    "tests": 1672,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1609,
+    "passed": 1610,
     "shards": [
       {
         "tests": 418,
         "failures": 0,
         "errors": 0,
+        "skipped": 9,
+        "path": "/tmp/upeve-history-headroom-shard-0.xml",
+        "sha256": "7c32511680d73a0e08738dbd13598a176858ba24906e9a66dc96168e7df541fc"
+      },
+      {
+        "tests": 418,
+        "failures": 0,
+        "errors": 0,
         "skipped": 12,
-        "path": "/tmp/upeve-read-history-shard-0.xml",
-        "sha256": "7e03200c7f22e6e0a982fe006916b2712f1e119fe5af726cac5dffd535246d48"
+        "path": "/tmp/upeve-history-headroom-shard-1.xml",
+        "sha256": "1502f44f71fe99b840390fb6fbeb3dd25ecda25bf658b0ec5f6a4fae341ff2bd"
       },
       {
         "tests": 418,
         "failures": 0,
         "errors": 0,
-        "skipped": 6,
-        "path": "/tmp/upeve-read-history-shard-1.xml",
-        "sha256": "79ee85173ac57fdf4b18b3b96c7b5d0712e9219e0ddb57ae42622a0b9e1b82a2"
+        "skipped": 11,
+        "path": "/tmp/upeve-history-headroom-shard-2.xml",
+        "sha256": "6d3fd28f94249d3de0fc3d0aee3b1181f3b0a1f88a8bd67e512f57f8a99312f0"
       },
       {
         "tests": 418,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 14,
-        "path": "/tmp/upeve-read-history-shard-2.xml",
-        "sha256": "5cc74029f54a08ceae588feb66ad9fbcf63ccb25f030cd4d9806c0e4924e359a"
-      },
-      {
-        "tests": 417,
         "failures": 0,
         "errors": 0,
         "skipped": 30,
-        "path": "/tmp/upeve-read-history-shard-3.xml",
-        "sha256": "77463587a6d3ea5aabb22c1f6255c1cff82f3fcee5ca556cb30b7af0142c53f2"
+        "path": "/tmp/upeve-history-headroom-shard-3.xml",
+        "sha256": "e2944c6315c1b256fde2fc54669289a869f8944927e8127f070a3f2befb888c1"
       }
     ],
     "revision": "pending_current_local_stage_commit",
-    "evidence": "read-history-checks.json"
+    "evidence": "history-headroom-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -358,8 +359,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_engine_parent": "448f43f4fdb1b97168c1c4c4772aec66ce1ea75f",
-  "latest_default_evidence": "read-history-checks.json",
+  "latest_default_evidence": "history-headroom-checks.json",
   "native_first_attempts": {
     "selected": 3,
     "deliveries": 0,
