@@ -1,0 +1,225 @@
+{
+  "status": "supported",
+  "ecosystem": "node",
+  "mode": "workspace-v2",
+  "preparation_version": "node-workspace-preparation-v1",
+  "project_directory": ".",
+  "manifests": [
+    ".github/workflows/build.yml",
+    ".github/workflows/prettier.yml",
+    ".nvmrc",
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "lockfiles": [
+    "pnpm-lock.yaml"
+  ],
+  "change_paths": [
+    "src/ConfigEngine.ts"
+  ],
+  "reason": "按项目声明选择运行时和包管理器，冻结完整工作区依赖；独立离线构建后，先运行修改前测试，再实施及离线验证。",
+  "manifest_hashes": {
+    ".github/workflows/build.yml": "7b03f55717aa227ef50d2e04cafbba0bc815ef4183525f5f8e6f57c3464464f4",
+    ".github/workflows/prettier.yml": "e1352076b771b58be1eaaba904a54160fff39ec8b01b09db6ad7a6bb3e776818",
+    ".nvmrc": "1f616d7d1364c5c94ba52533416fa783fff597f7df372c975a93299eff648c84",
+    "package.json": "0edb4731406d7c714670188bf66d0acb4261eac0588cd58930daae115ca07923"
+  },
+  "node_environment": {
+    "version": "node-environment-v2",
+    "manager": "pnpm",
+    "manager_version": "",
+    "runtime_requirement": "",
+    "runtime_pin": "v20.10.0",
+    "project_directory": ".",
+    "package_roots": [
+      "."
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [
+      {
+        "directory": ".",
+        "script": "prepare"
+      }
+    ],
+    "registry": "https://registry.npmjs.org",
+    "manager_constraint": ">=1.0.0",
+    "lockfile": "pnpm-lock.yaml",
+    "lock_strategy": "existing"
+  },
+  "capability_version": "node-environment-v2",
+  "environment_engine": {
+    "version": "upeve-v1",
+    "target_platform": "linux/arm64"
+  },
+  "verification_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U2-node-1",
+      "snapshot_hash": "1d8449b78e43ab8b8a879302a0041517d261c4fc6dc571359d926cb15253bc52",
+      "source_archive_hash": "6242aad2823ce0a62b5d294baf41648fec80dc3ad9940b361107f00929159493",
+      "base_commit_sha": "bc6fca042a315eb7f85f057b9819b0fd8100ae6f",
+      "plan_version_hash": "db6c7e7fb7e275d95d6846051605aa695c4601a8b4f4a39ac4c9891f580833f3",
+      "approved_commands_hash": "ae6bcf0db5ef3f8f3c65f3364001cd93b6f3db622f8af16dc6aeb416749f2a77",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "pnpm",
+          "run",
+          "build"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": ".github/workflows/build.yml",
+            "sha256": "7b03f55717aa227ef50d2e04cafbba0bc815ef4183525f5f8e6f57c3464464f4",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": ".github/workflows/prettier.yml",
+            "sha256": "e1352076b771b58be1eaaba904a54160fff39ec8b01b09db6ad7a6bb3e776818",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": ".nvmrc",
+            "sha256": "1f616d7d1364c5c94ba52533416fa783fff597f7df372c975a93299eff648c84",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "package.json",
+            "sha256": "0edb4731406d7c714670188bf66d0acb4261eac0588cd58930daae115ca07923",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "pnpm-lock.yaml",
+            "sha256": "02dd39db1d3b4d44a4f816ceaa7eb58a6757dd8d8392d7559c569180ef7308e9",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          "package.json#build",
+          ".:tsc"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "pnpm"
+          ],
+          [
+            ".",
+            "tsc"
+          ]
+        ],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "resolved"
+      },
+      {
+        "command_id": "check-2",
+        "argv": [
+          "pnpm",
+          "exec",
+          "prettier",
+          "--check",
+          "--config",
+          ".prettierrc",
+          "src/**/*.{ts,tsx}"
+        ],
+        "working_directory": ".",
+        "source_refs": [
+          {
+            "path": ".github/workflows/build.yml",
+            "sha256": "7b03f55717aa227ef50d2e04cafbba0bc815ef4183525f5f8e6f57c3464464f4",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": ".github/workflows/prettier.yml",
+            "sha256": "e1352076b771b58be1eaaba904a54160fff39ec8b01b09db6ad7a6bb3e776818",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": ".nvmrc",
+            "sha256": "1f616d7d1364c5c94ba52533416fa783fff597f7df372c975a93299eff648c84",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "package.json",
+            "sha256": "0edb4731406d7c714670188bf66d0acb4261eac0588cd58930daae115ca07923",
+            "parser": "node-toolchain-v1"
+          },
+          {
+            "path": "pnpm-lock.yaml",
+            "sha256": "02dd39db1d3b4d44a4f816ceaa7eb58a6757dd8d8392d7559c569180ef7308e9",
+            "parser": "node-toolchain-v1"
+          }
+        ],
+        "chain": [
+          ".:prettier --check --config .prettierrc src/**/*.{ts,tsx}"
+        ],
+        "entrypoints": [
+          [
+            ".",
+            "pnpm"
+          ],
+          [
+            ".",
+            "prettier"
+          ]
+        ],
+        "required_executable": "pnpm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "resolved"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": ".github/workflows/build.yml",
+        "sha256": "7b03f55717aa227ef50d2e04cafbba0bc815ef4183525f5f8e6f57c3464464f4",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/prettier.yml",
+        "sha256": "e1352076b771b58be1eaaba904a54160fff39ec8b01b09db6ad7a6bb3e776818",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".nvmrc",
+        "sha256": "1f616d7d1364c5c94ba52533416fa783fff597f7df372c975a93299eff648c84",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package.json",
+        "sha256": "0edb4731406d7c714670188bf66d0acb4261eac0588cd58930daae115ca07923",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "02dd39db1d3b4d44a4f816ceaa7eb58a6757dd8d8392d7559c569180ef7308e9",
+        "parser": "node-toolchain-v1"
+      }
+    ],
+    "preparation": {
+      "independent_directories": []
+    },
+    "unresolved": [],
+    "admission": "static_admitted",
+    "expected_failures": {}
+  },
+  "verification_contract_hash": "44874b54f5cc765b44804b56184e6f332eadfaa5620ab8002405f49705b99dc2",
+  "readiness": {
+    "static_admitted": true,
+    "toolchain_prepared": "unverified",
+    "baseline_verified": "unverified"
+  }
+}

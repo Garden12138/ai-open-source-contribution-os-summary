@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from app.environment_engine.contracts import BaselineVerdict
 from app.provenance import content_hash
 
@@ -26,11 +27,30 @@ def classify_baseline(contract: dict, preparation_receipt_hash: str, evidence: l
         text = str(item.get("stdout_log", "")) + "\n" + str(item.get("stderr_log", ""))
         codes = []
         actual_assertion = False
+        # Manager argv can hide a help-only leaf in package.json. Resolve that
+        # frozen static chain too; exit zero from the manager proves no checks.
+        effective = [command["argv"]]
+        leaves = []
+        for edge in command.get("chain", []):
+            directory, separator, text_edge = edge.partition(":")
+            if separator and "#" not in directory:
+                try:
+                    leaf = shlex.split(text_edge)
+                except ValueError:
+                    leaf = []
+                if leaf:
+                    effective.append(leaf)
+                    leaves.append(leaf)
         started = item.get("started_at") is not None and item.get("status") not in {"not_run", "cancelled"}
         if not started or item.get("raw_logs_omitted") or item.get("logs_truncated") and not summary_valid:
             codes.append("baseline_evidence_insufficient")
-        if "--help" in command["argv"] or "-h" in command["argv"] or summary_valid and summary.get("help_only") or re.search(r"(?im)^\s*usage:.*\n.*(?:options|commands|flags):", text):
+        if (item.get("status") not in {"passed", "failed"}
+                or (item.get("status") == "passed") != (item.get("exit_code") == 0)):
+            codes.append("baseline_evidence_insufficient")
+        if any(flag in args for args in effective for flag in ("--help", "-h", "--version", "-V")) or summary_valid and summary.get("help_only") or re.search(r"(?im)^\s*usage:.*\n.*(?:options|commands|flags):", text):
             codes.append("baseline_help_only")
+        if leaves and all(leaf[0] in {"echo", "printf", "true"} for leaf in leaves):
+            codes.append("baseline_evidence_insufficient")
         if summary_valid and summary.get("zero_tests") or re.search(r"(?im)\bRan 0 tests\b|\bno tests (?:ran|found|collected)\b|^# tests 0\b|\b0 passed\b", text):
             codes.append("baseline_zero_tests")
         if item.get("exit_code") in {126, 127} or re.search(r"ModuleNotFoundError:|ERR_DLOPEN_FAILED|EAI_AGAIN|ENETUNREACH|EROFS|ENOSPC|Cannot find module", text):
@@ -53,7 +73,7 @@ def classify_baseline(contract: dict, preparation_receipt_hash: str, evidence: l
             reproduced.add(command["command_id"])
             codes = []
         # Test commands need positive execution evidence, even with exit zero.
-        test_command = any(t in command["argv"] for t in ("pytest", "unittest", "vitest", "jest", "test", "--test"))
+        test_command = any(t in args for args in effective for t in ("pytest", "unittest", "vitest", "jest", "test", "--test"))
         count = re.search(r"(?im)\bRan ([1-9]\d*) tests?\b|\b([1-9]\d*) passed\b|^# tests ([1-9]\d*)\b|Tests\s+([1-9]\d*) passed", text)
         test_count = summary.get("test_count") if summary_valid else next((int(g) for g in count.groups() if g), None) if count else None
         if test_command and not test_count and not actual_assertion:

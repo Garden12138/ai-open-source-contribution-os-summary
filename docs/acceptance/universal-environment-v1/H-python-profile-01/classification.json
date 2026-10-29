@@ -1,0 +1,15 @@
+{
+  "classification": "H",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "unknown",
+  "contract_hash": "6af92ce99e92695fff565c93636a4c478f318b2ebdb0e0c9b9ea9e1284889773",
+  "reason_code": null,
+  "reason_codes": [
+    "baseline_failure_unclassified"
+  ],
+  "executed": 5,
+  "required": 5
+}

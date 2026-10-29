@@ -1,0 +1,49 @@
+{
+  "source": "existing GitHubClient; anonymous GET only; no upstream mutation",
+  "samples": [
+    {
+      "sample_id": "U2-python-1",
+      "repository": "sirfz/tesserocr",
+      "branch": "master",
+      "base_sha": "c9ff632d89692ea5b7c07686522e1717e9aa809c",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "adf9b1aeb3e153cf56d901fc0bfe2d8fcb98bf803bc0a5a2c0e87eee454d9d1a",
+      "archive_bytes": 81172,
+      "downloaded_at": "2026-10-28T16:54:09.243373+00:00",
+      "status": "downloaded"
+    },
+    {
+      "sample_id": "U2-python-2",
+      "repository": "sepandhaghighi/art",
+      "branch": "master",
+      "base_sha": "3917a898faeb7490d3043a1158b13a5d9b51e273",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "692e35be73c192e563badb9896d8fb643ba411c6ccf2792c2e97618f6df14842",
+      "archive_bytes": 1016525,
+      "downloaded_at": "2026-10-28T16:54:11.968774+00:00",
+      "status": "downloaded"
+    },
+    {
+      "sample_id": "U2-node-1",
+      "repository": "projectstorm/dynamouse",
+      "branch": "master",
+      "base_sha": "bc6fca042a315eb7f85f057b9819b0fd8100ae6f",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "6242aad2823ce0a62b5d294baf41648fec80dc3ad9940b361107f00929159493",
+      "archive_bytes": 930446,
+      "downloaded_at": "2026-10-28T16:54:17.531774+00:00",
+      "status": "downloaded"
+    },
+    {
+      "sample_id": "U2-node-2",
+      "repository": "nadeesha/ts-prune",
+      "branch": "master",
+      "base_sha": "203bf2d80a5dca6789f9274d70af5bc2c1dda94c",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "9472284af3e930efdc11e3a9e064a26b9c91142ee3f5d84acacdd30ce081a7ff",
+      "archive_bytes": 95955,
+      "downloaded_at": "2026-10-28T16:54:22.226275+00:00",
+      "status": "downloaded"
+    }
+  ]
+}

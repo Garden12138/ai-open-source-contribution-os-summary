@@ -1,0 +1,10 @@
+{
+  "classification": "U",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "failed",
+  "contract_hash": "44874b54f5cc765b44804b56184e6f332eadfaa5620ab8002405f49705b99dc2",
+  "reason_code": "environment_preparation_failed"
+}

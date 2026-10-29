@@ -1,0 +1,78 @@
+{
+  "sample_id": "U2-python-2",
+  "repository": "sepandhaghighi/art",
+  "branch": "master",
+  "base_sha": "3917a898faeb7490d3043a1158b13a5d9b51e273",
+  "git_ref": "refs/heads/master",
+  "archive_hash": "692e35be73c192e563badb9896d8fb643ba411c6ccf2792c2e97618f6df14842",
+  "archive_bytes": 1016525,
+  "downloaded_at": "2026-10-28T16:54:11.968774+00:00",
+  "classification": "U",
+  "commands": [
+    {
+      "command_id": "check-1",
+      "argv": [
+        "art"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-2",
+      "argv": [
+        "art",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-3",
+      "argv": [
+        "art",
+        "test2"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-4",
+      "argv": [
+        "python",
+        "otherfile/version_check.py"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-5",
+      "argv": [
+        "python",
+        "otherfile/font_check.py"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "check-6",
+      "argv": [
+        "python",
+        "otherfile/art_decor_check.py"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "change_paths": [
+    "art/functions.py"
+  ],
+  "workspace_paths": [],
+  "snapshot_hash": "96011d867ae946551641163cf6509430e090d240808179dee357b04f0f614ef4",
+  "plan_hash": "561ceb6367cccb896f458b5af26770e2ded4e096f26651798dfd9af0cb48507b",
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "target_platform": "linux/arm64",
+  "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+  "command_source": "frozen cibuildwheel test-command, CI steps or package scripts; no release/install/audit network mutation included",
+  "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+  "engine_source_hash": "32a48096e0b1d332d493f1b1afd3f19b0891022235579498054b6264bd526d13",
+  "measured_at": "2026-10-28T17:00:05.274918+00:00",
+  "host_platform": {
+    "system": "Darwin",
+    "architecture": "arm64"
+  }
+}

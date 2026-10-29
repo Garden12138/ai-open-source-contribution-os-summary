@@ -1,0 +1,240 @@
+{
+  "frozen_engine": "c275c55d39efcca813bcf69019130a4d82d1d948",
+  "exact_commands_frozen_before_preparation": true,
+  "plans": [
+    {
+      "sample_id": "U2-python-1",
+      "repository": "sirfz/tesserocr",
+      "branch": "master",
+      "base_sha": "c9ff632d89692ea5b7c07686522e1717e9aa809c",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "adf9b1aeb3e153cf56d901fc0bfe2d8fcb98bf803bc0a5a2c0e87eee454d9d1a",
+      "archive_bytes": 81172,
+      "downloaded_at": "2026-10-28T16:54:09.243373+00:00",
+      "classification": "U",
+      "commands": [
+        {
+          "command_id": "check-1",
+          "argv": [
+            "python",
+            "-m",
+            "unittest",
+            "discover",
+            "-v"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "change_paths": [
+        "tesserocr/__init__.py"
+      ],
+      "workspace_paths": [],
+      "snapshot_hash": "e5cc1df2b88134e8b05395c55e1bd334a2047b112ca8cf7302274f962d9836a4",
+      "plan_hash": "43bbf7dca7731052ce244f920f643e2fe43784736d842153412b7d2592278473",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+      "target_platform": "linux/arm64",
+      "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+      "command_source": "frozen cibuildwheel test-command, CI steps or package scripts; no release/install/audit network mutation included"
+    },
+    {
+      "sample_id": "U2-python-2",
+      "repository": "sepandhaghighi/art",
+      "branch": "master",
+      "base_sha": "3917a898faeb7490d3043a1158b13a5d9b51e273",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "692e35be73c192e563badb9896d8fb643ba411c6ccf2792c2e97618f6df14842",
+      "archive_bytes": 1016525,
+      "downloaded_at": "2026-10-28T16:54:11.968774+00:00",
+      "classification": "U",
+      "commands": [
+        {
+          "command_id": "check-1",
+          "argv": [
+            "art"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-2",
+          "argv": [
+            "art",
+            "test"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-3",
+          "argv": [
+            "art",
+            "test2"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-4",
+          "argv": [
+            "python",
+            "otherfile/version_check.py"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-5",
+          "argv": [
+            "python",
+            "otherfile/font_check.py"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-6",
+          "argv": [
+            "python",
+            "otherfile/art_decor_check.py"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "change_paths": [
+        "art/functions.py"
+      ],
+      "workspace_paths": [],
+      "snapshot_hash": "96011d867ae946551641163cf6509430e090d240808179dee357b04f0f614ef4",
+      "plan_hash": "561ceb6367cccb896f458b5af26770e2ded4e096f26651798dfd9af0cb48507b",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+      "target_platform": "linux/arm64",
+      "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+      "command_source": "frozen cibuildwheel test-command, CI steps or package scripts; no release/install/audit network mutation included"
+    },
+    {
+      "sample_id": "U2-node-1",
+      "repository": "projectstorm/dynamouse",
+      "branch": "master",
+      "base_sha": "bc6fca042a315eb7f85f057b9819b0fd8100ae6f",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "6242aad2823ce0a62b5d294baf41648fec80dc3ad9940b361107f00929159493",
+      "archive_bytes": 930446,
+      "downloaded_at": "2026-10-28T16:54:17.531774+00:00",
+      "classification": "U",
+      "commands": [
+        {
+          "command_id": "check-1",
+          "argv": [
+            "pnpm",
+            "run",
+            "build"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-2",
+          "argv": [
+            "pnpm",
+            "exec",
+            "prettier",
+            "--check",
+            "--config",
+            ".prettierrc",
+            "src/**/*.{ts,tsx}"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "change_paths": [
+        "src/ConfigEngine.ts"
+      ],
+      "workspace_paths": [
+        ".editorconfig",
+        ".github",
+        ".gitignore",
+        ".nvmrc",
+        ".prettierrc",
+        "LICENSE",
+        "README.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src",
+        "tsconfig.json"
+      ],
+      "snapshot_hash": "1d8449b78e43ab8b8a879302a0041517d261c4fc6dc571359d926cb15253bc52",
+      "plan_hash": "db6c7e7fb7e275d95d6846051605aa695c4601a8b4f4a39ac4c9891f580833f3",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+      "target_platform": "linux/arm64",
+      "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+      "command_source": "frozen cibuildwheel test-command, CI steps or package scripts; no release/install/audit network mutation included"
+    },
+    {
+      "sample_id": "U2-node-2",
+      "repository": "nadeesha/ts-prune",
+      "branch": "master",
+      "base_sha": "203bf2d80a5dca6789f9274d70af5bc2c1dda94c",
+      "git_ref": "refs/heads/master",
+      "archive_hash": "9472284af3e930efdc11e3a9e064a26b9c91142ee3f5d84acacdd30ce081a7ff",
+      "archive_bytes": 95955,
+      "downloaded_at": "2026-10-28T16:54:22.226275+00:00",
+      "classification": "U",
+      "commands": [
+        {
+          "command_id": "check-1",
+          "argv": [
+            "npm",
+            "run",
+            "check"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-2",
+          "argv": [
+            "npm",
+            "run",
+            "test:package"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "check-3",
+          "argv": [
+            "npm",
+            "run",
+            "test:coverage"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "change_paths": [
+        "src/index.ts"
+      ],
+      "workspace_paths": [
+        ".gitattributes",
+        ".github",
+        ".gitignore",
+        ".nvmrc",
+        "MODERNIZATION.md",
+        "Makefile",
+        "PUBLISHING.md",
+        "README.md",
+        "RELEASE_NOTES.md",
+        "eslint.config.cjs",
+        "integration",
+        "package-lock.json",
+        "package.json",
+        "scripts",
+        "src",
+        "test",
+        "tsconfig.json",
+        "tsconfig.test.json"
+      ],
+      "snapshot_hash": "4a29643e56597de258a0cd8fb28f7d6cc56f635e5dc77812bcf0963ab9ec7163",
+      "plan_hash": "98f02eb7a99de94ad6fbd04fbec44fbfc527bc41d7cb3712e8f55d0e126f4679",
+      "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+      "target_platform": "linux/arm64",
+      "provenance_kind": "controlled_environment_measurement_no_business_snapshot_or_human_approval",
+      "command_source": "frozen cibuildwheel test-command, CI steps or package scripts; no release/install/audit network mutation included"
+    }
+  ]
+}

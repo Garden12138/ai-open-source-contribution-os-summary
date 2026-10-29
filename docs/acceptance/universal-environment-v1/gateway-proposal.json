@@ -1,0 +1,14 @@
+{
+  "status": "awaiting_explicit_credential_use_approval",
+  "action": "start a separate local model Gateway for this task's two native acceptance journeys",
+  "listen": "http://127.0.0.1:18091",
+  "upstream": "https://integrate.api.nvidia.com/v1",
+  "credential_reference_only": "existing .env NVIDIA_API_KEY; never printed or copied into repository artifacts",
+  "credential_trust_domain": "Gateway only; API, Provider and Sandbox never receive the upstream secret",
+  "storage": "/tmp/upeve-isolated-20261029-v2/gateway-private",
+  "new_private_signing_key": true,
+  "production_environment_modified": false,
+  "git_or_github_writes_authorized": false,
+  "plan_and_execution_approval": "still required separately inside the product",
+  "automatic_approval_review": "previous credential-use attempt rejected; no execution or workaround"
+}

@@ -1,0 +1,59 @@
+{
+  "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+  "engine_unchanged_during_measurements": true,
+  "first_attempt_denominator": 4,
+  "first_attempt_full_baseline_successes": 0,
+  "prior_cohort_first_attempt_denominator": 4,
+  "prior_cohort_full_baseline_successes": 0,
+  "cumulative_selected": 8,
+  "cumulative_first_attempt_baseline_successes": 0,
+  "replacements": 0,
+  "samples": [
+    {
+      "sample_id": "U2-python-1",
+      "repository": "sirfz/tesserocr",
+      "base_sha": "c9ff632d89692ea5b7c07686522e1717e9aa809c",
+      "status": "unsupported",
+      "reason_code": "project_metadata_missing",
+      "diagnostic": null,
+      "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+      "engine_source_hash": "32a48096e0b1d332d493f1b1afd3f19b0891022235579498054b6264bd526d13",
+      "native": false
+    },
+    {
+      "sample_id": "U2-python-2",
+      "repository": "sepandhaghighi/art",
+      "base_sha": "3917a898faeb7490d3043a1158b13a5d9b51e273",
+      "status": "unsupported",
+      "reason_code": "environment_recipe_unsupported",
+      "diagnostic": null,
+      "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+      "engine_source_hash": "32a48096e0b1d332d493f1b1afd3f19b0891022235579498054b6264bd526d13",
+      "native": false
+    },
+    {
+      "sample_id": "U2-node-1",
+      "repository": "projectstorm/dynamouse",
+      "base_sha": "bc6fca042a315eb7f85f057b9819b0fd8100ae6f",
+      "status": "failed",
+      "reason_code": "environment_preparation_failed",
+      "diagnostic": null,
+      "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+      "engine_source_hash": "32a48096e0b1d332d493f1b1afd3f19b0891022235579498054b6264bd526d13",
+      "native": false
+    },
+    {
+      "sample_id": "U2-node-2",
+      "repository": "nadeesha/ts-prune",
+      "base_sha": "203bf2d80a5dca6789f9274d70af5bc2c1dda94c",
+      "status": "unsupported",
+      "reason_code": "unsupported_dynamic_installer",
+      "diagnostic": null,
+      "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+      "engine_source_hash": "32a48096e0b1d332d493f1b1afd3f19b0891022235579498054b6264bd526d13",
+      "native": false
+    }
+  ],
+  "gate_result": "failed_real_generalization_minimum_not_satisfied",
+  "native_deliveries": 0
+}

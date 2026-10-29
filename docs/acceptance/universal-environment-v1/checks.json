@@ -144,5 +144,55 @@
     "errors": 0,
     "skipped": 5,
     "report_sha256": "b6c634b14077e86c73bfd0c23d3457ed70b458fa071838c412c45ddf4a6a3651"
+  },
+  "revision2_default": {
+    "tests": 1605,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 55,
+    "passed": 1550,
+    "revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+    "reports": [
+      {
+        "path": "/tmp/upeve-revision2-shard-0.xml",
+        "sha256": "f688ffd24de04ad3a7af04c63f07ad8c3c04e392eaa81ba88fc4c2189cbfc0a7"
+      },
+      {
+        "path": "/tmp/upeve-revision2-shard-1.xml",
+        "sha256": "abbce17898076d7f09fdd4914f2c8851d6691f274280430871ae6d5108b63922"
+      },
+      {
+        "path": "/tmp/upeve-revision2-shard-2.xml",
+        "sha256": "dca50bc919209b9f010a5090c0e49e9f57cfdd00fd434611cc17893ba9df94e7"
+      },
+      {
+        "path": "/tmp/upeve-revision2-shard-3.xml",
+        "sha256": "30c32190609f77a5ad49b0b796304cde90ba45f77aa5baa8d96f4614597dc7e7"
+      }
+    ]
+  },
+  "final_focused_guards": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 64,
+    "report": {
+      "path": "/tmp/upeve-final-guards-v2.xml",
+      "sha256": "c2aaf147b5e4736a58ff92f2db177eecdf6e1e1f9097136f8856c59d27dd9d99"
+    },
+    "classification": "deterministic_contract_regression"
+  },
+  "actual_nested_and_origin_guards": {
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 3,
+    "report": {
+      "path": "/tmp/upeve-final-oci-v2.xml",
+      "sha256": "e9b84bfc9383225373f58944c828e0f9cc8490df53e62447d0d0262c5c2ab021"
+    },
+    "classification": "controlled_actual_OCI_not_native"
   }
 }

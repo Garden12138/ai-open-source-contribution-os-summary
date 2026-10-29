@@ -1,0 +1,102 @@
+{
+  "version": "toolchain-preparation-receipt-v1",
+  "contract_hash": "6af92ce99e92695fff565c93636a4c478f318b2ebdb0e0c9b9ea9e1284889773",
+  "dependency_plan_hash": "97ca4914b83ee5d99d943e217890966c2cc0c5f7ed06bb5e72adcfd77b1244d7",
+  "dependency_result_hash": "1c89aa7b73a89c8f9d22f7d5a4c4a349620963c98b88ba0873ad2337d9ad059f",
+  "target_platform": "linux/arm64",
+  "image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "executables": [
+    {
+      "command_id": "test_more",
+      "argv": [
+        "python",
+        "-m",
+        "unittest",
+        "-v",
+        "tests.test_more"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/python",
+      "requested_executable": "python",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "2ceb9199570aaf34a254b9ea88b1d77f38530833e2a12688d002a59c905b51b2",
+      "ownership": "frozen_dependency_inventory",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "test_all",
+      "argv": [
+        "python",
+        "-m",
+        "unittest",
+        "-v"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/python",
+      "requested_executable": "python",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "2ceb9199570aaf34a254b9ea88b1d77f38530833e2a12688d002a59c905b51b2",
+      "ownership": "frozen_dependency_inventory",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "format_check",
+      "argv": [
+        "ruff",
+        "format",
+        "--check",
+        "."
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/ruff",
+      "requested_executable": "ruff",
+      "distribution": "ruff",
+      "distribution_version": "0.17.3",
+      "executable_hash": "d701664aa6cb9612358ceafd2418220d3218ea8f9a9c9cce97d98216130fa270",
+      "ownership": "wheel_record",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "lint_check",
+      "argv": [
+        "ruff",
+        "check",
+        "more_itertools",
+        "tests"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/ruff",
+      "requested_executable": "ruff",
+      "distribution": "ruff",
+      "distribution_version": "0.17.3",
+      "executable_hash": "d701664aa6cb9612358ceafd2418220d3218ea8f9a9c9cce97d98216130fa270",
+      "ownership": "wheel_record",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "stubtest",
+      "argv": [
+        "stubtest",
+        "more_itertools.more",
+        "more_itertools.recipes"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/stubtest",
+      "requested_executable": "stubtest",
+      "distribution": "mypy",
+      "distribution_version": "1.15.0",
+      "executable_hash": "f5799d290a1799d66a63354a7dc6c4bf17b9650a8c52a2ed0c57c892840d893f",
+      "ownership": "wheel_record",
+      "status": "available",
+      "reason_code": null
+    }
+  ],
+  "status": "prepared"
+}

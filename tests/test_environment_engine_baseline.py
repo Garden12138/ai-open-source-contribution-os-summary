@@ -35,6 +35,7 @@ def receipt(command=COMMANDS[0], *, code=0, output="Ran 3 tests in 0.1s\nOK", **
     ([receipt(output="Ran 0 tests in 0s\nOK")], "unknown", "baseline_zero_tests"),
     ([receipt(output="usage: python\noptions:\n")], "unknown", "baseline_help_only"),
     ([receipt(started_at=None)], "unknown", "baseline_evidence_insufficient"),
+    ([receipt(status="timed_out")], "unknown", "baseline_evidence_insufficient"),
     ([receipt(command_hash="f" * 64)], "unknown", "baseline_evidence_insufficient"),
     ([receipt(code=127, output="No such file or directory")], "environment_blocked", "environment_command_unavailable"),
     ([receipt(code=1, output="FAILED (failures=1)\nAssertionError: wrong")], "preexisting_failure", "baseline_actual_assertion_failure"),
@@ -63,6 +64,24 @@ def test_expected_failure_needs_exact_target_output_control_and_plan_hash():
     value["expected_failures"]["tests"] = expected.model_dump(mode="json")
     with pytest.raises(ValueError):
         VerificationEnvironmentContract.model_validate_json(json.dumps(value))
+
+
+@pytest.mark.parametrize("script", ["eslint --help", "tsc --version", "echo passed"])
+def test_package_manager_cannot_turn_diagnostic_or_echo_into_a_passing_check(script):
+    commands = [{"command_id": "lint", "argv": ["npm", "run", "lint"], "working_directory": "."}]
+    value = contract({"package.json": json.dumps({"scripts": {"lint": script}})}, commands, "node").model_dump(mode="json")
+    assert value["admission"] == "static_admitted"
+    verdict = classify_baseline(value, "a" * 64, [receipt(commands[0], output="Tool diagnostic output")], "b" * 64)
+    assert verdict.outcome == "unknown"
+
+
+def test_named_script_running_tests_needs_positive_test_execution_evidence():
+    commands = [{"command_id": "quality", "argv": ["npm", "run", "quality"], "working_directory": "."}]
+    value = contract({"package.json": json.dumps({"scripts": {"quality": "vitest run"}})}, commands, "node").model_dump(mode="json")
+    verdict = classify_baseline(value, "a" * 64, [receipt(commands[0], output="Started runner successfully")], "b" * 64)
+    assert verdict.outcome == "unknown"
+    assert "baseline_evidence_insufficient" in verdict.reason_codes
+    assert classify_baseline(value, "a" * 64, [receipt(commands[0], output="Tests 4 passed")], "b" * 64).outcome == "passed"
 
 
 def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch):
@@ -137,3 +156,15 @@ def test_admission_recomputes_full_chain_and_rejects_receipt_or_source_change():
             copy["baseline_verdict"]["outcome"] = "expected_issue_reproduction"
         with pytest.raises(WorkbenchError):
             require_environment_evidence(SimpleNamespace(read=values.__getitem__), modified_attempt, authorization, copy)
+
+
+def test_old_task_spec_keeps_exact_serialization_without_null_environment_field():
+    from tests.test_agent_v2_tools import tool_spec
+    from app.agent_v2.contracts import TaskSpec
+    spec = tool_spec()
+    old = spec.model_dump(mode="json")
+    assert "environment_evidence" not in old
+    assert TaskSpec.model_validate_json(json.dumps(old)).model_dump(mode="json") == old
+    new = spec.model_copy(update={"environment_evidence": {"contract_hash": "a" * 64}})
+    assert new.model_dump(mode="json")["environment_evidence"] == {"contract_hash": "a" * 64}
+    assert content_hash(new.model_dump(mode="json")) != content_hash(old)

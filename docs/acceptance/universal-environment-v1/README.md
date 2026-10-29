@@ -163,3 +163,43 @@ Canonical H rechecks use the original execution record's actual Snapshot ID/hash
 zero and the mypy cache environment stop. `H-node-canonical` retains eight exact
 commands and rejects the dynamic installer. No original approval was reused to
 perform a new business action.
+
+## Second frozen unseen cohort and rejected experiment
+
+Rules were frozen at `c275c55d39efcca813bcf69019130a4d82d1d948` before
+[cohort 2 selection](holdout-cohort2-protocol.json). All four measurements kept
+that production source hash unchanged. [Results](holdout-cohort2-results.json):
+
+| Sample | Actual first result | Full baseline |
+| --- | --- | --- |
+| U2-python-1, tesserocr | `project_metadata_missing`; native OCR/build metadata outside current contract | not_run |
+| U2-python-2, art | `environment_recipe_unsupported`; legacy setup layout | not_run |
+| U2-node-1, dynamouse | Actual preparation failed, exit 1; detailed cause not proven | not_run |
+| U2-node-2, ts-prune | `unsupported_dynamic_installer`; subprocess wrapper | not_run |
+
+**Cumulative first complete-baseline success: 0/8**, no replacement, no model
+invocations, no native deliveries. Safe unsupported results do not pass UE-T19–22.
+These independent measurements do not claim the preceding E3/E4 gates completed.
+
+A generic read-only stubtest compatibility candidate constrained a declared mypy
+to 1.15.0 without changing any source/check. `D-python-profile-01` passed 3/3;
+`H-python-profile-01` executed all five, but stubtest failed on missing
+`_typeshed.Viewable`. **The candidate was rejected and removed from production
+code**, rather than shipping a blanket downgrade. Its exact source patch,
+[decision](readonly-profile-experiment.json), graph, entrypoints and failure
+remain for audit. Original cache failure and approvals remain unchanged. This is
+maintenance experimentation, not a native or unseen success.
+
+Subsequent hardening rejects hidden package-script help/version/echo leaves,
+requires positive execution evidence for nested test runners, rejects incomplete
+command statuses and unknown adapter versions, and preserves the exact old
+TaskSpec wire format when no environment evidence exists. Actual offline OCI
+[help](nested-help-probe.json), [version](nested-version-probe.json) and
+[source-origin](source-shadow-probe-final.json) guards passed 3/3. Focused
+regression passed 64/64. Full regression is recorded separately when complete.
+
+Model credential use was rejected by automatic approval review before execution:
+starting a new Gateway with the existing NVIDIA secret and upstream required
+explicit credential/destination authorization. No secret was read, no Gateway
+started and no workaround attempted. The concrete [proposal](gateway-proposal.json)
+is pending user authorization; plan/execution/final acceptance remain separate.

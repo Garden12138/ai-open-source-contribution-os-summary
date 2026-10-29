@@ -1,0 +1,186 @@
+{
+  "status": "unsupported",
+  "ecosystem": "node",
+  "mode": "workspace-v2",
+  "preparation_version": "node-workspace-preparation-v1",
+  "project_directory": ".",
+  "manifests": [
+    ".github/workflows/contributors.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/stale.yml",
+    ".github/workflows/test.yml",
+    ".nvmrc",
+    "integration/package.json",
+    "package-lock.json",
+    "package.json"
+  ],
+  "lockfiles": [
+    "package-lock.json"
+  ],
+  "change_paths": [
+    "src/index.ts"
+  ],
+  "reason": "环境命令依赖图尚未闭合：unsupported_dynamic_installer。不能开始编码；需补充冻结证据或生成新方案并重新确认。",
+  "manifest_hashes": {
+    ".github/workflows/contributors.yml": "7c2f2c68014bc8d55830568e7e211e6b90ac0fa62d3501d211e949b88feeb762",
+    ".github/workflows/release.yml": "cd60c547d80f93d8309cd5dbae3b50167385cea1615a67e9647409511b04d286",
+    ".github/workflows/stale.yml": "c53c7a5df10087a582c2dfc36645ec1ee2cfd5d883e462d7a3c69e8d335e3fe7",
+    ".github/workflows/test.yml": "c164e1b24891d196ceef32c6cf8803b52a73ea6375d2281214e05db54816c893",
+    ".nvmrc": "8f8e373d500f414f7435fdc1d2fe9dd697e60cfb03b69657cecb873ac31b84df",
+    "integration/package.json": "360eb777d98403fd1c9a041043901784148d372f2210c8d0d581d9158983a1e2",
+    "package.json": "7096a4cb29fad3e15bbfe93007c73fd136376c0ae5f40aeec68d7256fae6085c"
+  },
+  "node_environment": {
+    "version": "node-environment-v2",
+    "manager": "npm",
+    "manager_version": "",
+    "runtime_requirement": ">=22.18.0",
+    "runtime_pin": "26.8.2",
+    "project_directory": ".",
+    "package_roots": [
+      "."
+    ],
+    "linker": "node-modules",
+    "workspace_lifecycle": [],
+    "registry": "https://registry.npmjs.org",
+    "manager_constraint": ">=1.0.0",
+    "lockfile": "package-lock.json",
+    "lock_strategy": "existing"
+  },
+  "capability_version": "node-environment-v2",
+  "required_paths": [],
+  "environment_engine": {
+    "version": "upeve-v1",
+    "target_platform": "linux/arm64"
+  },
+  "reason_code": "unsupported_dynamic_installer",
+  "verification_contract": {
+    "version": "verification-environment-contract-v1",
+    "binding": {
+      "task_id": "U2-node-2",
+      "snapshot_hash": "4a29643e56597de258a0cd8fb28f7d6cc56f635e5dc77812bcf0963ab9ec7163",
+      "source_archive_hash": "9472284af3e930efdc11e3a9e064a26b9c91142ee3f5d84acacdd30ce081a7ff",
+      "base_commit_sha": "203bf2d80a5dca6789f9274d70af5bc2c1dda94c",
+      "plan_version_hash": "98f02eb7a99de94ad6fbd04fbec44fbfc527bc41d7cb3712e8f55d0e126f4679",
+      "approved_commands_hash": "a7cdcb9c62f1fb82c307f7ce98f03a8fcaa1d96dd939e1c564fa8f4df4639206",
+      "target_platform": "linux/arm64",
+      "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+      "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+    },
+    "resolver_versions": {
+      "engine": "upeve-v1",
+      "adapter": "node-toolchain-v1"
+    },
+    "commands": [
+      {
+        "command_id": "check-1",
+        "argv": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-2",
+        "argv": [
+          "npm",
+          "run",
+          "test:package"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      },
+      {
+        "command_id": "check-3",
+        "argv": [
+          "npm",
+          "run",
+          "test:coverage"
+        ],
+        "working_directory": ".",
+        "source_refs": [],
+        "chain": [],
+        "entrypoints": [],
+        "required_executable": "npm",
+        "required_module": null,
+        "distributions": [],
+        "resolution": "unsupported"
+      }
+    ],
+    "declarations": [],
+    "evidence": [
+      {
+        "path": ".github/workflows/contributors.yml",
+        "sha256": "7c2f2c68014bc8d55830568e7e211e6b90ac0fa62d3501d211e949b88feeb762",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/release.yml",
+        "sha256": "cd60c547d80f93d8309cd5dbae3b50167385cea1615a67e9647409511b04d286",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/stale.yml",
+        "sha256": "c53c7a5df10087a582c2dfc36645ec1ee2cfd5d883e462d7a3c69e8d335e3fe7",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".github/workflows/test.yml",
+        "sha256": "c164e1b24891d196ceef32c6cf8803b52a73ea6375d2281214e05db54816c893",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": ".nvmrc",
+        "sha256": "8f8e373d500f414f7435fdc1d2fe9dd697e60cfb03b69657cecb873ac31b84df",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "integration/package.json",
+        "sha256": "360eb777d98403fd1c9a041043901784148d372f2210c8d0d581d9158983a1e2",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package-lock.json",
+        "sha256": "21d426bdb4186613818a2c54f7486c1d16f9615895b4a7e0c090d73b2540227d",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "package.json",
+        "sha256": "7096a4cb29fad3e15bbfe93007c73fd136376c0ae5f40aeec68d7256fae6085c",
+        "parser": "node-toolchain-v1"
+      },
+      {
+        "path": "scripts/test.cjs",
+        "sha256": "5cc96f070c410a61c1c1933304b8a80708f4ef285d4284725f2bd4e47b458bf5",
+        "parser": "node-script-chain-v1"
+      }
+    ],
+    "preparation": {},
+    "unresolved": [
+      {
+        "reason_code": "unsupported_dynamic_installer",
+        "paths": [
+          "scripts/test.cjs"
+        ],
+        "command_id": null
+      }
+    ],
+    "admission": "unsupported",
+    "expected_failures": {}
+  },
+  "verification_contract_hash": "14b70b1b74afcc5c7222c022e1869ed1c0b9953a756ae5f83b2766764851c8a8"
+}

@@ -1,0 +1,85 @@
+{
+  "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+  "protocol_hash": "7e5f487cb8af76f74babe88ffc584b42b7431559b7097be53c6ebd2af2a5e3d7",
+  "selected_before_source_inspection": true,
+  "samples": [
+    {
+      "sample_id": "U2-python-1",
+      "repository": "sirfz/tesserocr",
+      "repository_id": 48203815,
+      "ecosystem": "python",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "first_selected_at": "2026-10-28T16:52:03.938862+00:00",
+      "selection_hash": "0baff2828048a6d182d7eda7939be5122fbf89350d0546c5790ef52fe32e9a00"
+    },
+    {
+      "sample_id": "U2-python-2",
+      "repository": "sepandhaghighi/art",
+      "repository_id": 105757332,
+      "ecosystem": "python",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "first_selected_at": "2026-10-28T16:52:03.938917+00:00",
+      "selection_hash": "603da5447309bcb9e7ecc263f096149e1c4c96ab9332c672fb94fe93a95585cf"
+    },
+    {
+      "sample_id": "U2-node-1",
+      "repository": "projectstorm/dynamouse",
+      "repository_id": 749666379,
+      "ecosystem": "node",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "first_selected_at": "2026-10-28T16:52:03.938930+00:00",
+      "selection_hash": "0156e8228be869d9938046409f3243ffeea47782708e3dd1751221da878bee93"
+    },
+    {
+      "sample_id": "U2-node-2",
+      "repository": "nadeesha/ts-prune",
+      "repository_id": 183702632,
+      "ecosystem": "node",
+      "default_branch": "master",
+      "license": "MIT",
+      "expected_capability": "boundary_unknown_until_static_evidence",
+      "first_selected_at": "2026-10-28T16:52:03.938931+00:00",
+      "selection_hash": "5cc9af346f8271879ceb12075f77136ef65ba9a8dfb156a87f84dfbd42b79fc8"
+    }
+  ],
+  "excluded": [
+    {
+      "repository": "decalage2/oletools",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "sergree/matchering",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "achillesrasquinha/bulbea",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "celery/django-celery-beat",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "Knio/dominate",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "nettlesh/CalypsoBot",
+      "reason": "license_not_eligible"
+    },
+    {
+      "repository": "concretesolutions/pareto.js",
+      "reason": "license_not_eligible"
+    }
+  ],
+  "cohort_denominator": 4,
+  "cumulative_ever_selected": 8,
+  "prior_first_cohort_successes": 0,
+  "no_replacements": true
+}

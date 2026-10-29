@@ -4836,6 +4836,11 @@ legacy-gap/builtin fallback correction was tested after preserving that cohort,
 so those four projects become development samples for the revised engine.
 Gateway credential use was rejected by automatic approval review and remains
 blocked pending explicit authorization; no bypass was attempted.
+Second frozen cohort at `c275c55` also failed 0/4 complete baselines; cumulative
+0/8 stays recorded without replacement. A generic mypy 1.15.0 compatibility
+experiment ran all H Python checks but failed type metadata and was rejected,
+not activated. Nested diagnostic/zero-evidence guards and legacy TaskSpec wire
+compatibility have focused and real OCI evidence; broad rerun is pending.
 Subsequent independent holdout measurements must preserve
 this candidate's rules and never close the unpassed H/native/platform gates.
 

@@ -112,7 +112,10 @@ class VerificationEnvironmentContract(StrictModel):
                        for key, e in self.expected_failures.items())):
             raise ValueError("expected_reproduction_requires_exact_target_and_control")
         if self.admission == "static_admitted":
-            python = self.resolver_versions.get("adapter") == "python-toolchain-v1"
+            adapter = self.resolver_versions.get("adapter")
+            if adapter not in {"python-toolchain-v1", "node-toolchain-v1"}:
+                raise ValueError("environment_adapter_version_unsupported")
+            python = adapter == "python-toolchain-v1"
             required = {"requirements", "constraints", "requirements_roots"} if python else {"independent_directories"}
             if set(self.preparation) != required:
                 raise ValueError("environment_recipe_schema_invalid")

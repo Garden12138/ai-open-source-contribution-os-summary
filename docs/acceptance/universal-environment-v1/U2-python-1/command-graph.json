@@ -1,0 +1,17 @@
+{
+  "status": "unsupported",
+  "ecosystem": "python",
+  "mode": "workspace-v2",
+  "project_directory": ".",
+  "manifests": [
+    "pyproject.toml",
+    "requirements.txt"
+  ],
+  "reason": "项目缺少当前准备器要求的声明式包元数据，尚不能启动实施；需要补充执行适配。",
+  "preparation_version": "python-workspace-preparation-v2",
+  "reason_code": "project_metadata_missing",
+  "manifest_hashes": {
+    "pyproject.toml": "da3ce753287a0b23da37eb5fd16a090e151b6a01bbdf7b8e0278c61c1b63967f",
+    "requirements.txt": "5ebc7ddfa10ff584cd21e117fb08802d88430a5e4732a13c47b6b1b18a43c3b6"
+  }
+}

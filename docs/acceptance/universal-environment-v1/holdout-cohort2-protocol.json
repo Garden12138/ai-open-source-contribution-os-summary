@@ -1,0 +1,57 @@
+{
+  "version": "upeve-holdout-protocol-v1-cohort2",
+  "status": "candidate_frozen_before_first_selection",
+  "created_at": "2026-10-28T16:51:04.530130+00:00",
+  "engine_revision": "c275c55d39efcca813bcf69019130a4d82d1d948",
+  "engine_tree": "30e8cf3c1eb039594ef283c582c634030cc64f39",
+  "resolver_versions": {
+    "engine": "upeve-v1",
+    "python": "python-toolchain-v1",
+    "node": "node-toolchain-v1",
+    "commands": "command nodes v1"
+  },
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "target_platform": "linux/arm64",
+  "known_repositories": [
+    "BayesWitnesses/m2cgen",
+    "Garden12138/ai-open-source-contribution-os-summary",
+    "can1357/oh-my-pi",
+    "fangpenlin/avataaars-generator",
+    "fixture/fixture",
+    "gradio-app/gradio",
+    "mixelpixx/KiCAD-MCP-Server",
+    "more-itertools/more-itertools",
+    "radashi-org/radashi",
+    "radashi-org/radashi.git",
+    "shadcn-labs/pdfcn"
+  ],
+  "queries": {
+    "python": "language:Python topic:python-library stars:100..5000 size:<10000 archived:false fork:false",
+    "node": "language:TypeScript topic:utility stars:100..5000 size:<10000 archived:false fork:false"
+  },
+  "metadata_page": 1,
+  "metadata_per_page": 12,
+  "eligible_licenses": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC"
+  ],
+  "selection": "From each returned metadata page exclude known repos, archived/private/forks, and absent/nonlisted license. Sort eligible names by sha256(engine_revision + newline + full_name); select first two. Save all metadata/exclusions and commit SHA before archive analysis. No replacements on failure.",
+  "expected_capability": "boundary_unknown_until_static_evidence",
+  "sample_count": 4,
+  "engine_mutation_after_selection": "forbidden; any changed production engine demotes affected samples to D; keep initial result and select a new cohort under a new freeze",
+  "native_gates": "credential-use authorization pending after automatic review rejection; exact plan and final approvals still separate",
+  "preceding_gates": "H Node dynamic wrapper and H Python mypy cache remain unpassed; these independent read-only measurements do not close E3/E4.",
+  "cohort": 2,
+  "prior_cohort": {
+    "revision": "ef33342301d870b9527b7779e38cc2ec3085c1ac",
+    "first_baseline_successes": 0,
+    "denominator": 4,
+    "replaced": false,
+    "current_disposition": "development_after_generic_gap_fix"
+  },
+  "selection_scope": "Additional library/utility cohort within the supported Python/TypeScript MVP focus; first broad-project cohort remains 0/4, never removed from reporting."
+}

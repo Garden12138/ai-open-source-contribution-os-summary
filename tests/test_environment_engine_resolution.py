@@ -119,3 +119,12 @@ def test_new_projection_types_a_legacy_unsupported_gap_without_reinterpreting_ol
     builtin = {"status": "builtin", "reason": "Use image tools", "manifests": []}
     assert inspect_environment(builtin, {"entries": []}) == builtin
     assert inspect_environment(builtin, {"entries": []}, engine_version="upeve-v1")["status"] == "unsupported"
+
+
+def test_unrecognized_adapter_cannot_reinterpret_a_frozen_recipe():
+    commands = [{"command_id": "types", "argv": ["stubtest", "different_module"], "working_directory": "."}]
+    files = {"pyproject.toml": '[project]\nname="unrelated_package"\nversion="1"\n[dependency-groups]\ntest=["mypy"]\n'}
+    value = contract(files, commands).model_dump(mode="json")
+    value["resolver_versions"]["adapter"] = "python-toolchain-v999"
+    with pytest.raises(ValueError, match="environment_adapter_version_unsupported"):
+        VerificationEnvironmentContract.model_validate_json(json.dumps(value))

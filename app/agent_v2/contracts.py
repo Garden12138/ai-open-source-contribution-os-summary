@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal, Protocol, Self
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, model_serializer
 
 from app.security import ensure_no_sensitive_data
 
@@ -66,6 +66,13 @@ class TaskSpec(StrictModel):
     write_paths: list[str] = Field(min_length=1, max_length=500)
     commands: list[dict[str, Any]] = Field(min_length=1, max_length=100)
     environment_evidence: dict[str, str] | None = None
+
+    @model_serializer(mode="wrap")
+    def legacy_wire(self, handler: Any) -> dict[str, Any]:
+        value = handler(self)
+        if self.environment_evidence is None:
+            value.pop("environment_evidence", None)
+        return value
 
     @field_validator("write_paths")
     @classmethod
