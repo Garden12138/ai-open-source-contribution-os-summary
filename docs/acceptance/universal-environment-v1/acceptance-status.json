@@ -179,7 +179,8 @@
       "status": "failed",
       "evidence": [
         "H-node-canonical/classification.json",
-        "e0-baseline.json"
+        "e0-baseline.json",
+        "H-node-forced-install-boundary.json"
       ],
       "limit": "CI wrapper attempts global installation; all eight commands retained, no network relaxation/shim"
     },
@@ -238,9 +239,10 @@
         "minimax-live-connection.json",
         "native-targets.json",
         "native-planning-results.json",
-        "native-routing-maintenance.json"
+        "native-routing-maintenance.json",
+        "native-python-routing-retest.json"
       ],
-      "limit": "Actual native MiniMax conversation failed after four calls, before source ingestion or plan creation; malformed decision and exhausted read budget. No Coding/Verify/Review/approval/final acceptance. First result retained; revised routing is maintenance, not native success."
+      "limit": "Actual native MiniMax conversation failed after four calls, before source ingestion or plan creation; malformed decision and exhausted read budget. No Coding/Verify/Review/approval/final acceptance. First result retained; revised routing is maintenance, not native success. Maintenance 8d97e14 passes actual two-call MiniMax routing, keeps 6-call lifetime usage, but real source acquisition then hits GitHub403. This D retest does not replace the first failure or satisfy end-to-end acceptance."
     },
     {
       "id": "UE-T24",
@@ -253,9 +255,10 @@
         "minimax-live-connection.json",
         "native-targets.json",
         "native-planning-results.json",
-        "native-routing-maintenance.json"
+        "native-routing-maintenance.json",
+        "native-node-maintenance-rescan.json"
       ],
-      "limit": "Real discovery completed with repository metadata rate-limited; snapshot excluded by metadata/license filters. No native Task/model plan or baseline. No replacement; later live inspection/redeploy also blocked by approval-review service usage limit."
+      "limit": "First real discovery and same-target D recheck both excluded by rate-limited repository metadata. No Task/model plan/baseline. No replacement; model credentials are ready and automatic review service recovered."
     },
     {
       "id": "UE-T25",

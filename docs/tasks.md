@@ -4895,6 +4895,20 @@ fresh health query, both instances healthy. No bypass, remote write or formal da
 change. Exact approvals and actual Coding/Verify/Review/final acceptance remain
 not_run. Current specialty task remains UPEVE-E04; no stage gate is checked.
 
+Maintenance `8d97e14` is now locally committed and deployed only to isolated
+18090/18091: all five owned roles restarted with zero active Jobs, health passed.
+The unchanged Python request, sent as a new message, now uses two real MiniMax
+calls to classify command/discuss_plan and dispatch actual archive acquisition.
+This is a passed D routing component; lifetime 6 calls / 20,901 input / 1,928
+output tokens prove budget retention. Source acquisition then terminates
+`planning_archive_failed` after GitHub403; no Plan exists to approve.
+Same-target TypeScript rescan remains metadata-blocked.
+A dedicated read-only discovery token is requested through a private local file,
+never chat; only the associated access gate waits. The explicit historical
+forced-installer source proof retains E3 failure instead of treating safe refusal
+as baseline success. Linux amd64, exact execution/final approval and real native
+Coding/Verify/Review remain open. No remote changes or third-party writes.
+
 
 ---
 

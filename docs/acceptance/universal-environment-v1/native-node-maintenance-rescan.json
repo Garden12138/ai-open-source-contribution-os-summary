@@ -3,8 +3,17 @@
   "started_at": "2026-10-29T06:41:14.719786+00:00",
   "first_result": "native-planning-results.json#N5-typescript",
   "job_id": "86e8d90f-e262-4a05-b149-b0770904dea1",
-  "state": "queued",
+  "state": "succeeded",
   "counts_as_native_delivery": false,
   "operator_business_patches": 0,
-  "external_writes": 0
+  "external_writes": 0,
+  "error_code": null,
+  "result_data": {
+    "scan_run_id": "b1ed1856-a4b1-4621-a6b6-85f035f5a5f2",
+    "candidate_count": 1,
+    "eligible_count": 0,
+    "selected_count": 0,
+    "repository_count": 1
+  },
+  "result": "still_blocked_repository_metadata_rate_limited"
 }

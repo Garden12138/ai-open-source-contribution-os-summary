@@ -1,6 +1,7 @@
 # UPEVE v1 acceptance ledger
 
-Latest frozen engine: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
+Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
+Deployed maintenance revision: `8d97e1411816ab1d67cd9118b3142702d359a41d`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
 1584 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
@@ -437,8 +438,7 @@ measurements; the prior 0/15 environment denominator is unchanged.
 an investigation/plan is a command for read-only preparation, even when
 implementation is forbidden. It changes no parser, output coercion, budget,
 capability or exact approval boundary. The 123 focused boundary tests pass;
-the complete default regression passes 1584 / 62 skipped / 0 failed. This prompt change is not a measured
-model improvement. Affected targets become D for subsequent revised-runtime
+the complete default regression passes 1584 / 62 skipped / 0 failed. Affected targets become D for subsequent revised-runtime
 measurements; original first outcomes remain frozen.
 
 An automatic approval review could not run a later read-only localhost status
@@ -446,10 +446,27 @@ query because its service usage limit was exhausted. The action was not
 executed; this was not a safety rejection. No retry/bypass was attempted.
 After the reported recovery time, a fresh reviewed health query was approved:
 isolated and old trial services were both healthy. That temporary review-service
-block is resolved; deployment of the maintenance revision and live retests are
-next. Repeated GitHub anonymous limits still block repository metadata; a
+block is resolved. The maintenance revision is deployed with five owned roles
+restarted from zero active Jobs; isolated service health passed. Repeated GitHub anonymous limits still block repository metadata; a
 dedicated read-only discovery token was requested without requesting it in chat.
 [Local audit](native-readiness-audit.json) checks original file/event hashes and
 sanitized evidence without reading model credentials. One public Issue's prose
 matched the credential detector, was redacted with its original hash retained,
 and the scan passed; the initial failing scan is also retained.
+
+[Live routing retest](native-python-routing-retest.json) sends the unchanged
+original Python request as a new message, without editing the old observe-only
+classification. MiniMax uses two calls, records `effect=command` and dispatches
+the real read-only planning archive workflow. Lifetime usage remains 6 calls /
+20,901 input / 1,928 output tokens; no budget reset or Profile change. This is
+a passed D routing component, not a native delivery. Source acquisition then
+terminates `planning_archive_failed` after GitHub HTTP403; no Plan/approval/
+Coding/Verify/Review exists. Both stages have no current plan to approve.
+[Same Node target recheck](native-node-maintenance-rescan.json) is still excluded
+after rate-limited metadata acquisition; no sample replacement.
+
+[Historical forced-installer source proof](H-node-forced-install-boundary.json)
+separates the child node_modules existence check from the later unconditional
+CI global install. Merely extending wrapper parsing or preinstalling child
+dependencies cannot make that branch offline. E3 stays failed under the fixed
+source/CI/no-install Verify contract, with all eight commands retained.

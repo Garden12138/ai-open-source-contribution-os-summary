@@ -1,0 +1,151 @@
+{
+  "classification": "D_maintenance_same_request_not_first_native_success",
+  "engine_revision": "8d97e1411816ab1d67cd9118b3142702d359a41d",
+  "started_at": "2026-10-29T06:49:19.170586+00:00",
+  "task_id": "80806342-b959-41a4-8454-68c9c3322148",
+  "prior_message_id": "047931f8-a5b3-4c8b-90ec-1df44cb12025",
+  "request_text_unchanged": true,
+  "request_text_sha256": "6db5282ce79eebfb2e01d97078989618ad4a140466c256287651fa19baec62bd",
+  "message_receipt": {
+    "message_id": "e7428f80-0d62-48e4-bb92-858b8a3c5287",
+    "status": "queued",
+    "text": "已收到，会按顺序处理。"
+  },
+  "planning_budget_before": {
+    "version": "planning-budget-v1",
+    "revision": "e5df7e695661c9b5de57491829e30816adf965aa95112cc91c0f156fc73f2a43",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 4,
+      "input_tokens": 13999,
+      "output_tokens": 1350
+    },
+    "remaining": {
+      "calls": 28,
+      "input_tokens": 1986001,
+      "output_tokens": 98650
+    },
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "model_labels": {
+    "analysis": "MiniMax-M3",
+    "planning": "MiniMax-M3",
+    "implementation": "MiniMax-M3",
+    "review": "MiniMax-M3"
+  },
+  "profile_id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+  "profile_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883",
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "operator_planning_steering_count": 1,
+  "counts_as_native_delivery": false,
+  "human_plan_approved": false,
+  "human_final_acceptance": false,
+  "status": "routing_passed_source_acquisition_failed_rate_limit",
+  "observed_at": "2026-10-29T06:53:23.226572+00:00",
+  "routing_verdict": "passed_D_component_live_two_MiniMax_calls",
+  "calls_this_request": 2,
+  "lifetime_usage": {
+    "calls": 6,
+    "input_tokens": 20901,
+    "output_tokens": 1928
+  },
+  "jobs": [
+    {
+      "id": "8345af99-52e7-44da-95c6-b5f6027cdb78",
+      "kind": "conversation_intent",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "attempt_count": 1,
+      "max_attempts": 2,
+      "timeout_seconds": 180,
+      "completed_at": "2026-10-29 06:49:30.458611"
+    },
+    {
+      "id": "6b854dfd-3fcf-4e97-9c56-3c20df46cebe",
+      "kind": "planning_archive",
+      "state": "failed",
+      "error_code": "planning_archive_failed",
+      "error_message": "下载仓库归档失败，请检查只读 GitHub 访问后重新读取仓库。",
+      "attempt_count": 1,
+      "max_attempts": 1,
+      "timeout_seconds": 600,
+      "completed_at": "2026-10-29 06:52:44.908685"
+    }
+  ],
+  "decision_events": [
+    {
+      "id": "d27da344-f4f6-4b74-80e4-fc8c0d3ef5b8",
+      "sequence": 51,
+      "kind": "agent_turn_classified",
+      "job_id": "8345af99-52e7-44da-95c6-b5f6027cdb78",
+      "payload": {
+        "version": "agent-runtime-v1",
+        "message_id": "e7428f80-0d62-48e4-bb92-858b8a3c5287",
+        "effect": "command"
+      },
+      "record_hash": "4e7ab2a7a51370090871a8217031801865566971f6a6373ada595b5ba0ea6f0d"
+    },
+    {
+      "id": "bbb2fbec-af90-4c88-a0fe-34a8544d31f5",
+      "sequence": 52,
+      "kind": "conversation_decision",
+      "job_id": "8345af99-52e7-44da-95c6-b5f6027cdb78",
+      "payload": {
+        "version": "conversation-v1",
+        "reasoning_version": "conversation-reasoning-v4",
+        "message_id": "e7428f80-0d62-48e4-bb92-858b8a3c5287",
+        "action": "discuss_plan",
+        "reply": "开始调查前，我需要先读取本任务的历史与上下文，确认 Issue 的具体描述、上一轮已完成到哪一步，以及此前是否已有结论，避免重复劳动。请允许我读取仓库并准备方案（只读调查 + 制定最小修复方案，不实施、不发布、不连接任何交易服务）。",
+        "references": [],
+        "basis_hash": "e41397a41f2fcc7f92cfe2c738da42ce6348c58291e1d37c1d76e307e35eac19",
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-model-v1",
+          "model": "MiniMax-M3",
+          "model_version": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
+        },
+        "input_hash": "3d100ea3dc2b9e3c2816d6638aba4f8a8dcb04862c65cac0571c01b68ec0ab22",
+        "output_hash": "b08fa85a3cd25b286e2419332ec4091699eed6ea584cf770ccd9d30f43b3fbae"
+      },
+      "record_hash": "b6aca287652b2fbe38218933f2b459c0440eb78e8ac0a5c1617afc228de569bf"
+    },
+    {
+      "id": "6710d8cc-42aa-45aa-9091-f3af219ad4ff",
+      "sequence": 54,
+      "kind": "conversation_dispatched",
+      "job_id": "6b854dfd-3fcf-4e97-9c56-3c20df46cebe",
+      "payload": {
+        "version": "conversation-v1",
+        "message_id": "e7428f80-0d62-48e4-bb92-858b8a3c5287",
+        "status": "processing",
+        "intent": "plan"
+      },
+      "record_hash": "f60b50b6b06a28dcc8f5740d3d0ad77d12945057016926c622983856c9334e3a"
+    }
+  ],
+  "source_status": "failed_GitHub_HTTP403_rate_limit",
+  "plan_count": 0,
+  "support_status": "unknown_no_source_ingested",
+  "can_request_exact_execution_approval": false
+}

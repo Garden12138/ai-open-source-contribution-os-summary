@@ -11,8 +11,17 @@
     "N5-typescript"
   ],
   "subsequent_measurement_classification": "D; preserve first frozen U-native selection outcomes permanently",
-  "actual_native_rerun": "not_run",
-  "deployment_after_patch": "pending_default_regression",
+  "actual_native_rerun": "D_maintenance_live_routing_passed_source_acquisition_failed_GitHub403",
+  "deployment_after_patch": {
+    "status": "passed",
+    "owned_roles_restarted": 5,
+    "active_jobs_before_restart": 0,
+    "health": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "engine_revision": "8d97e1411816ab1d67cd9118b3142702d359a41d"
+  },
   "model_profile_changed": false,
   "operator_business_patches": 0,
   "external_writes": 0,
@@ -77,6 +86,16 @@
       "isolated_health": "ok",
       "old_trial_health": "ok",
       "bypass": false
+    },
+    "git_staging_timeout": {
+      "action_executed_on_timeout": false,
+      "one_reviewed_retry": "approved"
     }
+  },
+  "remaining_access_gate": {
+    "status": "blocked",
+    "requires": "dedicated read-only GitHub discovery token",
+    "private_file": "/tmp/upeve-isolated-20261029-v2/github-discovery-token",
+    "user_response": "pending; no credential read or launcher change"
   }
 }
