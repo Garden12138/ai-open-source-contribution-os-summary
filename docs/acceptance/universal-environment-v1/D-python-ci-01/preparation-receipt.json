@@ -1,0 +1,63 @@
+{
+  "version": "toolchain-preparation-receipt-v1",
+  "contract_hash": "38ca16c7dad867ae791f04ecf4b18894be2d5ff3a7a5fbee833b49566ac7ecaf",
+  "dependency_plan_hash": "f16a116bec3c21318260a72300de22432af60c7228849711012ee4eedd79ea16",
+  "dependency_result_hash": "7094305faa3b097ecfe34897f27a884749600d7126a8fdc0b2cee656f226152a",
+  "target_platform": "linux/arm64",
+  "image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "executables": [
+    {
+      "command_id": "unit",
+      "argv": [
+        "python",
+        "-m",
+        "unittest",
+        "-v"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/python",
+      "requested_executable": "python",
+      "distribution": null,
+      "distribution_version": null,
+      "executable_hash": "2ceb9199570aaf34a254b9ea88b1d77f38530833e2a12688d002a59c905b51b2",
+      "ownership": "frozen_dependency_inventory",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "lint",
+      "argv": [
+        "ruff",
+        "check",
+        "."
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/ruff",
+      "requested_executable": "ruff",
+      "distribution": "ruff",
+      "distribution_version": "0.11.0",
+      "executable_hash": "cec8db3b27baa291febaf8626a838dda26642d1923bc2e20c3879fbbf1b066d8",
+      "ownership": "wheel_record",
+      "status": "available",
+      "reason_code": null
+    },
+    {
+      "command_id": "stubtest",
+      "argv": [
+        "stubtest",
+        "env_fixture"
+      ],
+      "working_directory": ".",
+      "executable": "/dependencies/output/venv/bin/stubtest",
+      "requested_executable": "stubtest",
+      "distribution": "mypy",
+      "distribution_version": "1.15.0",
+      "executable_hash": "f5799d290a1799d66a63354a7dc6c4bf17b9650a8c52a2ed0c57c892840d893f",
+      "ownership": "wheel_record",
+      "status": "available",
+      "reason_code": null
+    }
+  ],
+  "status": "prepared"
+}

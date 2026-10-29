@@ -45,7 +45,8 @@ separate from real model journeys.
 ## Supported boundary
 
 - Python: PEP 621 static dependencies, selected dev/test extras/groups, bounded
-  include-groups, literal Make/CI pip declarations, recursive relative `-r/-c`,
+  include-groups, literal Make/CI pip declarations (including inline package
+  requirements and separate constraints with source line references), recursive relative `-r/-c`,
   PEP 508 declarations and marker preservation. Constraints never request a new
   package. Current preparation retains its 16-manifest/300-declaration budget;
   inspection has a separate 64-file/2 MiB, depth-8 bound. Unsafe paths, options,

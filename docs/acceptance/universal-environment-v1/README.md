@@ -203,3 +203,28 @@ starting a new Gateway with the existing NVIDIA secret and upstream required
 explicit credential/destination authorization. No secret was read, no Gateway
 started and no workaround attempted. The concrete [proposal](gateway-proposal.json)
 is pending user authorization; plan/execution/final acceptance remain separate.
+
+## Literal CI adapter extension and final guard checks
+
+`python-toolchain-v2` adds declared inline Make/CI requirements, quoted PEP 508
+versions and separate `-c` inputs with exact file/hash/line provenance. It never
+executes a workflow to discover dependencies. Unknown shell syntax/options,
+nonlocal editable installs and ambiguous working directories reject. The
+already-selected frozen local project is not mistaken for an external package.
+Old contract v1 remains readable; changed parser/graph hashes invalidate old
+execution previews and require a new exact authorization.
+
+`D-python-ci-01` uses a different layout with inline mypy plus requirements and
+constraint files; actual preparation, entrypoints and unchanged baseline passed
+3/3. `H-python-ci-parser-01` starts all five original commands; 4 exit zero,
+current mypy still fails the read-only cache check. No blanket version constraint
+is active. The source-shadow, wrong-target-platform, nested help/version and
+zero-test guards pass **5 actual offline OCI cases**. These are controlled
+boundary checks, not native or Linux amd64 acceptance. A successful negative
+platform probe on arm64 does not count as running the engine on amd64.
+
+The full baseline-guard regression at `79e039e` passed **1557**, skipped **57**,
+failed **0**. The later CI extension has a separate focused boundary report in
+checks.json; final broad verification is recorded separately. A command with an
+incorrect test filename collected zero tests and failed before running anything;
+it was corrected, not counted as verification.

@@ -1,0 +1,14 @@
+{
+  "version": "workspace-dependency-result-v2",
+  "execution_attempt_id": "D-python-ci-01",
+  "plan_hash": "f16a116bec3c21318260a72300de22432af60c7228849711012ee4eedd79ea16",
+  "proxy_policy_hash": "18ff3da5771b22faceed98b64f4bfd0bb93f804a136585f57f012022f0b14b63",
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "ecosystem": "python",
+  "dependency_inventory_hash": "2b955e7c44538bedc7989f62b80ad6e373cf9c057fd1e14d31c6e14b3e8d1800",
+  "file_count": 3132,
+  "total_bytes": 134182743,
+  "source_result_hash": "c88c2078e93312aed39204c3346b15191ca055b894659dbbf7b7a6dfc24aac9e",
+  "source_kind": "explore"
+}

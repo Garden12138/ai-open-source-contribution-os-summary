@@ -25,7 +25,7 @@ def declaration(text: str, source: FrozenSource, path: str, line: int | None, co
         constraint=constraint, source=source.refs[path], line=line)
 
 
-def requirements(source: FrozenSource, roots: list[str]) -> list[RequirementDeclaration]:
+def requirements(source: FrozenSource, roots: list[str], *, constraint_roots: list[str] | None = None) -> list[RequirementDeclaration]:
     result: list[RequirementDeclaration] = []
     visited: set[tuple[str, bool]] = set()
     def visit(path: str, constrained: bool, stack: tuple[str, ...]) -> None:
@@ -51,6 +51,8 @@ def requirements(source: FrozenSource, roots: list[str]) -> list[RequirementDecl
                 raise ResolutionError("requirements_count_limit", (path,))
     for path in roots:
         visit(path, False, ())
+    for path in constraint_roots or []:
+        visit(path, True, ())
     check_conflicts(result)
     return result
 
@@ -127,31 +129,76 @@ def pep621(source: FrozenSource, path: str) -> list[RequirementDeclaration]:
     return result
 
 
-def declared_pip_roots(source: FrozenSource, directory: str) -> list[str]:
-    """Literal pip -r declarations in Make/CI. Never evaluate shell or YAML."""
+def declared_pip_inputs(source: FrozenSource, directory: str) -> tuple[list[str], list[str], list[RequirementDeclaration]]:
+    """Literal pip declarations in Make/CI. Never evaluate shell or YAML.
+
+    Quoted PEP 508 specifiers are data; unquoted redirections, evaluation,
+    alternate indexes, editable/local installs and ambiguous cwd are gaps.
+    """
     prefix = "" if directory == "." else directory + "/"
     candidates = sorted(p for p in source.inventory if p == prefix + "Makefile"
         or p.startswith(prefix + ".github/workflows/") and p.endswith((".yml", ".yaml")))
     roots: list[str] = []
+    constraints: list[str] = []
+    declarations: list[RequirementDeclaration] = []
     for path in candidates:
-        document = source.read(path, "literal-pip-declaration-v1")
+        document = source.read(path, "literal-pip-declaration-v2")
         if "working-directory:" in document and re.search(r"\bpip\b.*\binstall\b", document):
             raise ResolutionError("unsupported_dynamic_declaration", (path,))
-        for raw in document.splitlines():
+        for number, raw in enumerate(document.splitlines(), 1):
             line = raw.strip().removeprefix("- run:").removeprefix("run:").strip()
             # A literal pip line is evidence, never an execution request.
             if not re.match(r"(?:python3? -m pip|pip3?) install\b", line):
                 continue
-            if any(c in line for c in ("$", "`", ";", "|", "&", "<", ">", "\\")):
+            if any(c in line for c in ("$", "`", "\\")):
                 raise ResolutionError("unsupported_dynamic_declaration", (path,))
             try:
-                tokens = shlex.split(line, comments=True)
+                lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|<>")
+                lexer.whitespace_split = True
+                tokens = list(lexer)
             except ValueError:
                 raise ResolutionError("unsupported_dynamic_declaration", (path,)) from None
-            for index, token in enumerate(tokens):
-                if token in {"-r", "--requirement"} and index + 1 < len(tokens):
-                    # CI run steps default to repository root; Makefile recipes
-                    # are only admitted for the selected project directory.
-                    parent = prefix + "__root__"
-                    roots.append(relative_path(parent, tokens[index + 1]))
-    return list(dict.fromkeys(roots))
+            if any(token and all(c in ";&|<>" for c in token) for token in tokens):
+                raise ResolutionError("unsupported_dynamic_declaration", (path,))
+            position = 4 if tokens[:3] in (["python", "-m", "pip"], ["python3", "-m", "pip"]) else 2
+            while position < len(tokens):
+                token = tokens[position]
+                position += 1
+                if token in {"--upgrade", "-U"}:
+                    continue  # The prepared venv is fresh, never an in-place upgrade.
+                if token in {"-e", "--editable"}:
+                    if position >= len(tokens) or tokens[position] != ".":
+                        raise ResolutionError("unsupported_pip_declaration", (path,))
+                    token = tokens[position]
+                    position += 1
+                if token == ".":
+                    # The frozen local project is already built/installed by
+                    # workspace preparation. This selects no external package,
+                    # and never executes an editable install to discover data.
+                    if not path.endswith("Makefile") and directory != ".":
+                        raise ResolutionError("unsupported_pip_declaration", (path,))
+                    continue
+                include = re.fullmatch(r"(-r|-c|--requirement|--constraint)(?:=(.+))?", token)
+                if include:
+                    name = include[2]
+                    if name is None:
+                        if position >= len(tokens):
+                            raise ResolutionError("requirements_invalid", (path,))
+                        name = tokens[position]
+                        position += 1
+                    # A CI step defaults to repository root, even for a
+                    # selected nested Python project. Make runs at its root.
+                    parent = (prefix if path.endswith("Makefile") else "") + "__root__"
+                    target = constraints if include[1] in {"-c", "--constraint"} else roots
+                    target.append(relative_path(parent, name))
+                elif token.startswith("-") or token.startswith("."):
+                    raise ResolutionError("unsupported_pip_declaration", (path,))
+                else:
+                    declarations.append(declaration(token, source, path, number))
+                if len(declarations) + len(roots) + len(constraints) > 300:
+                    raise ResolutionError("requirements_count_limit", (path,))
+    return list(dict.fromkeys(roots)), list(dict.fromkeys(constraints)), declarations
+
+
+def declared_pip_roots(source: FrozenSource, directory: str) -> list[str]:
+    return declared_pip_inputs(source, directory)[0]

@@ -5,7 +5,7 @@ from typing import Protocol
 from app.environment_engine.contracts import (CommandNode, EnvironmentBinding, Gap,
     VerificationEnvironmentContract)
 from app.environment_engine.source import FrozenSource, ResolutionError
-from app.environment_engine.python import pep621, requirements, declared_pip_roots, check_conflicts
+from app.environment_engine.python import pep621, requirements, declared_pip_inputs, check_conflicts
 from app.provenance import content_hash
 
 
@@ -21,7 +21,7 @@ PYTHON_TOOLS = {"pytest": "pytest", "ruff": "ruff", "mypy": "mypy", "stubtest": 
 
 
 class PythonResolver:
-    version = "python-toolchain-v1"
+    version = "python-toolchain-v2"
 
     def resolve(self, source: FrozenSource, selected: dict, commands: list[dict]) -> tuple[list, list[CommandNode], dict]:
         if selected.get("project_directories"):
@@ -31,8 +31,12 @@ class PythonResolver:
         for path in selected["manifests"]:
             if path.endswith("pyproject.toml"):
                 declarations.extend(pep621(source, path))
-        roots.extend(declared_pip_roots(source, selected.get("project_directory", ".")))
-        declarations.extend(requirements(source, list(dict.fromkeys(roots))))
+        declared_roots, constraints, inline = declared_pip_inputs(source, selected.get("project_directory", "."))
+        roots.extend(declared_roots)
+        declarations.extend(inline)
+        declarations.extend(requirements(source, list(dict.fromkeys(roots)), constraint_roots=constraints))
+        if len(declarations) > 300:
+            raise ResolutionError("requirements_count_limit")
         check_conflicts(declarations)
         installed = {d.distribution for d in declarations if not d.constraint}
         nodes = []

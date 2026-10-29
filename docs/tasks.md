@@ -4840,7 +4840,10 @@ Second frozen cohort at `c275c55` also failed 0/4 complete baselines; cumulative
 0/8 stays recorded without replacement. A generic mypy 1.15.0 compatibility
 experiment ran all H Python checks but failed type metadata and was rejected,
 not activated. Nested diagnostic/zero-evidence guards and legacy TaskSpec wire
-compatibility have focused and real OCI evidence; broad rerun is pending.
+compatibility passed full regression (1557 passed, 57 skipped). A subsequent
+versioned literal CI adapter passed a different real D Python fixture (3/3)
+and focused boundary checks; H still executes all five with the cache failure.
+Five real OCI negative guards passed, including zero tests and platform mismatch.
 Subsequent independent holdout measurements must preserve
 this candidate's rules and never close the unpassed H/native/platform gates.
 

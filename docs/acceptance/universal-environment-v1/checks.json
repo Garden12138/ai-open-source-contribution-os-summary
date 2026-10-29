@@ -194,5 +194,56 @@
       "sha256": "e9b84bfc9383225373f58944c828e0f9cc8490df53e62447d0d0262c5c2ab021"
     },
     "classification": "controlled_actual_OCI_not_native"
+  },
+  "baseline_guard_default": {
+    "tests": 1614,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 57,
+    "passed": 1557,
+    "revision": "79e039e",
+    "scope": "full default before subsequent literal CI adapter extension",
+    "reports": [
+      {
+        "path": "/tmp/upeve-final-shard-0.xml",
+        "sha256": "e6cc2922e1eba23258b9afdc981d7b16d9d1bfc1c00934dd8aa075b71cbb7290"
+      },
+      {
+        "path": "/tmp/upeve-final-shard-1.xml",
+        "sha256": "c08fa6a58f606d13a7a5a361d1ce8f22626edddea71f9c7710e72598cb653ff2"
+      },
+      {
+        "path": "/tmp/upeve-final-shard-2.xml",
+        "sha256": "fc536d65715a68720cd6b1facf135e3aa20455dc39b00de3223f39a9868ead93"
+      },
+      {
+        "path": "/tmp/upeve-final-shard-3.xml",
+        "sha256": "5899ee3fb9adc9d6015cdddd29212df9fb043ae76f303a4b6066296c0c7ded81"
+      }
+    ]
+  },
+  "actual_extended_oci_guards": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classification": "controlled actual OCI not native",
+    "report_sha256": "ff33cf5e78a4c4633cc9d9eae9fbb9ef8656828fd374312a0b158ea728525624"
+  },
+  "ci_adapter_core": {
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "2473e24c7b6d7c8cd717dd52f1fe3d912782b3acc5cc25e82e115b2343c62ee0",
+    "classification": "deterministic contracts; skipped OCI not counted"
+  },
+  "ci_adapter_boundaries": {
+    "tests": 120,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 8,
+    "report_sha256": "3f8b75cbdb0b7f5568c343b007535b4f6a096d97c1c2882beaae02f4b5229c76",
+    "classification": "deterministic contracts; skipped OCI not counted"
   }
 }

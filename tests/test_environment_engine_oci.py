@@ -20,7 +20,8 @@ from app.sandbox_worker.verification import DockerVerifyRuntime
 
 
 @pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="actual offline entrypoint origin probe")
-def test_real_python_probe_rejects_source_shadow_without_importing_it(tmp_path):
+@pytest.mark.parametrize("failure", ["source_shadow", "target_platform"])
+def test_real_python_probe_rejects_source_shadow_or_wrong_platform(tmp_path, failure):
     image = os.environ["CONTRIBOS_SANDBOX_RUNNER_IMAGE"]
     data = b'raise RuntimeError("untrusted source must not be imported during origin inspection")\n'
     path = tmp_path / "source.tar.gz"
@@ -32,7 +33,9 @@ def test_real_python_probe_rejects_source_shadow_without_importing_it(tmp_path):
         path=path, allowed_root=tmp_path)
     inventory = content_hash([{"path": "unittest.py", "type": "file", "size": len(data),
         "sha256": hashlib.sha256(data).hexdigest(), "executable": False}])
-    configuration = {"ecosystem": "python", "target_platform": "linux/arm64", "commands": [{
+    target = os.getenv("CONTRIBOS_TARGET_PLATFORM", "linux/arm64")
+    requested = target if failure == "source_shadow" else {"linux/arm64": "linux/amd64", "linux/amd64": "linux/arm64"}[target]
+    configuration = {"ecosystem": "python", "target_platform": requested, "commands": [{
         "command_id": "unit", "argv": ["python3", "-m", "unittest"], "working_directory": ".",
         "distributions": [], "required_module": "unittest"}]}
     program = getsource(probe_entrypoints) + "\nimport json\nprint(json.dumps(probe_entrypoints(" + repr(configuration) + ")))"
@@ -52,12 +55,56 @@ def test_real_python_probe_rejects_source_shadow_without_importing_it(tmp_path):
             assert evidence.exit_code == 0
             result = json.loads(evidence.stdout_log)
             assert result["executables"][0]["status"] == "missing"
-            assert result["executables"][0]["reason_code"] == "entrypoint_module_unavailable_or_shadowed"
+            assert result["executables"][0]["reason_code"] == (
+                "entrypoint_module_unavailable_or_shadowed" if failure == "source_shadow" else "platform_binary_unavailable")
+            assert result["target_platform"] == target
             if os.getenv("UPEVE_SECURITY_EVIDENCE"):
-                Path(os.environ["UPEVE_SECURITY_EVIDENCE"]).write_text(json.dumps({
+                Path(os.environ["UPEVE_SECURITY_EVIDENCE"] + "-" + failure + ".json").write_text(json.dumps({
                     "classification": "controlled_actual_OCI_security_probe", "native": False,
                     "image": image, "policy_hash": policy.policy_hash, "result": result,
                     "command_evidence": evidence.to_wire(), "source_unchanged": True}, indent=2) + "\n")
+        finally:
+            await runtime.destroy(workspace)
+    asyncio.run(run())
+
+
+@pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1", reason="actual offline zero-test guard")
+def test_real_zero_tests_with_zero_exit_is_not_baseline_proof(tmp_path):
+    from app.environment_engine.baseline import classify_baseline
+    from tests.test_environment_engine_resolution import contract
+    image = os.environ["CONTRIBOS_SANDBOX_RUNNER_IMAGE"]
+    text = '[project]\nname="zero-tests-fixture"\nversion="1"\n'
+    path = tmp_path / "source.tar.gz"
+    with tarfile.open(path, "w:gz") as bundle:
+        member = tarfile.TarInfo("fixture-" + "a" * 40 + "/pyproject.toml")
+        member.size, member.mode = len(text.encode()), 0o644
+        bundle.addfile(member, io.BytesIO(text.encode()))
+    archive = RepositoryArchive.capture(repository_full_name="fixture/fixture", base_commit_sha="a" * 40,
+        path=path, allowed_root=tmp_path)
+    inventory = content_hash([{"path": "pyproject.toml", "type": "file", "size": len(text.encode()),
+        "sha256": hashlib.sha256(text.encode()).hexdigest(), "executable": False}])
+    command = SandboxCommand(command_id="empty", argv=("python3", "-m", "unittest", "discover", "-v"))
+    value = contract({"pyproject.toml": text}, [command.to_wire()]).model_dump(mode="json")
+    policy = SandboxPolicy()
+    env = {k: v for k, v in os.environ.items() if k in {"HOME", "PATH", "TMPDIR", "DOCKER_HOST", "DOCKER_CONTEXT"}}
+    runtime = DockerImplementRuntime(docker_environment=env)
+    async def run():
+        workspace = await runtime.create_workspace(image_digest=image, policy=policy)
+        try:
+            await runtime.materialize(workspace=workspace, archive=archive, policy=policy)
+            inspection = await DockerVerifyRuntime(docker_environment=env).run(workspace=replace(workspace, inventory_hash=inventory),
+                policy=policy, commands=(command,))
+            assert inspection.before_inventory_hash == inspection.after_inventory_hash == inventory
+            evidence = [e.to_wire() for e in inspection.command_evidence]
+            assert evidence[0]["exit_code"] == 0
+            verdict = classify_baseline(value, "c" * 64, evidence, content_hash(evidence))
+            assert verdict.outcome == "unknown"
+            assert "baseline_zero_tests" in verdict.reason_codes
+            if os.getenv("UPEVE_ZERO_TEST_EVIDENCE"):
+                Path(os.environ["UPEVE_ZERO_TEST_EVIDENCE"]).write_text(json.dumps({
+                    "classification": "controlled_actual_OCI_zero_tests_guard", "native": False,
+                    "image": image, "policy_hash": policy.policy_hash, "command": command.to_wire(),
+                    "evidence": evidence, "verdict": verdict.model_dump(mode="json")}, indent=2) + "\n")
         finally:
             await runtime.destroy(workspace)
     asyncio.run(run())

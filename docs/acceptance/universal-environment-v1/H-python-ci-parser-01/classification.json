@@ -1,0 +1,15 @@
+{
+  "classification": "H",
+  "native": false,
+  "model_calls": 0,
+  "operator_business_patches": 0,
+  "external_writes": 0,
+  "status": "environment_blocked",
+  "contract_hash": "b68ec76f2cdf4215060100c9b673d8733db5e1d115daf2c9c8b2494045202814",
+  "reason_code": null,
+  "reason_codes": [
+    "immutable_cache_write_blocked"
+  ],
+  "executed": 5,
+  "required": 5
+}
