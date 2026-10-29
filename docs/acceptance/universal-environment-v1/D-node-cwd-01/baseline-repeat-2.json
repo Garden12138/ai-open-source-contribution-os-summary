@@ -1,0 +1,112 @@
+{
+  "inspection": {
+    "before_inventory_hash": "84c45651aa15e040e91707a3004286d29b3f64633417c922aa029f972ed6982a",
+    "after_inventory_hash": "84c45651aa15e040e91707a3004286d29b3f64633417c922aa029f972ed6982a",
+    "command_evidence": [
+      {
+        "command_id": "test",
+        "command_hash": "20a4d4e8ee7f505b601c6a37d76d6df22f11d81b264adb2558bb964e090e9df8",
+        "status": "passed",
+        "exit_code": 0,
+        "started_at": "2026-10-29T03:26:39.658177Z",
+        "completed_at": "2026-10-29T03:26:39.789035Z",
+        "resource_usage": {
+          "user_cpu_ms": 78,
+          "system_cpu_ms": 13,
+          "max_rss_bytes": 61120512,
+          "minor_page_faults": 5903,
+          "major_page_faults": 0,
+          "voluntary_context_switches": 143,
+          "involuntary_context_switches": 17
+        },
+        "stdout_hash": "19ce710c401994e43e2e289c811c7cbc10e0bcc293744b9d498341f3a1e4b4f4",
+        "stdout_bytes": 253,
+        "stdout_log": "\n> other-layout@1.0.0 test\n> node --test root.test.mjs\n\nTAP version 13\n# Subtest: root\nok 1 - root\n  ---\n  duration_ms: 0.266083\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 25.037941\n",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_log": "",
+        "logs_truncated": false,
+        "raw_logs_omitted": false,
+        "duration_ms": 130,
+        "execution_summary": {
+          "version": "verification-log-summary-v1",
+          "stdout_hash": "19ce710c401994e43e2e289c811c7cbc10e0bcc293744b9d498341f3a1e4b4f4",
+          "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_count": 1,
+          "zero_tests": false,
+          "help_only": false,
+          "assertion_failure": false,
+          "environment_reason_codes": []
+        }
+      },
+      {
+        "command_id": "quality",
+        "command_hash": "557d32e8fc2d42f3dcd5aad140e080454cf8e0d7bad04444cf340fa4621c6dd4",
+        "status": "passed",
+        "exit_code": 0,
+        "started_at": "2026-10-29T03:26:39.789147Z",
+        "completed_at": "2026-10-29T03:26:40.074337Z",
+        "resource_usage": {
+          "user_cpu_ms": 233,
+          "system_cpu_ms": 39,
+          "max_rss_bytes": 64647168,
+          "minor_page_faults": 18976,
+          "major_page_faults": 0,
+          "voluntary_context_switches": 427,
+          "involuntary_context_switches": 46
+        },
+        "stdout_hash": "fc11e7c60f3f55b6b2aa7a884d9f8e4028c912bea8275314d20523f3c8709b70",
+        "stdout_bytes": 1292,
+        "stdout_log": "\n> other-layout@1.0.0 prequality\n> node --test cwd.test.mjs\n\nTAP version 13\n# Subtest: lifecycle and cd return to root\nok 1 - lifecycle and cd return to root\n  ---\n  duration_ms: 0.308125\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 26.078814\n\n> other-layout@1.0.0 quality\n> cd 'quality tools#v2' && npm run test && cd .. && node --test cwd.test.mjs\n\n\n> independent-checks@1.0.0 test\n> node --test check.test.mjs\n\nTAP version 13\n# Subtest: independent cwd and frozen CI\nok 1 - independent cwd and frozen CI\n  ---\n  duration_ms: 0.276041\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 24.014986\nTAP version 13\n# Subtest: lifecycle and cd return to root\nok 1 - lifecycle and cd return to root\n  ---\n  duration_ms: 0.272041\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 24.74165\n\n> other-layout@1.0.0 postquality\n> node --test cwd.test.mjs\n\nTAP version 13\n# Subtest: lifecycle and cd return to root\nok 1 - lifecycle and cd return to root\n  ---\n  duration_ms: 0.285833\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 24.23186\n",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_log": "",
+        "logs_truncated": false,
+        "raw_logs_omitted": false,
+        "duration_ms": 285,
+        "execution_summary": {
+          "version": "verification-log-summary-v1",
+          "stdout_hash": "fc11e7c60f3f55b6b2aa7a884d9f8e4028c912bea8275314d20523f3c8709b70",
+          "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_count": 1,
+          "zero_tests": false,
+          "help_only": false,
+          "assertion_failure": false,
+          "environment_reason_codes": []
+        }
+      }
+    ]
+  },
+  "verdict": {
+    "version": "baseline-verdict-v1",
+    "contract_hash": "2ff7debfbe30811a37ab81517046cac3da752451615ddd22b798e8896f0142a2",
+    "preparation_receipt_hash": "121e0e707c55c33c84c6d46171b1ba39c98da7eec54615a7f0edbd63816301c8",
+    "baseline_artifact_hash": "b4d7967cb4f4440bc618fbd90b1a823c75d2b466d686757af2b405d1100609e6",
+    "required_command_count": 2,
+    "executed_command_count": 2,
+    "outcome": "passed",
+    "reason_codes": [],
+    "command_results": [
+      {
+        "command_id": "test",
+        "command_hash": "20a4d4e8ee7f505b601c6a37d76d6df22f11d81b264adb2558bb964e090e9df8",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [],
+        "test_count": 1,
+        "stdout_hash": "19ce710c401994e43e2e289c811c7cbc10e0bcc293744b9d498341f3a1e4b4f4",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command_id": "quality",
+        "command_hash": "557d32e8fc2d42f3dcd5aad140e080454cf8e0d7bad04444cf340fa4621c6dd4",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [],
+        "test_count": 1,
+        "stdout_hash": "fc11e7c60f3f55b6b2aa7a884d9f8e4028c912bea8275314d20523f3c8709b70",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}

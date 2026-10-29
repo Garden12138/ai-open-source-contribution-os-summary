@@ -1,0 +1,32 @@
+{
+  "version": "baseline-verdict-v1",
+  "contract_hash": "2ff7debfbe30811a37ab81517046cac3da752451615ddd22b798e8896f0142a2",
+  "preparation_receipt_hash": "121e0e707c55c33c84c6d46171b1ba39c98da7eec54615a7f0edbd63816301c8",
+  "baseline_artifact_hash": "b6857059a7d1d7495c94a828064514540673c990be678e08cbd87074fe99ed1e",
+  "required_command_count": 2,
+  "executed_command_count": 2,
+  "outcome": "passed",
+  "reason_codes": [],
+  "command_results": [
+    {
+      "command_id": "test",
+      "command_hash": "20a4d4e8ee7f505b601c6a37d76d6df22f11d81b264adb2558bb964e090e9df8",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": 1,
+      "stdout_hash": "1fcda820874732ca0c996bd758fcb6692b19681968eae0129352ddeb4e283148",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command_id": "quality",
+      "command_hash": "557d32e8fc2d42f3dcd5aad140e080454cf8e0d7bad04444cf340fa4621c6dd4",
+      "exit_code": 0,
+      "executed": true,
+      "reason_codes": [],
+      "test_count": 1,
+      "stdout_hash": "d0a775909a4c3e677cd4e472887dd6508c248db039049b59253e7b74e70c378c",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

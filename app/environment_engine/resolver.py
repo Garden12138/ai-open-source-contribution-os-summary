@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Protocol
-from app.environment_engine.contracts import (CommandNode, EnvironmentBinding, Gap,
+from app.environment_engine.contracts import (CommandNode, EnvironmentBinding, Gap, ResolvedCommand,
     VerificationEnvironmentContract)
 from app.environment_engine.source import FrozenSource, ResolutionError
 from app.environment_engine.python import pep621, requirements, declared_pip_inputs, check_conflicts
@@ -61,7 +61,7 @@ class PythonResolver:
 
 
 class NodeResolver:
-    version = "node-toolchain-v1"
+    version = "node-toolchain-v2"
 
     def resolve(self, source: FrozenSource, selected: dict, commands: list[dict]) -> tuple[list, list[CommandNode], dict]:
         from app.environment_engine.node import script_graph
@@ -72,7 +72,8 @@ class NodeResolver:
             units.update(graph["package_directories"])
             nodes.append(CommandNode(**{**cmd, "argv": tuple(cmd["argv"])},
                 required_executable=cmd["argv"][0], source_refs=tuple(source.refs.values()), chain=tuple(graph["chain"]),
-                entrypoints=tuple(graph["entrypoints"])))
+                entrypoints=tuple(graph["entrypoints"]), leaf_commands=tuple(ResolvedCommand(
+                    argv=tuple(leaf["argv"]), working_directory=leaf["working_directory"]) for leaf in graph["leaf_commands"])))
         roots = set(selected.get("node_environment", {}).get("package_roots", []))
         independent = sorted(units - roots)
         # Each independent install must be bound to an actual lock at its root.

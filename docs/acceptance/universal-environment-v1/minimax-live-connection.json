@@ -1,0 +1,68 @@
+{
+  "status": "passed_live_connection_not_native_contribution",
+  "recorded_at": "2026-10-29T03:34:31.241659+00:00",
+  "provider": "minimax",
+  "endpoint": "https://api.minimax.cn/v1",
+  "profile": {
+    "id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+    "record_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883",
+    "model": "MiniMax-M3",
+    "max_tokens": 8192,
+    "timeout_seconds": 180,
+    "connection_id": "b46cc88d-988e-44a5-b13a-be10f1d0b442"
+  },
+  "defaults_hash": "dd110bbca907b281ff3ea775222c08b81d11f7af33a0f3281734bba23921dfb8",
+  "stages": [
+    "analysis",
+    "planning",
+    "implementation",
+    "review"
+  ],
+  "binding_changed_by_agent": false,
+  "tests": [
+    {
+      "job_id": "0582cf33-8289-4d60-ad77-7ffb9bf758ab",
+      "operation": "test",
+      "state": "succeeded",
+      "profile_id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+      "profile_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883",
+      "result_hash": "095c85fa2043943f987d66304a4464c49a939fcea30308dadcaafbd800ae4e18",
+      "result": {
+        "connected": true,
+        "structured_output": true,
+        "model": "MiniMax-M3",
+        "duration_ms": 13863,
+        "usage": null
+      },
+      "created_at": "2026-10-29 03:09:25.672786",
+      "completed_at": "2026-10-29 03:09:41.574019"
+    },
+    {
+      "job_id": "4d3b31d4-d81d-4213-ba53-8b31928f6d89",
+      "operation": "models",
+      "state": "succeeded",
+      "profile_id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+      "profile_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883",
+      "result_hash": "ffb73a31c3456011cc190f61c6e83fe37925b88817809632f5b7fc1ba395b9c1",
+      "result": {
+        "models": [
+          "MiniMax-M3.1-Flash",
+          "MiniMax-M3",
+          "MiniMax-M2.7",
+          "MiniMax-M2.7-highspeed",
+          "MiniMax-M2.5",
+          "MiniMax-M2.5-highspeed",
+          "MiniMax-M2.1",
+          "MiniMax-M2.1-highspeed",
+          "MiniMax-M2"
+        ]
+      },
+      "created_at": "2026-10-29 03:09:51.384169",
+      "completed_at": "2026-10-29 03:09:51.917225"
+    }
+  ],
+  "credential_read_by_agent": false,
+  "credential_trust_domain": "Gateway only",
+  "operator_business_patches": 0,
+  "native_deliveries": 0
+}

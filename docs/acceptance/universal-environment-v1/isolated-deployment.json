@@ -27,17 +27,19 @@
     }
   },
   "model_gateway": {
-    "status": "running_pending_minimax_credential",
+    "status": "running_minimax_connected",
     "origin": "http://127.0.0.1:18091",
     "selected_provider": "minimax",
     "selected_model": "MiniMax-M3",
     "upstream_reference": "https://api.minimax.cn/v1",
     "credential_management_available": true,
-    "credential_saved": false,
-    "profile_bound": false,
-    "connection_test": "not_run_missing_credential",
+    "credential_saved": true,
+    "profile_bound": true,
+    "connection_test": "passed_live_structured_response",
     "selection_authorization": "current explicit user request",
-    "nvidia_upstream_enabled": false
+    "nvidia_upstream_enabled": false,
+    "model_profile_id": "0fa3df7e-c7d5-433f-86a8-2fe2e6ebb861",
+    "model_profile_hash": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
   },
   "schema_revision": "0039_environment_contracts",
   "active_jobs": 0,

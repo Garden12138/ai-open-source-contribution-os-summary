@@ -1,0 +1,80 @@
+{
+  "classification": "controlled_actual_OCI_baseline_guard",
+  "native": false,
+  "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "command": {
+    "command_id": "lint",
+    "argv": [
+      "npm",
+      "run",
+      "lint"
+    ],
+    "working_directory": "."
+  },
+  "exit_code": 0,
+  "evidence": [
+    {
+      "command_id": "lint",
+      "command_hash": "31f428c015bedab6d47fc9f47beca5f6471e47609d3a2eaa877b4b4ecf69ea60",
+      "status": "passed",
+      "exit_code": 0,
+      "started_at": "2026-10-29T03:26:56.554880Z",
+      "completed_at": "2026-10-29T03:26:56.629509Z",
+      "resource_usage": {
+        "user_cpu_ms": 47,
+        "system_cpu_ms": 10,
+        "max_rss_bytes": 61374464,
+        "minor_page_faults": 2617,
+        "major_page_faults": 0,
+        "voluntary_context_switches": 75,
+        "involuntary_context_switches": 14
+      },
+      "stdout_hash": "df7c7368a1b937c8bb1163420899aaada0de663cb0397508644c589c06a0b0a0",
+      "stdout_bytes": 30,
+      "stdout_log": "\n> lint\n> cd 'tools#quality'\n\n",
+      "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0,
+      "stderr_log": "",
+      "logs_truncated": false,
+      "raw_logs_omitted": false,
+      "duration_ms": 74,
+      "execution_summary": {
+        "version": "verification-log-summary-v1",
+        "stdout_hash": "df7c7368a1b937c8bb1163420899aaada0de663cb0397508644c589c06a0b0a0",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_count": null,
+        "zero_tests": false,
+        "help_only": false,
+        "assertion_failure": false,
+        "environment_reason_codes": []
+      }
+    }
+  ],
+  "verdict": {
+    "version": "baseline-verdict-v1",
+    "contract_hash": "8158814e34848073ca76b08661c93dacea0f0c08ef1768ad9e59f96c2fc32ee3",
+    "preparation_receipt_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "baseline_artifact_hash": "27f6fe3671819498c0df82f622d1237f30636e8b5737ab53f8083c45de87e407",
+    "required_command_count": 1,
+    "executed_command_count": 1,
+    "outcome": "unknown",
+    "reason_codes": [
+      "baseline_evidence_insufficient"
+    ],
+    "command_results": [
+      {
+        "command_id": "lint",
+        "command_hash": "31f428c015bedab6d47fc9f47beca5f6471e47609d3a2eaa877b4b4ecf69ea60",
+        "exit_code": 0,
+        "executed": true,
+        "reason_codes": [
+          "baseline_evidence_insufficient"
+        ],
+        "test_count": null,
+        "stdout_hash": "df7c7368a1b937c8bb1163420899aaada0de663cb0397508644c589c06a0b0a0",
+        "stderr_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}

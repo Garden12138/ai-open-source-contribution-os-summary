@@ -395,5 +395,46 @@
     "classification": "offline model-settings/gateway contracts, not live MiniMax acceptance",
     "live_browser_readiness": true,
     "upstream_calls": 0
+  },
+  "node_cwd_focused": {
+    "tests": 116,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 5,
+    "report_sha256": "e1f2dd94809459ee902fa6378f88f9f4a0d486e975d3f9fcdce818be3c520c10",
+    "classification": "contract/API/runtime regression"
+  },
+  "node_cwd_actual_guards": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report_sha256": "ef9db9667de24454a659823dc2779adb76302bc57ddc0faad715ddec4a06329b",
+    "classification": "actual controlled OCI"
+  },
+  "node_cwd_default": {
+    "tests": 1646,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1584,
+    "reports": [
+      {
+        "path": "/tmp/upeve-node-cwd-shard-0.xml",
+        "sha256": "616b30d6965ff86d6387754438e5117a0f3314a94d1d3a4179801e1228da81c0"
+      },
+      {
+        "path": "/tmp/upeve-node-cwd-shard-1.xml",
+        "sha256": "aba0d5e1580999436320349e36192ae98d87d7daa0a46c7c5f5c03fce27c1943"
+      },
+      {
+        "path": "/tmp/upeve-node-cwd-shard-2.xml",
+        "sha256": "581ef61a2f4f0d504f05cfc621c90be4c3540a2606ea6be172f67f14bb84c9eb"
+      },
+      {
+        "path": "/tmp/upeve-node-cwd-shard-3.xml",
+        "sha256": "5189ee90a0f62c3c1b3beac64c316dc754aec8db1ff48f2f74e6c2357233390a"
+      }
+    ]
   }
 }

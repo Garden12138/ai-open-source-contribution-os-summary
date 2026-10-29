@@ -30,17 +30,19 @@ def classify_baseline(contract: dict, preparation_receipt_hash: str, evidence: l
         # Manager argv can hide a help-only leaf in package.json. Resolve that
         # frozen static chain too; exit zero from the manager proves no checks.
         effective = [command["argv"]]
-        leaves = []
-        for edge in command.get("chain", []):
-            directory, separator, text_edge = edge.partition(":")
-            if separator and "#" not in directory:
-                try:
-                    leaf = shlex.split(text_edge)
-                except ValueError:
-                    leaf = []
-                if leaf:
-                    effective.append(leaf)
-                    leaves.append(leaf)
+        typed_leaves = command.get("leaf_commands")
+        leaves = [leaf["argv"] for leaf in typed_leaves] if typed_leaves is not None else []
+        if typed_leaves is None:
+            for edge in command.get("chain", []):
+                directory, separator, text_edge = edge.partition(":")
+                if separator and "#" not in directory:
+                    try:
+                        leaf = shlex.split(text_edge)
+                    except ValueError:
+                        leaf = []
+                    if leaf:
+                        leaves.append(leaf)
+        effective.extend(leaves)
         started = item.get("started_at") is not None and item.get("status") not in {"not_run", "cancelled"}
         if not started or item.get("raw_logs_omitted") or item.get("logs_truncated") and not summary_valid:
             codes.append("baseline_evidence_insufficient")
@@ -49,7 +51,7 @@ def classify_baseline(contract: dict, preparation_receipt_hash: str, evidence: l
             codes.append("baseline_evidence_insufficient")
         if any(flag in args for args in effective for flag in ("--help", "-h", "--version", "-V")) or summary_valid and summary.get("help_only") or re.search(r"(?im)^\s*usage:.*\n.*(?:options|commands|flags):", text):
             codes.append("baseline_help_only")
-        if leaves and all(leaf[0] in {"echo", "printf", "true"} for leaf in leaves):
+        if typed_leaves is not None and not leaves or leaves and all(leaf[0] in {"echo", "printf", "true"} for leaf in leaves):
             codes.append("baseline_evidence_insufficient")
         if summary_valid and summary.get("zero_tests") or re.search(r"(?im)\bRan 0 tests\b|\bno tests (?:ran|found|collected)\b|^# tests 0\b|\b0 passed\b", text):
             codes.append("baseline_zero_tests")

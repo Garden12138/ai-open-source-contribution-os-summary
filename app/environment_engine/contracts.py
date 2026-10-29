@@ -49,6 +49,16 @@ class BaselineExpectation(StrictModel):
     exit_code: Literal[1] = 1
 
 
+class ResolvedCommand(StrictModel):
+    argv: tuple[str, ...] = Field(min_length=1, max_length=100)
+    working_directory: str
+
+    @field_validator("working_directory")
+    @classmethod
+    def cwd(cls, value: str) -> str:
+        return safe_path(value, directory=True)
+
+
 class CommandNode(StrictModel):
     command_id: str
     argv: tuple[str, ...] = Field(min_length=1, max_length=100)
@@ -60,6 +70,16 @@ class CommandNode(StrictModel):
     required_module: str | None = None
     distributions: tuple[str, ...] = ()
     resolution: Literal["resolved", "unsupported"] = "resolved"
+    leaf_commands: tuple[ResolvedCommand, ...] | None = None
+
+    @model_serializer(mode="wrap")
+    def legacy_wire(self, handler: Any) -> dict:
+        value = handler(self)
+        if self.leaf_commands is None and "leaf_commands" not in self.model_fields_set:
+            value.pop("leaf_commands", None)
+        if self.required_module is None and "required_module" not in self.model_fields_set:
+            value.pop("required_module", None)
+        return value
 
     @field_validator("working_directory")
     @classmethod
@@ -113,7 +133,7 @@ class VerificationEnvironmentContract(StrictModel):
             raise ValueError("expected_reproduction_requires_exact_target_and_control")
         if self.admission == "static_admitted":
             adapter = self.resolver_versions.get("adapter")
-            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1"}:
+            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1", "node-toolchain-v2"}:
                 raise ValueError("environment_adapter_version_unsupported")
             python = adapter in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4"}
             required = {"requirements", "constraints", "requirements_roots"} if python else {"independent_directories"}
@@ -125,6 +145,8 @@ class VerificationEnvironmentContract(StrictModel):
                     raise ValueError("environment_cache_policy_invalid")
             if set(self.preparation) != required:
                 raise ValueError("environment_recipe_schema_invalid")
+            if adapter == "node-toolchain-v2" and any(c.leaf_commands is None for c in self.commands):
+                raise ValueError("environment_command_graph_incomplete")
             if python and (self.preparation["requirements"] != [d.requirement for d in self.declarations if not d.constraint]
                     or self.preparation["constraints"] != [d.requirement for d in self.declarations if d.constraint]):
                 raise ValueError("environment_recipe_declaration_mismatch")

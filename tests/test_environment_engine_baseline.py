@@ -84,6 +84,16 @@ def test_named_script_running_tests_needs_positive_test_execution_evidence():
     assert classify_baseline(value, "a" * 64, [receipt(commands[0], output="Tests 4 passed")], "b" * 64).outcome == "passed"
 
 
+@pytest.mark.parametrize("directory,leaf", [("tools#quality", "node --version"), ("tools space", "echo success"), ("tools", "")])
+def test_cwd_edges_and_unusual_directory_names_cannot_hide_diagnostic_or_empty_checks(directory, leaf):
+    commands = [{"command_id": "quality", "argv": ["npm", "run", "quality"], "working_directory": "."}]
+    script = f"cd '{directory}'" + (" && " + leaf if leaf else "")
+    value = contract({"package.json": json.dumps({"scripts": {"quality": script}}), directory + "/README.md": "data"}, commands, "node").model_dump(mode="json")
+    assert value["admission"] == "static_admitted"
+    got = classify_baseline(value, "a" * 64, [receipt(commands[0], output="zero exit")], "b" * 64)
+    assert got.outcome == "unknown"
+
+
 def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch):
     import app.migrations.versions as registry
     from app.database import Database

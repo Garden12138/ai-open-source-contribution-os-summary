@@ -229,25 +229,27 @@
     },
     {
       "id": "UE-T23",
-      "status": "blocked",
+      "status": "not_run",
       "evidence": [
         "gateway-proposal.json",
         "isolated-deployment.json",
         "gateway-proposal-minimax.json",
-        "minimax-readiness.json"
+        "minimax-readiness.json",
+        "minimax-live-connection.json"
       ],
-      "limit": "User chose MiniMax; isolated Gateway/Provider and encrypted UI are ready. Blocked on missing MiniMax credential, then separate exact human plan/execution/final approvals. Native deliveries remain 0."
+      "limit": "User-saved native MiniMax-M3 profile verified across all four stages; actual connection and model catalog jobs succeeded. Full new native planning/approval/coding/verify/review/final acceptance not yet run; no delivery claimed."
     },
     {
       "id": "UE-T24",
-      "status": "blocked",
+      "status": "not_run",
       "evidence": [
         "gateway-proposal.json",
         "isolated-deployment.json",
         "gateway-proposal-minimax.json",
-        "minimax-readiness.json"
+        "minimax-readiness.json",
+        "minimax-live-connection.json"
       ],
-      "limit": "User chose MiniMax; isolated Gateway/Provider and encrypted UI are ready. Blocked on missing MiniMax credential, then separate exact human plan/execution/final approvals. Native deliveries remain 0."
+      "limit": "User-saved native MiniMax-M3 profile verified across all four stages; actual connection and model catalog jobs succeeded. Full new native planning/approval/coding/verify/review/final acceptance not yet run; no delivery claimed."
     },
     {
       "id": "UE-T25",

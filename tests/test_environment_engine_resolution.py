@@ -1,6 +1,7 @@
 """Pure contracts; these results never count as real/native acceptance."""
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
 
@@ -95,6 +96,63 @@ def test_node_literal_chain_cycle_and_dynamic_wrapper():
     assert contract(files, commands, "node").unresolved[0].reason_code == "unsupported_dynamic_installer"
     files["package.json"] = json.dumps({"scripts": {"test": "pnpm test"}})
     assert contract(files, commands, "node").unresolved[0].reason_code == "node_script_cycle"
+
+
+def test_literal_cd_freezes_nested_dependency_root_and_restores_lifecycle_cwd():
+    commands = [{"command_id": "quality", "argv": ["npm", "run", "quality"], "working_directory": "."}]
+    files = {"package.json": json.dumps({"scripts": {"prequality": "node before.mjs",
+        "quality": "cd tools && npm run check && cd .. && node after.mjs", "postquality": "node post.mjs"}}),
+        "tools/package.json": json.dumps({"scripts": {"check": "node check.mjs"}}),
+        "tools/package-lock.json": '{"lockfileVersion":3}',
+        **{p: "console.log('bounded check')" for p in ["before.mjs", "after.mjs", "post.mjs", "tools/check.mjs"]}}
+    value = contract(files, commands, "node")
+    assert value.admission == "static_admitted", value.unresolved
+    assert value.preparation["independent_directories"] == ["tools"]
+    node = value.commands[0]
+    assert [(c.working_directory, c.argv) for c in node.leaf_commands] == [
+        (".", ("node", "before.mjs")), ("tools", ("node", "check.mjs")),
+        (".", ("node", "after.mjs")), (".", ("node", "post.mjs"))]
+    assert all(name != "cd" for _, name in node.entrypoints)
+    assert node.argv == ("npm", "run", "quality") and node.working_directory == "."
+
+
+@pytest.mark.parametrize("destination", ["..", "../../private", "/tmp", "~", "t*", "-", "missing"])
+def test_literal_cd_never_expands_host_or_unknown_directories(destination):
+    commands = [{"command_id": "lint", "argv": ["npm", "run", "lint"], "working_directory": "."}]
+    value = contract({"package.json": json.dumps({"scripts": {"lint": f"cd {destination} && node --version"}})}, commands, "node")
+    assert value.admission == "unsupported"
+    assert value.unresolved[0].reason_code in {"node_script_cwd_unsafe", "node_script_cwd_missing"}
+
+
+def test_literal_cd_rejects_a_linked_directory_without_reading_it():
+    from app.environment_engine.node import script_graph
+    data = evidence({"package.json": json.dumps({"scripts": {"check": "cd tools && node --version"}}),
+        "tools": "link", "tools/README.md": "must not be read"})
+    data["entries"][1]["type"] = "symlink"
+    with pytest.raises(ResolutionError, match="node_script_cwd_unsafe"):
+        script_graph(FrozenSource(data), ("npm", "run", "check"), ".")
+
+
+def test_old_node_contract_keeps_exact_hash_without_added_leaf_field():
+    path = Path(__file__).parents[1] / "docs/acceptance/universal-environment-v1/D-node-02/command-graph.json"
+    frozen = json.loads(path.read_text())
+    old = frozen["verification_contract"]
+    parsed = VerificationEnvironmentContract.model_validate_json(json.dumps(old))
+    assert parsed.model_dump(mode="json") == old
+    assert parsed.contract_hash == frozen["verification_contract_hash"]
+
+
+def test_nested_manager_preserves_missing_frozen_evidence_and_rejects_invalid_metadata():
+    from app.environment_engine.node import script_graph
+    files = {"package.json": json.dumps({"scripts": {"quality": "npm --prefix tools run check"}}),
+        "tools/package.json": json.dumps({"scripts": {"check": "node --version"}})}
+    source = FrozenSource(evidence(files))
+    source.entries.pop("tools/package.json")
+    with pytest.raises(ResolutionError, match="environment_evidence_missing"):
+        script_graph(source, ("npm", "run", "quality"), ".")
+    files["tools/package.json"] = "[]"
+    with pytest.raises(ResolutionError, match="node_script_schema_invalid"):
+        script_graph(FrozenSource(evidence(files)), ("npm", "run", "quality"), ".")
 
 
 def test_hash_mismatch_and_symlink_are_never_missing_retry():

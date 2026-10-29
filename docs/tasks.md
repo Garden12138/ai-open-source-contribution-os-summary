@@ -4849,17 +4849,29 @@ model access and exact human approvals. Linux amd64 has no real endpoint and is
 blocked/not_run. None of these conditions closes ENV-G01, UXR-G01, ARV2-M5/M6 or
 P5-G06. Current first unchecked specialty task remains **UPEVE-E04**.
 
+E3 follow-up: `node-toolchain-v2` resolves literal `cd directory && command`
+chains inside the frozen archive, carries exact typed leaf argv/cwd, prepares
+independently locked tool roots and restores pre/post lifecycle cwd. Escape,
+symlink, glob/tilde and missing-directory cases reject; cd-only/diagnostic/echo
+cannot pass Baseline. Legacy contract wire/hash survives newly optional fields.
+Different-layout `D-node-cwd-01` passed both original root commands in two fresh
+actual Verify containers, including a directory with spaces and #. Eight actual
+OCI boundary guards passed. Latest default regression: 1584 passed, 62 skipped,
+0 failed. The historical dynamic installer remains unsupported, so E3 is still
+unchecked; prior first holdout outcomes stay 0/15.
+
 Automatic approval review rejected using the existing NVIDIA secret to start a
 new Gateway before execution. No key was read and no workaround attempted. The
 NVIDIA proposal was not activated. On the following user request to use MiniMax,
 the isolated 18091 Gateway and Provider Worker were started without a NVIDIA key;
 all five isolated roles and the encrypted settings entry are healthy. Target is
 the existing native `minimax` / `MiniMax-M3` preset at `https://api.minimax.cn/v1`.
-No MiniMax credential exists in the accessible stores/environment, so profile
-binding and live connection/native acceptance remain blocked until the user saves
-it in `http://127.0.0.1:18090/#/settings`. The model choice is authorized; it is
-not awaiting another model confirmation. Exact plan/execution/final approvals
-remain separate. No fake provider, external business patch or historical
+The user has now saved the MiniMax connection and immutable Profile through the
+encrypted settings page. All four stage defaults point to that Profile. Actual
+structured connection Job `0582cf33-8289-4d60-ad77-7ffb9bf758ab` and model catalog
+Job `4d3b31d4-d81d-4213-ba53-8b31928f6d89` succeeded with the exact frozen Profile
+hash. Credential/model readiness is resolved; this is not native contribution
+success. Exact plan/execution/final approvals remain separate. No fake provider, external business patch or historical
 approval reuse is counted as success.
 
 

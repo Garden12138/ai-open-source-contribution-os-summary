@@ -54,7 +54,8 @@ separate from real model journeys.
 - Tool names map to **declared** distributions; actual CLI RECORD ownership and
   executable/module availability are subsequently measured. Source-shadowed test
   modules are rejected. No host-global Ruff fallback or command-name pip install.
-- Node: literal manager script chains and `pnpm exec`, bounded recursive scripts,
+- Node: literal manager script chains, `pnpm exec` and bounded literal `cd`
+  sequences, exact typed leaf argv/cwd, bounded recursive scripts,
   explicit independent tool directories with their own locks; acquisition ignores
   scripts, builds occur offline, and each independent root is frozen. Existing
   npm/pnpm/Yarn/Bun drivers and the Vitest 2.1.9 data-only cache adapter remain.
@@ -104,5 +105,7 @@ with an old verifier. Do not run this candidate against production storage.
 
 The current development instance at `http://127.0.0.1:18090` has a new database
 and artifact root under `/tmp/upeve-isolated-20261029-v2`. API, coordinator and
-Sandbox Worker run; Provider is separately blocked on a real configured model
-Gateway. Publisher is disabled. The older trial service/data remain unchanged.
+Sandbox Worker and Provider run with a separate Gateway on 18091. The user-saved
+MiniMax-M3 Profile is bound across four stages and real structured connection and
+model-list Jobs passed. New native plans/exact approvals remain separate.
+Publisher is disabled. The older trial service/data remain unchanged.

@@ -369,3 +369,37 @@ fields contain no MiniMax key. The user must add a connection through
 binding and actual connection testing wait for that input. This is a missing
 credential, not pending model-choice consent; exact plan/execution/final approval
 and all remaining E3–E6 gates remain separate.
+
+## User-saved MiniMax connection and E3 cwd graph follow-up
+
+The user saved the connection/Profile and four-stage defaults in the isolated
+product. [Live connection evidence](minimax-live-connection.json) verifies the
+immutable Profile hash and two actual succeeded Jobs: structured response in
+13,863 ms and model catalog retrieval. The agent did not change the user's
+Profile, read the key, or duplicate these model calls. Connection readiness is
+now passed; full native contribution success remains 0.
+
+`node-toolchain-v2` statically resolves literal shell `cd` edges in package
+scripts and stores typed leaf argv/cwd separately from display strings. It does
+not probe `cd` as an executable. Manager pre/post lifecycle scripts each start in
+the manager's original cwd; independently locked child tools are prepared before
+Verify. Hash/space directory names retain exact arguments. Escapes, linked dirs,
+expansion and unknown directories fail closed. Missing frozen package evidence
+continues the bounded read path, rather than being swallowed as a script error.
+
+The new optional leaf field preserves old contract serialization. A regression
+check exposed the pre-existing optional required_module=null expansion in an
+early controlled D record; preserving absent-field identity restores its exact
+original hash, without editing that record or promoting it to native provenance.
+The first test failure remains in `/tmp/upeve-node-cwd-focused.xml`; corrected
+focused and complete regression pass.
+
+`D-node-cwd-01` passes 2/2 unchanged root checks in two fresh actual OCI Verify
+runs, with pre/post scripts and nested locked dependencies under a path containing
+spaces and #. [Empty cd check](node-cwd-cd-only.json) and
+[nested version](node-cwd-nested-version.json) both exit 0 in real OCI and are
+classified unknown, never passed. Eight actual engine boundary cases pass.
+Default regression is **1584 passed, 62 skipped, 0 failed**; opt-in skips are not
+OCI passes. These are controlled platform checks, not native deliveries. The
+historical installer still requires a supported generic boundary/recipe; E3 and
+dependent gates remain open. The earlier 0/15 holdout first outcomes stay intact.
