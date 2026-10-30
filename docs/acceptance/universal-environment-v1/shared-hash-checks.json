@@ -62,5 +62,6 @@
   "hard_prompt_cap_changed": false,
   "checkpoint_validation_manifest_changed": false,
   "legacy_wire_changed": false,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e"
 }

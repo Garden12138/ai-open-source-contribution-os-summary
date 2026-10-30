@@ -5192,6 +5192,16 @@ Shared-hash final regression: 1632 passed / 62 skipped / 0 failed;
 62 focused contracts and actual-payload clone checks pass. Preservation/
 canary/resource audit passes. No additional actual model request is dispatched.
 
+Shared-hash maintenance `918bdf5` is deployed to the isolated five roles; all
+trial health checks pass and task-only 16K binding survives restart. Actual
+native outcome after this code change remains unverified. A concrete bounded
+follow-up proposal is saved, not dispatched: at most two further read-only
+requests / fourteen model calls inside the current remaining task allowance,
+with material clarification/security/Plan/budget stop conditions. The prior
+resource consent covered one completed request; this broader continuation
+requires an explicit scope decision, not stage-by-stage permission. No execution
+or publication is authorized. First current task remains UPEVE-E04.
+
 
 ---
 

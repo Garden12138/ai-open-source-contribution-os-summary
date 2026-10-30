@@ -320,7 +320,7 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124",
+  "engine_revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
     "tests": 1694,
@@ -362,7 +362,7 @@
         "sha256": "e222646cb21a2980e87b94ac9a8981f607e9b99a7f127fc0343a40973b6a08af"
       }
     ],
-    "revision": "pending_local_commit",
+    "revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e",
     "evidence": "shared-hash-checks.json"
   },
   "holdout_current": {
@@ -382,7 +382,7 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "planning-cap-live-retest.json",
-  "latest_isolated_deployment": "budget-reservation-deployment.json",
+  "latest_isolated_deployment": "shared-hash-deployment.json",
   "latest_history_and_security_audit": "shared-hash-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "shared-hash-replay.json",
@@ -393,5 +393,12 @@
     "one_authorized_request_finished": true,
     "execution_approved": false,
     "evidence": "planning-cap-approval.json"
+  },
+  "pending_readonly_followup": {
+    "status": "proposed_not_dispatched",
+    "evidence": "planning-readonly-followup-proposal.json",
+    "max_additional_model_calls": 14,
+    "max_additional_readonly_requests": 2,
+    "limits_raised": false
   }
 }
