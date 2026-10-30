@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | MiniMax-M3 domestic direct access is the settings-page four-stage default after explicit encrypted-key activation; NVIDIA/OpenAI-compatible Profiles remain manual alternatives. Live MiniMax, real Draft PR and Linux platform gates stay unchecked. |
+| Feature note | DeepSeek domestic V4 Pro/Flash profiles are available for explicit four-stage selection; existing MiniMax defaults and task budgets remain unchanged. Credentials stay in the independent Gateway. Real DeepSeek, native delivery and Linux platform gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5325,6 +5325,38 @@ E0-E2 remain passed; E3 historical Node failed, E4 partial, E5 failed, Linux
 amd64 blocked/not_run. Native first deliveries remain 0/4; complete environment
 baselines separately remain 0/15. Baseline/Coding/Verify/independent Review for
 this native task remain not_run. Current task is still UPEVE-E04.
+
+User-directed DeepSeek domestic support (2026-10-30): implement a dedicated
+official-endpoint adapter and native settings choice for `deepseek-v4-pro` /
+`deepseek-flash`, with independent encrypted Gateway credentials and four-stage
+model bindings. Thinking-mode requests use supported automatic tool choice,
+bounded output and final-status/usage checks; hidden reasoning is discarded.
+Forward migration `0040_deepseek_reviews` retains exact invocation/artifact and
+active-task guards. Existing MiniMax/default/task bindings, failed attempts and
+unknown-use reserves are preserved. Implemented/deployed source `f613dd9` passes
+**1676 default tests / 62 skipped / 0 failed**, plus 54 focused contracts; compile,
+JavaScript syntax, runtime-module and whitespace checks pass. Ten old migration
+assertions were updated for 0040 and a scheduling fixture now uses the same
+injected clock for lease and completion; production lease policy is unchanged.
+The native page check caught an old auto-filled model ID surviving a connection
+switch; it is fixed and browser-tested. DeepSeek authorization and real Worker
+identity now match, with a focused regression; historical provider identities
+are preserved. Fake four-stage and browser-component checks are not native success.
+
+The isolated instance on 18090/18091/18092 is redeployed with a non-root,
+read-only independent Publisher; four role health checks pass. Before upgrade,
+all five owned host roles and Publisher were stopped, and SQLite/Artifact backups
+saved. All business table counts and immutable hashes survived the migration;
+the final audit preserves 26 immutable tables and all 74 historical files.
+No raw keys are read, credential stores changed by the operator, formal data
+modified, or GitHub writes performed. Native settings now offer DeepSeek with
+the fixed official endpoint and encrypted browser entry. At final observation
+there are zero saved DeepSeek connections/Profiles: real connection testing is
+**blocked/not_run pending user key entry**. The original task still has 30 calls,
+three unknown-use reserves and zero input allowance; no budget or task model is
+reset. See `deepseek-checks.json`, `deepseek-final-deployment.json` and
+`deepseek-audit.json` in the specialty ledger. No UPEVE gate is checked; current
+task stays UPEVE-E04. This addition grants no execution or PR consent.
 
 
 ---

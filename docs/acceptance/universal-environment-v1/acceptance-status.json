@@ -333,50 +333,54 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "176961b43784352147a2c594be90fba8db80edba",
+  "engine_revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1712,
+    "tests": 1738,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1650,
+    "passed": 1676,
     "shards": [
       {
-        "tests": 428,
+        "tests": 375,
         "failures": 0,
         "errors": 0,
-        "skipped": 16,
-        "path": "/tmp/upeve-delivery-shard-0.xml",
-        "sha256": "e7c8e374dc46945a9fa71176ff80f3ca58b8143262b776cea4a8d086d503bb52"
+        "skipped": 2,
+        "passed": 373,
+        "path": "/tmp/upeve-deepseek-shard-0.xml",
+        "sha256": "3ad1848bd8e8e5e7aa0dc5ec6aec03f99743b37084c45cb0cf7a0d7a58b18244"
       },
       {
-        "tests": 428,
+        "tests": 431,
         "failures": 0,
         "errors": 0,
-        "skipped": 24,
-        "path": "/tmp/upeve-delivery-shard-1.xml",
-        "sha256": "5f63e0bcc5819230d48fa932a38a02d766aa8634d1bd2b19429d7f2cbd9625f9"
+        "skipped": 11,
+        "passed": 420,
+        "path": "/tmp/upeve-deepseek-shard-1.xml",
+        "sha256": "4e4704bd70836257771ba6712daa54be42888596ce398b1f0eaeaad93626a4d0"
       },
       {
-        "tests": 428,
+        "tests": 474,
         "failures": 0,
         "errors": 0,
-        "skipped": 16,
-        "path": "/tmp/upeve-delivery-shard-2.xml",
-        "sha256": "8a7cc0cbac5b3b27d0df90134eb5d96e951aa695190e54353757b1e3d24b62db"
+        "skipped": 21,
+        "passed": 453,
+        "path": "/tmp/upeve-deepseek-shard-2.xml",
+        "sha256": "60fe7cf65d47c72cd5e4234612ff8c724aa75ab2229aee607ebeb684384dd232"
       },
       {
-        "tests": 428,
+        "tests": 458,
         "failures": 0,
         "errors": 0,
-        "skipped": 6,
-        "path": "/tmp/upeve-delivery-shard-3.xml",
-        "sha256": "4cd6ce7698e982f58e14b30358b173be906f3ed9475417509037e87d258ae3f8"
+        "skipped": 28,
+        "passed": 430,
+        "path": "/tmp/upeve-deepseek-shard-3.xml",
+        "sha256": "857d090d809c5a7464e6fb2b091ccd77fa6ed0983bf47a8b289c76d98a13d98a"
       }
     ],
-    "revision": "2f78bf17338b713d13b1ee7a376566bcd6ebe879",
-    "evidence": "delivery-checks.json"
+    "revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
+    "evidence": "deepseek-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -385,7 +389,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "delivery-checks.json",
+  "latest_default_evidence": "deepseek-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -395,8 +399,8 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "explicit-model-retry.json",
-  "latest_isolated_deployment": "explicit-retry-final-observation.json",
-  "latest_history_and_security_audit": "explicit-retry-audit.json",
+  "latest_isolated_deployment": "deepseek-final-deployment.json",
+  "latest_history_and_security_audit": "deepseek-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "delivery-replay.json",
   "model_resource_exception": {
@@ -433,8 +437,8 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "explicit-retry-final-observation.json",
-  "latest_targeted_evidence": "explicit-retry-checks.json",
+  "latest_final_observation": "deepseek-audit.json",
+  "latest_targeted_evidence": "deepseek-checks.json",
   "native_current_remaining": {
     "calls": 2,
     "input_tokens": 0,
@@ -448,5 +452,26 @@
     "further_model_calls": "blocked_local_input_allowance_exhausted",
     "limits_raised": false,
     "execution_approved": false
+  },
+  "deepseek_integration": {
+    "status": "implemented_offline_verified_isolated_deployed",
+    "engine_revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
+    "evidence": [
+      "deepseek-checks.json",
+      "deepseek-deployment.json",
+      "deepseek-final-deployment.json",
+      "deepseek-audit.json"
+    ],
+    "models": [
+      "deepseek-v4-pro",
+      "deepseek-flash"
+    ],
+    "base_url": "https://api.deepseek.com",
+    "schema_revision": "0040_deepseek_reviews",
+    "real_model_calls": 0,
+    "real_model_status": "blocked_not_run_missing_saved_connection_or_profile",
+    "global_defaults_changed_by_operator": false,
+    "existing_task_model_or_budget_changed": false,
+    "native_success": false
   }
 }

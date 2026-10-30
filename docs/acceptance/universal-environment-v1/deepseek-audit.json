@@ -1,0 +1,98 @@
+{
+  "version": "upeve-deepseek-preservation-audit-v1",
+  "recorded_at": "2026-10-30T15:19:47.029381+00:00",
+  "engine_revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
+  "historical_files_checked": 74,
+  "changed_historical_files": [],
+  "pre_migration_immutable_rows_preserved": {
+    "provider_invocations": 0,
+    "contribution_tasks": 4,
+    "contribution_task_state_versions": 4,
+    "plan_conversation_entries": 0,
+    "execution_attempts": 0,
+    "execution_stage_versions": 0,
+    "execution_stage_runs": 0,
+    "execution_workspace_disposals": 0,
+    "execution_workspace_disposal_versions": 0,
+    "publish_intents": 0,
+    "publish_confirmations": 0,
+    "pull_request_events": 0,
+    "task_lifecycle_marks": 0,
+    "user_preference_versions": 0,
+    "opportunity_disposition_versions": 0,
+    "coding_sessions": 0,
+    "coding_turns": 0,
+    "agent_invocations": 0,
+    "change_set_proposals": 0,
+    "workbench_events": 467,
+    "draft_pull_requests": 0,
+    "plan_versions": 0,
+    "model_config_versions": 10,
+    "task_visibility_versions": 0,
+    "review_runs": 0,
+    "analysis_versions": 4
+  },
+  "workbench_event_payloads_scanned": 467,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "new_execution_approvals": 0,
+  "original_native_task_plans": 0,
+  "original_native_task_budget": {
+    "version": "planning-budget-v1",
+    "revision": "0409dfc62cec612de6016ad1d31c0c60097a323e2d7b2549f140a899a65f3310",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 30,
+      "input_tokens": 712836,
+      "output_tokens": 35617
+    },
+    "remaining": {
+      "calls": 2,
+      "input_tokens": 0,
+      "output_tokens": 23423
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "deepseek_connections_saved": 0,
+  "deepseek_profiles_saved": 0,
+  "real_deepseek_status": "not_run_missing_saved_connection_or_profile",
+  "real_deepseek_model_calls_by_operator": 0,
+  "raw_credentials_read": false,
+  "existing_task_models_or_budgets_changed_by_operator": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed_unsupported_dynamic_installer",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_baseline_coding_verify_review": "not_run",
+  "credential_pattern_scan": {
+    "sanitized_json_files": 406,
+    "findings": [],
+    "raw_vault_inspected": false
+  }
+}
