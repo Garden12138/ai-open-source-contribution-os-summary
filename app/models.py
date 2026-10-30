@@ -1865,7 +1865,7 @@ class ReviewRun(Base):
         ),
         CheckConstraint(
             "reviewer_kind IN ('fake', 'fake_blocking', 'nvidia_nim', "
-            "'openai_compatible', 'minimax')",
+            "'openai_compatible', 'minimax', 'deepseek')",
             name="ck_review_run_kind",
         ),
         CheckConstraint(

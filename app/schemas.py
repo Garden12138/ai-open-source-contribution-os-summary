@@ -1232,15 +1232,15 @@ class MetaResponse(BaseModel):
     daily_pick_count: int
     timezone: str
     analysis_provider: Literal[
-        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
     ]
     analysis_model: str
     implementation_provider: Literal[
-        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
     ] = "none"
     implementation_model: str
     review_provider: Literal[
-        "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+        "none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
     ] = "none"
     review_model: str
     sandbox_stage_runtime: Literal["none", "fake", "docker"]

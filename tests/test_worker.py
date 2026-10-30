@@ -130,6 +130,7 @@ def test_worker_marks_execution_timeout(tmp_path: Path) -> None:
 
 def test_unified_worker_runs_one_due_daily_scan_from_local_preferences(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
     database = Database(f"sqlite+pysqlite:///{tmp_path / 'scheduled-worker.db'}")
     database.create_schema()
@@ -141,6 +142,9 @@ def test_unified_worker_runs_one_due_daily_scan_from_local_preferences(
     )
     # Keep duplicate/replay probes on one local date even near midnight.
     due_at = datetime.now(timezone.utc).astimezone(ZoneInfo("Asia/Shanghai")).replace(hour=12, minute=0, second=0, microsecond=0)
+    # Completion and heartbeats must use the same injected clock as leasing.
+    # Otherwise a run after noon tests an already-expired lease by accident.
+    monkeypatch.setattr(DiscoveryJobWorker, "_aware", staticmethod(lambda value: value or due_at))
     local_date = due_at.astimezone(ZoneInfo("Asia/Shanghai")).date()
     try:
         with database.session() as session:

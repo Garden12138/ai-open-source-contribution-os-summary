@@ -22,6 +22,9 @@ STAGES = ("analysis", "planning", "implementation", "review")
 MINIMAX_PROVIDER = "minimax"
 MINIMAX_BASE_URL = "https://api.minimax.cn/v1"
 MINIMAX_MODEL = "MiniMax-M3"
+DEEPSEEK_PROVIDER = "deepseek"
+DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+DEEPSEEK_MODELS = ("deepseek-v4-pro", "deepseek-flash")
 
 
 def model_presets() -> list[dict[str, object]]:
@@ -40,7 +43,24 @@ def model_presets() -> list[dict[str, object]]:
                 "reasoning_effort": None,
                 "structured_output": "tools",
             },
-        }
+        },
+        *[
+            {
+                "id": model + "-cn",
+                "name": name + "（国内官方）",
+                "provider": DEEPSEEK_PROVIDER,
+                "base_url": DEEPSEEK_BASE_URL,
+                "model": model,
+                "profile": {
+                    "max_tokens": 16_384,
+                    "timeout_seconds": 300,
+                    "temperature": None,
+                    "reasoning_effort": "high",
+                    "structured_output": "tools",
+                },
+            }
+            for model, name in zip(DEEPSEEK_MODELS, ("DeepSeek V4 Pro", "DeepSeek Flash"))
+        ],
     ]
 
 
@@ -87,7 +107,7 @@ def validate_base_url(value: str) -> str:
 class ConnectionInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=80)
-    provider: Literal["openai_compatible", "nvidia_nim", "minimax", "xcli_local"] = (
+    provider: Literal["openai_compatible", "nvidia_nim", "minimax", "deepseek", "xcli_local"] = (
         "openai_compatible"
     )
     base_url: str = Field(min_length=1, max_length=500)
@@ -115,6 +135,11 @@ class ConnectionInput(BaseModel):
             self.credential_ref is None or self.credential_ref == "env-nvidia"
         ):
             raise ValueError("MiniMax 国内连接必须使用独立保存的 MiniMax API Key")
+        if self.provider == DEEPSEEK_PROVIDER:
+            if self.base_url != DEEPSEEK_BASE_URL:
+                raise ValueError("DeepSeek 国内连接必须使用官方地址")
+            if not self.credential_ref or self.credential_ref == "env-nvidia":
+                raise ValueError("DeepSeek 国内连接必须使用独立保存的 DeepSeek API Key")
         ensure_no_sensitive_data(self.model_dump(), context="model connection")
         return self
 
@@ -284,6 +309,9 @@ class ModelSettingsService:
         from app.providers.contracts import ProviderIdentity
 
         profile = self.profile(identifier)
+        if profile["connection"]["provider"] == DEEPSEEK_PROVIDER:
+            from app.providers.studio import profile_identity
+            return profile_identity(profile)
         return ProviderIdentity(
             provider=profile["connection"]["provider"],
             adapter_version="studio-model-v1",
@@ -361,9 +389,13 @@ def bind_job_model(session: Session, job: Job) -> None:
     profile_id = job.payload.get("model_profile_id")
     expected = job.payload.get("expected_provider", {})
     from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
-    from app.providers.studio import MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION
+    from app.providers.studio import (
+        MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION,
+        DEEPSEEK_ADAPTER_VERSION, DEEPSEEK_PAIRED_ADAPTER_VERSION,
+    )
     if not profile_id and expected.get("adapter_version") in {"studio-model-v1", PAIRED_ANALYSIS_ADAPTER_VERSION,
-            MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION}:
+            MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION,
+            DEEPSEEK_ADAPTER_VERSION, DEEPSEEK_PAIRED_ADAPTER_VERSION}:
         row = session.scalar(
             select(ModelConfigVersion).where(
                 ModelConfigVersion.record_hash == expected.get("model_version")
@@ -467,8 +499,8 @@ def configure_bound_worker(
     if not profile:
         return
     from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
-    from app.providers.studio import MINIMAX_PAIRED_ADAPTER_VERSION
-    paired = analysis and expected_adapter in {PAIRED_ANALYSIS_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION}
+    from app.providers.studio import MINIMAX_PAIRED_ADAPTER_VERSION, DEEPSEEK_PAIRED_ADAPTER_VERSION
+    paired = analysis and expected_adapter in {PAIRED_ANALYSIS_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION, DEEPSEEK_PAIRED_ADAPTER_VERSION}
     runner = runner_for_profile(settings, profile, paired_analysis=paired)
     identity = profile_identity(profile, paired_analysis=paired)
     if analysis:

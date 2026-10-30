@@ -16,6 +16,8 @@ from app.model_settings import (
     DefaultsInput,
     MINIMAX_MODEL,
     MINIMAX_PROVIDER,
+    DEEPSEEK_PROVIDER,
+    DEEPSEEK_MODELS,
     model_presets,
 )
 from app.jobs import JobService
@@ -205,7 +207,7 @@ def register_model_settings_routes(app, get_session, require_mutation_access) ->
             payload.profile.connection_id, "connection"
         )
         provider = connection.payload["provider"]
-        if provider in {"nvidia_nim", MINIMAX_PROVIDER} and (
+        if provider in {"nvidia_nim", MINIMAX_PROVIDER, DEEPSEEK_PROVIDER} and (
             payload.profile.structured_output != "tools"
         ):
             raise HTTPException(422, "此模型适配器使用工具调用结构化响应")
@@ -222,6 +224,11 @@ def register_model_settings_routes(app, get_session, require_mutation_access) ->
                     422,
                     "MiniMax-M3 使用 adaptive thinking，不接受推理强度参数",
                 )
+        if provider == DEEPSEEK_PROVIDER:
+            if payload.profile.model not in DEEPSEEK_MODELS:
+                raise HTTPException(422, "DeepSeek 国内适配器当前支持 deepseek-v4-pro 和 deepseek-flash")
+            if payload.profile.temperature is not None:
+                raise HTTPException(422, "DeepSeek 思考模式不使用 Temperature，请留空")
         return save_version(
             session,
             "profile:" + payload.scope_id,

@@ -370,7 +370,7 @@ class ProviderAnalysisJobWorker:
                 kinds=(PROVIDER_ANALYSIS_JOB_KIND,),
                 exclude_model_bound=self.provider.identity.provider == "fake",
                 exclude_fake_provider=self.provider.identity.provider
-                in {"nvidia_nim", "openai_compatible", "minimax"},
+                in {"nvidia_nim", "openai_compatible", "minimax", "deepseek"},
                 lease_seconds=60,
                 now=started_at,
             )

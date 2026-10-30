@@ -402,7 +402,7 @@ class CodexCLIAdapter:
         max_jsonl_bytes: int = 4_000_000,
     ) -> None:
         if identity.provider not in {
-            "codex_cli", "nvidia_nim", "openai_compatible", "minimax"
+            "codex_cli", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
         }:
             raise ValueError(
                 "Structured analysis identity must use a supported model provider"

@@ -48,7 +48,7 @@ _ACTOR_TYPE = re.compile(r"^[a-z][a-z0-9_.-]{0,39}$")
 _ACTOR_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _MODEL_REVIEWER_KINDS = frozenset(
-    {"nvidia_nim", "openai_compatible", "minimax"}
+    {"nvidia_nim", "openai_compatible", "minimax", "deepseek"}
 )
 _REVIEWER_KINDS = frozenset({"fake", "fake_blocking"}) | _MODEL_REVIEWER_KINDS
 

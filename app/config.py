@@ -202,11 +202,11 @@ class Settings:
         if self.github_retry_max_seconds < 0:
             raise ValueError("GITHUB_RETRY_MAX_SECONDS must be non-negative")
         if self.analysis_provider not in {
-            "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+            "none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
         }:
             raise ValueError(
                 "ANALYSIS_PROVIDER must be 'none', 'fake', 'nvidia_nim', "
-                "'openai_compatible', or 'minimax'"
+                "'openai_compatible', 'minimax', or 'deepseek'"
             )
         for value, name in (
             (self.analysis_model, "ANALYSIS_MODEL"),
@@ -220,11 +220,11 @@ class Settings:
             (self.review_provider, "REVIEW_PROVIDER"),
         ):
             if value not in {
-                "none", "fake", "nvidia_nim", "openai_compatible", "minimax"
+                "none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"
             }:
                 raise ValueError(
                     f"{name} must be 'none', 'fake', 'nvidia_nim', "
-                    "'openai_compatible', or 'minimax'"
+                    "'openai_compatible', 'minimax', or 'deepseek'"
                 )
         if self.sandbox_stage_runtime not in {"none", "fake", "docker"}:
             raise ValueError(

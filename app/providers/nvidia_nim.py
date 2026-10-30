@@ -1058,6 +1058,17 @@ def _completion(
             usage=reported_usage,
         )
     choice = choices[0]
+    if error_prefix == "deepseek" and (
+        reported_usage is None
+        or not isinstance(choice, Mapping)
+        or choice.get("finish_reason") not in {"stop", "tool_calls", "length"}
+    ):
+        raise ProviderRunError(
+            "deepseek_completion_invalid",
+            "DeepSeek completion has no verified final status or usage",
+            retryable=False,
+            usage=reported_usage,
+        )
     message = choice.get("message") if isinstance(choice, Mapping) else None
     content = _tool_call_arguments(message)
     if not isinstance(content, str) or not content.strip():
@@ -1082,7 +1093,7 @@ def _completion(
             usage.get("prompt_tokens", usage.get("input_tokens", 0))
         ),
         "cached_input_tokens": _non_negative_int(
-            usage.get("cached_input_tokens", 0)
+            usage.get("cached_input_tokens", usage.get("prompt_cache_hit_tokens", 0))
         ),
         "output_tokens": _non_negative_int(
             usage.get("completion_tokens", usage.get("output_tokens", 0))

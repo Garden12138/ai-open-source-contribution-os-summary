@@ -69,6 +69,24 @@ Compose 已设置：
 `https://api.minimax.cn/v1`；不能把 NVIDIA 的 `minimaxai/minimax-m3` 模型 ID
 或 `NVIDIA_API_KEY` 用于此连接。
 
+DeepSeek 国内连接在“接口类型”选择“DeepSeek 官方（国内）”，固定使用
+`https://api.deepseek.com` 和独立保存的 API Key。当前支持 `deepseek-v4-pro`
+与 `deepseek-flash`，模型 ID 输入框提供提示。密钥仍由浏览器加密后存入独立
+Gateway，API、任务记录和 Sandbox 不持有原始密钥。
+
+DeepSeek 适配器使用工具调用结构化响应和思考模式；推理强度默认高，低可选，
+中按官方兼容规则映射为高。Temperature 留空。思考模式不支持强制指定函数，
+因此上游使用 `tool_choice=auto`，返回值仍经过原有的完整结构和领域校验；
+没有合法最终状态、用量、JSON 或引用时失败，不补造结果。每次阶段调用独立提交
+证据文本，不重放上游 assistant/tool 对话；私有推理不存入业务记录。
+输出上限和任务累计预算保持原约束，未知用量的预留不会因换供应商释放。
+
+参数依据：[官方接入说明](https://api-docs.deepseek.com/quick_start)、
+[Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion)、
+[思考模式](https://api-docs.deepseek.com/guides/thinking_mode/)。预置不会更改已保存的
+全局选择或现有任务。切换服务商时请创建新连接并填写相应密钥，随后保存模型、
+测试连接，再选择对应功能；已有任务需要在任务模型设置中明确切换。
+
 1. 添加连接：名称、接口类型、Base URL、API Key。自定义地址形如
    `https://models.example.com/v1`；仅允许公共域名、HTTPS 443，拒绝本机／内网／
    metadata 地址、URL 凭证、查询参数和跳转。暂不支持本地 Ollama 或任意代理地址。

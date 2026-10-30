@@ -25,6 +25,8 @@ from app.model_settings import (
     ModelSettingsError,
     MINIMAX_BASE_URL,
     MINIMAX_MODEL,
+    DEEPSEEK_BASE_URL,
+    DEEPSEEK_MODELS,
     model_presets,
     job_profile,
 )
@@ -69,10 +71,11 @@ def configure(
             base_url={
                 "nvidia_nim": "https://integrate.api.nvidia.com/v1",
                 "minimax": MINIMAX_BASE_URL,
+                "deepseek": DEEPSEEK_BASE_URL,
             }.get(provider, "https://models.example.com/v1"),
             credential_ref=(
                 credential_ref
-                or ("cred-" + "1" * 32 if provider == "minimax" else "env-nvidia")
+                or ("cred-" + "1" * 32 if provider in {"minimax", "deepseek"} else "env-nvidia")
             ),
         ).model_dump(),
         None,
@@ -712,6 +715,7 @@ def test_studio_runner_parses_gateway_error():
         ("openai_compatible", "model-one"),
         ("nvidia_nim", "model-one"),
         ("minimax", MINIMAX_MODEL),
+        ("deepseek", DEEPSEEK_MODELS[0]),
     ],
 )
 def test_profile_gateway_binds_endpoint_and_structured_result(
@@ -719,7 +723,7 @@ def test_profile_gateway_binds_endpoint_and_structured_result(
 ):
     store = GatewaySecretStore(str(tmp_path / "private"), environment_key=CANARY)
     credential_ref = None
-    if provider == "minimax":
+    if provider in {"minimax", "deepseek"}:
         grant = store.grant("minimax-gateway")
         credential_ref = store.save(
             "minimax-gateway", envelope(store, grant)
@@ -826,7 +830,7 @@ def test_profile_gateway_binds_endpoint_and_structured_result(
 
 @pytest.mark.parametrize(
     ("provider", "model"),
-    [("openai_compatible", "model-one"), ("minimax", MINIMAX_MODEL)],
+    [("openai_compatible", "model-one"), ("minimax", MINIMAX_MODEL), ("deepseek", DEEPSEEK_MODELS[0])],
 )
 def test_four_stages_use_task_profiles_and_global_changes_do_not_break_execution(
     tmp_path, provider, model

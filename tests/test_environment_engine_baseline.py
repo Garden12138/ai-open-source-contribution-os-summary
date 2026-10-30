@@ -109,7 +109,7 @@ def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch)
         backup = tmp_path / "v38-backup.db"
         with sqlite3.connect(db.engine.url.database) as src, sqlite3.connect(backup) as dst:
             src.backup(dst)
-    assert db.create_schema().applied == ("0039_environment_contracts",)
+    assert db.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews")
     with db.session() as session:
         assert [(e.id, e.record_hash) for e in Workbench(session, settings.artifact_root).history(task)] == old
 
@@ -117,7 +117,7 @@ def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch)
         assert session.connection().exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
         assert not session.connection().exec_driver_sql("PRAGMA foreign_key_check").all()
     restored = Database("sqlite:///" + str(backup))
-    assert restored.create_schema().applied == ("0039_environment_contracts",)
+    assert restored.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews")
     with restored.session() as session:
         assert [(e.id, e.record_hash) for e in Workbench(session, settings.artifact_root).history(task)] == old
 

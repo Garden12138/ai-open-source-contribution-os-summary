@@ -13,6 +13,8 @@ from app.model_settings import (
     ProfileInput,
     ConnectionInput,
     MINIMAX_PROVIDER,
+    DEEPSEEK_PROVIDER,
+    DEEPSEEK_MODELS,
     validate_base_url,
 )
 from app.provenance import canonical_json, content_hash
@@ -50,12 +52,16 @@ class UnconfiguredModelUpstream:
 
 MINIMAX_ADAPTER_VERSION = "studio-minimax-adaptive-v2"
 MINIMAX_PAIRED_ADAPTER_VERSION = PAIRED_ANALYSIS_ADAPTER_VERSION + "-minimax-adaptive-v2"
+DEEPSEEK_ADAPTER_VERSION = "studio-deepseek-thinking-v1"
+DEEPSEEK_PAIRED_ADAPTER_VERSION = PAIRED_ANALYSIS_ADAPTER_VERSION + "-deepseek-thinking-v1"
 
 
 def profile_identity(profile: dict, *, paired_analysis: bool = False) -> ProviderIdentity:
     adapter_version = PAIRED_ANALYSIS_ADAPTER_VERSION if paired_analysis else "studio-model-v1"
     if profile["connection"]["provider"] == MINIMAX_PROVIDER:
         adapter_version = MINIMAX_PAIRED_ADAPTER_VERSION if paired_analysis else MINIMAX_ADAPTER_VERSION
+    if profile["connection"]["provider"] == DEEPSEEK_PROVIDER:
+        adapter_version = DEEPSEEK_PAIRED_ADAPTER_VERSION if paired_analysis else DEEPSEEK_ADAPTER_VERSION
     return ProviderIdentity(
         provider=profile["connection"]["provider"],
         adapter_version=adapter_version,
@@ -227,7 +233,7 @@ class StudioRunner(NvidiaNimGatewayRunner):
                 data,
                 error_prefix=provider,
                 provider_label=(
-                    "MiniMax" if provider == MINIMAX_PROVIDER else "模型服务"
+                    {MINIMAX_PROVIDER: "MiniMax", DEEPSEEK_PROVIDER: "DeepSeek"}.get(provider, "模型服务")
                 ),
             )
             ensure_no_sensitive_data(content, context="model output")
@@ -412,6 +418,16 @@ class ProfileUpstream:
                 continue
             if profile.get(field) is not None:
                 request[field] = profile[field]
+        if provider == DEEPSEEK_PROVIDER:
+            if profile["model"] not in DEEPSEEK_MODELS or profile["structured_output"] != "tools":
+                raise ProviderRunError("deepseek_profile_invalid", "DeepSeek 模型或结构化响应配置无效", retryable=False)
+            # Each stage is a fresh request with evidence in the user message,
+            # not an upstream assistant/tool transcript requiring private CoT.
+            request["thinking"] = {"type": "enabled"}
+            request["reasoning_effort"] = "low" if profile.get("reasoning_effort") == "low" else "high"
+            request.pop("temperature", None)  # Ignored in thinking mode.
+            if request.get("tools"):
+                request["tool_choice"] = "auto"  # Forced choice is unsupported with thinking.
         if provider == "nvidia_nim":
             params = analysis_parameters_for_model(profile["model"])
             request["stream"] = params.stream

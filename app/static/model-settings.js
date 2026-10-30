@@ -59,13 +59,14 @@ export function mountModelSettings(root,options) {
     const c=connectionEdit?.payload || {};
     const scopeId=connectionEdit?.scope.split(":").slice(1).join(":") || crypto.randomUUID();
     const name=field(form,"name","连接名称","text",c.name || ""); name.required=true; name.placeholder="例如：我的模型服务";
-    const provider=selectField(form,"provider","接口类型",[["minimax","MiniMax 官方（国内）"],["openai_compatible","OpenAI 兼容 API"],["nvidia_nim","NVIDIA NIM"],...(data.xcli_local_endpoint || c.provider==="xcli_local" ? [["xcli_local","xcli 本机网关（上游可能在云端）"]] : [])],c.provider || "openai_compatible");
+    const provider=selectField(form,"provider","接口类型",[["deepseek","DeepSeek 官方（国内）"],["minimax","MiniMax 官方（国内）"],["openai_compatible","OpenAI 兼容 API"],["nvidia_nim","NVIDIA NIM"],...(data.xcli_local_endpoint || c.provider==="xcli_local" ? [["xcli_local","xcli 本机网关（上游可能在云端）"]] : [])],c.provider || "openai_compatible");
     const url=field(form,"base_url","Base URL","url",c.base_url || ""); url.required=true; url.placeholder="https://api.example.com/v1";
     const syncEndpoint=()=>{
       if(provider.value==="nvidia_nim") url.value="https://integrate.api.nvidia.com/v1";
       if(provider.value==="minimax") url.value="https://api.minimax.cn/v1";
+      if(provider.value==="deepseek") url.value="https://api.deepseek.com";
       if(provider.value==="xcli_local") url.value=data.xcli_local_endpoint || c.base_url || "";
-      url.readOnly=["nvidia_nim","minimax","xcli_local"].includes(provider.value);
+      url.readOnly=["nvidia_nim","minimax","deepseek","xcli_local"].includes(provider.value);
     };
     provider.addEventListener("change",syncEndpoint);syncEndpoint();
     const secret=field(form,"secret","API Key","password"); secret.autocomplete="new-password";
@@ -77,7 +78,7 @@ export function mountModelSettings(root,options) {
     let pendingEnvelope=null;
     secret.addEventListener("input",()=>{pendingEnvelope=null;});
     form.addEventListener("submit",event=>{event.preventDefault(); run(save,async()=>{
-      if(c.provider!==provider.value && [c.provider,provider.value].includes("xcli_local") && !secret.value && !pendingEnvelope) throw new Error("切换 xcli 连接必须填写独立应用 Token。");
+      if(c.provider && c.provider!==provider.value && !secret.value && !pendingEnvelope) throw new Error("切换模型服务必须填写该服务的独立 API Key。");
       let reference=c.credential_ref || null;
       if(secret.value || pendingEnvelope) {
         if(!pendingEnvelope) { const grant=await mutate("/api/v1/model-connections/credential-grants",{connection_id:scopeId}); pendingEnvelope=await sealCredential(secret.value.trim(),grant); secret.value=""; }
@@ -106,25 +107,38 @@ export function mountModelSettings(root,options) {
     if(p.connection_id && !connectionChoices.some(v=>v[0]===p.connection_id)) connectionChoices.push([p.connection_id,"此前绑定的连接版本"]);
     selectField(pf,"connection_id","使用连接",connectionChoices,p.connection_id || connectionChoices[0][0]);
     const model=field(pf,"model","模型 ID","text",p.model || ""); model.required=true; model.placeholder="服务商提供的完整模型 ID"; model.setAttribute("list","studio-model-catalog");
-    const catalog=el("datalist");catalog.id="studio-model-catalog"; for(const id of testJob?.result_data?.models || []) catalog.append(Object.assign(el("option"),{value:id}));pf.append(catalog);
+    const catalog=el("datalist");catalog.id="studio-model-catalog"; for(const id of new Set([...(testJob?.result_data?.models || []),...(data.presets || []).map(p=>p.model)])) catalog.append(Object.assign(el("option"),{value:id}));pf.append(catalog);
     const structured=selectField(pf,"structured_output","结构化响应",[["tools","工具调用（默认）"],["json_schema","JSON Schema"]],p.structured_output || "tools");
     const advanced=el("details");advanced.append(el("summary","高级参数"));const af=el("div");advanced.append(af);pf.append(advanced);
     const tokens=field(af,"max_tokens","输出 Token 上限","number",p.max_tokens || 8192);tokens.min=256;tokens.max=65536;
     const timeout=field(af,"timeout_seconds","单次调用超时（秒）","number",p.timeout_seconds || 180);timeout.min=10;timeout.max=600;
     const temperature=field(af,"temperature","Temperature（留空由服务商决定）","number",p.temperature ?? "");temperature.min=0;temperature.max=1;temperature.step=.1;
     const reasoning=selectField(af,"reasoning_effort","推理强度（模型支持时）",[["","默认"],["low","低"],["medium","中"],["high","高"]],p.reasoning_effort || "");
+    let previousProvider=null;
     const syncCapabilities=()=>{
       const selected=data.connections.find(c=>c.id===pf.elements.connection_id.value)?.payload.provider;
-      structured.disabled=["nvidia_nim","minimax"].includes(selected);if(structured.disabled)structured.value="tools";
+      const preset=(data.presets || []).find(p=>p.provider===selected);
+      const automaticModel=(data.presets || []).some(p=>p.model===model.value);
+      if(preset && (!model.value || (!profileEdit && selected!==previousProvider && automaticModel))) {
+        model.value=preset.model;
+        if(selected==="deepseek" && !profileEdit) {
+          tokens.value=preset.profile.max_tokens;timeout.value=preset.profile.timeout_seconds;
+          reasoning.value=preset.profile.reasoning_effort || "";
+        }
+      }
+      structured.disabled=["nvidia_nim","minimax","deepseek"].includes(selected);if(structured.disabled)structured.value="tools";
       reasoning.disabled=selected==="minimax";if(reasoning.disabled)reasoning.value="";
+      temperature.disabled=selected==="deepseek";if(temperature.disabled)temperature.value="";
       if(selected==="minimax" && !model.value) model.value="MiniMax-M3";
+      if(selected==="deepseek" && !model.value) model.value="deepseek-v4-pro";
+      previousProvider=selected;
     };
     pf.elements.connection_id.addEventListener("change",syncCapabilities);syncCapabilities();
     const psave=action(profileEdit ? "保存模型新版本" : "添加模型",()=>{});psave.type="submit";
     const pa=el("div","","settings-actions settings-wide");pa.append(psave);if(profileEdit)pa.append(action("取消编辑",()=>{profileEdit=null;render();}));pf.append(pa);
     pf.addEventListener("submit",event=>{event.preventDefault();run(psave,async()=>{
       const values=Object.fromEntries(new FormData(pf));values.max_tokens=Number(values.max_tokens);values.timeout_seconds=Number(values.timeout_seconds);
-      values.temperature=values.temperature==="" ? null : Number(values.temperature);values.reasoning_effort=values.reasoning_effort || null;
+      values.temperature=values.temperature==null || values.temperature==="" ? null : Number(values.temperature);values.reasoning_effort=values.reasoning_effort || null;
       const saved=await mutate("/api/v1/model-profiles",{scope_id:profileEdit?.scope.slice(8) || crypto.randomUUID(),expected_hash:profileEdit?.record_hash || null,profile:values});
       if(!data.version) await mutate("/api/v1/model-settings",{expected_hash:null,settings:{default:saved.id}},"PUT");
       profileEdit=null;

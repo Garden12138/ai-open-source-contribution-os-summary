@@ -1,4 +1,5 @@
 from app.migrations.core import Migration
+from app.migrations.versions.v0040_deepseek_reviews import MIGRATION as DEEPSEEK_REVIEWS
 from app.migrations.versions.v0039_environment_contracts import MIGRATION as ENVIRONMENT_CONTRACTS
 from app.migrations.versions.v0038_agent_runtime_v2 import MIGRATION as AGENT_RUNTIME_V2
 from app.migrations.versions.v0034_execution_baselines import MIGRATION as EXECUTION_BASELINES
@@ -131,6 +132,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     BASELINE_FEEDBACK,
     AGENT_RUNTIME_V2,
     ENVIRONMENT_CONTRACTS,
+    DEEPSEEK_REVIEWS,
 )
 
 __all__ = ["MIGRATIONS"]

@@ -790,6 +790,27 @@ forward migration. Do not edit Review rows, provider identities, triggers or
 migration stamps to downgrade. The Gateway credential volume is unchanged by
 this migration and must remain separately protected.
 
+### `0040_deepseek_reviews`
+
+Rebuilds only `review_runs` to admit `deepseek` as a model-backed reviewer.
+Every existing row and hash is copied unchanged. New DeepSeek rows require an
+exact review-role invocation whose provider is `deepseek`; immutable row,
+artifact/provenance, uniqueness, active-task and foreign-key guards remain.
+Connection/Profile configuration still uses the existing versioned JSON schema.
+
+Before upgrading, stop API, workers and Publisher and save a consistent SQLite
+backup using the backup API together with its Artifact tree. On failure retain
+the failed copy and restore that pair with the previous application version;
+check `PRAGMA integrity_check` and `PRAGMA foreign_key_check`. If new records have
+been created, preserve them and repair forward. Never remove migration stamps,
+edit immutable Review rows or weaken invocation guards to downgrade. Gateway
+and Publisher credential stores remain separate and are not migrated.
+
+`tests/test_deepseek.py` upgrades a populated 0039 Review fixture, checks rows,
+hashes, immutable/provenance guards and foreign keys, and restores its backup.
+The four-stage provider contract verifies the new reviewer path with offline
+fixtures; this does not establish a real DeepSeek or native Agent acceptance.
+
 ### Explicit task erasure (2026-09-10)
 
 User-authorized permanent deletion supersedes the earlier retention policy for

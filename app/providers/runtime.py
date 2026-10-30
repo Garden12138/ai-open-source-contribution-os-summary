@@ -16,7 +16,7 @@ from app.sandbox_worker.specs import JobSpecSigner
 
 
 SUPPORTED_ANALYSIS_PROVIDERS = frozenset(
-    {"none", "fake", "nvidia_nim", "openai_compatible", "minimax"}
+    {"none", "fake", "nvidia_nim", "openai_compatible", "minimax", "deepseek"}
 )
 
 
@@ -27,7 +27,7 @@ def resolve_analysis_runtime(
 ) -> tuple[AnalysisProvider | None, AnalysisBudget | None]:
     """Attach a request-safe provider identity and budget, or stay rule-only."""
 
-    if settings.analysis_provider in {"none", "openai_compatible", "minimax"}:
+    if settings.analysis_provider in {"none", "openai_compatible", "minimax", "deepseek"}:
         # Compatible profiles are resolved from immutable database configuration.
         return None, None
     if settings.analysis_provider == "fake":
@@ -53,7 +53,7 @@ def resolve_analysis_runtime(
         )
     raise ValueError(
         "ANALYSIS_PROVIDER must be 'none', 'fake', 'nvidia_nim', "
-        "'openai_compatible', or 'minimax'"
+        "'openai_compatible', 'minimax', or 'deepseek'"
     )
 
 
