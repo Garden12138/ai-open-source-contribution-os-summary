@@ -316,7 +316,7 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "5e54b73283c7aedf8629617d7ca6cac4a2e6d17b",
+  "engine_revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
     "tests": 1692,
@@ -359,7 +359,7 @@
       }
     ],
     "evidence": "budget-reservation-checks.json",
-    "revision": "pending_local_commit"
+    "revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -378,7 +378,7 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "adaptive-live-retest.json",
-  "latest_isolated_deployment": "adaptive-deployment.json",
+  "latest_isolated_deployment": "budget-reservation-deployment.json",
   "latest_history_and_security_audit": "budget-reservation-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json"
 }

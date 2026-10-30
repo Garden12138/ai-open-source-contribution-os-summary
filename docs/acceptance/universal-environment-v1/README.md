@@ -751,3 +751,5 @@ the saved MiniMax Profile and all defaults remain at 8192 until then. Increasing
 that cap would not retroactively pass an original U attempt or prove delivery.
 
 Final [regression receipt](budget-reservation-checks.json): **1630 passed / 62 skipped / 0 failed**. One old text assertion failed in the first run; the original failed XML is retained, its entire shard passed after the text expectation update. [Preservation audit](budget-reservation-audit.json) retains all 74 historical files, 71/165 original historical events, N5/N7/N8 first 36/37/40 events and zero execution approvals. Canary scan passes. These do not pass native/generalization gates.
+
+[32fdeb5 隔离部署](budget-reservation-deployment.json)确认五个自有角色在零活动 Job 时重启，18090/18091/18092/18080 健康；正式数据未动。[真实任务只读观察](budget-reservation-live.json)确认已知用量与未知预留分别展示，手机页面无溢出，无新模型调用或审批。[16K 规划提案](planning-cap-proposal.md)已具体化但未应用，须由用户另行决定；当前原 Profile 和默认仍为 8192。

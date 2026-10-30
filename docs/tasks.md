@@ -5153,6 +5153,14 @@ All historical files/events and N5/N7/N8 first events pass preservation audit.
 See [checks](acceptance/universal-environment-v1/budget-reservation-checks.json);
 no original native outcome or stage gate is promoted.
 
+Budget-maintenance code `32fdeb5` is now deployed only to the isolated five roles;
+all four trial service health checks pass. Actual native-page read-only observation
+confirms unknown-call reserves; no additional model calls or approvals occurred.
+The exact [planning-only 16K proposal](acceptance/universal-environment-v1/planning-cap-proposal.md)
+is saved but not applied. Only this resource-dependent retest awaits explicit user
+direction; the original Profile/defaults/task totals remain unchanged. This is an
+exception decision under UPEVE spec section 2, not stage continuation permission.
+
 
 ---
 

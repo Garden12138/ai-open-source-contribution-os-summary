@@ -98,5 +98,6 @@
   "model_profile_changed": false,
   "actual_model_calls_for_these_checks": 0,
   "external_writes": 0,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124"
 }
