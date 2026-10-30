@@ -1,0 +1,83 @@
+{
+  "version": "upeve-read-budget-final-audit-v1",
+  "recorded_at": "2026-10-30T16:41:00.470491+00:00",
+  "engine_revision": "72cf875e11822b45051f5837b16cf9234c82c964",
+  "approved_proposal_hash": "dd328a3327c374bd59541e0dcfbf3ea5ea3151f46cf0eedd1c84ca6ca08e44a0",
+  "approval_hash": "cd674d790d2fc4ae3bb7e054759171deac17afdae8df5fb68cf8d9846331f5f2",
+  "historical_files_preserved": 74,
+  "historical_events": [
+    {
+      "task_id": "6727af39-e005-4551-a1ad-93ecf1ad1015",
+      "original_events_preserved": 71
+    },
+    {
+      "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+      "original_events_preserved": 165
+    }
+  ],
+  "pre_request_events_preserved": 162,
+  "prior_jobs_preserved": 38,
+  "actual_request_journal_events_preserved": 26,
+  "terminal_failed_job_preserved": true,
+  "new_native_requests": 1,
+  "actual_model_calls": 3,
+  "native_model_calls_after_maintenance": 0,
+  "active_jobs": 0,
+  "new_execution_approvals": 0,
+  "plan_count": 0,
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "2de720ac0cdb6c6ede2e537d01b7bbf1330dc7509bd2281549f0affadc0f7ca9",
+    "record_hash": "6d5d483184208cc24bc3a6d3f2b03155e0bd4331a2b941c388fde523a5b70ef5",
+    "limits": {
+      "calls": 38,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 33,
+      "input_tokens": 724615,
+      "output_tokens": 38279
+    },
+    "remaining": {
+      "calls": 5,
+      "input_tokens": 1925385,
+      "output_tokens": 120761
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_after_maintenance": "not_run",
+  "raw_credentials_read": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "sanitized_json_files_before_this_audit": 416,
+    "findings": [],
+    "raw_vault_inspected": false
+  }
+}

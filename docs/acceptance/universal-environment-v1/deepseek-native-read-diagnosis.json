@@ -1,0 +1,44 @@
+{
+  "version": "upeve-deepseek-read-budget-diagnosis-v1",
+  "recorded_at": "2026-10-30T16:33:46.609764+00:00",
+  "native_result_sha256": "e9a54b534cbf32188ddf57e58ca418d7017257d7152e249ca6e1053bd91da7c4",
+  "failed_job_id": "da18df58-89fd-4891-b4a1-6e82d5a82bbd",
+  "actual_model_calls": 3,
+  "actual_read_results": 5,
+  "read_kind": "context_reference",
+  "configured_read_cap": 6,
+  "remaining_read_slots": 1,
+  "third_checkpoint": "a731f8cd004a3c9b9b1652c16eb4991832f7818b654029465e77811d7ea113bc",
+  "remaining_calls_in_third_prompt": 2,
+  "remaining_reads_field_present": false,
+  "reconstructed_old_schema_batch_cap": 3,
+  "new_schema_batch_cap": 1,
+  "last_rejected_read_batch_raw_retained": false,
+  "last_batch_count_inference": "conversation_tool_budget proves more than one new unique read was requested; exact raw list/count was not retained",
+  "network_status": "three_upstream_HTTP200_with_known_usage",
+  "no_plan_or_workflow_dispatched": true,
+  "fix_scope": "Expose durable remaining read allowance to runtime prompt/schema/parser and use the existing bounded correction for rejected batches; keep the final server-side quota guard.",
+  "limits_changed": false,
+  "extra_model_correction_slots_added": 0,
+  "max_calls_still": 4,
+  "max_reads_still": 6,
+  "max_corrections_still": 1,
+  "new_native_calls_after_fix": 0,
+  "new_native_requests_after_failure": 0,
+  "native_success": false,
+  "upstream_status_observations": {
+    "source": "/tmp/upeve-isolated-20261029-v2/final-model-gateway.log",
+    "local_time_window": "2026-10-31T00:24:00+08:00/2026-10-31T00:25:06+08:00",
+    "http_statuses": [
+      200,
+      200,
+      200
+    ],
+    "status_line_sha256": [
+      "e981fd890fde87d892b36cf616c404e2b2c44c302a4c1de69caa42993e9833ae",
+      "26c4054278be39e3e73f0e2be8aa364f07a689f2199424822e3c542f0ffdc659",
+      "d9b1ec6dec0da2c3f5a1d7a3ee29527c79a0e712f669d763fdbec345b39f9367"
+    ],
+    "correlation": "Three native calls and three upstream successful status lines during the quiet matching interval; no upstream request IDs retained"
+  }
+}

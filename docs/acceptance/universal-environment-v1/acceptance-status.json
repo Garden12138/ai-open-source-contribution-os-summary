@@ -290,9 +290,12 @@
         "explicit-retry-checks.json",
         "explicit-model-retry.json",
         "explicit-retry-final-observation.json",
-        "explicit-retry-audit.json"
+        "explicit-retry-audit.json",
+        "deepseek-native-planning.json",
+        "deepseek-native-read-diagnosis.json",
+        "read-budget-checks.json"
       ],
-      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending. Request 2 makes three calls and then context admission fails before call 4, no Plan (26 lifetime). Generic preview/partial-delivery control is proven only in tests/clone (99,905 to 94,544 bytes). Latest explicit continue may resume the same round-3 lineage after deployment, without resetting any limit or starting a third fresh request. Same second-request lineage resumes at frozen round 3, actual limited delivery admits at 94,544 bytes. It later rejects invalid references/read-round overreach and ends with model_gateway_transport_failure (HTTP200 upstream then local Gateway502; exact read/parse/guard cause unknown). Two follow-ups total 11 actual calls, no Plan; lifetime29, two unknown usage allowances retained. No ambiguous POST replay. All native first outcomes remain unchanged. A later explicit same-frozen-step retry makes one actual call and fails upstream HTTP402 (exact balance versus plan limit unknown), no Plan. Lifetime30; three unknown usage allowances exhaust local input. No further model call or budget change occurs; native first outcomes remain unchanged."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending. Request 2 makes three calls and then context admission fails before call 4, no Plan (26 lifetime). Generic preview/partial-delivery control is proven only in tests/clone (99,905 to 94,544 bytes). Latest explicit continue may resume the same round-3 lineage after deployment, without resetting any limit or starting a third fresh request. Same second-request lineage resumes at frozen round 3, actual limited delivery admits at 94,544 bytes. It later rejects invalid references/read-round overreach and ends with model_gateway_transport_failure (HTTP200 upstream then local Gateway502; exact read/parse/guard cause unknown). Two follow-ups total 11 actual calls, no Plan; lifetime29, two unknown usage allowances retained. No ambiguous POST replay. All native first outcomes remain unchanged. A later explicit same-frozen-step retry makes one actual call and fails upstream HTTP402 (exact balance versus plan limit unknown), no Plan. Lifetime30; three unknown usage allowances exhaust local input. No further model call or budget change occurs; native first outcomes remain unchanged. Exact user-approved DeepSeek D request makes three HTTP200 calls, then fails conversation_tool_budget before planning; five reads, no Plan or native delivery. Generic remaining-read prompt/schema/parser maintenance passes offline checks; native effectiveness after it is not_run. One request is closed without automatic retry; lifetime33 and old unknown reserves are retained."
     },
     {
       "id": "UE-T25",
@@ -333,54 +336,54 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
+  "engine_revision": "72cf875e11822b45051f5837b16cf9234c82c964",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1738,
+    "tests": 1744,
+    "passed": 1682,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1676,
     "shards": [
       {
-        "tests": 375,
+        "tests": 391,
         "failures": 0,
         "errors": 0,
         "skipped": 2,
-        "passed": 373,
-        "path": "/tmp/upeve-deepseek-shard-0.xml",
-        "sha256": "3ad1848bd8e8e5e7aa0dc5ec6aec03f99743b37084c45cb0cf7a0d7a58b18244"
+        "passed": 389,
+        "path": "/tmp/upeve-read-budget-shard-0.xml",
+        "sha256": "b3ac2978405390bec279dcaebf1c11d1f16df665f9277526f3334d11b2db6686"
       },
       {
-        "tests": 431,
+        "tests": 430,
         "failures": 0,
         "errors": 0,
         "skipped": 11,
-        "passed": 420,
-        "path": "/tmp/upeve-deepseek-shard-1.xml",
-        "sha256": "4e4704bd70836257771ba6712daa54be42888596ce398b1f0eaeaad93626a4d0"
+        "passed": 419,
+        "path": "/tmp/upeve-read-budget-shard-1.xml",
+        "sha256": "b2792f3313994875e38369ecaec2de38dfdf472100a72f3299218712999eb5ad"
       },
       {
-        "tests": 474,
+        "tests": 478,
         "failures": 0,
         "errors": 0,
         "skipped": 21,
-        "passed": 453,
-        "path": "/tmp/upeve-deepseek-shard-2.xml",
-        "sha256": "60fe7cf65d47c72cd5e4234612ff8c724aa75ab2229aee607ebeb684384dd232"
+        "passed": 457,
+        "path": "/tmp/upeve-read-budget-shard-2.xml",
+        "sha256": "f54cd7bd006243e7fcdecdd2689c4c30ea840737eb7ac3bfc0684971bf8d6093"
       },
       {
-        "tests": 458,
+        "tests": 445,
         "failures": 0,
         "errors": 0,
         "skipped": 28,
-        "passed": 430,
-        "path": "/tmp/upeve-deepseek-shard-3.xml",
-        "sha256": "857d090d809c5a7464e6fb2b091ccd77fa6ed0983bf47a8b289c76d98a13d98a"
+        "passed": 417,
+        "path": "/tmp/upeve-read-budget-shard-3.xml",
+        "sha256": "a2acc7a10f7f61b803deebb3d22743f9101301c4fbd4799d8705e6273653fddc"
       }
     ],
-    "revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
-    "evidence": "deepseek-checks.json"
+    "revision": "72cf875e11822b45051f5837b16cf9234c82c964",
+    "evidence": "read-budget-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -389,7 +392,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "deepseek-checks.json",
+  "latest_default_evidence": "read-budget-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -398,9 +401,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "explicit-model-retry.json",
-  "latest_isolated_deployment": "deepseek-final-deployment.json",
-  "latest_history_and_security_audit": "deepseek-audit.json",
+  "latest_native_retest": "deepseek-native-planning.json",
+  "latest_isolated_deployment": "read-budget-deployment.json",
+  "latest_history_and_security_audit": "read-budget-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "delivery-replay.json",
   "model_resource_exception": {
@@ -428,21 +431,21 @@
     "terminal_reason": "model_gateway_transport_failure_unknown_outcome"
   },
   "native_current_known_usage": {
-    "calls": 30,
-    "input_tokens": 712836,
-    "output_tokens": 35617
+    "calls": 33,
+    "input_tokens": 724615,
+    "output_tokens": 38279
   },
   "native_current_unknown_reserves": {
     "input_tokens": 1350000,
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "deepseek-real-connection.json",
-  "latest_targeted_evidence": "deepseek-checks.json",
+  "latest_final_observation": "read-budget-deployment.json",
+  "latest_targeted_evidence": "read-budget-checks.json",
   "native_current_remaining": {
-    "calls": 2,
-    "input_tokens": 0,
-    "output_tokens": 23423
+    "calls": 5,
+    "input_tokens": 1925385,
+    "output_tokens": 120761
   },
   "explicit_user_retry": {
     "evidence": "explicit-model-retry.json",
@@ -481,17 +484,30 @@
   },
   "latest_real_model_connection_evidence": "deepseek-real-connection.json",
   "deepseek_native_acceptance": {
-    "status": "task_models_switched_blocked_exact_budget_approval",
+    "status": "one_approved_request_closed_failed_before_planning",
     "evidence": [
       "deepseek-native-model-switch.json",
       "deepseek-native-budget-proposal.json",
-      "deepseek-native-preflight-audit.json"
+      "deepseek-native-preflight-audit.json",
+      "deepseek-native-budget-approval.json",
+      "deepseek-native-planning.json",
+      "deepseek-native-read-diagnosis.json",
+      "read-budget-checks.json",
+      "read-budget-deployment.json",
+      "read-budget-final-audit.json"
     ],
     "proposal_hash": "dd328a3327c374bd59541e0dcfbf3ea5ea3151f46cf0eedd1c84ca6ca08e44a0",
     "model_binding_hash": "91b7782d7210e5c8dac9adfb42dff6f033d58fc517b3e9ef211fa598dbb1b9ca",
-    "budget_raised": false,
-    "actual_model_calls": 0,
+    "budget_raised": true,
+    "actual_model_calls": 3,
     "execution_approved": false,
-    "native_first_outcomes_unchanged": true
+    "native_first_outcomes_unchanged": true,
+    "approval_hash": "cd674d790d2fc4ae3bb7e054759171deac17afdae8df5fb68cf8d9846331f5f2",
+    "fresh_request_count": 1,
+    "terminal_reason": "conversation_tool_budget",
+    "plan_count": 0,
+    "remaining_calls": 5,
+    "automatic_second_request_authorized": false,
+    "native_after_read_budget_fix": "not_run"
   }
 }

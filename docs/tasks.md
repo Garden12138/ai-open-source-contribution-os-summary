@@ -5405,6 +5405,51 @@ not authorize it. Evidence: `deepseek-native-model-switch.json`,
 Only the resource-dependent native request waits. UPEVE-E04 and prior failed /
 blocked / not_run gates remain unchanged.
 
+Exact DeepSeek budget consent (2026-10-31 local): user “确认” approves proposal
+`dd328a33...08e44a0`; approval hash `cd674d79...331f5f2` binds the source,
+Profile, model selection and 38 / 4M / 200K lifetime limits. The native API appends
+the budget version without changing 30 prior calls or any known/unknown use.
+One fresh original-goal request is dispatched, with no execution authorization.
+
+Actual result: **three real DeepSeek calls, all upstream HTTP200**, then Job
+`da18df58-89fd-4891-b4a1-6e82d5a82bbd` fails `conversation_tool_budget` in
+conversation routing, before a planning workflow is dispatched. Five
+context-reference reads are recorded; there is no Plan, source-code test,
+Baseline, Coding, Verify or independent Review. The exact final rejected read
+list was not retained. Five existing reads, the six-read guard and the error
+prove more than one new read was requested; the exact batch count is unknown.
+The actual checkpoint has two calls remaining but no remaining-read field;
+the frozen runtime schema still advertises up to three reads per response.
+See `deepseek-native-planning.json` and `deepseek-native-read-diagnosis.json`.
+
+The one approved fresh request is now closed after its terminal failure; unused
+call capacity is not automatic consent to dispatch another. Lifetime known use
+is 33 calls / 724,615 input / 38,279 output; held use stays 1,350,000 input /
+40,960 output across three unknown calls. Remainder is five calls / 1,925,385
+input / 120,761 output. The original failure, source and all prior records remain.
+
+Generic maintenance exposes the durable remaining read allowance in the v4
+prompt, schema and parser. An oversized batch executes no read and can use only
+the existing correction allowance; the last server-side quota guard remains.
+Four calls / six reads / one correction, consumed continuation allowances,
+lifetime limits, stale-input and authorization rules stay unchanged. Legacy
+prompt/schema defaults are unchanged. Focused contracts pass for five reads +
+oversized batch, zero-read FINAL, and restart; they are Fake component evidence,
+not a repaired native journey. Completed source `72cf875` passes **1682 default
+tests / 62 skipped / 0 failed**, plus **92 focused contracts**, compileall,
+runtime integrity and whitespace checks. The isolated five host roles are
+restarted, all children and four health endpoints verified; Publisher interfaces
+are unchanged and its separate image/credentials are retained. The original
+failed Job and entire native journal remain unchanged after restart, with no
+new model call, Plan or execution approval. The audit preserves 74 historical
+files, 71/165 historical events, 162 pre-request task events and 38 prior Jobs;
+integrity/foreign-key and sanitized evidence/canary-pattern checks pass.
+See `read-budget-checks.json`, `read-budget-deployment.json` and
+`read-budget-final-audit.json`. Repair effectiveness in a new native request is
+**not_run**. No additional model request or failed-POST replay occurs. E3 Node
+remains failed, Linux amd64 blocked, and native Baseline/Coding/Verify/Review
+unverified. No phase gate is promoted; current task remains UPEVE-E04.
+
 
 ---
 
