@@ -4,6 +4,13 @@
 
 ## 1. 系统结构
 
+V2 规划 prompt 中，文件索引已携带 `prior_hash` 与 `context_reference` 时，
+引用目录共享同一 hash，避免重复序列化。权威 checkpoint 的 `references` 仍
+保留完整 hash/label/bytes 并逐项验证原工件；这只改变给模型的投影，不改变
+读取契约、当前源码页、旧 checkpoint 或 v1 wire。压缩仍不能清预算、增加读取
+轮数或突破 96 KB；不足以容纳必要事实时继续明确阻断。无 SQL 表变化，无结构
+迁移；旧 artifacts 保持可读，回退不会回写历史。
+
 规划预算仍以任务不可变 journal 为准。失败 Provider 响应若带合法用量，追加
 `planning-failed-usage-v1` 收据；没有收据的终止调用单独列为 `unknown_calls`，
 按调用原输出上限及输入上限保守预留。`usage` 只表示有收据的已知用量；

@@ -5161,6 +5161,37 @@ is saved but not applied. Only this resource-dependent retest awaits explicit us
 direction; the original Profile/defaults/task totals remain unchanged. This is an
 exception decision under UPEVE spec section 2, not stage continuation permission.
 
+User-approved resource exception (2026-10-30): explicit “同意” authorizes the
+exact proposal `50d46b44cfac323e080c4ae0fa9c1c70eeeacaa3cebf1af6e31c3eb2a1e3d0a7`.
+Native API creates immutable 16K Profile `61150063-8a7b-48bb-a865-21c42036d3a4`
+(hash `0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7`),
+only for N8 task planning. Old Profile, defaults, other stages, 180-second timeout
+and 32 / 2M / 100K task totals remain unchanged. This exception does not permit
+execution or publication. The single authorized read-only request is reconciled
+by its exact idempotency key (HTTP202 is normal asynchronous admission, not an
+engine failure); no duplicate request is sent.
+
+Actual 16K retest makes one MiniMax call (24,517 input / 396 output), then stops
+before its next model call with the existing 96 KB context guard. Terminal Job
+`27c7567f-3e99-415c-b7e3-0c8ad6b2d21f` has no Plan. Lifetime receipts now 18 calls /
+424,842 input / 22,255 output; old unknown reserves 450,000 / 8,192 remain separate.
+The request is terminal; no further actual model call is made under that one
+request approval. First native outcomes stay 0/4, separately 0/15 baselines.
+
+An isolated actual-payload clone reproduces 96,836 prompt bytes, including
+source hashes duplicated in evidence entries and reference metadata. V2 prompt
+projection now shares that hash once at the matching evidence entry; the complete
+checkpoint reference manifest used for validation is unchanged. Exact current
+read pages, rules, request and all other fields survive byte-for-byte. Same clone
+reaches the no-model diagnostic hook at 94,361 bytes under the unchanged 96,000
+hard limit. V1 reference wire remains unchanged. This is a component fix only;
+native improvement is unverified. Full checks/deployment are recorded separately;
+no UPEVE stage gate is closed, and current task remains UPEVE-E04.
+
+Shared-hash final regression: 1632 passed / 62 skipped / 0 failed;
+62 focused contracts and actual-payload clone checks pass. Preservation/
+canary/resource audit passes. No additional actual model request is dispatched.
+
 
 ---
 

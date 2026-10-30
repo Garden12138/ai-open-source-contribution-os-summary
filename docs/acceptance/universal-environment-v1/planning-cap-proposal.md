@@ -1,6 +1,8 @@
-# 本次任务的规划输出上限提案（未应用）
+# 本次任务的规划输出上限提案（已按用户同意应用）
 
-现状：MiniMax-M3 最后一条规划 Job `038eb98e-3b06-4d88-87f9-d23eda9ff214`
+2026-10-30 用户已明确同意；[批准记录](planning-cap-approval.json)与[实际结果](planning-cap-live-retest.json)保存执行事实。以下为原提案内容，JSON 原件及 hash 保持不变。
+
+提案时现状：MiniMax-M3 最后一条规划 Job `038eb98e-3b06-4d88-87f9-d23eda9ff214`
 在 8192 completion token 上限处截断，没有 Plan。模型/令牌连接已可用。
 [原始 D 失败](adaptive-live-retest.json)与[真实预算投影](budget-reservation-live.json)
 保留；提高上限不保证成功，不会重写首次 U 失败。

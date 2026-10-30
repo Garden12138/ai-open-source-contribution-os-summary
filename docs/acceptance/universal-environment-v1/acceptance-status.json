@@ -273,9 +273,13 @@
         "native-cohort8-selection.json",
         "native-cohort8-results.json",
         "foundation-live-retest.json",
-        "adaptive-live-retest.json"
+        "adaptive-live-retest.json",
+        "planning-cap-approval.json",
+        "planning-cap-live-retest.json",
+        "current-read-diagnosis.json",
+        "shared-hash-replay.json"
       ],
-      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged."
     },
     {
       "id": "UE-T25",
@@ -319,47 +323,47 @@
   "engine_revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1692,
+    "tests": 1694,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1630,
+    "passed": 1632,
     "shards": [
       {
-        "tests": 423,
+        "tests": 424,
         "failures": 0,
         "errors": 0,
         "skipped": 10,
-        "path": "/tmp/upeve-budget-shard-0.xml",
-        "sha256": "8b47e1381a947de488973ebc9ef3ffeab37d82d976cee70648479926a5d200fc"
+        "path": "/tmp/upeve-shared-hash-shard-0.xml",
+        "sha256": "36e2d8d4b82331f0e2750784b139215c2b76d6a0403dca74c4db30fa17e1c4d1"
       },
       {
-        "tests": 423,
+        "tests": 424,
         "failures": 0,
         "errors": 0,
         "skipped": 19,
-        "path": "/tmp/upeve-budget-shard-1.xml",
-        "sha256": "ef620bbd3b481dfc3c751002876e7de2caa24a27d02cdfc603a9ddbbd6885cd2"
+        "path": "/tmp/upeve-shared-hash-shard-1.xml",
+        "sha256": "c3da0ca56f23a358bac884428e9e9a9b9dc94f1eec2665e883fa5034a1786da9"
       },
       {
         "tests": 423,
         "failures": 0,
         "errors": 0,
         "skipped": 13,
-        "path": "/tmp/upeve-budget-shard-2.xml",
-        "sha256": "bf2e9cb67dc0828da8286c84296d1dfd7579e9ceb09364fc6498a111276318c6"
+        "path": "/tmp/upeve-shared-hash-shard-2.xml",
+        "sha256": "975cbee19afa94a74b2b5f4ae08ae87f5e38a419f8b9a56dd3416a6565e05da7"
       },
       {
         "tests": 423,
         "failures": 0,
         "errors": 0,
         "skipped": 20,
-        "path": "/tmp/upeve-budget-shard-3.xml",
-        "sha256": "723fc1158c10967f62984898bb633a188432347b4c44e43c25869e9db230ade3"
+        "path": "/tmp/upeve-shared-hash-shard-3.xml",
+        "sha256": "e222646cb21a2980e87b94ac9a8981f607e9b99a7f127fc0343a40973b6a08af"
       }
     ],
-    "evidence": "budget-reservation-checks.json",
-    "revision": "32fdeb56f22fe48a1aa1dcebfaaf34256ab31124"
+    "revision": "pending_local_commit",
+    "evidence": "shared-hash-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -368,7 +372,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "budget-reservation-checks.json",
+  "latest_default_evidence": "shared-hash-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -377,8 +381,17 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "adaptive-live-retest.json",
+  "latest_native_retest": "planning-cap-live-retest.json",
   "latest_isolated_deployment": "budget-reservation-deployment.json",
-  "latest_history_and_security_audit": "budget-reservation-audit.json",
-  "diagnosis_correction": "baseline-schema-replay.json"
+  "latest_history_and_security_audit": "shared-hash-audit.json",
+  "diagnosis_correction": "baseline-schema-replay.json",
+  "latest_context_component": "shared-hash-replay.json",
+  "model_resource_exception": {
+    "proposal_hash": "50d46b44cfac323e080c4ae0fa9c1c70eeeacaa3cebf1af6e31c3eb2a1e3d0a7",
+    "scope": "one_isolated_task_planning_only",
+    "max_completion_tokens": 16384,
+    "one_authorized_request_finished": true,
+    "execution_approved": false,
+    "evidence": "planning-cap-approval.json"
+  }
 }

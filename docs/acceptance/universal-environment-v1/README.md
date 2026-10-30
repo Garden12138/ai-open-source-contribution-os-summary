@@ -753,3 +753,36 @@ that cap would not retroactively pass an original U attempt or prove delivery.
 Final [regression receipt](budget-reservation-checks.json): **1630 passed / 62 skipped / 0 failed**. One old text assertion failed in the first run; the original failed XML is retained, its entire shard passed after the text expectation update. [Preservation audit](budget-reservation-audit.json) retains all 74 historical files, 71/165 original historical events, N5/N7/N8 first 36/37/40 events and zero execution approvals. Canary scan passes. These do not pass native/generalization gates.
 
 [32fdeb5 隔离部署](budget-reservation-deployment.json)确认五个自有角色在零活动 Job 时重启，18090/18091/18092/18080 健康；正式数据未动。[真实任务只读观察](budget-reservation-live.json)确认已知用量与未知预留分别展示，手机页面无溢出，无新模型调用或审批。[16K 规划提案](planning-cap-proposal.md)已具体化但未应用，须由用户另行决定；当前原 Profile 和默认仍为 8192。
+
+
+## User-approved task-only 16K retest and shared source hashes
+
+The user explicitly approved the exact proposal. [Resource consent](planning-cap-approval.json)
+binds its hash; [actual API/run receipt](planning-cap-live-retest.json) verifies
+new Profile hash, task-only planning binding and unchanged defaults/old Profile/
+other stages/timeout/task totals. Consent does not approve implementation or
+publication. A launcher initially expected HTTP200 instead of normal HTTP202;
+the exact existing Job was reconciled without repeating the request. The earlier
+automatic tool approval timeout executed nothing; one allowed retry succeeded.
+
+Actual result: **one** additional MiniMax call, 24,517 input / 396 output. It then
+fails on context admission before the second call, no Plan. Current totals are
+18 calls / 424,842 input / 22,255 output; original unknown reserves remain
+450,000 input / 8,192 output. Last terminal Job is
+`27c7567f-3e99-415c-b7e3-0c8ad6b2d21f`, not the preceding assistant read request.
+No Baseline/Coding/Verify/Review or human execution approval exists. The authorized
+single request is finished; no further actual model calls are made this round.
+
+[Clone diagnosis](current-read-diagnosis.json) reproduces 96,836 bytes, including
+32 source hashes already carried by evidence entries but repeated in the model's
+reference directory. V2 now shares those hash fields by matching reference ID;
+full checkpoint manifests still contain and validate every hash. All explicit
+current reads, rules, inputs and plan fields stay exact. V1 uses its old wire.
+[Before/after clone replay](shared-hash-replay.json) keeps all four exact read
+results and all 44 full reference records unchanged, reduces the model prompt
+to 94,361 bytes, and reaches an intentional diagnostic stop without a real model.
+This is a component admission improvement only. The source/approval/security/
+96 KB hard cap/read rounds/lifetime limits remain in force. Native effectiveness
+is **unverified**, and original 0/4 native / 0/15 environment outcomes stay failed.
+
+Final [shared-hash regression](shared-hash-checks.json): **1632 passed / 62 skipped / 0 failed**, plus 62 focused contracts. Compileall and diff checks pass. [Preservation/resource audit](shared-hash-audit.json) verifies all historical files/first events, exact approved new Profile, unchanged original/defaults/other stages, one actual call and zero execution approvals. No acceptance gate is promoted.

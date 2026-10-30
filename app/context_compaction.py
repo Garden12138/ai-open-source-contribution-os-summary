@@ -325,6 +325,21 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
             result.pop("text")
             result["text_indexed"] = True
             body["context_management"]["references"] = list(references.values())
+    if page_source_files and isinstance(evidence, dict):
+        # A repository entry already carries its source hash next to the exact
+        # reference ID. Share that fact in the prompt, while the checkpoint's
+        # full reference manifest remains authoritative for read validation.
+        source_hashes = {entry.get("context_reference"): entry.get("prior_hash")
+            for entry in evidence.get("entries", [])
+            if isinstance(entry.get("prior_hash"), str) and entry.get("context_reference")}
+        if source_hashes:
+            body["context_management"]["references"] = [
+                {key: value for key, value in item.items() if key != "source_hash"}
+                if source_hashes.get(item["reference_id"]) == item["source_hash"] else item
+                for item in references.values()]
+            body["context_management"]["read_rule"] += (
+                " Shared repository source hashes are carried by evidence.entries[].prior_hash next to the matching context_reference."
+            )
     ensure_no_sensitive_data(body, context="compacted prompt")
     prompt = canonical_json(body)
     prompt_bytes = len(prompt.encode())
