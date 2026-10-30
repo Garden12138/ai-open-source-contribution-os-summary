@@ -694,3 +694,27 @@ sampled foundation files inline at 62,094 bytes instead of four indexed at
 42 focused contracts and [full regression](foundation-checks.json) **1620 passed /
 62 skipped / 0 failed** pass. Isolated deployment and D model measurement
 follow. No additional gate is passed.
+
+
+## Provider-native reasoning hypothesis, within existing limits
+
+[Actual foundation D retest](foundation-live-retest.json) confirms five complete
+short declarations in all five actual model prompts, maximum 82,784 bytes. It
+still exhausts reference/read limits after five calls / 12 lifetime, no Plan.
+This is a projection component improvement, not native delivery.
+
+[Provider policy notes](minimax-adaptive-policy.json) link primary MiniMax API
+docs: M3 defaults to adaptive thinking, while our forced-tool adapter disables
+it. A versioned MiniMax adapter now retains the native default with identical
+model/Profile, forced structured output, 8192 completion cap including thinking,
+180-second timeout and lifetime limits. Total reported completion usage remains
+counted; hidden reasoning is not saved/exposed. No native interleaved-thinking
+transcript is introduced into provider-neutral business state. Transport no
+longer replays ambiguous completion POSTs; bounded idempotent GET retries remain.
+Old paired/unpaired identities/history remain distinct from the new versions.
+
+87 focused provider/analysis-wire/NVIDIA contracts pass, including forced-tool
+parameters, hidden-reasoning separation/full completion usage and single-POST
+versus safe GET retry behavior. [Full regression](adaptive-checks.json) passes
+**1624 / 62 skipped / 0 failed**. A bounded N8 D test follows; native improvement
+is unproven and original first outcomes remain unchanged.

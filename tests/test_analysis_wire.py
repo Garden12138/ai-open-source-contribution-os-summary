@@ -165,4 +165,5 @@ def test_queued_analysis_keeps_frozen_adapter_and_model_binding(tmp_path, paired
     configure_bound_worker(worker, job_id, Settings(), analysis=True)
     assert worker.provider.identity == identity
     assert worker.provider.runner.paired_analysis == paired
-    assert identity.adapter_version == (PAIRED_ANALYSIS_ADAPTER_VERSION if paired else "studio-model-v1")
+    from app.providers.studio import MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION
+    assert identity.adapter_version == (MINIMAX_PAIRED_ADAPTER_VERSION if paired else MINIMAX_ADAPTER_VERSION)

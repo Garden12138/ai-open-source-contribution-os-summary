@@ -361,7 +361,9 @@ def bind_job_model(session: Session, job: Job) -> None:
     profile_id = job.payload.get("model_profile_id")
     expected = job.payload.get("expected_provider", {})
     from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
-    if not profile_id and expected.get("adapter_version") in {"studio-model-v1", PAIRED_ANALYSIS_ADAPTER_VERSION}:
+    from app.providers.studio import MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION
+    if not profile_id and expected.get("adapter_version") in {"studio-model-v1", PAIRED_ANALYSIS_ADAPTER_VERSION,
+            MINIMAX_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION}:
         row = session.scalar(
             select(ModelConfigVersion).where(
                 ModelConfigVersion.record_hash == expected.get("model_version")
@@ -465,7 +467,8 @@ def configure_bound_worker(
     if not profile:
         return
     from app.providers.analysis_wire import PAIRED_ANALYSIS_ADAPTER_VERSION
-    paired = analysis and expected_adapter == PAIRED_ANALYSIS_ADAPTER_VERSION
+    from app.providers.studio import MINIMAX_PAIRED_ADAPTER_VERSION
+    paired = analysis and expected_adapter in {PAIRED_ANALYSIS_ADAPTER_VERSION, MINIMAX_PAIRED_ADAPTER_VERSION}
     runner = runner_for_profile(settings, profile, paired_analysis=paired)
     identity = profile_identity(profile, paired_analysis=paired)
     if analysis:

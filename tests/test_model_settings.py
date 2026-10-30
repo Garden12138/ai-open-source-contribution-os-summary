@@ -428,7 +428,8 @@ def test_minimax_preset_is_credential_free_and_uses_fixed_domestic_endpoint():
         )
 
 
-def test_minimax_profile_maps_official_m3_request_parameters(tmp_path):
+@pytest.mark.parametrize("forced_tool", [False, True])
+def test_minimax_profile_maps_official_m3_request_parameters(tmp_path, forced_tool):
     store = GatewaySecretStore(str(tmp_path / "private"))
     grant = store.grant("minimax-request")
     credential_ref = store.save(
@@ -463,6 +464,8 @@ def test_minimax_profile_maps_official_m3_request_parameters(tmp_path):
         "reasoning_effort": "high",
         "tools": [{"type": "function", "function": {"name": "result"}}],
     }
+    if forced_tool:
+        payload["tool_choice"] = {"type": "function", "function": {"name": "result"}}
     result = asyncio.run(
         ProfileUpstream(profile, store, transport=Transport()).create_response(payload)
     )
@@ -478,7 +481,44 @@ def test_minimax_profile_maps_official_m3_request_parameters(tmp_path):
     assert "max_tokens" not in request
     assert "reasoning_effort" not in request
     assert request["tools"] == payload["tools"]
+    assert request.get("tool_choice") == payload.get("tool_choice")
     db.close()
+
+
+def test_minimax_structured_result_does_not_expose_reasoning_and_counts_total_output():
+    from app.providers.nvidia_nim import _completion, STRUCTURED_OUTPUT_TOOL_NAME
+    result, usage = _completion({'choices':[{'finish_reason':'tool_calls','message':{
+        'reasoning_content':'PRIVATE_REASONING_SENTINEL', 'content':None,
+        'tool_calls':[{'type':'function','function':{'name':STRUCTURED_OUTPUT_TOOL_NAME,
+            'arguments':'{"ok":true}'}}]}}],
+        'usage':{'prompt_tokens':1234,'completion_tokens':7000}}, error_prefix='minimax')
+    assert result=='{"ok":true}' and 'PRIVATE_REASONING_SENTINEL' not in result
+    assert usage['input_tokens']==1234 and usage['output_tokens']==7000
+
+
+@pytest.mark.parametrize('completion', [True, False])
+def test_public_transport_never_replays_ambiguous_completion_posts(monkeypatch, completion):
+    calls=[]
+    actual_client=httpx.AsyncClient
+    def handler(request):
+        calls.append(request.method)
+        if completion:
+            raise httpx.ReadError('ambiguous response',request=request)
+        return httpx.Response(503 if len(calls)==1 else 200,json={'data':[]})
+    monkeypatch.setattr(socket,'getaddrinfo',lambda *a,**k:[(socket.AF_INET,socket.SOCK_STREAM,6,'',('93.184.216.34',443))])
+    monkeypatch.setattr('app.providers.studio.httpx.AsyncClient',
+        lambda **kw:actual_client(**kw,transport=httpx.MockTransport(handler)))
+    async def no_delay(*args):pass
+    monkeypatch.setattr('app.providers.studio.asyncio.sleep',no_delay)
+    async def run():
+        return await PublicHTTPSClient().request('https://api.minimax.cn/v1',
+            '/chat/completions' if completion else '/models',credential='fake-test-key',
+            payload={'model':'MiniMax-M3'} if completion else None)
+    if completion:
+        with pytest.raises(ProviderRunError) as caught:asyncio.run(run())
+        assert caught.value.code=='model_transport_failed' and calls==['POST']
+    else:
+        assert asyncio.run(run())=={'data':[]} and calls==['GET','GET']
 
 
 def test_minimax_profile_contract_and_default_apply_to_all_stages(tmp_path):

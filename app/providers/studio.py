@@ -48,10 +48,17 @@ class UnconfiguredModelUpstream:
         )
 
 
+MINIMAX_ADAPTER_VERSION = "studio-minimax-adaptive-v2"
+MINIMAX_PAIRED_ADAPTER_VERSION = PAIRED_ANALYSIS_ADAPTER_VERSION + "-minimax-adaptive-v2"
+
+
 def profile_identity(profile: dict, *, paired_analysis: bool = False) -> ProviderIdentity:
+    adapter_version = PAIRED_ANALYSIS_ADAPTER_VERSION if paired_analysis else "studio-model-v1"
+    if profile["connection"]["provider"] == MINIMAX_PROVIDER:
+        adapter_version = MINIMAX_PAIRED_ADAPTER_VERSION if paired_analysis else MINIMAX_ADAPTER_VERSION
     return ProviderIdentity(
         provider=profile["connection"]["provider"],
-        adapter_version=PAIRED_ANALYSIS_ADAPTER_VERSION if paired_analysis else "studio-model-v1",
+        adapter_version=adapter_version,
         model=profile["model"],
         model_version=profile["record_hash"],
     )
@@ -297,7 +304,10 @@ class PublicHTTPSClient:
         ip = ipv4_ips[0] if ipv4_ips else ips[0]
         authority = "[" + ip + "]" if ":" in ip else ip
         url = "https://" + authority + parsed.path.rstrip("/") + suffix
-        for attempt in range(3):
+        # Completion POSTs are not idempotent: retrying an ambiguous response
+        # can spend the task's token budget twice without a second receipt.
+        attempts = 1 if payload is not None else 3
+        for attempt in range(attempts):
             try:
                 async with httpx.AsyncClient(
                     trust_env=False, follow_redirects=False, timeout=timeout
@@ -321,7 +331,7 @@ class PublicHTTPSClient:
                                 529: "model_rate_limited",
                             }.get(response.status_code, "model_upstream_failed")
                             retryable = response.status_code in {429, 502, 503, 504, 529}
-                            if retryable and attempt < 2:
+                            if retryable and attempt + 1 < attempts:
                                 await asyncio.sleep(1.5 * (attempt + 1))
                                 continue
                             raise ProviderRunError(
@@ -345,7 +355,7 @@ class PublicHTTPSClient:
                         )
                         return result
             except (httpx.TransportError, ValueError):
-                if attempt < 2:
+                if attempt + 1 < attempts:
                     await asyncio.sleep(1.5 * (attempt + 1))
                     continue
                 raise ProviderRunError(
@@ -391,10 +401,9 @@ class ProfileUpstream:
         if provider == MINIMAX_PROVIDER:
             request.pop("reasoning_effort", None)
             request["max_completion_tokens"] = output_limit
-            if request.get("tool_choice"):
-                request["thinking"] = {"type": "disabled"}
-            else:
-                request["thinking"] = {"type": "adaptive"}
+            # Native M3 default also applies to structured function outputs.
+            # The existing completion cap includes reasoning; no extra budget.
+            request["thinking"] = {"type": "adaptive"}
             request["reasoning_split"] = True
         else:
             request["max_tokens"] = output_limit

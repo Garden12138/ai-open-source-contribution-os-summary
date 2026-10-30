@@ -1,0 +1,56 @@
+{
+  "version": "upeve-adaptive-checks-v1",
+  "recorded_at": "2026-10-30T02:28:44.431644+00:00",
+  "focused": {
+    "passed": 87,
+    "failures": 0,
+    "xml": "/tmp/upeve-adaptive-focused.xml"
+  },
+  "default": {
+    "tests": 1686,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1624,
+    "shards": [
+      {
+        "tests": 422,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 10,
+        "path": "/tmp/upeve-adaptive-shard-0.xml",
+        "sha256": "1970b0c0290783f4db575e3b1669edf70569788e6835e855ae28985b0fa79b31"
+      },
+      {
+        "tests": 422,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 20,
+        "path": "/tmp/upeve-adaptive-shard-1.xml",
+        "sha256": "d4eaf5fb4839463965e8d082a4bfc238b2ec11ab781557df15dfd209bd0d2468"
+      },
+      {
+        "tests": 421,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-adaptive-shard-2.xml",
+        "sha256": "3a615499630ba2f903a7d5514a01190ce0fa22e4a6dfe8022c438f8c15c2d2fb"
+      },
+      {
+        "tests": 421,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 20,
+        "path": "/tmp/upeve-adaptive-shard-3.xml",
+        "sha256": "b2605765bb4457b56703e0ef957fc9101afb54ae63eb74a4b2d9cdea25c01d6a"
+      }
+    ]
+  },
+  "compileall": "passed",
+  "diff_check": "passed",
+  "profile_changed": false,
+  "limits_and_approvals_changed": false,
+  "policy_evidence": "minimax-adaptive-policy.json",
+  "native_deliveries": 0
+}

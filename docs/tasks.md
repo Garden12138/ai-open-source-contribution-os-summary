@@ -5087,7 +5087,7 @@ source/model access, with the same star/license/size/public/non-fork/reproducer
 bounds; preceding first targets are not replaced. Product scan selects its real
 Snapshot and Task, native read/plan control captures the exact observed base and
 uses the frozen MiniMax Profile. Seven model calls exhaust four read rounds,
-then bounded repair ends with no Plan. All 39 first event IDs/hashes remain.
+then bounded repair ends with no Plan. All 40 first event IDs/hashes remain.
 First native deliveries are now **0/4**, separate from environment baselines
 0/15. [First N8 result](acceptance/universal-environment-v1/native-cohort8-results.json)
 remains failed; subsequent maintenance makes N8 permanently D.
@@ -5104,6 +5104,26 @@ regression pass. [Real-payload clone](acceptance/universal-environment-v1/founda
 retains all five sampled foundation files inline at 62,094 bytes (before: four
 indexed at 56,285 bytes), under the same 96,000-byte ceiling; zero real model
 calls/live writes, not native success. D retest follows.
+
+
+`ea28deb` actual N8 D retest proves all five short declarations remain exact
+in each model prompt (maximum 82,784 bytes), but still ends at a read/reference
+limit with no Plan after five calls / 12 lifetime. First N8 40 event IDs/hashes
+remain unchanged. This is a passed projection component, not native delivery.
+
+Further provider inspection finds forced tool requests disable M3 thinking.
+Official MiniMax API docs describe adaptive thinking as its native default.
+A versioned adapter now uses adaptive thinking for structured output, keeping
+the same model/Profile, 8192 completion-token cap (including thinking), 180-second
+timeout and lifetime limits. Hidden reasoning is neither stored nor displayed;
+only total reported completion usage is counted. Ambiguous completion POSTs
+are no longer replayed by transport; GET catalog retries remain bounded.
+Known paired/unpaired bindings recognize new adapter versions; old identities
+and historical evidence are unchanged and cannot silently approve new behavior.
+[Policy/source notes](acceptance/universal-environment-v1/minimax-adaptive-policy.json)
+state this remains a hypothesis for native reliability. 87 focused provider,
+analysis-wire and NVIDIA contracts plus full **1624 passed / 62 skipped /
+0 failed** regression pass; native D test follows.
 
 
 ---

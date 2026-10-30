@@ -55,5 +55,6 @@
   "read_round_limit": 4,
   "limits_and_approvals_changed": false,
   "hash_verification_required": true,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "ea28deb8e0c45ff851a6ff88c1347f732dc85017"
 }

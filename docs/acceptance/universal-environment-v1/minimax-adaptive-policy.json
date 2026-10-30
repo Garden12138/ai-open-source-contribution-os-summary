@@ -1,0 +1,23 @@
+{
+  "version": "upeve-minimax-adaptive-policy-v1",
+  "recorded_at": "2026-10-30T02:22:22.484324+00:00",
+  "classification": "provider_adapter_hypothesis_component_verified_native_not_yet_measured",
+  "official_sources": [
+    "https://platform.minimax.io/docs/api-reference/text-openai-api",
+    "https://platform.minimax.io/docs/api-reference/text-chat-openai"
+  ],
+  "source_summary": "Official MiniMax docs describe M3 adaptive thinking as native default, tools as supported, and generation length as capped including thinking. Interleaved multi-turn transcripts are distinct from our independent provider-neutral state-projection calls.",
+  "before": "All forced function-output requests disabled M3 thinking.",
+  "after": "Use native adaptive thinking with the same forced structured output, model, Profile, max_completion_tokens and timeout. Do not persist or display hidden reasoning; usage counts the full reported completion.",
+  "adapter_versions": {
+    "single": "studio-minimax-adaptive-v2",
+    "paired": "versioned existing paired format plus minimax-adaptive-v2"
+  },
+  "profile_changed": false,
+  "max_completion_tokens": 8192,
+  "timeout_seconds": 180,
+  "lifetime_limits_changed": false,
+  "transport_retry_policy": "Do not replay completion POSTs after ambiguous response or overload; retain bounded retries for idempotent GET catalog reads.",
+  "native_improvement_proven": false,
+  "independent_review_or_approval_bypassed": false
+}
