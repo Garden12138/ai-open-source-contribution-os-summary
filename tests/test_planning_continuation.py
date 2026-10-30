@@ -145,7 +145,7 @@ def test_recovery_never_resurrects_a_stale_user_request(tmp_path, interruption):
         assert not w.latest(task, "agent_planning_continued")
 
 
-def failed_model_step(tmp_path):
+def failed_model_step(tmp_path, *, error_code='model_gateway_upstream_failure', error_message='safe model failure'):
     from app.agent_runtime import activate
     from app.jobs import JobService
     db,s,task,content,_=seeded(tmp_path)
@@ -159,7 +159,7 @@ def failed_model_step(tmp_path):
         data={**initial.payload,'round':2,'repair_round':1,'pending_plan':content.hash_payload()}
         failed=w.enqueue(task,'planning_turn',data,key='frozen-model-failure',max_attempts=1)
         j=jobs.lease_next(worker_id='model-failure',kinds=('planning_turn',));jobs.start(j.id,worker_id='model-failure')
-        jobs.fail(j.id,worker_id='model-failure',error_code='model_gateway_upstream_failure',error_message='safe model failure')
+        jobs.fail(j.id,worker_id='model-failure',error_code=error_code,error_message=error_message)
         w.append(task,'model_call',{'input_hash':'a'*64},key='prior-call')
         w.append(task,'conversation_usage',{'version':'conversation-v1','usage':{'input_tokens':123,'output_tokens':17}},key='prior-usage')
         frozen=failed.payload.copy();failed_id=failed.id
@@ -197,17 +197,20 @@ def test_continue_resumes_frozen_planning_before_chat_and_preserves_budgets(tmp_
         assert planning_usage(w,task)['calls']==2
 
 
-@pytest.mark.parametrize('stale', ['context','budget','pause'])
-def test_readonly_planning_retry_rejects_stale_or_exhausted_state(tmp_path,stale):
+@pytest.mark.parametrize('stale', ['context','budget','pause','model'])
+@pytest.mark.parametrize('failure_kind', ['model','context'])
+def test_readonly_planning_retry_rejects_stale_or_exhausted_state(tmp_path,stale,failure_kind):
     from app.planning_continuation import resume_failed_model_planning
     from app.workbench import WorkbenchError
-    db,s,task,_,_,_=failed_model_step(tmp_path)
+    db,s,task,_,_,_=failed_model_step(tmp_path,**({'error_code':'planning_context_limit'} if failure_kind=='context' else {}))
     with db.session() as session:
         w=Workbench(session,s.artifact_root)
         if stale=='context':
             e=w.latest(task,'context_ready');w.append(task,'context_ready',e.payload,key='new-context')
         elif stale=='pause':
             w.append(task,'conversation_paused',{'version':'conversation-v1'},key='pause-before-retry')
+        elif stale=='model':
+            w.append(task,'model_changed',{'planning_profile_id':'different-profile'},key='changed-model')
         else:
             for i in range(31):w.append(task,'model_call',{'input_hash':'b'*64},key=f'exhaust-{i}',commit=False)
         source=w.append(task,'conversation_received',{'version':'conversation-v1','text':'继续'},key='direct-source',actor='local-user')
@@ -218,6 +221,25 @@ def test_readonly_planning_retry_rejects_stale_or_exhausted_state(tmp_path,stale
         else:assert resume_failed_model_planning(w,task,source) is None
         assert len(w.jobs(task))==before
         assert not w.latest(task,'execution_authorized')
+
+
+@pytest.mark.parametrize('legacy', [False,True])
+def test_continue_resumes_context_admission_without_resetting_the_same_read_lineage(tmp_path,legacy):
+    from app.jobs import JobService
+    db,s,task,_,failed_id,frozen=failed_model_step(tmp_path,
+        error_code='planning_turn_failed' if legacy else 'planning_context_limit',
+        error_message='规划上下文已达上限')
+    send(db,s,task,'继续',key='context-admission-continue')
+    with db.session() as session:
+        w=Workbench(session,s.artifact_root)
+        receipt=w.latest(task,'planning_model_retry_requested')
+        retry=JobService(session).get(receipt.job_id)
+        assert retry.payload==frozen and retry.payload['round']==2 and retry.payload['repair_round']==1
+        assert JobService(session).get(failed_id).state=='failed'
+        assert receipt.payload['failed_job_id']==failed_id and not receipt.payload['execution_authorized']
+        assert not any(j.kind=='conversation_intent' for j in w.jobs(task))
+        assert w.latest(task,'execution_authorized') is None
+    db.close()
 
 
 @pytest.mark.parametrize('later', ['结果呢','stop','change'])

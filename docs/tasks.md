@@ -5234,6 +5234,35 @@ Read-count maintenance regression: 1638 passed / 62 skipped /
 0 failed; 50 focused contracts, compileall, diff and preservation/canary
 checks pass. Native improvement remains unverified before request 2.
 
+Request 2 makes three actual MiniMax calls, then fails context admission before
+its fourth call: legal individual pages combine into a 99,905-byte prompt in an
+actual-payload clone. [Initial failure](acceptance/universal-environment-v1/readonly-followup-2-context-failure.json)
+is saved separately before any continuation. Lifetime is 26 calls / 649,359 input /
+34,852 output; unknown reserves remain. No Plan or native delivery exists.
+
+Delivery maintenance now previews without writing artifacts/events, then bounds
+only newly gathered, not-yet-delivered page prefixes to the existing 96 KB input
+cap. UTF-8 boundaries, original source hashes, selectors, true next_offset and
+partial/source_complete flags remain explicit; missing bytes are never claimed
+as read. Already delivered cache/history stays intact; mixed source capture
+cannot promote an unseen full draft into historical evidence. Exactly one final
+checkpoint is recorded. Actual clone: 99,905 → 94,544 bytes, four truthful partial
+pages, all 59 authoritative reference records retained, zero real model calls.
+This is component admission evidence, not native success.
+
+Explicit native “继续” may recover typed/known legacy context-admission failures
+under the same frozen request lineage, preserving round 3/4, repair count,
+source/profile/state hashes and cumulative budget. It never resets a failed Job
+or creates execution consent. Stale source/model, pause and exhausted budget
+block. The user's latest “继续” authorizes this bounded continuation of request 2,
+not a third fresh planning request; at most its existing four remaining model
+calls can run, still within the original fourteen additional-call ceiling.
+Full regression/deployment precede actual continuation.
+
+Delivery maintenance final checks: 1650 passed / 62 skipped /
+0 failed, 80 focused contracts, actual-payload clone, compileall and
+diff checks pass. Native effectiveness awaits the same-lineage continuation.
+
 
 ---
 

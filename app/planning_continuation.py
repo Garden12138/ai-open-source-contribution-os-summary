@@ -43,8 +43,11 @@ def resume_failed_model_planning(wb: Workbench, task_id: str, source: Any) -> An
                 "model_gateway_upstream_failure", "model_gateway_network_failure",
                 "model_gateway_rate_limited", "planning_provider_failed"})
     narration = failed is not None and narration_only_planning(failed)
+    context_admission_failure = bool(failed and failed.state == "failed" and (
+        failed.error_code == "planning_context_limit" or (failed.error_code == "planning_turn_failed"
+            and failed.error_message == "规划上下文已达上限")))
     if (state.to_state != "planning" or failed is None or failed.kind != "planning_turn"
-            or not (transport_failure or narration)):
+            or not (transport_failure or narration or context_admission_failure)):
         return None
     data = failed.payload
     context, plan = wb.latest(task_id, "context_ready"), wb.latest_plan(task_id)

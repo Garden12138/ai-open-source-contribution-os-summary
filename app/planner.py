@@ -590,8 +590,11 @@ class PlanningContextWorker(WorkbenchJobWorker):
                 # Resolve against the original checkpoint before appending the
                 # additional source capture. The new context hash must not make
                 # the other legal read from this same round stale.
-                resolved_context = read_context(wb, data["task_id"], data["context_checkpoint_hash"],
-                    [ContextRead.model_validate(r) for r in data["context_reads"]])
+                requests = [ContextRead.model_validate(r) for r in data["context_reads"]]
+                resolved_context = read_context(wb, data["task_id"], data["context_checkpoint_hash"], requests)
+                if data.get("agent_runtime_version") == "agent-runtime-v2":
+                    for result, request in zip(resolved_context, requests):
+                        result["read_request"] = request.model_dump()
             artifact_id = wb.artifact(context)
             event = wb.append(
                 data["task_id"],
@@ -612,7 +615,7 @@ class PlanningContextWorker(WorkbenchJobWorker):
             if resolved_context is not None or cached_context is not None:
                 from app.context_compaction import source_binding
                 results = resolved_context if resolved_context is not None else cached_context["results"]
-                read_history = (previous_context_reads(cached_context, results) if resolved_context is not None
+                read_history = (previous_context_reads(cached_context, []) if resolved_context is not None
                     else cached_context.get("history", []))
                 data = {**data, "context_read_cache_hash": wb.artifact({
                     "source": source_binding(wb, data["task_id"]), "results": results,
@@ -620,6 +623,8 @@ class PlanningContextWorker(WorkbenchJobWorker):
                     "origin_checkpoint": data.get("context_checkpoint_hash", cached_context.get("origin_checkpoint") if cached_context else None)})}
                 data.pop("context_reads", None)
                 data.pop("context_checkpoint_hash", None)
+                if resolved_context is not None and data.get("agent_runtime_version") == "agent-runtime-v2":
+                    data["context_delivery_pending"] = True
             if data.get("context_only"):
                 message = (
                     "最新代码依据已读取。旧方案已过期，需保存基于新快照的方案版本；尚未批准或执行。"
@@ -685,6 +690,8 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             from app.context_compaction import source_binding
             context_results = []
             context_read_history = []
+            pending_context_delivery = data.pop("context_delivery_pending", False)
+            new_context_delivery = bool(data.get("context_reads") or pending_context_delivery)
             cached = None
             if data.get("context_read_cache_hash"):
                 candidate = wb.read(data["context_read_cache_hash"])
@@ -693,16 +700,17 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 else:
                     data.pop("context_read_cache_hash")
             if data.get("context_reads"):
-                context_results = read_context(wb, data["task_id"], data["context_checkpoint_hash"],
-                    [ContextRead.model_validate(r) for r in data["context_reads"]])
+                requests = [ContextRead.model_validate(r) for r in data["context_reads"]]
+                context_results = read_context(wb, data["task_id"], data["context_checkpoint_hash"], requests)
                 if data.get("agent_runtime_version") == "agent-runtime-v2":
+                    for result, request in zip(context_results, requests):
+                        result["read_request"] = request.model_dump()
                     context_read_history = previous_context_reads(cached, context_results)
-                data["context_read_cache_hash"] = wb.artifact({"source":source_binding(wb, data["task_id"]),
-                    "results":context_results, "history":context_read_history})
             elif cached is not None:
                 context_results = cached["results"]
                 if data.get("agent_runtime_version") == "agent-runtime-v2":
                     context_read_history = cached.get("history", [])
+            delivery_history = ({**cached, "results":[]} if pending_context_delivery and cached is not None else cached)
             data.pop("context_reads", None)
             data.pop("context_checkpoint_hash", None)
             latest = wb.latest_plan(data["task_id"])
@@ -782,6 +790,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 prompt_payload["rules"].append("Large source files, including requested paths, are indexed rather than inlined. Use read_context.query on their reference to locate code/test symbols, then start_line/max_lines for exact source. read_paths only captures missing source; repeating a captured path gives the same index. After inspecting needed evidence, finalize the pending plan. No tests or code execution is authorized here.")
                 prompt_payload["rules"].append("Each context read identifies its actual source_path. source_complete=true proves the full original file was returned and matched its content hash, even when partial=true describes a line selection or serialized envelope. Reuse that inspected source; do not spend another read round requesting the same complete file. source_complete=false never proves omitted source.")
                 prompt_payload["rules"].append("context_read_history retains earlier actual tool responses in this planning job lineage. Reuse their exact text alongside context_reads; a newer round does not undo earlier inspection. text_indexed=true retains metadata only: retrieve history_reference for omitted text when necessary. A query result is only matching lines, not a complete file. All read limits and approval requirements still apply.")
+                prompt_payload["rules"].append("Context max_bytes is an upper bound. delivery.limited pages contain only the returned prefix, never the omitted source. Use delivery.continuation parameters with the current issued reference matching source_path/source_hash; preserve the original query/line selectors. next_offset is the actual next byte, not proof of completeness. Delivery does not add read rounds.")
                 prompt_payload["planning_state"] = {
                     "phase": "read_only_planning", "read_rounds_remaining": max(0, MAX_READ_ROUNDS-data.get("round", 0)),
                     "source_capture_index": [{"path": e["path"], "content_hash": e.get("prior_hash"),
@@ -790,13 +799,31 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     "pending_plan_available": bool(data.get("pending_plan")),
                     "next_step": "inspect_missing_source_or_finalize_pending_plan" if data.get("pending_plan") else "investigate_source_and_propose_plan",
                     "notice": "Captured source is available by hash; it is not a claim that the model has read every omitted line."}
-            prompt, context_checkpoint = compact_prompt(wb, data["task_id"], prompt_payload,
-                scope="planning", job_id=job.id, focus_paths=focus_paths,
-                history_cursor=planning_history_cursor(wb, data["task_id"], job),
-                page_source_files=paged_sources,
-                **({"target_bytes": 48000, "trigger_bytes": 48000} if paged_sources else {}))
+            compact_options = {"scope":"planning", "job_id":job.id, "focus_paths":focus_paths,
+                "history_cursor":planning_history_cursor(wb, data["task_id"], job),
+                "page_source_files":paged_sources,
+                **({"target_bytes":48000,"trigger_bytes":48000} if paged_sources else {})}
+            delivery = None
+            if paged_sources and new_context_delivery:
+                from app.planning_delivery import fit_context_pages
+                def preview(pages: list[dict]) -> str:
+                    prompt_payload["context_reads"] = pages
+                    prompt_payload["context_read_history"] = previous_context_reads(delivery_history, pages)
+                    return compact_prompt(wb, data["task_id"], prompt_payload,
+                        **compact_options, record_checkpoint=False)[0]
+                context_results, delivery = fit_context_pages(context_results, preview)
+                context_read_history = previous_context_reads(delivery_history, context_results)
+            if new_context_delivery:
+                data["context_read_cache_hash"] = wb.artifact({"source":source_binding(wb, data["task_id"]),
+                    "results":context_results,"history":context_read_history})
+            prompt, context_checkpoint = compact_prompt(wb, data["task_id"], prompt_payload, **compact_options)
             if len(prompt.encode()) > (96000 if paged_sources else 1800000):
-                raise WorkbenchError("规划上下文已达上限")
+                raise WorkbenchError("规划上下文已达上限", code="planning_context_limit" if paged_sources else "workbench_conflict")
+            if delivery and delivery["limited"]:
+                wb.append(data["task_id"], "context_read_delivery", {**delivery,
+                    "context_checkpoint_hash":context_checkpoint["artifact_id"],
+                    "result_hashes":[content_hash(result) for result in context_results]},
+                    key="context-delivery:"+job.id, job_id=job.id, actor="orchestrator", commit=False)
             token_limit = (
                 getattr(getattr(self.provider, "profile", None), "get", lambda *_: None)("max_tokens")
                 or getattr(getattr(self.provider, "parameters", None), "max_tokens", None)

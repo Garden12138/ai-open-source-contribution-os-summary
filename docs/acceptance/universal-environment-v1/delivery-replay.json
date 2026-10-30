@@ -1,0 +1,54 @@
+{
+  "version": "upeve-context-delivery-replay-v1",
+  "classification": "component_actual_native_failed_payload_clone_not_native_success",
+  "source_failed_job": "fbf874c7-e2c0-4f85-8635-1b98518893a8",
+  "before_revision": "b64b615",
+  "results": [
+    {
+      "variant": "before",
+      "provider_hook_reached": false,
+      "component_job_state": "failed",
+      "safe_message": "\u89c4\u5212\u4e0a\u4e0b\u6587\u5df2\u8fbe\u4e0a\u9650",
+      "actual_model_calls": 0,
+      "prompt_bytes": 99905,
+      "exact_current_reads": 4,
+      "current_read_hashes": [
+        "6d24173e3186e2e06a0ee926d96925b69cb28ca6c33d2d1c697144f01e9d5f06",
+        "b5580429f1832cabe94cb7f4d3c3215593c3bdad51a8c64fe58eb6e64b180999",
+        "4a4ffee1b97f7bf51f740960c9cd203110f95082b09b8f188f61d4564444978e",
+        "5512d263e7d8ab8c10262d9ac2f92b014c05117b070934507fe4b1673680897a"
+      ],
+      "full_manifest_hashes": 59,
+      "shared_hashes": 32,
+      "frozen_request_unchanged": true
+    },
+    {
+      "variant": "after",
+      "provider_hook_reached": true,
+      "component_job_state": "failed",
+      "safe_message": "\u4efb\u52a1\u6267\u884c\u6216\u8bc1\u636e\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u914d\u7f6e\u540e\u91cd\u8bd5",
+      "actual_model_calls": 0,
+      "prompt_bytes": 94544,
+      "exact_current_reads": 4,
+      "current_read_hashes": [
+        "fb34dab15d08e4bb5af2721562202bc8b6c4844c85b6e5eaacaf3f3647f14722",
+        "88869cc883667cd974c1ac6fd30112d0e289ec6ff945232df7f1a334cfc258bc",
+        "4624617d9a5016899e1a23649c62d4450c5a45795c5fa12e4ab7026ce2f3f5e0",
+        "eddb2d65dd22dd9e56cc4eaed00182fcda2b6e9802d6f7055d66ba800d0fe8db"
+      ],
+      "full_manifest_hashes": 59,
+      "shared_hashes": 32,
+      "frozen_request_unchanged": true
+    }
+  ],
+  "new_pages_are_truthful_utf8_prefixes_with_continuation": true,
+  "all_existing_rules_and_goal_unchanged": true,
+  "added_rule": "Truthful partial delivery and selector-preserving continuation only",
+  "full_checkpoint_manifest_unchanged": true,
+  "hard_prompt_bytes": 96000,
+  "actual_model_calls": 0,
+  "live_database_modified": false,
+  "business_patch_changes": 0,
+  "counts_as_native_delivery": false,
+  "native_model_improvement": "unverified"
+}

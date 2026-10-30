@@ -61,7 +61,8 @@ class ContextRead(BaseModel):
     model_config = ConfigDict(extra="forbid")
     reference_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     offset: int = Field(default=0, ge=0, le=2_000_000)
-    max_bytes: int = Field(default=8000, ge=256, le=16000)
+    max_bytes: int = Field(default=8000, ge=256, le=16000,
+        description="Upper response-byte bound. V2 prompt admission may deliver a smaller UTF-8 page with truthful partial/next_offset metadata; unread bytes are not inspected evidence.")
     query: str | None = Field(default=None, min_length=1, max_length=200)
     start_line: int | None = Field(default=None, ge=1, le=1000000,
         description="For an issued repository file reference, read exact source lines instead of its serialized JSON. With query, restrict search to this line range.")
@@ -115,7 +116,8 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                    target_bytes: int = PLANNING_TARGET_BYTES,
                    trigger_bytes: int = PLANNING_TRIGGER_BYTES,
                    history_cursor: int | None = None,
-                   page_source_files: bool = False) -> tuple[str, dict]:
+                   page_source_files: bool = False,
+                   record_checkpoint: bool = True) -> tuple[str, dict]:
     """Project large/background content and record exactly what the model sees."""
     ensure_no_sensitive_data(payload, context="context input")
     binding = source_binding(wb, task_id)
@@ -131,7 +133,7 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
         fragment = {"version": VERSION, "source": binding, "label": label,
                     "source_hash": source_hash or content_hash(value), "data": value}
         ensure_no_sensitive_data(fragment, context="context fragment")
-        artifact_id = wb.artifact(fragment)
+        artifact_id = wb.artifact(fragment) if record_checkpoint else content_hash(fragment)
         if artifact_id not in references and len(references) >= MAX_REFERENCES:
             raise WorkbenchError("任务记忆索引达到安全上限，原始记录已保留。", code="context_index_limit")
         references[artifact_id] = {"reference_id": artifact_id, "label": label,
@@ -351,12 +353,13 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
     checkpoint = {"version": VERSION, "source": binding, "scope": scope,
         "source_cursor": source.sequence if source else 0, "source_history_hash": source.record_hash if source else None,
         "prompt_hash": content_hash(prompt), "stats": stats, "references": list(references.values()), "prompt": body}
-    artifact_id = wb.artifact(checkpoint)
-    wb.append(task_id, EVENT, {"version": VERSION, "artifact_id": artifact_id, "scope": scope,
-        "source": binding, "stats": stats, "prompt_hash": checkpoint["prompt_hash"],
-        "source_cursor":checkpoint["source_cursor"]},
-        key="context:" + content_hash({"artifact": artifact_id, "job": job_id}),
-        actor="orchestrator", job_id=job_id, commit=False)
+    artifact_id = wb.artifact(checkpoint) if record_checkpoint else content_hash(checkpoint)
+    if record_checkpoint:
+        wb.append(task_id, EVENT, {"version": VERSION, "artifact_id": artifact_id, "scope": scope,
+            "source": binding, "stats": stats, "prompt_hash": checkpoint["prompt_hash"],
+            "source_cursor":checkpoint["source_cursor"]},
+            key="context:" + content_hash({"artifact": artifact_id, "job": job_id}),
+            actor="orchestrator", job_id=job_id, commit=False)
     return prompt, {"artifact_id": artifact_id, **stats}
 
 

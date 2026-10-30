@@ -4,6 +4,16 @@
 
 ## 1. 系统结构
 
+V2 当前读取的 `max_bytes` 是上限。提交给模型前先做无写入的确定性预览；必要
+时只缩短本轮尚未交付的 UTF-8 页，按真实字节维护 `partial`、`source_complete`、
+`next_offset` 和原行/查询选择器。引用仍须从当前来源匹配的已颁发索引取得。
+已交付的页/历史不回写；混合归档读取的未交付草稿不能算成历史已读。最小页
+也无法容纳时明确 `planning_context_limit`，不扩大 96 KB 或读取轮次。只记录
+最终模型输入的 checkpoint，另有 `context-read-delivery-v1` 收据；预览无工件或
+事件写入。显式“继续”可按原来源/状态/模型及预算恢复同一失败谱系，不重置
+轮次/用量或批准实施。这是追加协议字段，无 SQL 表变化；回退前排空新格式
+规划 Job，保留匹配代码/数据库/工件和后续用量，不得删除失败或按旧 reader 清零。
+
 V2 规划 prompt 中，文件索引已携带 `prior_hash` 与 `context_reference` 时，
 引用目录共享同一 hash，避免重复序列化。权威 checkpoint 的 `references` 仍
 保留完整 hash/label/bytes 并逐项验证原工件；这只改变给模型的投影，不改变

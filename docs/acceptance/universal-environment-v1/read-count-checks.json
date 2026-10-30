@@ -61,5 +61,6 @@
   "native_effectiveness": "unverified_before_request_2",
   "diagnostic_replay": "read-count-diagnostic-replay.json",
   "read_limits_or_repair_limit_or_lifetime_budgets_raised": false,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "b64b6151014bc1141aad07090c31353dd22cc26d"
 }
