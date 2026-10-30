@@ -1,0 +1,87 @@
+{
+  "version": "upeve-foundation-replay-v1",
+  "classification": "component_actual_native_payload_clone_not_native_success",
+  "source_task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "frozen_engine": "61b559b",
+  "frozen_checkpoint_hash": "f2415513f28f72941a239fb8bbe074c5d13e7849d0c01ddcaebb7b64cb4f0f76",
+  "observations": [
+    {
+      "variant": "before",
+      "prompt_bytes": 56285,
+      "foundation_files": [
+        {
+          "path": "CONTRIBUTING.md",
+          "original_bytes": 1584,
+          "exact_inline": false,
+          "skeleton": true
+        },
+        {
+          "path": "package.json",
+          "original_bytes": 1018,
+          "exact_inline": false,
+          "skeleton": true
+        },
+        {
+          "path": "app/package.json",
+          "original_bytes": 484,
+          "exact_inline": false,
+          "skeleton": true
+        },
+        {
+          "path": "web/package.json",
+          "original_bytes": 752,
+          "exact_inline": false,
+          "skeleton": true
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "original_bytes": 32,
+          "exact_inline": true,
+          "skeleton": false
+        }
+      ],
+      "unchanged_rules": true
+    },
+    {
+      "variant": "after",
+      "prompt_bytes": 62094,
+      "foundation_files": [
+        {
+          "path": "CONTRIBUTING.md",
+          "original_bytes": 1584,
+          "exact_inline": true,
+          "skeleton": false
+        },
+        {
+          "path": "package.json",
+          "original_bytes": 1018,
+          "exact_inline": true,
+          "skeleton": false
+        },
+        {
+          "path": "app/package.json",
+          "original_bytes": 484,
+          "exact_inline": true,
+          "skeleton": false
+        },
+        {
+          "path": "web/package.json",
+          "original_bytes": 752,
+          "exact_inline": true,
+          "skeleton": false
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "original_bytes": 32,
+          "exact_inline": true,
+          "skeleton": false
+        }
+      ],
+      "unchanged_rules": true
+    }
+  ],
+  "actual_model_calls": 0,
+  "live_database_modified": false,
+  "business_patch_changes": 0,
+  "counts_as_native_delivery": false
+}

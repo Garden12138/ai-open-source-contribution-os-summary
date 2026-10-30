@@ -263,6 +263,57 @@ def test_v2_prior_pages_use_headroom_when_pinned_content_exceeds_soft_target(tmp
     db.close()
 
 
+def test_v2_small_rules_and_manifests_remain_exact_evidence_without_extra_reads(tmp_path):
+    from app.context_compaction import compact_prompt
+    from tests.test_context_compaction import packet
+    db,s,task,_,_=large_fixture(tmp_path)
+    texts={'CONTRIBUTING.md':'UNTRUSTED_REPOSITORY_RULES\n'+'Describe a real check.\n'*60,
+        'package.json':'{"scripts":{"test":"vitest run"},"note":"'+'x'*1000+'"}',
+        'web/package.json':'{"scripts":{"test":"vitest run"},"note":"'+'y'*700+'"}',
+        '.github/workflows/checks.yml':'# ACTUAL_CHECKS\n'+'# read-only declaration\n'*80}
+    entries=[{'path':p,'content':t,'prior_hash':hashlib.sha256(t.encode()).hexdigest(),'executable':False}
+        for p,t in texts.items()]
+    entries += [{'path':f'source/{i}.ts','content':'source line\n'*200,
+        'prior_hash':hashlib.sha256(('source line\n'*200).encode()).hexdigest(),'executable':False} for i in range(30)]
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        payload['evidence']={'entries':entries,'inventory':[e['path'] for e in entries]}
+        pinned=[{'text':'EXACT_REQUESTED_PAGE'+'z'*8000} for _ in range(3)]
+        payload['context_reads']=pinned
+        before=json.dumps(payload,sort_keys=True)
+        prompt,_=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,
+            target_bytes=48000,trigger_bytes=48000)
+        actual=json.loads(prompt);by_path={e['path']:e for e in actual['evidence']['entries']}
+        assert len(prompt.encode())<96000 and actual['context_reads']==pinned
+        for path,text in texts.items():
+            assert by_path[path]['content']==text and not by_path[path].get('skeleton')
+        assert actual['rules']==payload['rules']  # Repository text never becomes a system rule.
+        assert json.dumps(payload,sort_keys=True)==before
+        assert not wb.latest(task,'execution_authorized')
+    db.close()
+
+
+def test_v2_foundation_pinning_is_bounded_and_does_not_promote_legacy_skeletons(tmp_path):
+    from app.context_compaction import compact_prompt
+    from tests.test_context_compaction import packet
+    db,s,task,_,_=large_fixture(tmp_path)
+    text='# actual rule\n'*300
+    entries=[{'path':f'package_{i}/CONTRIBUTING.md','content':text,
+        'prior_hash':hashlib.sha256(text.encode()).hexdigest(),'executable':False} for i in range(10)]
+    entries.append({'path':'AGENTS.md','content':'LEGACY_SKELETON\n'*100,'prior_hash':'f'*64,'executable':False})
+    with db.session() as session:
+        wb=PlanningService(session,s.artifact_root);payload=packet(wb,task)
+        payload.update(evidence={'entries':entries,'inventory':[e['path'] for e in entries]},rules=['pinned '+'r'*46000])
+        prompt,_=compact_prompt(wb,task,payload,scope='planning',page_source_files=True,
+            target_bytes=48000,trigger_bytes=48000)
+        projected=json.loads(prompt)['evidence']['entries']
+        exact=[e for e in projected if e.get('content')==text]
+        assert 0<len(exact)<=3 and len(prompt.encode())<96000
+        assert next(e for e in projected if e['path']=='AGENTS.md').get('skeleton')
+        assert not wb.latest(task,'execution_authorized')
+    db.close()
+
+
 def test_environment_prerequisites_drain_in_bounded_batches_across_restart(tmp_path, monkeypatch):
     from app.workbench import Workbench
     db,s,task,content,_=large_fixture(tmp_path)

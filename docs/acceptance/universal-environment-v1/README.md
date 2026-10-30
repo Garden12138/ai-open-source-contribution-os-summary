@@ -662,3 +662,35 @@ checks. Legacy immediate rejection is preserved. 44 focused contracts and
 [full regression](empty-outcome-checks.json) **1618 passed / 62 skipped / 0 failed**
 pass. A same-target D measurement follows, with no native pass inferred and
 no approval created.
+
+
+## Frozen N8 and bounded foundation evidence
+
+[61b559b actual N7 D retest](empty-outcome-live-retest.json) recovers one empty
+response within existing repairs, then reaches material semantics questions
+without a Plan. Six actual calls / 26 lifetime, no limit reset or source change.
+This proves only the empty-repair component, not a Baseline Plan/schema/native
+success.
+
+[N8 protocol](native-cohort8-protocol.json) freezes code/selection rules before
+[25 public Issue/repository metadata candidates](native-cohort8-selection.json).
+One TypeScript Issue qualifies; bounds and no-replacement rules are retained.
+[Actual first result](native-cohort8-results.json): real product Scan/Snapshot/
+Task/native read-plan control, exact observed source SHA and frozen MiniMax
+Profile, seven model calls, four read rounds exhausted and no Plan. Natural
+language routing is not claimed. All first events remain immutable; N8 becomes
+D after maintenance. Native first deliveries remain 0/4, environment baselines
+remain separately 0/15. No operator business patch, approval or external write.
+
+The first prompt indexed even tiny contribution rules/manifests, spending read
+rounds to recover basic declarations. V2 now keeps exact short foundation files
+as untrusted `evidence.entries`: at most 12 KB total / 6 KB per entry, selected
+deterministically and only when raw content matches the original hash. It does
+not promote repository instructions to system rules or expand any hard bound.
+Large/oversized/legacy skeleton files remain indexed. [Clone replay](foundation-replay.json)
+uses the actual frozen native capture in an isolated DB/artifact copy: all five
+sampled foundation files inline at 62,094 bytes instead of four indexed at
+56,285 bytes. There are zero actual model calls/live mutations; component only.
+42 focused contracts and [full regression](foundation-checks.json) **1620 passed /
+62 skipped / 0 failed** pass. Isolated deployment and D model measurement
+follow. No additional gate is passed.

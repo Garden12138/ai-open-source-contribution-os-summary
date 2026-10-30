@@ -1,0 +1,550 @@
+{
+  "version": "upeve-native-cohort8-results-v1",
+  "engine_revision": "61b559b7884359906c8c9f7874e21997bebc7cae",
+  "started_at": "2026-10-30T01:43:21.951750+00:00",
+  "sample": "N8-typescript",
+  "repository": "patoles/agent-flow",
+  "issue_url": "https://github.com/patoles/agent-flow/issues/107",
+  "issue_number": 107,
+  "issue_title": "Parallel tool calls are incorrectly deduplicated and completed by tool name instead of call identity",
+  "observed_base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "goal": "请调查这个 Issue，读取冻结源码、现有测试、项目规范和环境声明，确认报告的问题是否仍然存在并能用离线测试复现。若已修复、属于既有约定、缺少证据或环境能力不支持，请明确报告，不制造补丁。若确有缺陷，请准备最小修复方案：先新增回归测试并记录真实失败，再修改实现、执行项目要求的相关测试与静态检查、独立 Review。保持现有公共行为与所有必要检查，不用 help/version/echo 代替验证。当前只调查并保存可审阅方案，等待人工对精确 PlanVersion 批准，不实施、不发布、不修改上游。",
+  "classification": "U_first_measurement",
+  "scan_job_id": "a7943a5f-d114-4fb7-9b3e-f49868086777",
+  "scan_request": {
+    "queries": [
+      "repo:patoles/agent-flow is:issue is:open no:assignee \"Parallel tool calls are incorrectly deduplicated and completed by tool name instead of call identity\""
+    ],
+    "top_n": 1
+  },
+  "selected_before_source_reads": true,
+  "natural_language_routing_claim": false,
+  "native_entrypoint": "Existing native read/plan control: 读取仓库并准备方案",
+  "operator_business_patches": 0,
+  "human_execution_approved": false,
+  "human_final_acceptance": false,
+  "counts_as_native_delivery": false,
+  "status": "first_measurement_no_plan",
+  "prior_native_first_targets_replaced": false,
+  "native_deliveries": 0,
+  "external_writes": 0,
+  "scan_result": {
+    "scan_run_id": "95866b69-6292-421f-9593-d3f41a7040b2",
+    "candidate_count": 1,
+    "eligible_count": 1,
+    "selected_count": 1,
+    "repository_count": 1
+  },
+  "scan_state": "succeeded",
+  "snapshot_id": "ba5e120b-0d3f-4f6c-8ddd-dbee4fe8ef84",
+  "snapshot_hash": "5db57facb4415022a4a1b0f682c10d065469ae3ae87d8b81c7298c589af17e74",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "native_url": "http://127.0.0.1:18090/#/tasks/f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "native_message_receipt": {
+    "message_id": "b009d2eb-1977-4573-95db-eabc907faf29",
+    "status": "queued",
+    "text": "已收到，会按顺序处理。"
+  },
+  "native_initial_message": "读取仓库并准备方案",
+  "updated_at": "2026-10-30T01:45:41.186167+00:00",
+  "context": {
+    "artifact_id": "e6f022fa9cb27cce9e0f6074584cb4170ec3fc155dc059597b1101c77779668c",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "018d0ea4a53d44dca986a5ecba07d50207088b7564986e0561d60ec041f48ca4"
+  },
+  "plans": [],
+  "plan_count": 0,
+  "planning_budget": {
+    "version": "planning-budget-v1",
+    "revision": "bd7c32cbeb1d24267b6b6497e4c6d007ff08f6e4a640c7014a78506b3fcf3ce7",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 7,
+      "input_tokens": 162369,
+      "output_tokens": 2350
+    },
+    "remaining": {
+      "calls": 25,
+      "input_tokens": 1837631,
+      "output_tokens": 97650
+    },
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "last_assistant_event": {
+    "id": "2155d711-8521-4598-ba04-eded91a7bebf",
+    "sequence": 39,
+    "kind": "assistant_message",
+    "payload": {
+      "reply": "补读请求仍未通过校验，已达到本轮自动修订上限。已有代码和你的答案已保留，尚未保存或执行方案。",
+      "questions": [],
+      "read_paths": [],
+      "read_context": [],
+      "plan": null,
+      "usage": {
+        "input_tokens": 26915,
+        "output_tokens": 507,
+        "duration_ms": 4153,
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-model-v1",
+          "model": "MiniMax-M3",
+          "model_version": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
+        }
+      },
+      "context_checkpoint_hash": "18a5c1aa476816513bf0921a77dbf9f9ce706eaea0d468befc05cd48196e3968",
+      "plan_error": {
+        "reason_code": "planning_output_invalid",
+        "validation_types": [
+          "value_error"
+        ],
+        "fields": [
+          "read_context"
+        ],
+        "constraint": "context_read_round_limit",
+        "remediation": "Context reads reached their bounded round limit. Explain the exact remaining evidence gap without claiming a complete plan or increasing the budget."
+      },
+      "read_feedback": {
+        "reason_code": "planning_read_limit",
+        "fields": [
+          "read_paths"
+        ],
+        "constraint": "read_round_limit"
+      },
+      "action": "revise_read",
+      "plan_deferred": false,
+      "plan_id": null,
+      "plan_receipt": {
+        "status": "rejected",
+        "plan_id": null,
+        "execution_started": false
+      }
+    },
+    "record_hash": "a2072900265a1aaeb6f949f28e48a719695a0de8e28e59d360c096265f2bfe2f"
+  },
+  "rejections": [
+    {
+      "id": "424918ba-85bc-4b38-95f0-d1d153aee85c",
+      "sequence": 17,
+      "kind": "model_output_rejected",
+      "payload": {
+        "reason_code": "planning_output_invalid",
+        "validation_types": [
+          "json_invalid"
+        ],
+        "fields": [
+          "response"
+        ],
+        "policy": "planning-v5-independent-actions",
+        "usage": {
+          "input_tokens": 20118,
+          "output_tokens": 450,
+          "duration_ms": 6848,
+          "provider": {
+            "provider": "minimax",
+            "adapter_version": "studio-model-v1",
+            "model": "MiniMax-M3",
+            "model_version": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
+          }
+        }
+      },
+      "record_hash": "24e5dca09054c85e3a239012cb70f6a07cd4af8ef383780e31f7b900b06a6a0e"
+    },
+    {
+      "id": "25de34b1-940f-46f6-afd6-33a0750a8e73",
+      "sequence": 25,
+      "kind": "model_output_rejected",
+      "payload": {
+        "reason_code": "planning_output_invalid",
+        "validation_types": [
+          "json_invalid"
+        ],
+        "fields": [
+          "response"
+        ],
+        "policy": "planning-v5-independent-actions",
+        "usage": {
+          "input_tokens": 24878,
+          "output_tokens": 404,
+          "duration_ms": 4921,
+          "provider": {
+            "provider": "minimax",
+            "adapter_version": "studio-model-v1",
+            "model": "MiniMax-M3",
+            "model_version": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
+          }
+        }
+      },
+      "record_hash": "7d5f521c8c85c1c316b2447ce696780f6d4e406e20139ff6be0d0ccb2fb7539f"
+    },
+    {
+      "id": "699541ff-50c6-48a8-ac63-210cb82224e5",
+      "sequence": 37,
+      "kind": "model_output_rejected",
+      "payload": {
+        "reason_code": "planning_output_invalid",
+        "validation_types": [
+          "value_error"
+        ],
+        "fields": [
+          "read_context"
+        ],
+        "constraint": "context_read_round_limit",
+        "remediation": "Context reads reached their bounded round limit. Explain the exact remaining evidence gap without claiming a complete plan or increasing the budget.",
+        "policy": "planning-v5-independent-actions",
+        "scope": "plan"
+      },
+      "record_hash": "af31f0fed90df10084a9fb505a6f70ed66d7cc77f142767186e4edc9e2259f28"
+    },
+    {
+      "id": "65abbfbd-e95d-4d28-a4b5-0b8e718106bc",
+      "sequence": 38,
+      "kind": "model_output_rejected",
+      "payload": {
+        "reason_code": "planning_read_limit",
+        "fields": [
+          "read_paths"
+        ],
+        "constraint": "read_round_limit",
+        "policy": "planning-v5-independent-actions",
+        "scope": "read_paths"
+      },
+      "record_hash": "c214f647532c51eef9bb1a2c80a93b78c19807beea8357d0dfa31f8af11711f8"
+    }
+  ],
+  "journal": [
+    {
+      "id": "645f8178-48d4-4ed2-8424-0584f9db5ad8",
+      "sequence": 1,
+      "kind": "agent_runtime_enabled",
+      "record_hash": "feb08fda4233512a42e0382316ee3607c05154b06e9731e01a092ffed4c07fb9"
+    },
+    {
+      "id": "b009d2eb-1977-4573-95db-eabc907faf29",
+      "sequence": 2,
+      "kind": "conversation_received",
+      "record_hash": "f96b1703add957ee12421579a038124acb801e82e8dc437bc396093417a88791"
+    },
+    {
+      "id": "db7f2ccb-fa39-4114-a94a-a50017b08312",
+      "sequence": 3,
+      "kind": "native_journey_started",
+      "record_hash": "93f765877ac2e37aa518fedc570376ec3a24d350e4bd47e912abd99632edde78"
+    },
+    {
+      "id": "595fa5d4-1ae2-420c-b1d6-1712538c4259",
+      "sequence": 4,
+      "kind": "user_message",
+      "record_hash": "e781a120888606fdbe214d4c038d09745f7832f2931fa1b4465738b494f6a624"
+    },
+    {
+      "id": "bff65b59-54ad-4fd4-9d10-a50e66b796a5",
+      "sequence": 5,
+      "kind": "conversation_dispatched",
+      "record_hash": "7f86b91a4935a1fd07b581600ea0abe49a43eaabd9429a319abcc5f77943fdbc"
+    },
+    {
+      "id": "9d598621-0c2f-4931-8a4b-4329af9bdbc0",
+      "sequence": 6,
+      "kind": "job_queued",
+      "record_hash": "fc255780d9461234414f272d22586b2c99c5b5472b503ffc4c7314d82ac42528"
+    },
+    {
+      "id": "d0517343-5137-45d1-89d3-097ce6e997bf",
+      "sequence": 7,
+      "kind": "context_ready",
+      "record_hash": "38d92151e9e0e6f36807a8d0a2b5a7cf87bef00f4bb1c55c02d4dac00fbf8c48"
+    },
+    {
+      "id": "a8bb69e5-1aa6-4505-8648-c344a14917c6",
+      "sequence": 8,
+      "kind": "job_queued",
+      "record_hash": "1e074dd837a87bd889b9cbf7ec6f73dc106fe6ebe2fb7e28528055966eb0a749"
+    },
+    {
+      "id": "4ecb79fb-4c41-4289-9396-9286a5ca3f0a",
+      "sequence": 9,
+      "kind": "context_checkpoint",
+      "record_hash": "8acbca48dae806387cfc9a2857fe6448f60a9ba7b104015bcba8a081a343bd2a"
+    },
+    {
+      "id": "ab18d028-b7e7-4cb6-b37f-e043bfdf1550",
+      "sequence": 10,
+      "kind": "model_call",
+      "record_hash": "6d6feffe5e5ee6f6e5ebfb061591bc26f2fce1f232812148402c28240ed06eb1"
+    },
+    {
+      "id": "3bfae2f1-6f35-4071-b0d7-291892114fb1",
+      "sequence": 11,
+      "kind": "assistant_message",
+      "record_hash": "5f0f7241b990d26c1416e5960872b60d46d72acb42630f554951ed8764d0a53c"
+    },
+    {
+      "id": "ac39b743-61d6-4ae3-9ded-e96204795d06",
+      "sequence": 12,
+      "kind": "job_queued",
+      "record_hash": "0302382b0c1884e465909624b8c133e90757f1dc4bf5499e2030f04aa7b69890"
+    },
+    {
+      "id": "5d688621-4649-4f45-bdec-97ca4b5544d7",
+      "sequence": 13,
+      "kind": "context_ready",
+      "record_hash": "018d0ea4a53d44dca986a5ecba07d50207088b7564986e0561d60ec041f48ca4"
+    },
+    {
+      "id": "30483c8a-855e-46a6-8c18-528f6c35dfeb",
+      "sequence": 14,
+      "kind": "job_queued",
+      "record_hash": "039bd0ac2c25cfbcefb10aa8a8e0a6f72dee5ab51e55af4712f9a0c7c952ff19"
+    },
+    {
+      "id": "57420a6d-4f4a-49f4-9790-3b26c74802e5",
+      "sequence": 15,
+      "kind": "context_checkpoint",
+      "record_hash": "da6e44877c924f076691be43438ebafb4a404251ec0059c852fc52b4f13c2d7f"
+    },
+    {
+      "id": "1b5315b1-f7e0-41c8-9d64-295f50dd97c9",
+      "sequence": 16,
+      "kind": "model_call",
+      "record_hash": "8b7061bfe644c8ac124b197f97cd260e299e7ac284a4a1d32784dd359e1f2544"
+    },
+    {
+      "id": "424918ba-85bc-4b38-95f0-d1d153aee85c",
+      "sequence": 17,
+      "kind": "model_output_rejected",
+      "record_hash": "24e5dca09054c85e3a239012cb70f6a07cd4af8ef383780e31f7b900b06a6a0e"
+    },
+    {
+      "id": "f53d2b96-6639-411a-b72a-d7a8573c168c",
+      "sequence": 18,
+      "kind": "job_queued",
+      "record_hash": "193ad2e6b3e4dd2a5aa192cb0efdd1471d57f5044e19f3796faf76368862e096"
+    },
+    {
+      "id": "b8f621a7-9f0b-4a7a-9522-d2f405b6f7f4",
+      "sequence": 19,
+      "kind": "context_checkpoint",
+      "record_hash": "f5ab5b17e67b1c5116f67b3d9f896573af5f77e8c904fc7bfc654aa62ed84087"
+    },
+    {
+      "id": "f2da2559-e5b5-4943-85a0-d45dce10291e",
+      "sequence": 20,
+      "kind": "model_call",
+      "record_hash": "2be7c2193b7da08220647be72ccffd31860d640ce8de526a14b15423d3e9f71f"
+    },
+    {
+      "id": "799e453a-525b-41bf-b8d7-2294bf9267dc",
+      "sequence": 21,
+      "kind": "assistant_message",
+      "record_hash": "53a60d34610e15bbd64f7df72c51c8facbb3837bf99cc24fabecc33ad6b1ba86"
+    },
+    {
+      "id": "80bdeadc-0286-41bd-8cac-a1390ed05f1f",
+      "sequence": 22,
+      "kind": "job_queued",
+      "record_hash": "6cb0d5622e11d1975a30fc2a6b64bc6591748c6d1317665c40f2a950cce7309b"
+    },
+    {
+      "id": "d959c24b-92b6-4e50-bb18-363d82ee3ea1",
+      "sequence": 23,
+      "kind": "context_checkpoint",
+      "record_hash": "24d134568cc5a45b30d0eeeeb7c7af0422bbfbbea5b6bc694b99c6cf07679d6e"
+    },
+    {
+      "id": "97ee4b20-bda9-4aa3-be88-83923a144dda",
+      "sequence": 24,
+      "kind": "model_call",
+      "record_hash": "f218f861bc9132a9fc8c5b2b45e09d424e5ba11951ea650ca3d4ee56c1ec72d8"
+    },
+    {
+      "id": "25de34b1-940f-46f6-afd6-33a0750a8e73",
+      "sequence": 25,
+      "kind": "model_output_rejected",
+      "record_hash": "7d5f521c8c85c1c316b2447ce696780f6d4e406e20139ff6be0d0ccb2fb7539f"
+    },
+    {
+      "id": "af38c223-f279-457a-9fa9-7177b1f52af4",
+      "sequence": 26,
+      "kind": "job_queued",
+      "record_hash": "2decf0344545746c7bee1569a7be8af906605942ab5abae7ba23478d1a3f8fc9"
+    },
+    {
+      "id": "e0777294-dbda-476c-96f2-e39995a702e6",
+      "sequence": 27,
+      "kind": "context_checkpoint",
+      "record_hash": "3186b9a57fd5f0d67e0c2c9010e20e1eed5fa52144152900a247b253fb8591f6"
+    },
+    {
+      "id": "1f48fb09-d51f-4e76-81e6-b2fda59f334d",
+      "sequence": 28,
+      "kind": "model_call",
+      "record_hash": "0dae7fa2e313b959a2f59413655782214436e3c9e80beb4451282ebc0419a388"
+    },
+    {
+      "id": "a7299767-09de-4a3b-8a40-6a2c76ec5c8c",
+      "sequence": 29,
+      "kind": "assistant_message",
+      "record_hash": "5859360d4f4b4339ed3c263a48f7c14cacd88a6feca780785b4ef24555e57351"
+    },
+    {
+      "id": "4034ceb7-9c9a-49bf-bd6a-6950567f3a76",
+      "sequence": 30,
+      "kind": "job_queued",
+      "record_hash": "53e38e68874af9fbf3bc1d99ef8cf4c451dd4d79bd29d17707d3d3cec2c7fd9b"
+    },
+    {
+      "id": "1faf5692-2e86-4867-b7c6-9e3544a816f9",
+      "sequence": 31,
+      "kind": "context_checkpoint",
+      "record_hash": "be6af95d9f66ba58188a85f9aace36cba37e0bedbd39027b3a73a7c65265bc59"
+    },
+    {
+      "id": "0da42d2e-7bc5-407e-958f-19677b1b573f",
+      "sequence": 32,
+      "kind": "model_call",
+      "record_hash": "83124129e5efae4add0837891c1c23f788e334e11cbe6663f346675707e45cd3"
+    },
+    {
+      "id": "97dd3447-f309-4882-827a-706a17a181fc",
+      "sequence": 33,
+      "kind": "assistant_message",
+      "record_hash": "3679ab65f6b36ee77b4bd33df5437e9c0f43860c68729c1181c23553315965a9"
+    },
+    {
+      "id": "84dd980a-eebb-434b-b5f8-3f8bec433ddc",
+      "sequence": 34,
+      "kind": "job_queued",
+      "record_hash": "ccfa1ce213c3eaa0062c620520aa99159aa037c57702b8fb6a1a6313a7e9eb8b"
+    },
+    {
+      "id": "8849df54-931e-4fa8-94fd-3e3da437afb0",
+      "sequence": 35,
+      "kind": "context_checkpoint",
+      "record_hash": "1c3dff234580d1d0c7aee2ed7e674bbf629a83f76986b83a0833350eb1a151c3"
+    },
+    {
+      "id": "6c33501b-fc15-49fd-aff5-677df29896d5",
+      "sequence": 36,
+      "kind": "model_call",
+      "record_hash": "d60d3e0f3554de5a8efeffbe0392d75707051f4dc6c784a13a3c946aa82f3129"
+    },
+    {
+      "id": "699541ff-50c6-48a8-ac63-210cb82224e5",
+      "sequence": 37,
+      "kind": "model_output_rejected",
+      "record_hash": "af31f0fed90df10084a9fb505a6f70ed66d7cc77f142767186e4edc9e2259f28"
+    },
+    {
+      "id": "65abbfbd-e95d-4d28-a4b5-0b8e718106bc",
+      "sequence": 38,
+      "kind": "model_output_rejected",
+      "record_hash": "c214f647532c51eef9bb1a2c80a93b78c19807beea8357d0dfa31f8af11711f8"
+    },
+    {
+      "id": "2155d711-8521-4598-ba04-eded91a7bebf",
+      "sequence": 39,
+      "kind": "assistant_message",
+      "record_hash": "a2072900265a1aaeb6f949f28e48a719695a0de8e28e59d360c096265f2bfe2f"
+    },
+    {
+      "id": "14025557-933e-43d2-85e5-50ec5697c421",
+      "sequence": 40,
+      "kind": "conversation_finished",
+      "record_hash": "844da5925ec40dfc5472aadb3d7a1b4d854503c84ff70ce96ba415b6a8a0aa5a"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "40e68588-c4b8-4446-b311-25332e98b929",
+      "kind": "planning_archive",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "5d45425f-c0d4-4ed8-b7f1-cd5626de0006",
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "7065991a-6a40-4627-847e-1b64068cc65d",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "606222b9-f57b-4740-b29b-b44fd773dcb7",
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "451370b4-235f-46d7-a74f-81e21129ceaf",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "cb109646-e049-4edf-a028-a71e343b73ca",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "5c44cde8-3d39-4304-8dd9-e0f59e86b879",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "8d60ab2e-bad3-4f16-a8d7-08f9a32612cb",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "2e8485e6-0b98-4129-ae1f-f39f27a87000",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    },
+    {
+      "id": "5f7a3c47-2d2d-4987-9884-7965de3d8ccf",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null
+    }
+  ],
+  "production_code_unchanged_during_measurement": true,
+  "profile_matches_frozen_protocol": true,
+  "base_verified_by_product": true,
+  "first_measurement_preserved": true,
+  "coding_verify_review": "not_run",
+  "first_outcome": "no_plan_after_context_read_round_limit",
+  "classification_now": "D_after_foundation_projection_maintenance",
+  "first_U_result_preserved": true
+}

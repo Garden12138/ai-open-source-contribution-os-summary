@@ -54,5 +54,6 @@
   "lifetime_limits_unchanged": true,
   "legacy_immediate_empty_rejection_preserved": true,
   "fabricated_default_outcomes": 0,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "61b559b7884359906c8c9f7874e21997bebc7cae"
 }

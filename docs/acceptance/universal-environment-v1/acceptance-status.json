@@ -265,9 +265,12 @@
         "authenticated-resume.json",
         "planning-page-live-retest.json",
         "native-cohort6-selection.json",
-        "native-cohort7-selection.json"
+        "native-cohort7-selection.json",
+        "native-cohort8-protocol.json",
+        "native-cohort8-selection.json",
+        "native-cohort8-results.json"
       ],
-      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery."
     },
     {
       "id": "UE-T25",
@@ -308,50 +311,50 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "9d5094fd579870d195f9604fca3af3b138142cde",
+  "engine_revision": "61b559b7884359906c8c9f7874e21997bebc7cae",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1680,
+    "tests": 1682,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1618,
+    "passed": 1620,
     "shards": [
       {
-        "tests": 420,
+        "tests": 421,
         "failures": 0,
         "errors": 0,
-        "skipped": 13,
-        "path": "/tmp/upeve-empty-outcome-shard-0.xml",
-        "sha256": "c4b69bd180f9380498e189dc6203fc90f4dd72348b256bba55c9608fe2a55a47"
+        "skipped": 10,
+        "path": "/tmp/upeve-foundation-shard-0.xml",
+        "sha256": "a52e24ae7883258d6c7ba0b1ec609997c820755513294e66aaf976f0f08aff38"
+      },
+      {
+        "tests": 421,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 11,
+        "path": "/tmp/upeve-foundation-shard-1.xml",
+        "sha256": "c76235fea9c465cb910eb0dc83ad6b180b24ece4599f919dc9e36531f086a4ce"
       },
       {
         "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 16,
-        "path": "/tmp/upeve-empty-outcome-shard-1.xml",
-        "sha256": "03bcf1dd3eb540fece85e125f423d9f1c353c3f13db1ca0dcdbd6fa417a5bbe9"
-      },
-      {
-        "tests": 420,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 12,
-        "path": "/tmp/upeve-empty-outcome-shard-2.xml",
-        "sha256": "8d8e7d33b73250c97e6af3500f7a0b6aa171ced05cdacdd15ca333b1f58aea22"
+        "skipped": 20,
+        "path": "/tmp/upeve-foundation-shard-2.xml",
+        "sha256": "41a99de3b79f27652eb7b8fafb001d6f4694838f34a2b5eb5e25c7dffeda6bb0"
       },
       {
         "tests": 420,
         "failures": 0,
         "errors": 0,
         "skipped": 21,
-        "path": "/tmp/upeve-empty-outcome-shard-3.xml",
-        "sha256": "4c9d9403b0f441a3b3c4e872c9a829e385aaf5b436bce0fa3fb9bf11b2aeeebd"
+        "path": "/tmp/upeve-foundation-shard-3.xml",
+        "sha256": "ae05efc4af513fdb2d57cfe1984b9de13e18db132535e4d17cdce4911fde5eb0"
       }
     ],
     "revision": "pending_current_local_stage_commit",
-    "evidence": "empty-outcome-checks.json"
+    "evidence": "foundation-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -360,12 +363,13 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "empty-outcome-checks.json",
+  "latest_default_evidence": "foundation-checks.json",
   "native_first_attempts": {
-    "selected": 3,
+    "selected": 4,
     "deliveries": 0,
     "N5": 2,
     "N7": 1,
+    "N8": 1,
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "history-headroom-live-retest.json",

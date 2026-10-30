@@ -5077,6 +5077,35 @@ including empty→valid recovery and exhausted-empty termination. One bounded
 same-target D retest follows. No gate is checked.
 
 
+`61b559b` actual N7 D retest recovers one empty response using the existing
+repair limit, continues source reads and stops on material annotation-semantics
+questions, no Plan. Six real calls / 26 lifetime retain limits and source hashes;
+this proves an empty-repair component, not the Baseline Plan schema or delivery.
+
+Frozen N8 selects one TypeScript Issue from 25 public metadata candidates before
+source/model access, with the same star/license/size/public/non-fork/reproducer
+bounds; preceding first targets are not replaced. Product scan selects its real
+Snapshot and Task, native read/plan control captures the exact observed base and
+uses the frozen MiniMax Profile. Seven model calls exhaust four read rounds,
+then bounded repair ends with no Plan. All 39 first event IDs/hashes remain.
+First native deliveries are now **0/4**, separate from environment baselines
+0/15. [First N8 result](acceptance/universal-environment-v1/native-cohort8-results.json)
+remains failed; subsequent maintenance makes N8 permanently D.
+
+N8 exposes a projection inefficiency: even 484–1584-byte manifests/contribution
+rules are converted to indexes while the irreducible prompt already exceeds its
+soft target. V2 now retains up to 12 KB total of exact short repository rules,
+manifests and CI declarations (at most 6 KB per entry), only when full content
+matches its original hash. They remain untrusted evidence, never system rules
+or authorization. Large files, oversized collections, legacy skeletons and
+unknown paths still index normally; no hard/read/model/resource limit changes.
+42 focused contracts and full **1620 passed / 62 skipped / 0 failed**
+regression pass. [Real-payload clone](acceptance/universal-environment-v1/foundation-replay.json)
+retains all five sampled foundation files inline at 62,094 bytes (before: four
+indexed at 56,285 bytes), under the same 96,000-byte ceiling; zero real model
+calls/live writes, not native success. D retest follows.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

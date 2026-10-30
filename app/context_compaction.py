@@ -28,6 +28,7 @@ PLANNING_TRIGGER_BYTES = 220_000
 # Keep useful prior pages when pinned current evidence already exceeds the
 # 48 KB soft target. Leave 16 KB below v2's unchanged 96 KB admission ceiling.
 PAGED_HISTORY_TARGET_BYTES = 80_000
+PAGED_FOUNDATION_BYTES = 12_000
 MAX_REFERENCES = 512
 
 
@@ -41,6 +42,19 @@ def previous_context_reads(cached: dict | None, current: list[dict]) -> list[dic
             previous.append(result)
             seen.add(digest)
     return list(reversed(previous))
+
+
+def _foundation_priority(path: str) -> int | None:
+    """Short repository rules/manifests stay untrusted evidence, not instructions."""
+    name = PurePosixPath(path).name.lower()
+    if name == "agents.md" or name.startswith("contributing") or "pull_request_template" in name:
+        return 0
+    if name in {"pyproject.toml", "package.json", "setup.cfg", "pytest.ini", "tox.ini",
+                "pnpm-workspace.yaml", "makefile"}:
+        return 1
+    if path.startswith(".github/workflows/") and name.endswith((".yaml", ".yml")):
+        return 2
+    return None
 
 
 class ContextRead(BaseModel):
@@ -172,6 +186,19 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
     large = original_bytes > trigger_bytes
     body["task_memory"] = memory
     raw_evidence = body.get("evidence")
+    inline_foundations: set[str] = set()
+    if page_source_files and isinstance(raw_evidence, dict):
+        candidates = [e for e in raw_evidence.get("entries", [])
+            if _foundation_priority(e.get("path", "")) is not None
+            and isinstance(e.get("content"), str) and _bytes(e) <= 6000
+            and hashlib.sha256(e["content"].encode()).hexdigest() == e.get("prior_hash")]
+        remaining = PAGED_FOUNDATION_BYTES
+        for entry in sorted(candidates, key=lambda e: (_foundation_priority(e["path"]),
+                len(PurePosixPath(e["path"]).parts), e["path"])):
+            cost = _bytes(entry)
+            if cost <= remaining:
+                inline_foundations.add(entry["path"])
+                remaining -= cost
     if isinstance(raw_evidence, dict) and isinstance(raw_evidence.get("inventory"), list):
         inventory = raw_evidence["inventory"]
         known_paths = {entry["path"] for entry in raw_evidence.get("entries", [])} | focus
@@ -208,6 +235,8 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
         if isinstance(value, dict):
             if "path" in value and "content" in value and "prior_hash" in value:
                 text = value.get("content")
+                if value["path"] in inline_foundations:
+                    return value
                 if page_source_files and isinstance(text, str) and len(text.encode()) > 4096:
                     ref = reference(value, "repository file: " + value["path"], value.get("prior_hash"))
                     skeleton = compress_file(value["path"], text, threshold_bytes=0)
@@ -247,7 +276,7 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
     evidence = body.get("evidence")
     if _bytes(body) > target_bytes and isinstance(evidence, dict):
         for entry in sorted(evidence.get("entries", []), key=_bytes, reverse=True):
-            if entry.get("content") is None or entry.get("path") in focus:
+            if entry.get("content") is None or entry.get("path") in focus | inline_foundations:
                 continue
             if len(str(entry["content"]).encode()) < 1000:
                 continue
@@ -271,7 +300,7 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
             for entry in sorted(evidence.get("entries", []),
                     key=lambda e: (e.get("path") in focus, -_bytes(e))):
                 text = entry.get("content")
-                if not isinstance(text, str) or len(text.encode()) < 256:
+                if entry.get("path") in inline_foundations or not isinstance(text, str) or len(text.encode()) < 256:
                     continue
                 ref = entry.get("context_reference") or reference(entry,
                     "repository file: " + entry["path"], entry.get("prior_hash"))
