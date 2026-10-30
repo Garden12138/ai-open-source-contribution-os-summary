@@ -283,9 +283,12 @@
         "read-count-diagnostic-replay.json",
         "readonly-followup-2-context-failure.json",
         "delivery-replay.json",
-        "delivery-checks.json"
+        "delivery-checks.json",
+        "readonly-followup-2.json",
+        "readonly-followup-2-resume.json",
+        "native-terminal-transport-observation.json"
       ],
-      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending. Request 2 makes three calls and then context admission fails before call 4, no Plan (26 lifetime). Generic preview/partial-delivery control is proven only in tests/clone (99,905 to 94,544 bytes). Latest explicit continue may resume the same round-3 lineage after deployment, without resetting any limit or starting a third fresh request."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending. Request 2 makes three calls and then context admission fails before call 4, no Plan (26 lifetime). Generic preview/partial-delivery control is proven only in tests/clone (99,905 to 94,544 bytes). Latest explicit continue may resume the same round-3 lineage after deployment, without resetting any limit or starting a third fresh request. Same second-request lineage resumes at frozen round 3, actual limited delivery admits at 94,544 bytes. It later rejects invalid references/read-round overreach and ends with model_gateway_transport_failure (HTTP200 upstream then local Gateway502; exact read/parse/guard cause unknown). Two follow-ups total 11 actual calls, no Plan; lifetime29, two unknown usage allowances retained. No ambiguous POST replay. All native first outcomes remain unchanged."
     },
     {
       "id": "UE-T25",
@@ -326,7 +329,7 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "b64b6151014bc1141aad07090c31353dd22cc26d",
+  "engine_revision": "2f78bf17338b713d13b1ee7a376566bcd6ebe879",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
     "tests": 1712,
@@ -368,7 +371,7 @@
         "sha256": "4cd6ce7698e982f58e14b30358b173be906f3ed9475417509037e87d258ae3f8"
       }
     ],
-    "revision": "pending_local_commit",
+    "revision": "2f78bf17338b713d13b1ee7a376566bcd6ebe879",
     "evidence": "delivery-checks.json"
   },
   "holdout_current": {
@@ -388,8 +391,8 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "readonly-followup-2.json",
-  "latest_isolated_deployment": "read-count-deployment.json",
-  "latest_history_and_security_audit": "read-count-audit.json",
+  "latest_isolated_deployment": "delivery-deployment.json",
+  "latest_history_and_security_audit": "delivery-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "delivery-replay.json",
   "model_resource_exception": {
@@ -401,7 +404,7 @@
     "evidence": "planning-cap-approval.json"
   },
   "pending_readonly_followup": {
-    "status": "request_2_context_failed_generic_delivery_fix_verified_resume_pending",
+    "status": "two_requests_and_same_lineage_resume_ended_no_plan",
     "evidence": "planning-readonly-followup-proposal.json",
     "max_additional_model_calls": 14,
     "max_additional_readonly_requests": 2,
@@ -410,6 +413,21 @@
     "request_1": "readonly-followup-1.json",
     "request_2": "readonly-followup-2.json",
     "initial_request_2_failure": "readonly-followup-2-context-failure.json",
-    "same_lineage_resume_requested_by_user": true
-  }
+    "same_lineage_resume_requested_by_user": true,
+    "actual_additional_model_calls": 11,
+    "fresh_request_count": 2,
+    "resume": "readonly-followup-2-resume.json",
+    "terminal_reason": "model_gateway_transport_failure_unknown_outcome"
+  },
+  "native_current_known_usage": {
+    "calls": 29,
+    "input_tokens": 712836,
+    "output_tokens": 35617
+  },
+  "native_current_unknown_reserves": {
+    "input_tokens": 900000,
+    "output_tokens": 24576
+  },
+  "native_current_unknown_calls": 2,
+  "latest_final_observation": "delivery-final-observation.json"
 }

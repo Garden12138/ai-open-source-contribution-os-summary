@@ -62,8 +62,12 @@
   "diff_check": "passed",
   "actual_model_calls_in_tests_or_clone": 0,
   "clone_evidence": "delivery-replay.json",
-  "new_native_effectiveness": "unverified_before_same_lineage_resume",
+  "new_native_effectiveness": "actual_context_admission_passed_no_plan_or_native_delivery",
   "hard_prompt_read_round_schema_repair_or_lifetime_limits_raised": false,
   "sql_schema_changed": false,
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "2f78bf17338b713d13b1ee7a376566bcd6ebe879",
+  "native_admission_after_deployment": "actual_limited_delivery_admitted_94544_bytes",
+  "native_evidence": "readonly-followup-2.json",
+  "native_plan_or_delivery_improvement_proven": false
 }

@@ -1,0 +1,23 @@
+{
+  "version": "upeve-native-terminal-transport-observation-v1",
+  "recorded_at": "2026-10-30T09:42:28.592464+00:00",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "job_id": "7bd27bb6-8fb0-4ca2-95be-13a32023ff81",
+  "observed_upstream_http_status": 200,
+  "observed_gateway_http_status": 502,
+  "gateway_reason_code": "model_transport_failed",
+  "provider_reason_code": "model_gateway_transport_failure",
+  "completion_post_attempts": 1,
+  "actual_terminal_cause": "unknown_read_transport_json_parse_or_response_guard_failure",
+  "timeout_not_proven": true,
+  "raw_upstream_response_retained": false,
+  "raw_exception_or_credentials_copied": false,
+  "reported_token_usage_available": false,
+  "unknown_usage_reserved": {
+    "input_tokens": 450000,
+    "output_tokens": 16384
+  },
+  "failed_usage_receipt_hash": "7a95f9f2ad1b3cc6a1bfab9cc12d4283de8ce25fc844d30350e47bb107a09472",
+  "not_replayed": true,
+  "native_deliveries": 0
+}

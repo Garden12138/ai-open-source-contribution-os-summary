@@ -5263,6 +5263,34 @@ Delivery maintenance final checks: 1650 passed / 62 skipped /
 0 failed, 80 focused contracts, actual-payload clone, compileall and
 diff checks pass. Native effectiveness awaits the same-lineage continuation.
 
+Actual native continuation on `2f78bf1` preserves round 3 / repair 0 and the
+original failed Job/hash. New page delivery really admits at 94,544 bytes.
+The model then rejects on invalid references/read-round overreach; final Job
+`7bd27bb6-8fb0-4ca2-95be-13a32023ff81` fails model_gateway_transport_failure,
+no Plan. Upstream HTTP200 and Gateway502 are observed; the exact response
+read/parse/guard cause is unknown, not proof of a timeout or invalid credentials.
+No ambiguous POST is replayed. Two fresh requests plus same-lineage continuation
+use 11 additional model calls (5+6), zero active Jobs and no increased limits.
+Known lifetime use is 29 calls / 712,836 input / 35,617 output; two unknown calls
+reserve 900,000 input / 24,576 output, not actual spend. Remaining allowance is
+3 calls / 387,164 input / 39,807 output. Current source/Profile/default hashes,
+original histories and both follow-up failures are retained.
+
+Native delivery is still 0/4 and environment baselines separately 0/15. Context
+admission passes as a component; there is no valid Plan or exact execution
+approval, so native Baseline/Coding/Verify/independent Review remain not_run.
+Historical Node E3 remains failed, Linux amd64 blocked/not_run. Current specialty
+task is still UPEVE-E04. The completed read-only follow-up grant does not close
+any stage or authorize a new third request, external write or resource increase.
+
+Final read-only observation confirms four local health checks, zero active Jobs,
+no Plan/execution approval and visible native failure/unknown reserves on mobile.
+Current code is locally committed/deployed as `2f78bf1`; default regression is
+1650 passed / 62 skipped, 80 focused pass. Preservation/canary audit retains all
+original files/events and the second request's frozen failed payload. Local role
+health is not upstream model success. No stage gate is promoted, no formal data
+is modified and no third-party write occurs. UPEVE v1 remains incomplete.
+
 
 ---
 
