@@ -1,0 +1,50 @@
+{
+  "version": "upeve-explicit-retry-preservation-audit-v1",
+  "recorded_at": "2026-10-30T14:54:40.285371+00:00",
+  "engine_revision": "176961b43784352147a2c594be90fba8db80edba",
+  "history": [
+    {
+      "task_id": "6727af39-e005-4551-a1ad-93ecf1ad1015",
+      "original_count": 71,
+      "original_ids_and_hashes_preserved": true
+    },
+    {
+      "task_id": "e41672ad-9fcf-4749-aaf8-e1d41cfcbb3e",
+      "original_count": 165,
+      "original_ids_and_hashes_preserved": true
+    }
+  ],
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "actual_credentials_read": false,
+  "historical_files_checked": 74,
+  "changed_historical_files": [],
+  "active_jobs": 0,
+  "new_execution_approvals": 0,
+  "N5_first_events_preserved": 36,
+  "N7_first_events_preserved": 37,
+  "N8_first_events_preserved": 40,
+  "all_pre_retry_events_preserved": 151,
+  "failed_jobs_and_frozen_retry_payload_preserved": true,
+  "profile_defaults_and_task_binding_preserved": true,
+  "consent_hash_verified": "b44b61780ab507b14e0b34c55706bc2ec695d2b5d464da2afe8cf9bcde886e1d",
+  "known_lifetime_usage": {
+    "calls": 30,
+    "input_tokens": 712836,
+    "output_tokens": 35617
+  },
+  "unknown_reserves": {
+    "input_tokens": 1350000,
+    "output_tokens": 40960
+  },
+  "unknown_calls": 3,
+  "local_input_remaining": 0,
+  "actual_retry_calls": 1,
+  "native_deliveries": 0,
+  "task_event_payloads_scanned": 161,
+  "credential_scan": {
+    "sanitized_json_files": 401,
+    "findings": [],
+    "scope": "Sanitized acceptance JSON and all native task event payloads; no credential vault or raw keys read"
+  }
+}

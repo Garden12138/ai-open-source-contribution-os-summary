@@ -5302,6 +5302,30 @@ One newly authorized same-lineage retry is prepared at round 4 / repair 1, at
 most two calls within the unchanged 32 / 2M / 100K totals and existing 16K Profile.
 No execution or publication is authorized and no native success is claimed.
 
+That explicit retry has now finished: Job `8b32be2d-ac2c-48b9-b5b9-2b87495f40d7`
+makes one actual MiniMax call and fails `model_gateway_upstream_failure` after
+about 1.8 seconds. The sanitized Gateway log records upstream **HTTP 402 Payment
+Required**, then local HTTP 502. This points to account billing/allowance, but
+the upstream business code/body is unavailable: insufficient balance, a plan
+limit and the actual account balance cannot be distinguished. It is a new
+failure observation, not proof of the previous HTTP200 transport failure's cause.
+The original failed Job/payload, 151 prior events, source and Profile remain
+unchanged; there is no Plan, execution approval or native delivery.
+
+Lifetime usage is now 30 calls, known 712,836 input / 35,617 output, with three
+unknown calls conservatively reserving 1,350,000 input / 40,960 output. Known
+input plus held allowance is 2,062,836, so remaining local input is **zero** under
+the unchanged 2,000,000 cap. This local allowance is separate from MiniMax's
+account balance; unknown usage is neither actual spend nor refundable evidence.
+No further model call is launched and no cap/reserve is changed. The current
+repair passes 32 focused and 92 targeted checks; the earlier 1650-pass full suite
+is explicitly prior-revision evidence. See `explicit-model-retry.json` and the
+associated final observation/audit under the specialty acceptance directory.
+E0-E2 remain passed; E3 historical Node failed, E4 partial, E5 failed, Linux
+amd64 blocked/not_run. Native first deliveries remain 0/4; complete environment
+baselines separately remain 0/15. Baseline/Coding/Verify/independent Review for
+this native task remain not_run. Current task is still UPEVE-E04.
+
 
 ---
 
