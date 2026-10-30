@@ -41,7 +41,7 @@ def resume_failed_model_planning(wb: Workbench, task_id: str, source: Any) -> An
     failed = jobs[-1] if jobs else None
     transport_failure = bool(failed and failed.state in {"failed", "timed_out"} and failed.error_code in {
                 "model_gateway_upstream_failure", "model_gateway_network_failure",
-                "model_gateway_rate_limited", "planning_provider_failed"})
+                "model_gateway_rate_limited", "model_gateway_transport_failure", "planning_provider_failed"})
     narration = failed is not None and narration_only_planning(failed)
     context_admission_failure = bool(failed and failed.state == "failed" and (
         failed.error_code == "planning_context_limit" or (failed.error_code == "planning_turn_failed"

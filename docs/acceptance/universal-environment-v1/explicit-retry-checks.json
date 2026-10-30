@@ -1,0 +1,32 @@
+{
+  "version": "upeve-explicit-transport-retry-checks-v1",
+  "recorded_at": "2026-10-30T14:45:28.201559+00:00",
+  "engine_parent": "4919365a9d9300aee288f8f256c1655722296b8b",
+  "focused": {
+    "tests": 32,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "path": "/tmp/upeve-explicit-retry-focused.xml",
+    "sha256": "05053dddba82e2546ab9ae0d4ab573f96f08a63511fca27967f75a2959bce413"
+  },
+  "targeted_regression": {
+    "tests": 92,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "path": "/tmp/upeve-explicit-retry-regression.xml",
+    "sha256": "6ebcaad2538c00f2b25eabbf819f7cfe24d598ce3439de5bfd5f7325f33c3f8a"
+  },
+  "tested_production_files": {
+    "app/planning_continuation.py": "f13d830638217402754a68acb720a708c424a666d87e9601607c38de00262711"
+  },
+  "compileall": "passed",
+  "diff_check": "passed",
+  "full_default_rerun": false,
+  "last_complete_default_evidence": "delivery-checks.json",
+  "actual_model_calls_in_checks": 0,
+  "automatic_completion_post_retry_added": false,
+  "explicit_user_control_required": true,
+  "limits_or_approvals_changed": false
+}

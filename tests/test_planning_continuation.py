@@ -166,10 +166,11 @@ def failed_model_step(tmp_path, *, error_code='model_gateway_upstream_failure', 
     return db,s,task,content,failed_id,frozen
 
 
-def test_continue_resumes_frozen_planning_before_chat_and_preserves_budgets(tmp_path):
+@pytest.mark.parametrize('failure_code', ['model_gateway_upstream_failure','model_gateway_transport_failure'])
+def test_continue_resumes_frozen_planning_before_chat_and_preserves_budgets(tmp_path,failure_code):
     from app.planning_budget import planning_usage
     from app.jobs import JobService
-    db,s,task,content,failed_id,frozen=failed_model_step(tmp_path)
+    db,s,task,content,failed_id,frozen=failed_model_step(tmp_path,error_code=failure_code)
     send(db,s,task,'继续',key='retry-frozen-planning')
     with db.session() as session:
         w=Workbench(session,s.artifact_root)
@@ -198,11 +199,12 @@ def test_continue_resumes_frozen_planning_before_chat_and_preserves_budgets(tmp_
 
 
 @pytest.mark.parametrize('stale', ['context','budget','pause','model'])
-@pytest.mark.parametrize('failure_kind', ['model','context'])
+@pytest.mark.parametrize('failure_kind', ['model','context','transport'])
 def test_readonly_planning_retry_rejects_stale_or_exhausted_state(tmp_path,stale,failure_kind):
     from app.planning_continuation import resume_failed_model_planning
     from app.workbench import WorkbenchError
-    db,s,task,_,_,_=failed_model_step(tmp_path,**({'error_code':'planning_context_limit'} if failure_kind=='context' else {}))
+    errors={'context':'planning_context_limit','transport':'model_gateway_transport_failure'}
+    db,s,task,_,_,_=failed_model_step(tmp_path,**({'error_code':errors[failure_kind]} if failure_kind in errors else {}))
     with db.session() as session:
         w=Workbench(session,s.artifact_root)
         if stale=='context':

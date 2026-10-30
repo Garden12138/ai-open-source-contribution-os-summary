@@ -5291,6 +5291,17 @@ original files/events and the second request's frozen failed payload. Local role
 health is not upstream model success. No stage gate is promoted, no formal data
 is modified and no third-party write occurs. UPEVE v1 remains incomplete.
 
+The user explicitly requests another real acceptance attempt (“那你再次试下验收”).
+The current recovery allowlist missed the observed model_gateway_transport_failure
+code. It now uses the existing explicit-user, source-bound continuation path;
+there is still no automatic POST replay, usage refund or reset of rounds/limits.
+Transport recovery gains stale-source/model, pause, exhausted-budget and frozen
+payload tests. Focused and targeted conversation/budget/authorization regression
+pass; the latest complete default suite remains the separate 1650-pass record.
+One newly authorized same-lineage retry is prepared at round 4 / repair 1, at
+most two calls within the unchanged 32 / 2M / 100K totals and existing 16K Profile.
+No execution or publication is authorized and no native success is claimed.
+
 
 ---
 
