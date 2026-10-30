@@ -479,5 +479,19 @@
     "default_selection": "four_global_stages_explicitly_saved_by_user",
     "operator_changed_defaults": false
   },
-  "latest_real_model_connection_evidence": "deepseek-real-connection.json"
+  "latest_real_model_connection_evidence": "deepseek-real-connection.json",
+  "deepseek_native_acceptance": {
+    "status": "task_models_switched_blocked_exact_budget_approval",
+    "evidence": [
+      "deepseek-native-model-switch.json",
+      "deepseek-native-budget-proposal.json",
+      "deepseek-native-preflight-audit.json"
+    ],
+    "proposal_hash": "dd328a3327c374bd59541e0dcfbf3ea5ea3151f46cf0eedd1c84ca6ca08e44a0",
+    "model_binding_hash": "91b7782d7210e5c8dac9adfb42dff6f033d58fc517b3e9ef211fa598dbb1b9ca",
+    "budget_raised": false,
+    "actual_model_calls": 0,
+    "execution_approved": false,
+    "native_first_outcomes_unchanged": true
+  }
 }

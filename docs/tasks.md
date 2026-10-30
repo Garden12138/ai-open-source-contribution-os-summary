@@ -5383,6 +5383,28 @@ Original native task usage stays 30 calls / three unknown reserves / zero input
 allowance, with no Plan/execution approval. UPEVE-E04 and all native/platform
 gates stay open; formal data and GitHub are untouched.
 
+DeepSeek native acceptance preflight (2026-10-31 local): user explicitly asks
+to use DeepSeek for acceptance. All five owned role children are live; the saved
+DeepSeek V4 Pro Profile is the exact version whose real connection probe passed.
+Through the native task-model API, the existing D TypeScript task is now bound
+to that Profile for all four stages. This appends a model version/event and
+preserves its frozen source, all 161 prior events, 38 prior Jobs and unchanged
+known usage/unknown reserves. It is not a new unseen sample or native success.
+
+The real native budget guard still rejects `planning_budget_exceeded`: 30 calls,
+712,836 known input plus 1,350,000 held input exceed the original 2,000,000 cap.
+No model generation is dispatched. A concrete task-only proposal raises lifetime
+limits from 32 / 2M / 100K to **38 / 4M / 200K**, permitting at most **eight**
+additional calls in **one** fresh read-only planning request at the saved 16K /
+300s Profile. All old use/reserves, four read rounds and two repairs remain;
+there is no replay of old failed completions and no execution/publish consent.
+The strict request schema and existing fail-closed gate are checked without
+applying any budget change. Exact budget approval is pending; elapsed time does
+not authorize it. Evidence: `deepseek-native-model-switch.json`,
+`deepseek-native-budget-proposal.json`, `deepseek-native-preflight-audit.json`.
+Only the resource-dependent native request waits. UPEVE-E04 and prior failed /
+blocked / not_run gates remain unchanged.
+
 
 ---
 
