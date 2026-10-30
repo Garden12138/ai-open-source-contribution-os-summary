@@ -1,0 +1,35 @@
+{
+  "version": "upeve-baseline-schema-deployment-v1",
+  "engine_revision": "9d5094fd579870d195f9604fca3af3b138142cde",
+  "recorded_at": "2026-10-30T01:31:09.581709+00:00",
+  "active_jobs_before_restart": 0,
+  "owned_roles_restarted": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "publisher_rebuilt": false,
+  "publisher_reason": "Context/planner-only maintenance; separate token-owner/read relay code unchanged.",
+  "production_data_modified": false,
+  "github_writes": 0,
+  "linux_amd64": "not_run_no_native_endpoint",
+  "platform": "macOS_arm64_OrbStack_arm64"
+}

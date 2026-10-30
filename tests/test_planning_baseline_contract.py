@@ -119,3 +119,33 @@ def test_manual_plan_api_rejects_invalid_expectation_and_redacts_canary(tmp_path
         dump = "\n".join(session.connection().connection.driver_connection.iterdump())
         assert canary not in dump
     db.close()
+
+
+@pytest.mark.parametrize("recover", [True, False])
+def test_v2_empty_model_outcome_uses_existing_bounded_repairs_without_inventing_content(tmp_path, recover):
+    db, settings, task, content, _ = seeded(tmp_path)
+    with db.session() as session:
+        PlanningService(session, settings.artifact_root).request(task, text="Prepare a safe plan",
+            parent_id=None, expected_hash=None, key="empty-repair", runtime_version="agent-runtime-v2")
+    first, _ = run_turn(db, settings, '{}')
+    assert first.state == 'succeeded' and first.result_data['repair_scheduled']
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        assert wb.latest_plan(task) is None and not wb.latest(task, 'execution_authorized')
+        assert wb.latest(task, 'model_output_rejected').payload['reason_code'] == 'planning_outcome_missing'
+    second, runner = run_turn(db, settings, result(content) if recover else '{}')
+    assert second.state == 'succeeded'
+    assert json.loads(runner.invocations[0].prompt)['plan_repair']['reason_code'] == 'planning_outcome_missing'
+    if not recover:
+        final, _ = run_turn(db, settings, '{}')
+        assert final.state == 'failed' and final.error_code == 'planning_outcome_missing'
+    with db.session() as session:
+        wb = PlanningService(session, settings.artifact_root)
+        assert len([e for e in wb.history(task) if e.kind == 'model_call']) == (2 if recover else 3)
+        rejections = [e for e in wb.history(task) if e.kind == 'model_output_rejected']
+        assert len(rejections) == (1 if recover else 3)
+        assert all(e.payload.get('usage', {}).get('input_tokens', 0) > 0 for e in rejections)
+        assert bool(wb.latest_plan(task)) is recover
+        assert not wb.latest(task, 'execution_authorized')
+        assert not any(j.state in ('queued', 'leased', 'running') for j in wb.jobs(task))
+    db.close()

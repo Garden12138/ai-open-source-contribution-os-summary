@@ -645,3 +645,20 @@ and manual API/canary boundaries. [Full default regression](baseline-schema-chec
 is **1616 passed / 62 skipped / 0 failed**, compileall/diff checks pass. Isolated
 redeploy and actual same-target D model validation follow. E3 remains the current gate;
 no fake/controlled test is counted as native success.
+
+
+[Deployment of 9d5094f](baseline-schema-deployment.json) is healthy and formal
+data is untouched. [Actual D retest](baseline-schema-live-retest.json) makes two
+real calls (20 lifetime), then fails `planning_outcome_missing` before saving or
+validating a new Plan. The prior field failure is not reached, so the model
+improvement is unproven. The terminal failed Job is distinct from the preceding
+assistant read request, which must not be mistaken for the final outcome.
+
+For new v2 requests only, empty outcomes now use the existing two bounded schema
+repairs. No response is filled/coerced, all failure/usage receipts persist, and
+unchanged lifetime budgets still apply. Repeated emptiness fails after at most
+three calls; a valid subsequent proposal remains subject to all plan/security
+checks. Legacy immediate rejection is preserved. 44 focused contracts and
+[full regression](empty-outcome-checks.json) **1618 passed / 62 skipped / 0 failed**
+pass. A same-target D measurement follows, with no native pass inferred and
+no approval created.

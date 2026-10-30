@@ -5059,6 +5059,24 @@ Actual same-target D retest follows;
 no new gate is checked. E3 / UPEVE-E04 stays the current specialty task.
 
 
+`9d5094f` is deployed only to the isolated trial; all five roles and
+API/Gateway/Publisher/older trial health pass. The original N7 goal/source/Profile
+and 32-call lifetime limit remain unchanged. The actual D retest makes two calls
+(20 lifetime), then fails `planning_outcome_missing` before any new plan is
+validated. The old Baseline schema error was not reached, so real-model
+improvement is not yet proven. [Actual record](acceptance/universal-environment-v1/baseline-schema-live-retest.json)
+retains the terminal failed Job separately from the preceding read request.
+
+New v2 requests may now submit an empty model outcome to the existing two
+schema-repair attempts, with every failed response and usage retained. Legacy
+one-call failure stays unchanged; no default Plan/read/answer is invented.
+Repeated emptiness still fails after at most three calls, while a subsequent
+valid proposal is checked normally and never grants execution. 44 focused
+contracts and full **1618 passed / 62 skipped / 0 failed** regression pass,
+including empty→valid recovery and exhausted-empty termination. One bounded
+same-target D retest follows. No gate is checked.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

@@ -1,0 +1,58 @@
+{
+  "version": "upeve-empty-outcome-checks-v1",
+  "recorded_at": "2026-10-30T01:39:14.500281+00:00",
+  "focused": {
+    "passed": 44,
+    "failures": 0,
+    "xml": "/tmp/upeve-empty-outcome-focused.xml"
+  },
+  "default": {
+    "tests": 1680,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1618,
+    "shards": [
+      {
+        "tests": 420,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 13,
+        "path": "/tmp/upeve-empty-outcome-shard-0.xml",
+        "sha256": "c4b69bd180f9380498e189dc6203fc90f4dd72348b256bba55c9608fe2a55a47"
+      },
+      {
+        "tests": 420,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 16,
+        "path": "/tmp/upeve-empty-outcome-shard-1.xml",
+        "sha256": "03bcf1dd3eb540fece85e125f423d9f1c353c3f13db1ca0dcdbd6fa417a5bbe9"
+      },
+      {
+        "tests": 420,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-empty-outcome-shard-2.xml",
+        "sha256": "8d8e7d33b73250c97e6af3500f7a0b6aa171ced05cdacdd15ca333b1f58aea22"
+      },
+      {
+        "tests": 420,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 21,
+        "path": "/tmp/upeve-empty-outcome-shard-3.xml",
+        "sha256": "4c9d9403b0f441a3b3c4e872c9a829e385aaf5b436bce0fa3fb9bf11b2aeeebd"
+      }
+    ]
+  },
+  "compileall": "passed",
+  "diff_check": "passed",
+  "read_round_limit": 4,
+  "plan_repair_limit": 2,
+  "lifetime_limits_unchanged": true,
+  "legacy_immediate_empty_rejection_preserved": true,
+  "fabricated_default_outcomes": 0,
+  "native_deliveries": 0
+}

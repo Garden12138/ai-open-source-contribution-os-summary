@@ -308,50 +308,50 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266",
+  "engine_revision": "9d5094fd579870d195f9604fca3af3b138142cde",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1678,
+    "tests": 1680,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1616,
+    "passed": 1618,
     "shards": [
       {
         "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 7,
-        "path": "/tmp/upeve-baseline-schema-shard-0.xml",
-        "sha256": "6931f69939775775797424dc0423ccacce51742ceb3954acb2781752d6248581"
+        "skipped": 13,
+        "path": "/tmp/upeve-empty-outcome-shard-0.xml",
+        "sha256": "c4b69bd180f9380498e189dc6203fc90f4dd72348b256bba55c9608fe2a55a47"
       },
       {
         "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 14,
-        "path": "/tmp/upeve-baseline-schema-shard-1.xml",
-        "sha256": "0b1bd6dd3db08f1f022d51d55e6420b2d311a9e61ced1970f444f00d5f3f3e9e"
+        "skipped": 16,
+        "path": "/tmp/upeve-empty-outcome-shard-1.xml",
+        "sha256": "03bcf1dd3eb540fece85e125f423d9f1c353c3f13db1ca0dcdbd6fa417a5bbe9"
       },
       {
-        "tests": 419,
+        "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 11,
-        "path": "/tmp/upeve-baseline-schema-shard-2.xml",
-        "sha256": "df72eda4cbdfcaf92dac07ddbbdda134c0f571261fa02911cef78ab4db39022b"
+        "skipped": 12,
+        "path": "/tmp/upeve-empty-outcome-shard-2.xml",
+        "sha256": "8d8e7d33b73250c97e6af3500f7a0b6aa171ced05cdacdd15ca333b1f58aea22"
       },
       {
-        "tests": 419,
+        "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 30,
-        "path": "/tmp/upeve-baseline-schema-shard-3.xml",
-        "sha256": "94428e9aed2807e4cfd5a5fa0e6032940dfc8eed1f0426e56fdd396859675b63"
+        "skipped": 21,
+        "path": "/tmp/upeve-empty-outcome-shard-3.xml",
+        "sha256": "4c9d9403b0f441a3b3c4e872c9a829e385aaf5b436bce0fa3fb9bf11b2aeeebd"
       }
     ],
     "revision": "pending_current_local_stage_commit",
-    "evidence": "baseline-schema-checks.json"
+    "evidence": "empty-outcome-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -360,7 +360,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "baseline-schema-checks.json",
+  "latest_default_evidence": "empty-outcome-checks.json",
   "native_first_attempts": {
     "selected": 3,
     "deliveries": 0,

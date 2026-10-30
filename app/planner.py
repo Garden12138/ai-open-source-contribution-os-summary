@@ -874,8 +874,11 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 self._current(wb, job)
                 details = planning_validation_details(exc)
                 options_error = details.get("fields") == ["questions.options"] and details.get("validation_types") == ["string_type"]
+                repairable_types = {"extra_forbidden", "missing", "string_type", "list_type", "dict_type", "model_type", "json_invalid"}
+                if data.get("agent_runtime_version") == "agent-runtime-v2":
+                    repairable_types.add("planning_outcome_missing")
                 repair_envelope = (bool(details.get("validation_types"))
-                    and set(details["validation_types"]) <= {"extra_forbidden", "missing", "string_type", "list_type", "dict_type", "model_type", "json_invalid"}
+                    and set(details["validation_types"]) <= repairable_types
                     and data.get("repair_round", 0) < MAX_PLAN_REPAIRS)
                 wb.append(data["task_id"], "model_output_rejected", {
                     **details,
@@ -887,7 +890,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     child = wb.enqueue(data["task_id"], TURN, {
                         **data, "repair_round": data.get("repair_round", 0) + 1,
                         "plan_repair": {**details, "constraint": "clarification_options_plain_strings" if options_error else "planning_envelope_schema",
-                            "instruction":"Return only the reply/questions/read_paths/read_context/plan envelope. All implementation fields and commands belong inside plan. Correct the listed fields against REQUIRED_SCHEMA; do not flatten the plan or add response/working_directory at the top level."},
+                            "instruction":"Return only the reply/questions/read_paths/read_context/plan envelope with a nonempty structured outcome. For a planning job return necessary reads, a complete plan, or material questions; an empty object is invalid. All implementation fields and commands belong inside plan. Correct the listed fields against REQUIRED_SCHEMA; do not flatten the plan or add response/working_directory at the top level."},
                     }, key="repair-envelope:" + job.id, commit=False)
                     return self.finish(session, job, {
                         "next_job_id": child.id, "plan_status": "rejected", "repair_scheduled": True,
