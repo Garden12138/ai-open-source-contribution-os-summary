@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | DeepSeek domestic V4 Pro/Flash profiles are available for explicit four-stage selection; existing MiniMax defaults and task budgets remain unchanged. Credentials stay in the independent Gateway. Real DeepSeek, native delivery and Linux platform gates remain open. |
+| Feature note | The user selected domestic DeepSeek V4 Pro for the four global stages; a real authenticated structured connection test passes after restoring a stopped Provider Worker. Existing task bindings/budgets remain intact. Native delivery and Linux platform gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5357,6 +5357,31 @@ three unknown-use reserves and zero input allowance; no budget or task model is
 reset. See `deepseek-checks.json`, `deepseek-final-deployment.json` and
 `deepseek-audit.json` in the specialty ledger. No UPEVE gate is checked; current
 task stays UPEVE-E04. This addition grants no execution or PR consent.
+
+DeepSeek connection incident (2026-10-30): the user saved a credential/Profile
+and explicitly selected DeepSeek for the four global defaults, then reported
+the test appeared unable to connect. The API and Gateway were healthy, but the
+registered Provider Worker process had exited. Job `089005c5-2888-41f7-866d-14e1f14b0981`
+was still queued with attempt_count=0; three previous user-cancelled tests also
+had zero attempts. No DeepSeek request had been made by those waiting Jobs.
+Only the missing Provider Worker was restarted, without cancelling or replacing
+the current Job, rebinding Profiles, touching credentials, or changing budgets.
+The exit's root cause is unknown: no durable exit receipt was retained. Service
+HTTP health alone must not be treated as evidence that a background worker lives.
+
+The original queued test now succeeds on its single allowed attempt: upstream
+HTTP200, structured `ok=true`, DeepSeek V4 Pro, 1995 ms. All five owned role
+children and four health endpoints are verified live afterwards. The cancelled
+Jobs remain cancelled/unattempted; no new model test is created or ambiguous
+POST replayed. The test result does not retain usage, so exact spend is unknown.
+The user's frozen Profile still uses its exact saved connection version; the
+operator does not silently bind it to a newer connection/key version. This
+proves current network/authenticated model/structured-response availability,
+not native Agent delivery or future worker liveness. See
+`deepseek-provider-recovery.json` and `deepseek-real-connection.json`.
+Original native task usage stays 30 calls / three unknown reserves / zero input
+allowance, with no Plan/execution approval. UPEVE-E04 and all native/platform
+gates stay open; formal data and GitHub are untouched.
 
 
 ---

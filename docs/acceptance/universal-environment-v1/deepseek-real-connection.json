@@ -1,0 +1,137 @@
+{
+  "version": "upeve-deepseek-real-connection-observation-v1",
+  "recorded_at": "2026-10-30T15:47:16.063885+00:00",
+  "engine_revision": "506df439ee6c44a140e306fc72288a7836f97338",
+  "classification": "real_provider_connection_probe_not_native_Agent_delivery",
+  "cause_of_waiting": "provider_worker_process_absent_job_never_leased",
+  "worker_exit_root_cause": "unknown_no_retained_exit_receipt",
+  "network_current": "passed_real_authenticated_completion",
+  "job": {
+    "id": "089005c5-2888-41f7-866d-14e1f14b0981",
+    "state": "succeeded",
+    "attempt_count": 1,
+    "max_attempts": 1,
+    "payload_hash": "8c19f411cc1ff42ee6f3c907744e303594336a9f60580f54e97d3ad8700ffdc9",
+    "error_code": null,
+    "result_data": {
+      "connected": true,
+      "structured_output": true,
+      "model": "deepseek-v4-pro",
+      "duration_ms": 1995,
+      "usage": null
+    },
+    "created_at": "2026-10-30 15:41:55.166395",
+    "started_at": "2026-10-30 15:45:16.866097",
+    "completed_at": "2026-10-30 15:45:18.864689"
+  },
+  "profile_binding": {
+    "profile_id": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "profile_hash": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+  },
+  "connection_binding": {
+    "id": "48178b9f-92ab-45f3-b100-d0bebf95544f",
+    "record_hash": "9a2b803dab24e59f7d550bde7a0d7f79910f7275b930afd62a4401c1b3218bef",
+    "provider": "deepseek",
+    "base_url": "https://api.deepseek.com"
+  },
+  "latest_connection_version_not_implicitly_rebound": true,
+  "upstream_http_status": 200,
+  "upstream_status_log_sha256": "59ecc864d3b1729d6cc953443e54431639bcc2062e4c9dbb45d33031c3e369c4",
+  "usage": null,
+  "usage_note": "The existing connection-test result does not retain model usage; no actual usage is invented.",
+  "real_model_calls_by_recovery": 1,
+  "new_model_test_enqueued": false,
+  "cancelled_jobs_preserved": [
+    {
+      "id": "3d15c04f-b655-427a-a27a-b004a8e9ebc0",
+      "state": "cancelled",
+      "attempt_count": 0
+    },
+    {
+      "id": "219d0834-7e07-4022-87f1-bc03a4506826",
+      "state": "cancelled",
+      "attempt_count": 0
+    },
+    {
+      "id": "387bdab3-5354-412b-93b0-4c7d0a41215b",
+      "state": "cancelled",
+      "attempt_count": 0
+    }
+  ],
+  "role_children_live": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "effective_profile_ids_saved_by_user": {
+    "analysis": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "planning": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "implementation": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "review": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e"
+  },
+  "operator_changed_defaults_or_profiles": false,
+  "original_native_task_budget": {
+    "version": "planning-budget-v1",
+    "revision": "0409dfc62cec612de6016ad1d31c0c60097a323e2d7b2549f140a899a65f3310",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 30,
+      "input_tokens": 712836,
+      "output_tokens": 35617
+    },
+    "remaining": {
+      "calls": 2,
+      "input_tokens": 0,
+      "output_tokens": 23423
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "native_first_deliveries": "0/4_unchanged",
+  "native_baseline_coding_verify_review": "not_run",
+  "raw_credentials_read": false,
+  "credentials_or_proxy_security_changed": false,
+  "formal_data_modified": false,
+  "external_writes": 0
+}

@@ -437,7 +437,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "deepseek-audit.json",
+  "latest_final_observation": "deepseek-real-connection.json",
   "latest_targeted_evidence": "deepseek-checks.json",
   "native_current_remaining": {
     "calls": 2,
@@ -454,13 +454,15 @@
     "execution_approved": false
   },
   "deepseek_integration": {
-    "status": "implemented_offline_verified_isolated_deployed",
+    "status": "implemented_verified_deployed_real_connection_passed",
     "engine_revision": "f613dd9d64626a7b62f9fbd23e5654554bdd7121",
     "evidence": [
       "deepseek-checks.json",
       "deepseek-deployment.json",
       "deepseek-final-deployment.json",
-      "deepseek-audit.json"
+      "deepseek-audit.json",
+      "deepseek-provider-recovery.json",
+      "deepseek-real-connection.json"
     ],
     "models": [
       "deepseek-v4-pro",
@@ -468,10 +470,14 @@
     ],
     "base_url": "https://api.deepseek.com",
     "schema_revision": "0040_deepseek_reviews",
-    "real_model_calls": 0,
-    "real_model_status": "blocked_not_run_missing_saved_connection_or_profile",
+    "real_model_calls": 1,
+    "real_model_status": "passed_authenticated_structured_connection_probe",
     "global_defaults_changed_by_operator": false,
     "existing_task_model_or_budget_changed": false,
-    "native_success": false
-  }
+    "native_success": false,
+    "real_connection_evidence": "deepseek-real-connection.json",
+    "default_selection": "four_global_stages_explicitly_saved_by_user",
+    "operator_changed_defaults": false
+  },
+  "latest_real_model_connection_evidence": "deepseek-real-connection.json"
 }
