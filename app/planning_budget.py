@@ -1,6 +1,8 @@
 """Actual lifetime consumption is independent of prompt compaction."""
 from __future__ import annotations
 
+from collections import Counter
+
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.jobs import TERMINAL_STATES
@@ -62,12 +64,32 @@ def _limits(history: list) -> tuple[dict, str | None]:
 def planning_usage(wb: Workbench, task_id: str) -> dict:
     history = wb.history(task_id)
     limits, _ = _limits(history)
-    usage = [event.payload.get("usage", {}) for event in history if event.kind in {
-        "assistant_message", "conversation_usage", "model_output_rejected", "baseline_diagnosed"}]
+    usage_events = [event for event in history if event.kind in {
+        "assistant_message", "conversation_usage", "model_output_rejected", "baseline_diagnosed", "model_failed_usage"}]
+    usage = [event.payload.get("usage") or {} for event in usage_events]
+    accounted = Counter(event.job_id for event in usage_events if event.job_id and
+        all(type((event.payload.get("usage") or {}).get(key)) is int for key in ("input_tokens", "output_tokens")))
+    reserved = {"input_tokens": 0, "output_tokens": 0}
+    unknown_calls = 0
+    for event in history:
+        if event.kind != "model_call" or not event.job_id:
+            continue
+        if accounted[event.job_id]:
+            accounted[event.job_id] -= 1
+            continue
+        job = wb.session.get(Job, event.job_id)
+        if job is None or job.state not in TERMINAL_STATES:
+            continue
+        # A missing receipt is not zero usage. Hold a labelled conservative
+        # allowance; never rewrite the original failed call as actual spend.
+        unknown_calls += 1
+        for key, fallback in (("input_tokens", 450_000), ("output_tokens", limits["output_tokens"])):
+            bound = event.payload.get("input_token_limit" if key == "input_tokens" else "output_token_limit", fallback)
+            reserved[key] += bound if type(bound) is int and bound > 0 else fallback
     return {"calls": sum(event.kind == "model_call" for event in history),
         "input_tokens": sum(item.get("input_tokens", 0) for item in usage),
         "output_tokens": sum(item.get("output_tokens", 0) for item in usage),
-        "limits": limits}
+        "limits": limits, "reserved": reserved, "unknown_calls": unknown_calls}
 
 
 def planning_budget_view(wb: Workbench, task_id: str) -> dict:
@@ -79,7 +101,8 @@ def planning_budget_view(wb: Workbench, task_id: str) -> dict:
                              "limits": limits, "usage": usage, "state_hash": state.record_hash})
     return {"version": VERSION, "revision": revision, "record_hash": event_hash,
             "limits": limits, "usage": {key: usage[key] for key in limits},
-            "remaining": {key: max(0, limits[key] - usage[key]) for key in limits},
+            "remaining": {key: max(0, limits[key] - usage[key] - usage["reserved"].get(key, 0)) for key in limits},
+            "reserved": usage["reserved"], "unknown_calls": usage["unknown_calls"],
             "bounds": BOUNDS,
             "configurable": not any(j.state not in TERMINAL_STATES for j in wb.jobs(task_id))}
 
@@ -103,8 +126,8 @@ def configure_planning_budget(wb: Workbench, task_id: str, request: PlanningBudg
     if not current["configurable"]:
         raise WorkbenchError("任务正在处理，请等待完成或停止后再调整预算。", code="planning_budget_busy")
     limits = request.limits.model_dump()
-    if any(limits[key] < current["usage"][key] for key in limits):
-        raise WorkbenchError("预算上限不能低于已经记录的用量。", code="planning_budget_below_usage")
+    if any(limits[key] < current["usage"][key] + current["reserved"].get(key, 0) for key in limits):
+        raise WorkbenchError("预算上限不能低于已记录用量与未知调用预留之和。", code="planning_budget_below_usage")
     wb.append(task_id, EVENT, {"version": VERSION, "request": values, "limits": limits,
         "previous_limits": current["limits"], "previous_budget_hash": current["record_hash"],
         "usage_at_change": current["usage"]}, key=idempotency_key, actor="local-user", commit=False)
@@ -116,8 +139,8 @@ def configure_planning_budget(wb: Workbench, task_id: str, request: PlanningBudg
 def require_planning_budget(wb: Workbench, task_id: str) -> None:
     usage = planning_usage(wb, task_id)
     names = {"calls": "调用次数", "input_tokens": "输入 token", "output_tokens": "输出 token"}
-    reached = [f"{name} {usage[key]:,} / {usage['limits'][key]:,}" for key, name in names.items()
-               if usage[key] >= usage["limits"][key]]
+    reached = [f"{name}（已用 {usage[key]:,}，未知预留 {usage['reserved'].get(key, 0):,}）/ {usage['limits'][key]:,}" for key, name in names.items()
+               if usage[key] + usage["reserved"].get(key, 0) >= usage["limits"][key]]
     if reached:
         raise WorkbenchError("本任务累计预算已用尽（" + "；".join(reached)
             + "）。这是任务预算限制，不能据此判断模型账户额度；已有记录保留。压缩上下文不会恢复已消耗预算，继续调用需明确追加任务预算。",

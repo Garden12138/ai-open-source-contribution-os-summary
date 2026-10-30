@@ -107,6 +107,8 @@ class PlanningBudgetResponse(BaseModel):
     limits: dict[str, int]
     usage: dict[str, int]
     remaining: dict[str, int]
+    reserved: dict[str, int] = Field(default_factory=dict)
+    unknown_calls: int = 0
     bounds: dict[str, dict[str, int]]
     configurable: bool
 

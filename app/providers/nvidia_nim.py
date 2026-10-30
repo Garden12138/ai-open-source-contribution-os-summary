@@ -1041,12 +1041,21 @@ def _completion(
     error_prefix: str = "nvidia_nim",
     provider_label: str = "NVIDIA NIM",
 ) -> tuple[str, dict[str, int]]:
+    raw_usage = value.get("usage")
+    usage = raw_usage if isinstance(raw_usage, Mapping) else {}
+    reported_usage = None
+    input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
+    output_count = usage.get("completion_tokens", usage.get("output_tokens"))
+    if all(type(count) is int and count >= 0 for count in (input_count, output_count)):
+        from app.providers.contracts import ProviderUsage
+        reported_usage = ProviderUsage(input_tokens=input_count, output_tokens=output_count)
     choices = value.get("choices")
     if not isinstance(choices, list) or len(choices) != 1:
         raise ProviderRunError(
             f"{error_prefix}_completion_invalid",
             f"{provider_label} completion response is invalid",
             retryable=False,
+            usage=reported_usage,
         )
     choice = choices[0]
     message = choice.get("message") if isinstance(choice, Mapping) else None
@@ -1058,16 +1067,16 @@ def _completion(
             f"{error_prefix}_completion_truncated",
             f"{provider_label} completion exhausted its output-token budget",
             retryable=False,
+            usage=reported_usage,
         )
     if not isinstance(content, str) or not content.strip():
         raise ProviderRunError(
             f"{error_prefix}_completion_invalid",
             f"{provider_label} completion response has no final content",
             retryable=False,
+            usage=reported_usage,
         )
     content = normalize_completion_content(content)
-    raw_usage = value.get("usage")
-    usage = raw_usage if isinstance(raw_usage, Mapping) else {}
     return content, {
         "input_tokens": _non_negative_int(
             usage.get("prompt_tokens", usage.get("input_tokens", 0))

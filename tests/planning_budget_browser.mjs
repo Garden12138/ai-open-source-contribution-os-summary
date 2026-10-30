@@ -6,17 +6,19 @@ const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:960}}), errors=[],mutations=[];
 page.on('pageerror',error=>errors.push(error.message));
 try {
-  await page.goto('http://127.0.0.1:8765');
+  const base=process.env.CONTRIBOS_BROWSER_URL || 'http://127.0.0.1:8765';
+  await page.goto(base);
   await page.locator('#sidebar-tasks a').first().click();
   const selector=page.getByRole('combobox',{name:'本任务累计输入预算'});
   await selector.waitFor();
   const task=(await page.evaluate(()=>location.hash)).split('/').at(-1);
-  const url=`http://127.0.0.1:8765/api/v1/tasks/${task}/workbench`;
+  const url=`${base}/api/v1/tasks/${task}/workbench`;
   const source=await (await page.request.get(url)).json();
-  let revision='a'.repeat(64),busy=false,reject=false,cap=2000000,calls=32,outputs=100000;
+  let revision='a'.repeat(64),busy=false,reject=false,cap=2000000,calls=32,outputs=100000,unknown=0;
   const budget=()=>({...source.execution.planning_budget,revision,
     limits:{calls,input_tokens:cap,output_tokens:outputs},configurable:!busy,
-    usage:{calls:23,input_tokens:2079795,output_tokens:52195}});
+    usage:{calls:23,input_tokens:2079795,output_tokens:52195},unknown_calls:unknown,
+    reserved:{input_tokens:unknown ? 300000 : 0,output_tokens:unknown ? 8192 : 0}});
   const snapshot=()=>({...source,busy,execution:{...source.execution,planning_budget:budget()}});
   await page.route(url,route=>route.fulfill({json:snapshot()}));
   await page.route(url+'/budget',route=>{
@@ -64,12 +66,19 @@ try {
   await save.click();
   await page.getByRole('dialog').waitFor({state:'hidden'});
   assert.deepEqual(mutations.at(-1).body.limits,{calls:40,input_tokens:6000000,output_tokens:150000});
+  unknown=1;
+  await page.getByRole('status').filter({hasText:'1 次调用用量未知，预留输入'}).waitFor();
+  assert.match(await page.locator('.conversation-budget-control').getAttribute('title'),/预留不是实际消费/);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.screenshot({path:'/tmp/contribos-budget-unknown-mobile.png'});
   await selector.selectOption('custom');await save.waitFor();
+  assert.equal(await page.getByRole('spinbutton',{name:'累计输入 token',exact:true}).getAttribute('min'),'2379795');
+  assert.equal(await page.getByRole('spinbutton',{name:'累计输出 token',exact:true}).getAttribute('min'),'60387');
   revision='d'.repeat(64);
   await page.waitForFunction(()=>document.querySelector('[data-budget-save]')?.disabled);
   await page.getByRole('status').filter({hasText:'预算或用量已变化'}).waitFor();
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({ok:true,dropdown:true,custom:true,desktop:true,mobile:true,
     draftPreserved:true,busyDisabled:true,staleDisabled:true,idempotentRetry:true,
-    modelCalls:0,realWrites:0}));
+    unknownUsageVisible:true,reservedMinimum:true,modelCalls:0,realWrites:0}));
 }finally{await browser.close();}

@@ -52,5 +52,6 @@
   "profile_changed": false,
   "limits_and_approvals_changed": false,
   "policy_evidence": "minimax-adaptive-policy.json",
-  "native_deliveries": 0
+  "native_deliveries": 0,
+  "engine_revision": "5e54b73283c7aedf8629617d7ca6cac4a2e6d17b"
 }

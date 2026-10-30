@@ -718,3 +718,36 @@ parameters, hidden-reasoning separation/full completion usage and single-POST
 versus safe GET retry behavior. [Full regression](adaptive-checks.json) passes
 **1624 / 62 skipped / 0 failed**. A bounded N8 D test follows; native improvement
 is unproven and original first outcomes remain unchanged.
+
+
+## Actual adaptive failure and failure-usage accounting
+
+[Actual same-target D result](adaptive-live-retest.json) makes five additional
+MiniMax calls, 17 lifetime, then fails `minimax_completion_truncated` at the frozen
+8192 cap. The last job is `038eb98e-3b06-4d88-87f9-d23eda9ff214`; the preceding
+assistant read request is not the terminal result. Known reported lifetime usage
+is 400,325 input / 21,859 output. Last-call usage was discarded by the old error
+path and remains unknown. There is no Plan, approval, baseline, Coding, Verify,
+Review or final acceptance. Native first deliveries stay 0/4; the separate
+original environment denominator stays 0/15. N8 remains D after maintenance.
+
+The Provider error contract now carries validated reported usage through a
+truncation/invalid completion without accepting its partial result. Planning
+appends a failure receipt; terminal calls without one hold a separate allowance
+at the original call bounds. Known usage and unknown reserves remain distinct in
+API, native UI and budget CAS. The actual invocation's output cap is clamped to
+the remaining task allowance. There is no automatic completion POST replay,
+resource increase, approval or alteration of historical events. Old unknown
+calls without an output bound hold the full task allowance, fail closed and
+cannot be assumed free. This adds journal/response fields without a SQL schema
+change; restart and rollback rules are in the architecture contract.
+
+101 focused contracts and the offline browser component pass (desktop/mobile,
+unknown usage, underfunded edits, stale/busy state, idempotent retries). They are
+zero actual-model/zero real-write component checks. Full regression, preservation
+audit and isolated redeployment are separate receipts; no stage gate is closed.
+A 16K planning-only Profile is only a proposal requiring a new resource decision;
+the saved MiniMax Profile and all defaults remain at 8192 until then. Increasing
+that cap would not retroactively pass an original U attempt or prove delivery.
+
+Final [regression receipt](budget-reservation-checks.json): **1630 passed / 62 skipped / 0 failed**. One old text assertion failed in the first run; the original failed XML is retained, its entire shard passed after the text expectation update. [Preservation audit](budget-reservation-audit.json) retains all 74 historical files, 71/165 original historical events, N5/N7/N8 first 36/37/40 events and zero execution approvals. Canary scan passes. These do not pass native/generalization gates.

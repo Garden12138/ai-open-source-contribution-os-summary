@@ -855,6 +855,8 @@ def test_gateway_runner_rejects_truncated_tool_completion() -> None:
 
     assert captured.value.code == "nvidia_nim_completion_truncated"
     assert captured.value.retryable is False
+    assert captured.value.usage.input_tokens == 11
+    assert captured.value.usage.output_tokens == 7
 
 
 def test_gateway_runner_redacts_internal_protocol_disconnect() -> None:

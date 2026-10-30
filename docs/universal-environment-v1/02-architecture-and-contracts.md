@@ -4,6 +4,19 @@
 
 ## 1. 系统结构
 
+规划预算仍以任务不可变 journal 为准。失败 Provider 响应若带合法用量，追加
+`planning-failed-usage-v1` 收据；没有收据的终止调用单独列为 `unknown_calls`，
+按调用原输出上限及输入上限保守预留。`usage` 只表示有收据的已知用量；
+`reserved` 不冒充实际消费，`remaining` 同时扣除二者。旧调用没有输出上限时
+保留整个任务输出额度，不能推断免费重试。页面、API 和预算 CAS 使用同一投影。
+新规划请求实际传给 Provider 的输出上限还须小于等于任务剩余额度；模型 Profile、
+任务总额、读取轮数和精确审批不会由这项保护自动扩大。
+
+此变更追加事件和响应字段，不改变 SQL 表或回写旧调用/失败/审批；已有数据库
+无需结构迁移。重启后从同一 journal 重建预留。未获得可信实际收据前不释放
+未知预留；不得编辑旧事件“补零”。回退到不识别该收据的代码前须排空调用，
+保留匹配的数据库/工件/代码副本，并停止新的规划调用，避免旧 reader 忽略用量。
+
 ```mermaid
 flowchart TD
     A[Frozen Issue / Source Archive / PlanVersion] --> B[Source & Command Evidence Inspector]

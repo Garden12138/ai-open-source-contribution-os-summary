@@ -5126,6 +5126,34 @@ analysis-wire and NVIDIA contracts plus full **1624 passed / 62 skipped /
 0 failed** regression pass; native D test follows.
 
 
+Latest native maintenance measurement: the same N8 source/goal/Profile on
+`5e54b73` made five actual MiniMax calls, then the final call terminated
+`minimax_completion_truncated` at the immutable 8192 completion cap. There is
+still no Plan. The old failure path discarded that final call's usage; known
+lifetime receipts total 400,325 input / 21,859 output over 17 calls. Its missing
+usage is explicitly unknown, never zero. All original first outcomes stay
+0/4 native deliveries and separately 0/15 environment baselines.
+
+Planning accounting maintenance now retains reported failure usage in append-only
+receipts and reserves unknown terminal calls separately. The provider receives
+at most the remaining cumulative output allowance. API/UI expose known usage,
+unknown-call reserves and truthful remaining budget; lowering a budget below
+known plus reserved use rejects. This does not raise the saved Profile, task
+limits or retries, and does not create execution approval. 101 focused contracts
+and the disposable desktop/mobile browser checks pass; full default regression
+and isolated redeployment are recorded in the linked final checkpoint.
+Current task remains UPEVE-E04. A task-only planning 16K Profile would be a new
+resource decision, not an applied fix or a proven native success; no cap increase
+is authorized by this maintenance. Historical Node dynamic-installer and Linux
+amd64 gates remain failed and blocked/not_run respectively.
+
+Final budget-accounting regression: 1630 passed / 62 skipped / 0 failed;
+one first-run display-text assertion was corrected and its full shard rerun.
+All historical files/events and N5/N7/N8 first events pass preservation audit.
+See [checks](acceptance/universal-environment-v1/budget-reservation-checks.json);
+no original native outcome or stage gate is promoted.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

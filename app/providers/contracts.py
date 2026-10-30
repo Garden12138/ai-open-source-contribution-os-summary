@@ -34,6 +34,7 @@ class ProviderRunError(RuntimeError):
         safe_message: str,
         *,
         retryable: bool,
+        usage: ProviderUsage | None = None,
     ) -> None:
         _require_safe_text(code, "provider error code", maximum=80)
         _require_safe_text(safe_message, "provider safe message", maximum=500)
@@ -41,6 +42,9 @@ class ProviderRunError(RuntimeError):
         self.code = code
         self.safe_message = safe_message
         self.retryable = retryable
+        if usage is not None and not isinstance(usage, ProviderUsage):
+            raise ProviderContractError("Provider error usage is invalid")
+        self.usage = usage
 
 
 class ProviderStage(StrEnum):

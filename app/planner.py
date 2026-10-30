@@ -806,6 +806,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             self.check(session, job)
             self._current(wb, job)
             require_planning_budget(wb, data["task_id"])
+            from app.planning_budget import planning_usage
+            budget = planning_usage(wb, data["task_id"])
+            token_limit = min(token_limit, budget["limits"]["output_tokens"] - budget["output_tokens"]
+                              - budget["reserved"]["output_tokens"])
             output_schema = PlanningReply.model_json_schema()
             require_plan_outcome = bool(data.get("agent_runtime_version") == "agent-runtime-v2"
                 or data.get("plan_repair") or data.get("pending_plan") or data.get("baseline_recovery_hash"))
@@ -826,6 +830,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     "policy": "planning-v5-independent-actions",
                     "output_schema_hash": content_hash(output_schema),
                     "output_token_limit": token_limit,
+                    "input_token_limit": 450000,
                 },
                 key="call:" + job.id,
                 job_id=job.id,
@@ -839,8 +844,22 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             prompt=prompt,
             output_schema=output_schema,
             model=self.identity.model,
+            output_token_limit=token_limit,
         )
-        completion = await self.provider.complete(invocation)
+        try:
+            completion = await self.provider.complete(invocation)
+        except Exception as exc:
+            from app.providers.contracts import ProviderRunError
+            if isinstance(exc, ProviderRunError):
+                with self.database.session() as session:
+                    usage_wb = PlanningService(session, self.settings.artifact_root)
+                    usage_wb.append(data["task_id"], "model_failed_usage", {
+                        "version": "planning-failed-usage-v1", "usage_unknown": exc.usage is None,
+                        "usage": ({"input_tokens": exc.usage.input_tokens, "output_tokens": exc.usage.output_tokens}
+                                  if exc.usage is not None else None),
+                        "provider": self.identity.hash_payload(), "reason_code": exc.code,
+                    }, key="failed-model-usage:" + job.id, actor="provider", job_id=job.id)
+            raise
         if (
             len(completion.content.encode()) > 160000
             or completion.output_tokens > token_limit

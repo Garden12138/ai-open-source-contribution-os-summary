@@ -155,19 +155,22 @@ export function mountContributionWorkbench(root, taskId, options) {
     if (!budget) { budgetControl.hidden = true; return; }
     budgetControl.hidden = false;
     const selected = budget.limits.input_tokens;
-    const signature = JSON.stringify([selected, budget.usage.input_tokens]);
+    const reserved = budget.reserved || {};
+    const signature = JSON.stringify([selected, budget.usage.input_tokens, reserved.input_tokens || 0]);
     if (budgetSelect.dataset.options !== signature) {
       budgetSelect.replaceChildren();
       for (const value of [...new Set([2000000, 3000000, 5000000, 10000000, selected])].sort((a,b) => a-b)) {
         const option = node("option", `${tokenLabel(value)} token`); option.value = String(value);
-        option.disabled = value < budget.usage.input_tokens; budgetSelect.append(option);
+        option.disabled = value < budget.usage.input_tokens + (reserved.input_tokens || 0); budgetSelect.append(option);
       }
       const custom = node("option", "自定义…"); custom.value = "custom"; budgetSelect.append(custom);
       budgetSelect.dataset.options = signature;
     }
     budgetSelect.value = String(selected);
     budgetUsage.textContent = `已用 ${tokenLabel(budget.usage.input_tokens)} · 调用 ${budget.usage.calls}/${budget.limits.calls}`;
+    if (budget.unknown_calls) budgetUsage.textContent += ` · ${budget.unknown_calls} 次调用用量未知，预留输入 ${tokenLabel(reserved.input_tokens || 0)} / 输出 ${tokenLabel(reserved.output_tokens || 0)}`;
     budgetControl.title = "仅限当前任务的累计规划、诊断和对话预算。选择后立即保存，不清零历史用量、不自动开始处理。提高上限会允许后续模型计费调用。";
+    if (budget.unknown_calls) budgetControl.title += " 未知调用按原上限预留，预留不是实际消费。";
   }
   let budgetAttempt;
   async function saveBudget(limits, basis) {
@@ -184,10 +187,11 @@ export function mountContributionWorkbench(root, taskId, options) {
     for (const [key, label] of [["input_tokens", "累计输入 token"], ["output_tokens", "累计输出 token"], ["calls", "累计调用次数"]]) {
       const row = node("label", "", "conversation-budget-field");
       const field = node("input"); field.type = "number"; field.step = "1";
-      field.min = String(Math.max(basis.bounds[key].min, basis.usage[key]));
+      const held = basis.reserved?.[key] || 0;
+      field.min = String(Math.max(basis.bounds[key].min, basis.usage[key] + held));
       field.max = String(basis.bounds[key].max); field.value = String(basis.limits[key]);
       field.setAttribute("aria-label", label);
-      row.append(node("span", `${label}（已用 ${basis.usage[key].toLocaleString("zh-CN")}）`), field);
+      row.append(node("span", `${label}（已用 ${basis.usage[key].toLocaleString("zh-CN")}${held ? `，未知调用预留 ${held.toLocaleString("zh-CN")}` : ""}）`), field);
       drawerBody.append(row); fields[key] = field;
     }
     const save = button("保存当前任务预算", () => act(async () => {

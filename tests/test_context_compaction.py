@@ -131,7 +131,7 @@ def test_compaction_does_not_reset_accounting_or_bypass_exhausted_budget(tmp_pat
         before=planning_usage(wb,task)
         compact_prompt(wb,task,packet(wb,task),scope='planning')
         assert planning_usage(wb,task)==before
-        with pytest.raises(WorkbenchError,match='2,079,795 / 2,000,000') as exc:require_planning_budget(wb,task)
+        with pytest.raises(WorkbenchError,match='已用 2,079,795，未知预留 0.*2,000,000') as exc:require_planning_budget(wb,task)
         assert exc.value.code=='planning_budget_exceeded' and '缩小范围' not in str(exc.value)
         wb.request(task,text='继续',parent_id=None,expected_hash=None,key='budget-blocked')
     runner=ScriptedRunner()

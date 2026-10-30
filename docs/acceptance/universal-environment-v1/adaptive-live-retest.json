@@ -1,0 +1,459 @@
+{
+  "version": "upeve-adaptive-live-retest-v1",
+  "classification": "D_same_target_after_provider_adapter_maintenance",
+  "engine_revision": "5e54b73283c7aedf8629617d7ca6cac4a2e6d17b",
+  "started_at": "2026-10-30T02:29:10.849557+00:00",
+  "start_sequence": 64,
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "repository": "patoles/agent-flow",
+  "issue_number": 107,
+  "goal": "请调查这个 Issue，读取冻结源码、现有测试、项目规范和环境声明，确认报告的问题是否仍然存在并能用离线测试复现。若已修复、属于既有约定、缺少证据或环境能力不支持，请明确报告，不制造补丁。若确有缺陷，请准备最小修复方案：先新增回归测试并记录真实失败，再修改实现、执行项目要求的相关测试与静态检查、独立 Review。保持现有公共行为与所有必要检查，不用 help/version/echo 代替验证。当前只调查并保存可审阅方案，等待人工对精确 PlanVersion 批准，不实施、不发布、不修改上游。",
+  "original_goal_unchanged": true,
+  "first_U_result_sha256": "9c9a815cfcaa635bd9c562355b15cdd26a30891b2edf9d27eda4a28167467602",
+  "source_context_reused": {
+    "artifact_id": "6f06f34694101db2bee706717eaccc9b6a5263190ba0b76cdd4fd84c25cd537c",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "c3ed2bf42097338f49c6892bca0125584771f6d2edd0327d184540d37bc6b44b"
+  },
+  "budget_before": {
+    "version": "planning-budget-v1",
+    "revision": "c481746d65888ac26335685e19de5b5d8069985d54e3484e79b055484e3b14cc",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 12,
+      "input_tokens": 291720,
+      "output_tokens": 10939
+    },
+    "remaining": {
+      "calls": 20,
+      "input_tokens": 1708280,
+      "output_tokens": 89061
+    },
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "request_receipt": {
+    "id": "67a2e032-d5f7-464b-9ea1-63ee5a2eec98",
+    "kind": "planning_turn",
+    "state": "queued",
+    "idempotency_key": "plan:D-native-M3-adaptive-same-TS-goal-20261030",
+    "attempt_count": 0,
+    "max_attempts": 1,
+    "timeout_seconds": 600,
+    "run_after": "2026-10-30T02:29:10.832116Z",
+    "lease_expires_at": null,
+    "heartbeat_at": null,
+    "cancel_requested_at": null,
+    "progress_current": 0,
+    "progress_total": null,
+    "progress_message": null,
+    "result_data": {},
+    "scan_run_id": null,
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-30T02:29:10.832116Z",
+    "updated_at": "2026-10-30T02:29:10.832116Z",
+    "started_at": null,
+    "completed_at": null
+  },
+  "operator_planning_steering_count": 2,
+  "business_patches": 0,
+  "human_execution_approved": false,
+  "native_deliveries": 0,
+  "external_writes": 0,
+  "profile_changed": false,
+  "max_completion_tokens": 8192,
+  "timeout_seconds": 180,
+  "maximum_automatic_calls_this_request": 7,
+  "output_headroom_checked_for_full_worst_case": true,
+  "status": "no_plan_after_bounded_readonly_retest",
+  "updated_at": "2026-10-30T02:35:11.205118+00:00",
+  "budget_after": {
+    "version": "planning-budget-v1",
+    "revision": "a63077a41a1cafb880bd885982ee48cf8513fb95b52f05738047ee2b3b76fb23",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 17,
+      "input_tokens": 400325,
+      "output_tokens": 21859
+    },
+    "remaining": {
+      "calls": 15,
+      "input_tokens": 1599675,
+      "output_tokens": 78141
+    },
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "context_after": {
+    "artifact_id": "132a2a5411ca1ab3f7a5af02b93b83e8c6fc21e6faa8441753ce365c3df18c23",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "9fd39eab4e47eccc2a9f78984dd02b61c81731544c3b1c68efd5ff8fb3e885d6"
+  },
+  "plans": [],
+  "plan_count": 0,
+  "last_assistant_event": {
+    "id": "f5bc29f3-cd58-4fa8-be35-e24f1efa4e12",
+    "sequence": 82,
+    "kind": "assistant_message",
+    "payload": {
+      "reply": "我先把 Issue 涉及的核心实现与事件载荷类型读全，判断两个缺陷在冻结代码里是否仍然存在、能否离线复现。",
+      "questions": [],
+      "read_paths": [],
+      "read_context": [
+        {
+          "reference_id": "e616e009dd19453eaf0d9e411218c828915da651559401009c8728f90f8b1234",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": null,
+          "start_line": 1,
+          "max_lines": 90
+        },
+        {
+          "reference_id": "e616e009dd19453eaf0d9e411218c828915da651559401009c8728f90f8b1234",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": null,
+          "start_line": 91,
+          "max_lines": 90
+        },
+        {
+          "reference_id": "2ef68b9cf7993d49bc78234f33bed877c36adbeeedf6b1c05bb4d3954917e72a",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": "tool_call",
+          "start_line": null,
+          "max_lines": 80
+        },
+        {
+          "reference_id": "a0976be04817278ac5489a2a42adf6c9ade0e70fcfe62d19547458c42e121e08",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": "tool_call",
+          "start_line": null,
+          "max_lines": 80
+        }
+      ],
+      "plan": null,
+      "usage": {
+        "input_tokens": 28385,
+        "output_tokens": 7628,
+        "duration_ms": 106003,
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "b82fd431e42c7ace387c4c80413b70ef8c018dd83adb192c2a363d228e8c5883"
+        }
+      },
+      "context_checkpoint_hash": "276ba9f7090c4507be182bc8bb245a663710d1571b9b89c4fc26d7963198b446",
+      "action": "read",
+      "plan_deferred": false,
+      "plan_id": null,
+      "plan_receipt": {
+        "status": "not_requested",
+        "plan_id": null,
+        "execution_started": false
+      }
+    },
+    "record_hash": "64875d413d4ba42b2a28a29d163204442b77bfddb7dc02cee7ebdf746d4f37c8"
+  },
+  "checkpoint_observations": [
+    {
+      "id": "ddda0b0e-cdcc-4695-880f-b6158f75aa92",
+      "record_hash": "ea0f70fb49ca26f9d6b405dfc29170c7c6599cfab951667c15174ce71dafdea2",
+      "artifact_id": "1aac96c094433b42292931848d760815c9d2d549e24c9ed01b6867df005eb5ff",
+      "prompt_bytes": 69100,
+      "current_reads": 0,
+      "historical_reads": 0,
+      "historical_inline": 0,
+      "historical_indexed": 0,
+      "request_unchanged": true
+    },
+    {
+      "id": "86ae89b6-1a48-40c5-a704-c8c5f533ccf7",
+      "record_hash": "1cedc5b865e1f2c9987ae556df93cca491a98d88b45241826a437d41a7770677",
+      "artifact_id": "94d5226d5cae034307644cca21af78d74f7eb8ff6e9d1cbfe11533f311523d36",
+      "prompt_bytes": 83757,
+      "current_reads": 3,
+      "historical_reads": 0,
+      "historical_inline": 0,
+      "historical_indexed": 0,
+      "request_unchanged": true
+    },
+    {
+      "id": "c6ffbb1d-13d1-43b8-b9d7-448e984e6c6b",
+      "record_hash": "a9476c7e3f1580978c67c45d575c23de15aac5f444dbd89dce095c17f7c7bc2a",
+      "artifact_id": "466e05cc031fd7f212e39eb831f13823eb0f6a7a6b284143351fc97654e98619",
+      "prompt_bytes": 86368,
+      "current_reads": 4,
+      "historical_reads": 3,
+      "historical_inline": 0,
+      "historical_indexed": 3,
+      "request_unchanged": true
+    },
+    {
+      "id": "f302a0ff-50bd-45b7-ad40-642e6df9e008",
+      "record_hash": "31e38eae36e3ea02d213caef37f61cdbacfe8ef71f510857adf48d2366720655",
+      "artifact_id": "276ba9f7090c4507be182bc8bb245a663710d1571b9b89c4fc26d7963198b446",
+      "prompt_bytes": 83987,
+      "current_reads": 2,
+      "historical_reads": 7,
+      "historical_inline": 0,
+      "historical_indexed": 7,
+      "request_unchanged": true
+    },
+    {
+      "id": "62314018-552d-4a13-8fb7-fc35a5da2976",
+      "record_hash": "3c72b92e4bdb84856a2630e40792b5ba466512cc52515ea567926c875c87484a",
+      "artifact_id": "c1751445eb22c47df99b3e2afb1af82da3906645aa83bbb73379ee3b8ff92029",
+      "prompt_bytes": 85964,
+      "current_reads": 4,
+      "historical_reads": 9,
+      "historical_inline": 0,
+      "historical_indexed": 9,
+      "request_unchanged": true
+    }
+  ],
+  "journal": [
+    {
+      "id": "62d646c4-684b-4a6c-a4b3-e3c1e36e1611",
+      "sequence": 65,
+      "kind": "user_message",
+      "record_hash": "3bd66cb56528f67883abd966fcedcea7c2af7b3227fc552bb2241a6038973565"
+    },
+    {
+      "id": "ddda0b0e-cdcc-4695-880f-b6158f75aa92",
+      "sequence": 66,
+      "kind": "context_checkpoint",
+      "record_hash": "ea0f70fb49ca26f9d6b405dfc29170c7c6599cfab951667c15174ce71dafdea2"
+    },
+    {
+      "id": "f6306d95-354b-476c-a64f-c1feb9ac9254",
+      "sequence": 67,
+      "kind": "model_call",
+      "record_hash": "b48491b2e2141cd84353d07d00fec6d100f6c55b0aa93cff50695b1dde8203ce"
+    },
+    {
+      "id": "89f213db-1477-4fd9-ac22-212769982251",
+      "sequence": 68,
+      "kind": "assistant_message",
+      "record_hash": "bf1c336430549ab6b59c390a8f58a184d8a7d4ffdc7c332a69faf55697266b6d"
+    },
+    {
+      "id": "6f27d207-d16f-4fd2-a09e-050b0d07128c",
+      "sequence": 69,
+      "kind": "job_queued",
+      "record_hash": "02a7a9b97717fedeee26cdef6a83635b67cf29670d0ea54878e97e8a4c09aa2a"
+    },
+    {
+      "id": "5ab827e7-ac17-443a-bdac-e864bb70b547",
+      "sequence": 70,
+      "kind": "context_ready",
+      "record_hash": "9fd39eab4e47eccc2a9f78984dd02b61c81731544c3b1c68efd5ff8fb3e885d6"
+    },
+    {
+      "id": "36a380ad-32e8-4b8a-befa-f4ab9891e8eb",
+      "sequence": 71,
+      "kind": "job_queued",
+      "record_hash": "af2478715937d1df5a714950bf2b0accf84f4b4e877cf45715041b38ea9f48f4"
+    },
+    {
+      "id": "86ae89b6-1a48-40c5-a704-c8c5f533ccf7",
+      "sequence": 72,
+      "kind": "context_checkpoint",
+      "record_hash": "1cedc5b865e1f2c9987ae556df93cca491a98d88b45241826a437d41a7770677"
+    },
+    {
+      "id": "96748890-1075-4e16-9258-327e7ff450c0",
+      "sequence": 73,
+      "kind": "model_call",
+      "record_hash": "31c3160cc258522c4614145d753ed9d3e18d3824c66bdf7347e3cdbe54b6ca47"
+    },
+    {
+      "id": "f010c793-8923-43ae-9d4f-89b6030c487e",
+      "sequence": 74,
+      "kind": "assistant_message",
+      "record_hash": "ea14fbe887183c6b527273aaa0c28c56b38816cadf54109eb157fcd15ac2fca3"
+    },
+    {
+      "id": "e24a9cd0-bceb-4482-9fdb-5514b8eb8d3c",
+      "sequence": 75,
+      "kind": "job_queued",
+      "record_hash": "1c74de10a41d707fef35cdfc667226730cb52ae6f7997de10887de14ba6e7692"
+    },
+    {
+      "id": "c6ffbb1d-13d1-43b8-b9d7-448e984e6c6b",
+      "sequence": 76,
+      "kind": "context_checkpoint",
+      "record_hash": "a9476c7e3f1580978c67c45d575c23de15aac5f444dbd89dce095c17f7c7bc2a"
+    },
+    {
+      "id": "8591519b-4798-489d-8d01-c24dc3b6b753",
+      "sequence": 77,
+      "kind": "model_call",
+      "record_hash": "c1507eaa5162098aa74359983c54b2160825468aeeab231927548c90ea87a1b4"
+    },
+    {
+      "id": "aae92980-74b4-4273-8f9f-7303762a2ff5",
+      "sequence": 78,
+      "kind": "assistant_message",
+      "record_hash": "ce60988ef5c7a2ec94c69ede6e12e259f4e644c23ec259c5905b1e0a4deb9a64"
+    },
+    {
+      "id": "11312743-638c-4dfe-adf6-e4f8f13aef3c",
+      "sequence": 79,
+      "kind": "job_queued",
+      "record_hash": "33d56f7ded4c0f3a69c469728070874d98e2201b9100015014677e4e200692fa"
+    },
+    {
+      "id": "f302a0ff-50bd-45b7-ad40-642e6df9e008",
+      "sequence": 80,
+      "kind": "context_checkpoint",
+      "record_hash": "31e38eae36e3ea02d213caef37f61cdbacfe8ef71f510857adf48d2366720655"
+    },
+    {
+      "id": "cf36e4b1-c7b9-4737-b1cb-27c28e7f1fbe",
+      "sequence": 81,
+      "kind": "model_call",
+      "record_hash": "25afd27f45de695441a606349122d76e76d72d70b42b30c20b7853fa7a455e02"
+    },
+    {
+      "id": "f5bc29f3-cd58-4fa8-be35-e24f1efa4e12",
+      "sequence": 82,
+      "kind": "assistant_message",
+      "record_hash": "64875d413d4ba42b2a28a29d163204442b77bfddb7dc02cee7ebdf746d4f37c8"
+    },
+    {
+      "id": "aa31829d-dc65-4a09-9dc9-e15304f555de",
+      "sequence": 83,
+      "kind": "job_queued",
+      "record_hash": "58baa91c57f330ce4dac3b5509077ac538185b929c8ea96dee6ee126fa15e916"
+    },
+    {
+      "id": "62314018-552d-4a13-8fb7-fc35a5da2976",
+      "sequence": 84,
+      "kind": "context_checkpoint",
+      "record_hash": "3c72b92e4bdb84856a2630e40792b5ba466512cc52515ea567926c875c87484a"
+    },
+    {
+      "id": "ad23e3af-d8aa-4883-bec8-280d583b9ea5",
+      "sequence": 85,
+      "kind": "model_call",
+      "record_hash": "99e22ae745055daf442374f9aa06a731200c66e60df8379b7ca439c6055e84c2"
+    },
+    {
+      "id": "5e67a920-2475-40a7-9dd1-2b8482ec7990",
+      "sequence": 86,
+      "kind": "conversation_result",
+      "record_hash": "5044bf373b63599490c7e5f4433722f990c947f438d677c294c15a6735805f8b"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "67a2e032-d5f7-464b-9ea1-63ee5a2eec98",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "id": "07de33d3-7dd7-4a0c-a745-01054e74cda5",
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "id": "e62d1aa9-7109-4c32-8dc2-2c3c3689c554",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "id": "23374b18-28f8-4038-868f-ba6344c030a6",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "id": "d8b0edd2-ca5c-47d8-a6be-f768af6b7156",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "id": "038eb98e-3b06-4d88-87f9-d23eda9ff214",
+      "kind": "planning_turn",
+      "state": "failed",
+      "error_code": "minimax_completion_truncated",
+      "error_message": "模型回复长度达到输出上限（Token 超限），请在模型配置中调大 max_tokens 或缩小方案细节。"
+    }
+  ],
+  "source_read_history_observed": true,
+  "lifetime_budget_limits_unchanged": true,
+  "source_binding_unchanged": false,
+  "terminal_job": {
+    "id": "038eb98e-3b06-4d88-87f9-d23eda9ff214",
+    "kind": "planning_turn",
+    "state": "failed",
+    "error_code": "minimax_completion_truncated",
+    "error_message": "模型回复长度达到输出上限（Token 超限），请在模型配置中调大 max_tokens 或缩小方案细节。"
+  },
+  "actual_calls_this_round": 5,
+  "outcome": "minimax_completion_truncated",
+  "unknown_terminal_token_usage": true,
+  "failed_call_output_upper_bound": 8192,
+  "recorded_usage_is_known_usage_only": true,
+  "native_improvement_proven": false,
+  "counts_as_native_delivery": false
+}
