@@ -57,6 +57,12 @@ SAFE_FIELDS = frozenset(
         "working_directory",
         "risks",
         "questions_for_maintainer",
+        "baseline_expectation",
+        "version",
+        "issue_url",
+        "test_node",
+        "failure_literal",
+        "exit_code",
     }
 )
 
@@ -64,6 +70,11 @@ SAFE_FIELDS = frozenset(
 def planning_domain_details(error: ValueError) -> dict:
     """Map only our fixed validator messages; never echo rejected values."""
     message = str(error)
+    if message == "Expected reproduction must target an exact approved test node":
+        return {"reason_code": "planning_output_invalid", "validation_types": ["value_error"],
+            "fields": ["commands_to_run.baseline_expectation.test_node"],
+            "constraint": "expected_reproduction_exact_target",
+            "remediation": "Use an existing exact test node verbatim in argv, or omit baseline_expectation for a check required to pass. Never invent a target or treat the field as phase scheduling."}
     names = {
         "Plan goal": "goal", "Plan command ID": "commands_to_run.command_id",
         "Plan command purpose": "commands_to_run.purpose",
@@ -90,11 +101,15 @@ def planning_validation_details(error: ValidationError) -> dict:
         )
         # Never copy arbitrary model-supplied keys, discriminator labels or indexes.
         parts = [part for part in item["loc"] if isinstance(part, str)]
-        fields.add(
-            ".".join(parts)
-            if parts and all(part in SAFE_FIELDS for part in parts)
-            else "response"
-        )
+        prefix = []
+        for part in parts:
+            if part not in SAFE_FIELDS:
+                break
+            prefix.append(part)
+        # Report the known enclosing field for a rejected nested key, without
+        # copying arbitrary model-supplied keys or list indexes into diagnostics.
+        fields.add(".".join(prefix) if prefix and (len(prefix) == len(parts) or len(prefix) >= 2)
+                   else "response")
     reason = next(
         (
             code

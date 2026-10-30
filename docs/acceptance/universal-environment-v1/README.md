@@ -616,3 +616,32 @@ approval/Coding/Baseline/Verify/Review/final acceptance is inferred.
 active Jobs. E0–E2 pass; E3/H Node remains failed/unsupported, E4 partial, E5
 native/generalization gates failed, E6/Linux amd64 blocked/not_run. Current
 specialty task remains UPEVE-E04. No Push, PR or third-party write occurred.
+
+
+## 2026-10-30: baseline field schema mismatch and diagnostic correction
+
+The October 29 final rejection was previously described as envelope validation.
+[Read-only replay](baseline-schema-replay.json) of the actual pending plan shows
+the envelope was not the root cause: provider/API described
+`baseline_expectation` as an arbitrary dict, but the domain required the strict
+`BaselineExpectation` reproduction contract. Model `expected`/`notes` labels
+were rejected; diagnostics suppressed all nested field locations as `response`,
+so bounded repairs did not receive actionable feedback. First outcomes, budgets
+and historical events remain unchanged. The replay uses no actual model or live
+DB mutation and is not native success.
+
+Provider/API now use the same strict existing type, with positive checks normally
+omitting/nulling the field. Exact Issue URL/test-node/failure/exit-code binding
+and final all-checks passing remain required. Safe diagnostics expose known
+nested field prefixes only; arbitrary keys, raw values and canaries never enter
+responses/events. Regression-first implementation steps are distinct from the
+same checks applied to the unchanged baseline and final workspace. The native
+UI's JSON commands retain their existing wire; valid legacy command hashes and
+forward 0039 storage semantics are unchanged, with no new migration.
+
+42 focused contracts pass: typed provider schema, real malformed shape, valid
+wire/hash compatibility, strict exact-target refusal, worker repair accounting
+and manual API/canary boundaries. [Full default regression](baseline-schema-checks.json)
+is **1616 passed / 62 skipped / 0 failed**, compileall/diff checks pass. Isolated
+redeploy and actual same-target D model validation follow. E3 remains the current gate;
+no fake/controlled test is counted as native success.

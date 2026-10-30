@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.environment_engine.contracts import BaselineExpectation
+
 
 class RepositorySummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -138,7 +140,11 @@ class PlanCommandRequest(BaseModel):
     purpose: str = Field(min_length=1, max_length=1_000)
     argv: list[str] = Field(min_length=1, max_length=50)
     working_directory: str = Field(default=".", min_length=1, max_length=500)
-    baseline_expectation: dict[str, Any] | None = None
+    baseline_expectation: BaselineExpectation | None = Field(default=None,
+        description="Normally null or omitted: the unchanged-source baseline and final verification must pass. "
+        "Only declare an approved Issue reproduction for an existing exact test node present in argv, "
+        "with the current issue_url and precise failure_literal. This is not a test phase or a general "
+        "passed/failed expectation; do not add expected/notes fields or expect a newly planned test to exist before Coding.")
 
     @field_validator("argv", mode="before")
     @classmethod

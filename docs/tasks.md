@@ -5036,6 +5036,29 @@ deliveries remain **0/3**, E6/Linux amd64 blocked/not_run. First specialty task
 stays UPEVE-E04; no Push, PR, third-party mutation or formal data modification.
 
 
+2026-10-30 continuation / diagnosis correction: the final N7 rejection was not
+an invalid top-level MiniMax envelope. A read-only replay of the real pending
+plan proves `baseline_expectation` was advertised to provider/API as any dict,
+while `PlanCommand` required strict `BaselineExpectation`. The model supplied
+`expected`/`notes` phase labels; the domain rejected them, but diagnostics lost
+the nested field path and returned only `response`. This is a platform contract
+mismatch; earlier model/native failure counts and original evidence stay intact.
+[Exact failed-payload replay](acceptance/universal-environment-v1/baseline-schema-replay.json)
+uses no model, live database writes or operator business patch.
+
+Provider and API now share the existing strict expectation type. Normally the
+field is null/omitted; exact approved Issue reproductions retain the same
+version/Issue/test-node/failure/exit-code schema. Nested diagnostics report only
+allowlisted field prefixes; raw keys/inputs are still redacted. Planner guidance
+separates unchanged-source/final checks from regression-first implementation
+steps. Legacy valid command hashes and the native JSON command editor are
+unchanged; no schema migration or authority/limit expansion. 42 focused
+contracts and full **1616 passed / 62 skipped / 0 failed** regression pass,
+including exact-target refusal, repair accounting and API canary redaction.
+Actual same-target D retest follows;
+no new gate is checked. E3 / UPEVE-E04 stays the current specialty task.
+
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

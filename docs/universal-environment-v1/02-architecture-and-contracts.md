@@ -117,6 +117,19 @@ flowchart TD
 
 `command_not_found`, `entrypoint_missing`, `dependency_unresolved`, `dependency_version_conflict`, `recursive_include_cycle`, `requirements_unsafe_directive`, `unsupported_dynamic_installer`, `platform_binary_unavailable`, `native_service_required`, `immutable_cache_write_blocked`, `network_required_in_verify`, `baseline_actual_assertion_failure`, `baseline_help_only`, `baseline_zero_tests`, `baseline_evidence_insufficient`, `provider_gateway_unavailable`（Provider 错误不等于环境错误）。
 
+### 2.4 Plan 命令的 Baseline 预期声明
+
+当前 `PlanCommandRequest.baseline_expectation` 与 domain/环境契约共用严格的
+`BaselineExpectation`。普通正向检查省略该字段或传 `null`；它不接受通用
+`expected: passed/failed`、`notes` 或执行阶段标签。只有已存在的精确测试节点、
+当前 Issue URL、具体失败 literal 与固定 exit 1 可构成预期复现候选，仍需精确人工
+批准、独立通过的对照检查及真实失败收据；最终 Verify 的全部必要检查仍须通过。
+
+`commands_to_run` 适用于修改前冻结源码与修改后结果的同一检查集合。新增回归
+测试尚不存在时，不能把其未来失败冒充修改前 Baseline；先加测试再复现/修复的
+步骤写在 `implementation_steps` 中。Provider schema、API 输入及 domain 必须描述
+同一字段结构，安全错误定位仅暴露已知字段路径，不返回任意模型键或输入值。
+
 ## 3. 通用静态解析算法
 
 ### 3.1 Python

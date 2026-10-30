@@ -1,0 +1,63 @@
+{
+  "version": "upeve-baseline-schema-replay-v1",
+  "classification": "readonly_replay_of_real_failed_native_payload_not_native_success",
+  "recorded_at": "2026-10-30T01:24:56.926608+00:00",
+  "source_job_id": "b4f662c8-bb45-43a1-9e38-ab2f3627d35e",
+  "source_task_id": "6b07f3d8-33a1-4f15-871e-d22d05748d4a",
+  "source_payload_hash": "e92efb9b479107dd24a66c8a8c323be598f9073d366f3ab92314ccf16efb5175",
+  "before_revision": "fc7ee29",
+  "before_provider_field_schema": {
+    "anyOf": [
+      {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      {
+        "type": "null"
+      }
+    ],
+    "default": null,
+    "title": "Baseline Expectation"
+  },
+  "before_request_accepted": true,
+  "before_domain_rejection": {
+    "reason_code": "planning_output_invalid",
+    "validation_types": [
+      "extra_forbidden",
+      "missing"
+    ],
+    "fields": [
+      "response"
+    ]
+  },
+  "new_provider_field_schema": {
+    "anyOf": [
+      {
+        "$ref": "#/$defs/BaselineExpectation"
+      },
+      {
+        "type": "null"
+      }
+    ],
+    "default": null,
+    "description": "Normally null or omitted: the unchanged-source baseline and final verification must pass. Only declare an approved Issue reproduction for an existing exact test node present in argv, with the current issue_url and precise failure_literal. This is not a test phase or a general passed/failed expectation; do not add expected/notes fields or expect a newly planned test to exist before Coding."
+  },
+  "new_boundary_rejection": {
+    "reason_code": "planning_output_invalid",
+    "validation_types": [
+      "extra_forbidden",
+      "missing"
+    ],
+    "fields": [
+      "commands_to_run.baseline_expectation",
+      "commands_to_run.baseline_expectation.failure_literal",
+      "commands_to_run.baseline_expectation.issue_url",
+      "commands_to_run.baseline_expectation.test_node"
+    ]
+  },
+  "live_database_mutations": 0,
+  "actual_model_calls": 0,
+  "business_patch_changes": 0,
+  "approvals_created": 0,
+  "counts_as_native_delivery": false
+}

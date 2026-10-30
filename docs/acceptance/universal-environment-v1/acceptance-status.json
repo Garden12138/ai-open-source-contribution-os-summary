@@ -311,47 +311,47 @@
   "engine_revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1672,
+    "tests": 1678,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1610,
+    "passed": 1616,
     "shards": [
       {
-        "tests": 418,
+        "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 9,
-        "path": "/tmp/upeve-history-headroom-shard-0.xml",
-        "sha256": "7c32511680d73a0e08738dbd13598a176858ba24906e9a66dc96168e7df541fc"
+        "skipped": 7,
+        "path": "/tmp/upeve-baseline-schema-shard-0.xml",
+        "sha256": "6931f69939775775797424dc0423ccacce51742ceb3954acb2781752d6248581"
       },
       {
-        "tests": 418,
+        "tests": 420,
         "failures": 0,
         "errors": 0,
-        "skipped": 12,
-        "path": "/tmp/upeve-history-headroom-shard-1.xml",
-        "sha256": "1502f44f71fe99b840390fb6fbeb3dd25ecda25bf658b0ec5f6a4fae341ff2bd"
+        "skipped": 14,
+        "path": "/tmp/upeve-baseline-schema-shard-1.xml",
+        "sha256": "0b1bd6dd3db08f1f022d51d55e6420b2d311a9e61ced1970f444f00d5f3f3e9e"
       },
       {
-        "tests": 418,
+        "tests": 419,
         "failures": 0,
         "errors": 0,
         "skipped": 11,
-        "path": "/tmp/upeve-history-headroom-shard-2.xml",
-        "sha256": "6d3fd28f94249d3de0fc3d0aee3b1181f3b0a1f88a8bd67e512f57f8a99312f0"
+        "path": "/tmp/upeve-baseline-schema-shard-2.xml",
+        "sha256": "df72eda4cbdfcaf92dac07ddbbdda134c0f571261fa02911cef78ab4db39022b"
       },
       {
-        "tests": 418,
+        "tests": 419,
         "failures": 0,
         "errors": 0,
         "skipped": 30,
-        "path": "/tmp/upeve-history-headroom-shard-3.xml",
-        "sha256": "e2944c6315c1b256fde2fc54669289a869f8944927e8127f070a3f2befb888c1"
+        "path": "/tmp/upeve-baseline-schema-shard-3.xml",
+        "sha256": "94428e9aed2807e4cfd5a5fa0e6032940dfc8eed1f0426e56fdd396859675b63"
       }
     ],
-    "revision": "b9bf5de641c4fafd6014c0a3fdc005447101c266",
-    "evidence": "history-headroom-checks.json"
+    "revision": "pending_current_local_stage_commit",
+    "evidence": "baseline-schema-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -360,7 +360,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "history-headroom-checks.json",
+  "latest_default_evidence": "baseline-schema-checks.json",
   "native_first_attempts": {
     "selected": 3,
     "deliveries": 0,
@@ -370,5 +370,6 @@
   },
   "latest_native_retest": "history-headroom-live-retest.json",
   "latest_isolated_deployment": "history-headroom-deployment.json",
-  "latest_history_and_security_audit": "history-headroom-audit.json"
+  "latest_history_and_security_audit": "history-headroom-audit.json",
+  "diagnosis_correction": "baseline-schema-replay.json"
 }
