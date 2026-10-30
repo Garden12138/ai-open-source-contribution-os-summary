@@ -5202,6 +5202,38 @@ resource consent covered one completed request; this broader continuation
 requires an explicit scope decision, not stage-by-stage permission. No execution
 or publication is authorized. First current task remains UPEVE-E04.
 
+User continuation “继续完成验收” approves bounded follow-up proposal
+`fdebcc5c1632d310cad0d03bc0f978978821bd05fd715d1d6bd46cf7043c477e`.
+Exact task/source/Profile/binding/default/budget hashes revalidate. Request 1
+starts through the native API as Job `3a31f01c-e504-4b56-a232-e8c6830d52b9`;
+at most two requests / fourteen additional model calls share the original
+32 / 2M / 100K task limits. 16K remains planning-only. Prior failures, unknown
+reserves and first U outcomes remain intact. No dependency/implementation/
+publication approval is inferred. Native result is pending; no gate is checked.
+
+First authorized follow-up ends after five actual MiniMax calls: every model
+prompt stays within 70,535–92,432 bytes, with retained actual read history.
+Terminal Job `70b1de9b-00c0-4e95-be6b-b8d5c34f381a` rejects `too_long` with only
+`fields: response`, no Plan. Actual rejected raw output was not retained; its
+exact field/count must not be fabricated. Lifetime now 23 calls / 563,657 input /
+27,952 output; separate old unknown reserves remain. The original first outcomes
+remain failed. No baseline/Coding/Review or execution authorization exists.
+
+A deterministic schema replay exposes a real diagnostic gap: read_context and
+its known argument names were absent from the allowlist. Five context intents
+produce the same old safe diagnostic shape, but this does not prove that was the
+exact native payload. Diagnostics now name only known context fields, never IDs
+or values. For v2 only, overlong read_context arrays may use the existing two
+schema repairs; rejected intents execute zero reads. When four read rounds are
+already exhausted, repair explicitly permits no new read_context/read_paths.
+Legacy immediate refusal, all other oversized fields, read limits and task
+budgets remain unchanged. Focused contracts pass; full regression and isolated
+redeployment precede the second and final already-authorized request.
+
+Read-count maintenance regression: 1638 passed / 62 skipped /
+0 failed; 50 focused contracts, compileall, diff and preservation/canary
+checks pass. Native improvement remains unverified before request 2.
+
 
 ---
 

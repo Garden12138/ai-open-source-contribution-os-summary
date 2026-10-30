@@ -1,0 +1,62 @@
+{
+  "version": "upeve-readonly-followup-consent-v1",
+  "actor": "local-user",
+  "user_statement": "继续完成验收",
+  "recorded_at": "2026-10-30T08:41:19.113832+00:00",
+  "approved_proposal_hash": "fdebcc5c1632d310cad0d03bc0f978978821bd05fd715d1d6bd46cf7043c477e",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "all_frozen_preconditions_revalidated": true,
+  "max_additional_readonly_requests": 2,
+  "max_additional_model_calls": 14,
+  "starting_budget": {
+    "version": "planning-budget-v1",
+    "revision": "7e41ff77ffd04a36211a80989230547ebc0aa7b40e32ab0d22dd3a5888db3ca9",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 18,
+      "input_tokens": 424842,
+      "output_tokens": 22255
+    },
+    "remaining": {
+      "calls": 14,
+      "input_tokens": 1125158,
+      "output_tokens": 69553
+    },
+    "reserved": {
+      "input_tokens": 450000,
+      "output_tokens": 8192
+    },
+    "unknown_calls": 1,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "profile_id": "61150063-8a7b-48bb-a865-21c42036d3a4",
+  "profile_record_hash": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7",
+  "actions": [
+    "Revalidate exact task/source/profile/binding/default/budget hashes and zero active Jobs.",
+    "Use the native API for at most two further read-only planning requests with the unchanged original goal, at most 14 additional model calls overall, and the existing four read rounds/two schema repairs per request. No historical usage or read lineage is rewritten.",
+    "Stop at a valid reviewable Plan, material human clarification, source/profile/approval/policy mismatch, exhausted cumulative budget, or unrecoverable failure. Do not blindly replay terminal or ambiguous model calls.",
+    "If an actual platform defect requires maintenance before the second request, retain its terminal failure, make a generic fix with component/regression evidence and isolated redeployment, then record the new code revision; never relabel D as a fresh U success."
+  ],
+  "execution_approved": false,
+  "publication_approved": false,
+  "approval_hash": "01619964c949e0e9ac236a273a3044eac522bbaad45dac8148d906a23913799e"
+}

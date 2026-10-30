@@ -1,0 +1,65 @@
+{
+  "version": "upeve-read-count-checks-v1",
+  "recorded_at": "2026-10-30T08:54:30.369613+00:00",
+  "engine_parent": "ad41eea83a81e5638f94a8dd1672010ab0e4262f",
+  "tested_production_files": {
+    "app/planner.py": "b4d9e16f59d2d6b104d129c2ecfbda3241cd9e9b7ccb744f16a6a9cfbdfc7934",
+    "app/planning_diagnostics.py": "85f91fac49f37c2302228fe8d4aa019df393269a2a9c65ac0cf209fcaca26765"
+  },
+  "focused": {
+    "tests": 50,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "path": "/tmp/upeve-read-count-focused.xml",
+    "sha256": "2b9c0a2623405b3d8713fec44ee6f1b10d1a4e657c31df3f7c5f7733b5405c82"
+  },
+  "default": {
+    "tests": 1700,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1638,
+    "shards": [
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 11,
+        "path": "/tmp/upeve-read-count-shard-0.xml",
+        "sha256": "89af81af3fe0e249874aec88e5dad5f93e7817caf5ac5442a365ad5c175bff35"
+      },
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 20,
+        "path": "/tmp/upeve-read-count-shard-1.xml",
+        "sha256": "38f09a762ad165e37bcf51f209b5bb60e91317601fb1b3223a388b588cd7d798"
+      },
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-read-count-shard-2.xml",
+        "sha256": "861db41fb3ba90b7c0907971c73dcb82442ca558ab30fa66c8074e5d00b0825f"
+      },
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 19,
+        "path": "/tmp/upeve-read-count-shard-3.xml",
+        "sha256": "bd95b27f3dac18bec1d7ab40b5f0c3ec8e583106b1e9bf8ce04e26fa9cd2652a"
+      }
+    ]
+  },
+  "compileall": "passed",
+  "diff_check": "passed",
+  "actual_model_calls_in_tests": 0,
+  "native_effectiveness": "unverified_before_request_2",
+  "diagnostic_replay": "read-count-diagnostic-replay.json",
+  "read_limits_or_repair_limit_or_lifetime_budgets_raised": false,
+  "native_deliveries": 0
+}

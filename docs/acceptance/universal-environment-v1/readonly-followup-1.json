@@ -1,0 +1,560 @@
+{
+  "version": "upeve-readonly-followup-live-v1",
+  "classification": "D_same_target_after_shared_hash_maintenance",
+  "request_index": 1,
+  "engine_revision": "ad41eea83a81e5638f94a8dd1672010ab0e4262f",
+  "deployed_code_revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e",
+  "started_at": "2026-10-30T08:41:19.121271+00:00",
+  "start_sequence": 93,
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "goal": "请调查这个 Issue，读取冻结源码、现有测试、项目规范和环境声明，确认报告的问题是否仍然存在并能用离线测试复现。若已修复、属于既有约定、缺少证据或环境能力不支持，请明确报告，不制造补丁。若确有缺陷，请准备最小修复方案：先新增回归测试并记录真实失败，再修改实现、执行项目要求的相关测试与静态检查、独立 Review。保持现有公共行为与所有必要检查，不用 help/version/echo 代替验证。当前只调查并保存可审阅方案，等待人工对精确 PlanVersion 批准，不实施、不发布、不修改上游。",
+  "proposal_hash": "fdebcc5c1632d310cad0d03bc0f978978821bd05fd715d1d6bd46cf7043c477e",
+  "approval_hash": "01619964c949e0e9ac236a273a3044eac522bbaad45dac8148d906a23913799e",
+  "profile_id": "61150063-8a7b-48bb-a865-21c42036d3a4",
+  "profile_record_hash": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7",
+  "budget_before": {
+    "version": "planning-budget-v1",
+    "revision": "7e41ff77ffd04a36211a80989230547ebc0aa7b40e32ab0d22dd3a5888db3ca9",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 18,
+      "input_tokens": 424842,
+      "output_tokens": 22255
+    },
+    "remaining": {
+      "calls": 14,
+      "input_tokens": 1125158,
+      "output_tokens": 69553
+    },
+    "reserved": {
+      "input_tokens": 450000,
+      "output_tokens": 8192
+    },
+    "unknown_calls": 1,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "source_context_before": {
+    "artifact_id": "132a2a5411ca1ab3f7a5af02b93b83e8c6fc21e6faa8441753ce365c3df18c23",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "9fd39eab4e47eccc2a9f78984dd02b61c81731544c3b1c68efd5ff8fb3e885d6"
+  },
+  "human_execution_approved": false,
+  "human_final_acceptance": false,
+  "business_patches": 0,
+  "native_deliveries": 0,
+  "external_writes": 0,
+  "status": "no_plan_after_bounded_readonly_retest",
+  "request_receipt": {
+    "id": "3a31f01c-e504-4b56-a232-e8c6830d52b9",
+    "kind": "planning_turn",
+    "state": "succeeded",
+    "idempotency_key": "plan:D-native-TS-bounded-followup-1-20261030",
+    "attempt_count": 1,
+    "max_attempts": 1,
+    "timeout_seconds": 600,
+    "run_after": "2026-10-30T08:41:19.156773Z",
+    "lease_expires_at": null,
+    "heartbeat_at": "2026-10-30T08:41:41.999753Z",
+    "cancel_requested_at": null,
+    "progress_current": 0,
+    "progress_total": null,
+    "progress_message": null,
+    "result_data": {
+      "next_job_id": "b401b478-4153-4195-a5ac-8eb1e4986ef5"
+    },
+    "scan_run_id": null,
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-30T08:41:19.156773Z",
+    "updated_at": "2026-10-30T08:41:41.999753Z",
+    "started_at": "2026-10-30T08:41:21.285172Z",
+    "completed_at": "2026-10-30T08:41:41.999753Z"
+  },
+  "http_enqueue_status": 202,
+  "updated_at": "2026-10-30T08:43:12.697003+00:00",
+  "budget_after": {
+    "version": "planning-budget-v1",
+    "revision": "8631419d0b6a4fb158cdc82f7934086bc4e8e6582baad1ac19496d1c981a4001",
+    "record_hash": null,
+    "limits": {
+      "calls": 32,
+      "input_tokens": 2000000,
+      "output_tokens": 100000
+    },
+    "usage": {
+      "calls": 23,
+      "input_tokens": 563657,
+      "output_tokens": 27952
+    },
+    "remaining": {
+      "calls": 9,
+      "input_tokens": 986343,
+      "output_tokens": 63856
+    },
+    "reserved": {
+      "input_tokens": 450000,
+      "output_tokens": 8192
+    },
+    "unknown_calls": 1,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "additional_model_calls_under_consent": 5,
+  "source_context_after": {
+    "artifact_id": "132a2a5411ca1ab3f7a5af02b93b83e8c6fc21e6faa8441753ce365c3df18c23",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "9fd39eab4e47eccc2a9f78984dd02b61c81731544c3b1c68efd5ff8fb3e885d6"
+  },
+  "source_archive_and_base_unchanged": true,
+  "plans": [],
+  "plan_count": 0,
+  "actual_model_calls_this_request": 5,
+  "jobs": [
+    {
+      "id": "3a31f01c-e504-4b56-a232-e8c6830d52b9",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-30 08:41:19.156773",
+      "completed_at": "2026-10-30 08:41:41.999753"
+    },
+    {
+      "id": "b401b478-4153-4195-a5ac-8eb1e4986ef5",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-30 08:41:41.993061",
+      "completed_at": "2026-10-30 08:42:13.295269"
+    },
+    {
+      "id": "a08dfbe2-d6bc-46f8-9ce2-211d1b7931f8",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-30 08:42:13.289774",
+      "completed_at": "2026-10-30 08:42:17.915691"
+    },
+    {
+      "id": "f766f417-50a1-4383-bfc4-e755ff816615",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-30 08:42:17.910014",
+      "completed_at": "2026-10-30 08:42:22.743451"
+    },
+    {
+      "id": "70b1de9b-00c0-4e95-be6b-b8d5c34f381a",
+      "kind": "planning_turn",
+      "state": "failed",
+      "error_code": "planning_output_invalid",
+      "error_message": "规划模型回复字段或 JSON 格式未通过校验，现有上下文已保留。",
+      "created_at": "2026-10-30 08:42:22.738198",
+      "completed_at": "2026-10-30 08:42:39.423199"
+    }
+  ],
+  "active_job_count": 0,
+  "checkpoint_observations": [
+    {
+      "id": "bd5a37cf-0062-4c22-8d11-f7fffcd16d85",
+      "artifact_id": "efb2fab1a462f6eba23f9d0898e38a5140c06e26a99caea82d0d5feef7e6c04e",
+      "record_hash": "1b7ad48859fb29c233121b3fd0504149fc90d614e6078ba318e831e8d77844d2",
+      "prompt_bytes": 70535,
+      "context_read_history_count": 0,
+      "request_unchanged": true
+    },
+    {
+      "id": "59be2e36-b6b6-42bc-8302-f91ed5d372af",
+      "artifact_id": "f534a48ae0dee05173cfeb8f1a5f92cb15dddedf7743ce27b9613fc4acf34936",
+      "record_hash": "92aca7808ef73729ca15bc065433a2534516e289dcea4a87560e076e39948c48",
+      "prompt_bytes": 92432,
+      "context_read_history_count": 0,
+      "request_unchanged": true
+    },
+    {
+      "id": "5f806003-65b4-4463-abe8-adfc728e3f00",
+      "artifact_id": "80239f09ebbf897fdffb747660d211e85d37e745d579375033e562c88837c2fb",
+      "record_hash": "fb75660f750f1f3041bfa590475d210f89b66e3ead5579d9ece540bb81c20e0f",
+      "prompt_bytes": 86143,
+      "context_read_history_count": 4,
+      "request_unchanged": true
+    },
+    {
+      "id": "2c91f5cc-b711-48e0-b49f-ea1b85e88885",
+      "artifact_id": "a9c1eb1239a9dca97f93abf3f4b40e52adaa39361680049cd7e7454fe2b62f13",
+      "record_hash": "1a77df98ccc0a86664f130f0e783b10155154f68d5cbdeae5f884631f87ee4d3",
+      "prompt_bytes": 85838,
+      "context_read_history_count": 7,
+      "request_unchanged": true
+    },
+    {
+      "id": "2dce7c30-672e-46cd-b563-4be38dfef5cf",
+      "artifact_id": "64f593d04daa84707bbe7d9d3accc58f46ad3a0df56199db3a082a00c6f96f28",
+      "record_hash": "e7df615b2f0329913768fbb5d765591c5ba058fd983b668b23015c669ff2016c",
+      "prompt_bytes": 81732,
+      "context_read_history_count": 9,
+      "request_unchanged": true
+    }
+  ],
+  "journal": [
+    {
+      "id": "dc884c96-fda7-41e7-a370-cd9962c8c82a",
+      "sequence": 94,
+      "kind": "user_message",
+      "record_hash": "b939cf59b8ea4116b8ad1449f34a349fe84ca566e8a092ebf07a422cee910a07"
+    },
+    {
+      "id": "bd5a37cf-0062-4c22-8d11-f7fffcd16d85",
+      "sequence": 95,
+      "kind": "context_checkpoint",
+      "record_hash": "1b7ad48859fb29c233121b3fd0504149fc90d614e6078ba318e831e8d77844d2"
+    },
+    {
+      "id": "b1a6bd08-b8c2-4916-a2a0-183e72eaf0bc",
+      "sequence": 96,
+      "kind": "model_call",
+      "record_hash": "289fccb560bb28c12e01d03c1fe09d748ff9ea826d38425ca3d1cc6e6774faf2"
+    },
+    {
+      "id": "04ffa9fe-966c-4437-9477-d38472adecc6",
+      "sequence": 97,
+      "kind": "assistant_message",
+      "record_hash": "926ec420717327388e87f09051ad5c097c15f9217719207171f022470c746552"
+    },
+    {
+      "id": "1b9c2258-cbe4-4415-b35d-b7f1271365c4",
+      "sequence": 98,
+      "kind": "job_queued",
+      "record_hash": "3540ab40b57884a1ffea3fcb0521bd5d4559b2700e3d62dfd4a03351aca6de28"
+    },
+    {
+      "id": "59be2e36-b6b6-42bc-8302-f91ed5d372af",
+      "sequence": 99,
+      "kind": "context_checkpoint",
+      "record_hash": "92aca7808ef73729ca15bc065433a2534516e289dcea4a87560e076e39948c48"
+    },
+    {
+      "id": "6cc8aa7e-c0e6-45f7-b767-a224cb07e4dc",
+      "sequence": 100,
+      "kind": "model_call",
+      "record_hash": "0b66b2cdef93b7a1485472fc0e85fea6ab06f7849406127565108715cdd8c985"
+    },
+    {
+      "id": "9ca9298f-4db9-496f-928f-7795857c19ec",
+      "sequence": 101,
+      "kind": "assistant_message",
+      "record_hash": "49fc7705c8afeff3e21cb35ebb34e117691d0cf13a7be7345f2cb5b99c4358bc"
+    },
+    {
+      "id": "9cb52ffb-22e8-4ef8-8671-5ca3ac757e30",
+      "sequence": 102,
+      "kind": "job_queued",
+      "record_hash": "54ae6efa12d3453562460aa279bc7f21ee145f8e000cccc75cd07bf887af566b"
+    },
+    {
+      "id": "5f806003-65b4-4463-abe8-adfc728e3f00",
+      "sequence": 103,
+      "kind": "context_checkpoint",
+      "record_hash": "fb75660f750f1f3041bfa590475d210f89b66e3ead5579d9ece540bb81c20e0f"
+    },
+    {
+      "id": "67209a23-6ced-473a-b948-be7459789ccc",
+      "sequence": 104,
+      "kind": "model_call",
+      "record_hash": "cd699362c3e6b8a17ab0179bdab20b72f9cf5e74ad29688652902f805cf0552c"
+    },
+    {
+      "id": "9a229d16-4d5e-4b4d-960e-45effc042e4f",
+      "sequence": 105,
+      "kind": "assistant_message",
+      "record_hash": "b544ce09f55b211cd493c40b4ced741fd097b5717ef00716d9174a7f2a6cc4a1"
+    },
+    {
+      "id": "88a942ff-3382-4d26-95a1-c3973c63af74",
+      "sequence": 106,
+      "kind": "job_queued",
+      "record_hash": "2cec50661f3de1ec392a5946953a2cec712b3edf206efaf2cc9648a27b23ff8e"
+    },
+    {
+      "id": "2c91f5cc-b711-48e0-b49f-ea1b85e88885",
+      "sequence": 107,
+      "kind": "context_checkpoint",
+      "record_hash": "1a77df98ccc0a86664f130f0e783b10155154f68d5cbdeae5f884631f87ee4d3"
+    },
+    {
+      "id": "7fb9f0c8-83bf-4c90-886b-5d74605ddb41",
+      "sequence": 108,
+      "kind": "model_call",
+      "record_hash": "a7c3dff15ca07220703ccb49c7a2164773d321408e06f5cf9feded9bbc1f2ba3"
+    },
+    {
+      "id": "c6083492-51e1-4523-ad2c-922eab5c539d",
+      "sequence": 109,
+      "kind": "assistant_message",
+      "record_hash": "05d56e52bb2c182dbd3470cc7145737ae82760c3d7917453bc7592c4fc358e48"
+    },
+    {
+      "id": "af806b4e-1c4e-4428-9497-de356a10a551",
+      "sequence": 110,
+      "kind": "job_queued",
+      "record_hash": "e2b46cc3326055207fac933d5a921b277ddb6bce4a37cd1c359ecb50ed5c9951"
+    },
+    {
+      "id": "2dce7c30-672e-46cd-b563-4be38dfef5cf",
+      "sequence": 111,
+      "kind": "context_checkpoint",
+      "record_hash": "e7df615b2f0329913768fbb5d765591c5ba058fd983b668b23015c669ff2016c"
+    },
+    {
+      "id": "6972684f-4337-4c60-bd52-14d5b8204670",
+      "sequence": 112,
+      "kind": "model_call",
+      "record_hash": "c48187152945ec287c35a40317ef0b810e9505ac3419fe411e22a71df1b6f8a1"
+    },
+    {
+      "id": "6337be6a-6cd1-4611-8a67-dbf2c2ba22f4",
+      "sequence": 113,
+      "kind": "model_output_rejected",
+      "record_hash": "62b8aa473354198fa8ed9754cce7fbca6300f8bdf0dc4dfbb607c959cb864fdf"
+    },
+    {
+      "id": "c71cecef-71eb-4037-af00-0a3552cf6972",
+      "sequence": 114,
+      "kind": "conversation_result",
+      "record_hash": "091a858ac1ae53cd7432f0b12414e5404e47cb9a5a77d42a66b33ea7db4890f1"
+    }
+  ],
+  "model_call_receipts": [
+    {
+      "id": "b1a6bd08-b8c2-4916-a2a0-183e72eaf0bc",
+      "record_hash": "289fccb560bb28c12e01d03c1fe09d748ff9ea826d38425ca3d1cc6e6774faf2",
+      "job_id": "3a31f01c-e504-4b56-a232-e8c6830d52b9",
+      "payload": {
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        },
+        "input_hash": "59d963c838af48cbb8a7a6346710d7743b68061058a81fb362343c99eff295a8",
+        "context_checkpoint_hash": "efb2fab1a462f6eba23f9d0898e38a5140c06e26a99caea82d0d5feef7e6c04e",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "fd95990f72732a43f53b9989b13fca6132189826abdc9a813be45312985092df",
+        "output_token_limit": 16384,
+        "input_token_limit": 450000
+      }
+    },
+    {
+      "id": "6cc8aa7e-c0e6-45f7-b767-a224cb07e4dc",
+      "record_hash": "0b66b2cdef93b7a1485472fc0e85fea6ab06f7849406127565108715cdd8c985",
+      "job_id": "b401b478-4153-4195-a5ac-8eb1e4986ef5",
+      "payload": {
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        },
+        "input_hash": "221fcb908f9d6a37f7c9a00f60e46a14aa0ccd1e176d2787aecda730d3e4ac15",
+        "context_checkpoint_hash": "f534a48ae0dee05173cfeb8f1a5f92cb15dddedf7743ce27b9613fc4acf34936",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "fd95990f72732a43f53b9989b13fca6132189826abdc9a813be45312985092df",
+        "output_token_limit": 16384,
+        "input_token_limit": 450000
+      }
+    },
+    {
+      "id": "67209a23-6ced-473a-b948-be7459789ccc",
+      "record_hash": "cd699362c3e6b8a17ab0179bdab20b72f9cf5e74ad29688652902f805cf0552c",
+      "job_id": "a08dfbe2-d6bc-46f8-9ce2-211d1b7931f8",
+      "payload": {
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        },
+        "input_hash": "addabf43c9eb3edffbcdc52f55d14bc8d0ae48c0fbb2c66aeb1be5d811091053",
+        "context_checkpoint_hash": "80239f09ebbf897fdffb747660d211e85d37e745d579375033e562c88837c2fb",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "fd95990f72732a43f53b9989b13fca6132189826abdc9a813be45312985092df",
+        "output_token_limit": 16384,
+        "input_token_limit": 450000
+      }
+    },
+    {
+      "id": "7fb9f0c8-83bf-4c90-886b-5d74605ddb41",
+      "record_hash": "a7c3dff15ca07220703ccb49c7a2164773d321408e06f5cf9feded9bbc1f2ba3",
+      "job_id": "f766f417-50a1-4383-bfc4-e755ff816615",
+      "payload": {
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        },
+        "input_hash": "6adbb89ded462d537e29a4c617a97048b0f30465fd823c341ffad914b2cbf21c",
+        "context_checkpoint_hash": "a9c1eb1239a9dca97f93abf3f4b40e52adaa39361680049cd7e7454fe2b62f13",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "fd95990f72732a43f53b9989b13fca6132189826abdc9a813be45312985092df",
+        "output_token_limit": 16384,
+        "input_token_limit": 450000
+      }
+    },
+    {
+      "id": "6972684f-4337-4c60-bd52-14d5b8204670",
+      "record_hash": "c48187152945ec287c35a40317ef0b810e9505ac3419fe411e22a71df1b6f8a1",
+      "job_id": "70b1de9b-00c0-4e95-be6b-b8d5c34f381a",
+      "payload": {
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        },
+        "input_hash": "07820cb4e60f29775d4ae89038e304012a8d9b35492cfe58fd5bcc17d6118480",
+        "context_checkpoint_hash": "64f593d04daa84707bbe7d9d3accc58f46ad3a0df56199db3a082a00c6f96f28",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "6f687db4d56e9745a8568ebe4eaa9a18abd2167e4b33270efb498c152d091579",
+        "output_token_limit": 16384,
+        "input_token_limit": 450000
+      }
+    }
+  ],
+  "failed_usage_receipts": [],
+  "last_assistant_event": {
+    "id": "c6083492-51e1-4523-ad2c-922eab5c539d",
+    "sequence": 109,
+    "kind": "assistant_message",
+    "job_id": "f766f417-50a1-4383-bfc4-e755ff816615",
+    "payload": {
+      "reply": "我先把 Issue 涉及的核心实现和事件载荷读全，判断两个缺陷在冻结代码里是否仍然存在。",
+      "questions": [],
+      "read_paths": [],
+      "read_context": [
+        {
+          "reference_id": "e616e009dd19453eaf0d9e411218c828915da651559401009c8728f90f8b1234",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": null,
+          "start_line": 100,
+          "max_lines": 80
+        },
+        {
+          "reference_id": "a0976be04817278ac5489a2a42adf6c9ade0e70fcfe62d19547458c42e121e08",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": "toolCallId",
+          "start_line": null,
+          "max_lines": 80
+        }
+      ],
+      "plan": null,
+      "usage": {
+        "input_tokens": 28791,
+        "output_tokens": 215,
+        "duration_ms": 4354,
+        "provider": {
+          "provider": "minimax",
+          "adapter_version": "studio-minimax-adaptive-v2",
+          "model": "MiniMax-M3",
+          "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+        }
+      },
+      "context_checkpoint_hash": "a9c1eb1239a9dca97f93abf3f4b40e52adaa39361680049cd7e7454fe2b62f13",
+      "action": "read",
+      "plan_deferred": false,
+      "plan_id": null,
+      "plan_receipt": {
+        "status": "not_requested",
+        "plan_id": null,
+        "execution_started": false
+      }
+    },
+    "record_hash": "05d56e52bb2c182dbd3470cc7145737ae82760c3d7917453bc7592c4fc358e48"
+  },
+  "rejections": [
+    {
+      "id": "6337be6a-6cd1-4611-8a67-dbf2c2ba22f4",
+      "sequence": 113,
+      "kind": "model_output_rejected",
+      "job_id": "70b1de9b-00c0-4e95-be6b-b8d5c34f381a",
+      "payload": {
+        "reason_code": "planning_output_invalid",
+        "validation_types": [
+          "too_long"
+        ],
+        "fields": [
+          "response"
+        ],
+        "policy": "planning-v5-independent-actions",
+        "usage": {
+          "input_tokens": 27818,
+          "output_tokens": 1379,
+          "duration_ms": 16250,
+          "provider": {
+            "provider": "minimax",
+            "adapter_version": "studio-minimax-adaptive-v2",
+            "model": "MiniMax-M3",
+            "model_version": "0708deb053c3c3177047384f2d6e0d7f0e0949fb3442eb96eaaf234251a921a7"
+          }
+        }
+      },
+      "record_hash": "62b8aa473354198fa8ed9754cce7fbca6300f8bdf0dc4dfbb607c959cb864fdf"
+    }
+  ],
+  "terminal_job": {
+    "id": "70b1de9b-00c0-4e95-be6b-b8d5c34f381a",
+    "kind": "planning_turn",
+    "state": "failed",
+    "error_code": "planning_output_invalid",
+    "error_message": "规划模型回复字段或 JSON 格式未通过校验，现有上下文已保留。",
+    "created_at": "2026-10-30 08:42:22.738198",
+    "completed_at": "2026-10-30 08:42:39.423199"
+  }
+}

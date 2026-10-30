@@ -896,8 +896,11 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 repairable_types = {"extra_forbidden", "missing", "string_type", "list_type", "dict_type", "model_type", "json_invalid"}
                 if data.get("agent_runtime_version") == "agent-runtime-v2":
                     repairable_types.add("planning_outcome_missing")
+                read_count_error = (data.get("agent_runtime_version") == "agent-runtime-v2"
+                    and details.get("fields") == ["read_context"]
+                    and details.get("validation_types") == ["too_long"])
                 repair_envelope = (bool(details.get("validation_types"))
-                    and set(details["validation_types"]) <= repairable_types
+                    and (set(details["validation_types"]) <= repairable_types or read_count_error)
                     and data.get("repair_round", 0) < MAX_PLAN_REPAIRS)
                 wb.append(data["task_id"], "model_output_rejected", {
                     **details,
@@ -906,10 +909,17 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                               "duration_ms":completion.duration_ms, "provider":self.identity.hash_payload()},
                 }, key="rejected:" + job.id, job_id=job.id, actor="planner", commit=not repair_envelope)
                 if repair_envelope:
+                    repair = {**details, "constraint": "clarification_options_plain_strings" if options_error else "planning_envelope_schema",
+                        "instruction":"Return only the reply/questions/read_paths/read_context/plan envelope with a nonempty structured outcome. For a planning job return necessary reads, a complete plan, or material questions; an empty object is invalid. All implementation fields and commands belong inside plan. Correct the listed fields against REQUIRED_SCHEMA; do not flatten the plan or add response/working_directory at the top level."}
+                    if read_count_error:
+                        repair.update(constraint="read_round_limit" if no_more_reads else "context_read_request_limit",
+                            maximum_context_requests=0 if no_more_reads else 4,
+                            read_rounds_remaining=max(0, MAX_READ_ROUNDS-data.get("round", 0)),
+                            instruction=("No read rounds remain. Return a complete plan using actual inspected evidence, or material structured questions if evidence is insufficient. Do not request read_context/read_paths or claim unread source was inspected."
+                                if no_more_reads else "Return at most four context read requests in this round. Each reference must be currently issued. Do not merge extra requests into one field or claim rejected requests were read; existing read rounds and cumulative budgets still apply."))
                     child = wb.enqueue(data["task_id"], TURN, {
                         **data, "repair_round": data.get("repair_round", 0) + 1,
-                        "plan_repair": {**details, "constraint": "clarification_options_plain_strings" if options_error else "planning_envelope_schema",
-                            "instruction":"Return only the reply/questions/read_paths/read_context/plan envelope with a nonempty structured outcome. For a planning job return necessary reads, a complete plan, or material questions; an empty object is invalid. All implementation fields and commands belong inside plan. Correct the listed fields against REQUIRED_SCHEMA; do not flatten the plan or add response/working_directory at the top level."},
+                        "plan_repair": repair,
                     }, key="repair-envelope:" + job.id, commit=False)
                     return self.finish(session, job, {
                         "next_job_id": child.id, "plan_status": "rejected", "repair_scheduled": True,

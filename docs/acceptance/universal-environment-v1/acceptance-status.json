@@ -277,9 +277,12 @@
         "planning-cap-approval.json",
         "planning-cap-live-retest.json",
         "current-read-diagnosis.json",
-        "shared-hash-replay.json"
+        "shared-hash-replay.json",
+        "readonly-followup-approval.json",
+        "readonly-followup-1.json",
+        "read-count-diagnostic-replay.json"
       ],
-      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged."
+      "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending."
     },
     {
       "id": "UE-T25",
@@ -323,47 +326,47 @@
   "engine_revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1694,
+    "tests": 1700,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1632,
+    "passed": 1638,
     "shards": [
       {
-        "tests": 424,
+        "tests": 425,
         "failures": 0,
         "errors": 0,
-        "skipped": 10,
-        "path": "/tmp/upeve-shared-hash-shard-0.xml",
-        "sha256": "36e2d8d4b82331f0e2750784b139215c2b76d6a0403dca74c4db30fa17e1c4d1"
+        "skipped": 11,
+        "path": "/tmp/upeve-read-count-shard-0.xml",
+        "sha256": "89af81af3fe0e249874aec88e5dad5f93e7817caf5ac5442a365ad5c175bff35"
       },
       {
-        "tests": 424,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 19,
-        "path": "/tmp/upeve-shared-hash-shard-1.xml",
-        "sha256": "c3da0ca56f23a358bac884428e9e9a9b9dc94f1eec2665e883fa5034a1786da9"
-      },
-      {
-        "tests": 423,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 13,
-        "path": "/tmp/upeve-shared-hash-shard-2.xml",
-        "sha256": "975cbee19afa94a74b2b5f4ae08ae87f5e38a419f8b9a56dd3416a6565e05da7"
-      },
-      {
-        "tests": 423,
+        "tests": 425,
         "failures": 0,
         "errors": 0,
         "skipped": 20,
-        "path": "/tmp/upeve-shared-hash-shard-3.xml",
-        "sha256": "e222646cb21a2980e87b94ac9a8981f607e9b99a7f127fc0343a40973b6a08af"
+        "path": "/tmp/upeve-read-count-shard-1.xml",
+        "sha256": "38f09a762ad165e37bcf51f209b5bb60e91317601fb1b3223a388b588cd7d798"
+      },
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 12,
+        "path": "/tmp/upeve-read-count-shard-2.xml",
+        "sha256": "861db41fb3ba90b7c0907971c73dcb82442ca558ab30fa66c8074e5d00b0825f"
+      },
+      {
+        "tests": 425,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 19,
+        "path": "/tmp/upeve-read-count-shard-3.xml",
+        "sha256": "bd95b27f3dac18bec1d7ab40b5f0c3ec8e583106b1e9bf8ce04e26fa9cd2652a"
       }
     ],
-    "revision": "918bdf5730b5ff1d3dd4f5e8dced82c413cf437e",
-    "evidence": "shared-hash-checks.json"
+    "revision": "pending_local_commit",
+    "evidence": "read-count-checks.json"
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -372,7 +375,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "shared-hash-checks.json",
+  "latest_default_evidence": "read-count-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -381,9 +384,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "planning-cap-live-retest.json",
+  "latest_native_retest": "readonly-followup-1.json",
   "latest_isolated_deployment": "shared-hash-deployment.json",
-  "latest_history_and_security_audit": "shared-hash-audit.json",
+  "latest_history_and_security_audit": "read-count-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "shared-hash-replay.json",
   "model_resource_exception": {
@@ -395,10 +398,12 @@
     "evidence": "planning-cap-approval.json"
   },
   "pending_readonly_followup": {
-    "status": "proposed_not_dispatched",
+    "status": "request_1_failed_maintenance_verified_before_request_2",
     "evidence": "planning-readonly-followup-proposal.json",
     "max_additional_model_calls": 14,
     "max_additional_readonly_requests": 2,
-    "limits_raised": false
+    "limits_raised": false,
+    "approval": "readonly-followup-approval.json",
+    "request_1": "readonly-followup-1.json"
   }
 }
