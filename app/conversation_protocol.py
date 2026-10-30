@@ -81,7 +81,7 @@ class TurnProtocolError(ValueError):
 
 
 def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
-               allow_reads: bool) -> tuple[ConversationDecision, bool]:
+               allow_reads: bool, read_limit: int | None = None) -> tuple[ConversationDecision, bool]:
     """Ignore presentation on a read-only request, never infer an action."""
     envelope_type = RuntimeEnvelope if version == RUNTIME_REASONING_VERSION else TurnEnvelope
     normalized = False
@@ -111,6 +111,8 @@ def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
     if version in {REASONING_VERSION, RUNTIME_REASONING_VERSION} and envelope.reads:
         if envelope.action != "respond":
             raise TurnProtocolError("read_workflow_conflict", "Return a read-only request with action respond; do not mix a workflow with reads.")
+        if read_limit is not None and len(envelope.reads) > read_limit:
+            raise TurnProtocolError("read_budget_exceeded", f"At most {read_limit} read requests remain. Return no more than that number, or FINAL with reads:[] and the available evidence. No requested read was executed.")
         if not allow_reads:
             raise TurnProtocolError("reads_after_budget", "No model calls remain after this one. Answer from tool_results with reads:[]; state any evidence limitation.")
         requested = {r.name for r in envelope.reads}
@@ -128,7 +130,7 @@ def parse_step(raw: str, *, version: str, actions: list[str], known: set[str],
 
 
 def step_schema(actions: list[str], known: set[str], *, allow_reads: bool,
-                version: str = REASONING_VERSION) -> dict:
+                version: str = REASONING_VERSION, read_limit: int | None = None) -> dict:
     """Expose the actual phase/budget constraints to structured-output providers."""
     schema = deepcopy((RuntimeEnvelope if version == RUNTIME_REASONING_VERSION else TurnEnvelope).model_json_schema())
     if version == RUNTIME_REASONING_VERSION:
@@ -163,6 +165,10 @@ def step_schema(actions: list[str], known: set[str], *, allow_reads: bool,
         schema["properties"]["references"]["items"] = {"type":"string", "enum":sorted(known)}
     else:
         schema["properties"]["references"]["maxItems"] = 0
+    if read_limit is not None:
+        schema["properties"]["reads"]["maxItems"] = min(
+            schema["properties"]["reads"]["maxItems"], max(0, read_limit))
+        allow_reads = allow_reads and read_limit > 0
     if allow_reads:
         schema["anyOf"] = [
             {"properties":{"reads":{"maxItems":0}, "reply":{"minLength":1}}},

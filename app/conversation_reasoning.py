@@ -288,7 +288,8 @@ def read_evidence(wb: Workbench, task_id: str, request: EvidenceRead, *, checkpo
 
 def reasoning_prompt(wb: Workbench, task_id: str, message_id: str,
                      reads: list[dict], correction: dict | None, remaining_calls: int,
-                     *, job_id: str | None = None, reasoning_version: str = REASONING_VERSION) -> tuple[str, dict]:
+                     *, job_id: str | None = None, reasoning_version: str = REASONING_VERSION,
+                     remaining_reads: int | None = None) -> tuple[str, dict]:
     history = wb.history(task_id)
     message = next(e for e in history if e.id == message_id and e.kind == "conversation_received")
     internal = {e.payload["message_id"] for e in history if e.kind == "conversation_continuation_requested"
@@ -356,6 +357,13 @@ def reasoning_prompt(wb: Workbench, task_id: str, message_id: str,
             "Use supplied environment facts to answer lock/readiness questions directly; inspect only missing facts. Capability gaps are not missing locks. Never replace the manager or commit workaround locks; private preparation may freeze missing locks. Check actual scripts; confirmation cannot fix invalid commands or missing capabilities.",
             "Return only reply/action/reads/references/effect. Explain state naturally; hide internal IDs, field names and enum codes. Partial evidence and memory are not complete proof or authorization.",
         ]
+    if reasoning_version == RUNTIME_REASONING_VERSION and remaining_reads is not None:
+        payload["remaining_reads"] = remaining_reads
+        payload["rules"].append(
+            "remaining_reads is the remaining per-request read allowance, including prior and automatic reads. "
+            "Never request more than that number. At zero return FINAL with reads=[] using current evidence; "
+            "state evidence limitations or propose an available read-only planning action when explicitly requested. "
+            "It is not permission for execution or publication.")
     from app.context_compaction import compact_prompt
     prompt, _ = compact_prompt(wb, task_id, payload, scope="conversation", job_id=job_id,
         target_bytes=48_000, trigger_bytes=48_000, history_cursor=message.sequence)
@@ -432,8 +440,12 @@ async def execute_reasoning(worker: Any, job: Any) -> dict:
                         "tool": request.model_dump(), "artifact_id": artifact, "automatic": True},
                         key="conversation-current-artifact:"+job.id, job_id=job.id)
                     reads.append(result)
+            existing_signatures = {canonical_json(e.payload["tool"]) for e in wb.history(task.id)
+                if e.kind == "conversation_tool_result" and e.job_id == job.id}
+            remaining_reads = max(0, max_reads - len(existing_signatures)) if runtime else None
+            allow_reads = attempt + 1 < max_calls and (remaining_reads is None or remaining_reads > 0)
             prompt, view = reasoning_prompt(wb, task.id, job.payload["message_id"], reads, correction, max_calls-attempt,
-                job_id=job.id, reasoning_version=version)
+                job_id=job.id, reasoning_version=version, remaining_reads=remaining_reads)
             known = {r["reference"]["name"] for r in reads
                      if (not isinstance(r["data"], dict) or r["data"].get("available") is not False)
                      and r["reference"].get("available") is not False}
@@ -442,7 +454,7 @@ async def execute_reasoning(worker: Any, job: Any) -> dict:
             require_planning_budget(wb, task.id)
             from app.agent_runtime import turn_effect
             allowed_actions=["respond"] if runtime and turn_effect(wb,task.id,job.payload["message_id"])=="observe" else view["available_actions"]
-            schema = (step_schema(allowed_actions, known, allow_reads=attempt+1<max_calls, version=version)
+            schema = (step_schema(allowed_actions, known, allow_reads=allow_reads, version=version, read_limit=remaining_reads)
                       if version in {REASONING_VERSION, RUNTIME_REASONING_VERSION} else ConversationDecision.model_json_schema())
             if runtime and allowed_actions==["respond"]:
                 schema["properties"]["effect"]={"type":"string","const":"observe"}
@@ -476,7 +488,7 @@ async def execute_reasoning(worker: Any, job: Any) -> dict:
                 raw = raw[8:-4].strip()
             # Never repair truncated JSON into an invented workflow request.
             decision, normalized_read = parse_step(raw, version=version,
-                actions=allowed_actions, known=known, allow_reads=attempt+1<max_calls)
+                actions=allowed_actions, known=known, allow_reads=allow_reads, read_limit=remaining_reads)
         except (ValidationError, ValueError) as exc:
             from app.security import SensitiveDataError
             safe_fields = set(ConversationDecision.model_fields) | set(EvidenceRead.model_fields)
