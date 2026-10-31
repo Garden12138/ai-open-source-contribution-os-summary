@@ -5,6 +5,14 @@ from __future__ import annotations
 from app.plans import _repository_path
 
 
+def planning_environment_paths(evidence: dict) -> list[str]:
+    """Keep statically selected root declarations available before a draft exists."""
+    from app.execution_environment import environment_plan
+
+    selected = environment_plan(evidence["inventory"])
+    return sorted(selected["manifests"]) if selected["status"] == "supported" else []
+
+
 def planning_read_paths(paths: list[str], evidence: dict) -> tuple[list[str], dict | None]:
     """Keep admissible reads and return bounded, safe feedback for rejected paths."""
     known = set(evidence["inventory"])

@@ -18,7 +18,7 @@ from app.providers.contracts import ProviderIdentity, ProviderStage
 from app.sandbox_worker.specs import SandboxPolicy
 from app.security import ensure_no_sensitive_data, SensitiveDataError
 from app.planning_diagnostics import planning_validation_details, planning_domain_details
-from app.planning_reads import planning_read_paths
+from app.planning_reads import planning_read_paths, planning_environment_paths
 from app.workbench import Workbench, WorkbenchError
 from app.workbench_worker import WorkbenchJobWorker
 from app.context_compaction import ContextRead, compact_prompt, previous_context_reads, read_context
@@ -267,6 +267,10 @@ class PlanningService(Workbench):
             # replies, safely inspect the requested known files before replanning.
             paths = reply.payload.get("read_paths", []) if reply and reply.payload.get("questions") else []
             evidence = self.read(context.payload["artifact_id"])
+            if payload.get("environment_engine") and latest is None:
+                captured = {e["path"] for e in evidence["entries"] if e.get("content") is not None}
+                required = set(planning_environment_paths(evidence)) - captured
+                paths = list(dict.fromkeys([*paths, *sorted(required)]))[:32]
             from app.agent_runtime import enabled
             if latest is not None and enabled(self,task_id):
                 from app.execution_environment import task_environment
@@ -557,6 +561,8 @@ class PlanningContextWorker(WorkbenchJobWorker):
                 context["entries"] = sorted(merged.values(), key=lambda e: e["path"])
                 if len(canonical_json(context).encode()) > 1_100_000 or len(merged) > 48:
                     protected_paths = set(data.get("paths", []))
+                    if data.get("environment_engine"):
+                        protected_paths.update(planning_environment_paths(context))
                     for hist_event in wb.history(data["task_id"]):
                         if hist_event.kind == "assistant_message":
                             protected_paths.update(hist_event.payload.get("read_paths") or [])
@@ -687,6 +693,18 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             history = wb.history(data["task_id"])
             from app.planning_budget import require_planning_budget
             require_planning_budget(wb, data["task_id"])
+            if data.get("environment_engine") and data.get("round", 0) < MAX_READ_ROUNDS:
+                captured = {e["path"] for e in evidence["entries"] if e.get("content") is not None}
+                missing = sorted(set(planning_environment_paths(evidence)) - captured)
+                paths, feedback = planning_read_paths(missing, evidence)
+                if paths:
+                    child = wb.enqueue(data["task_id"], CONTEXT, {**data,
+                        "paths": paths[:32], "round": data.get("round", 0) + 1,
+                        "read_feedback": feedback,
+                        **{name: context.payload[name] for name in ("branch", "base_sha", "archive_hash", "image")}},
+                        key="environment-read:" + job.id, commit=False)
+                    return self.finish(session, job, {"next_job_id": child.id,
+                        "environment_sources_requested": True, "model_scheduled": False})
             from app.context_compaction import source_binding
             context_results = []
             context_read_history = []
@@ -1108,7 +1126,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                             actor="planner", commit=False)
             if reply.read_paths and not reply.questions and data["round"] >= MAX_READ_ROUNDS:
                 read_feedback = {"reason_code": "planning_read_limit", "fields": ["read_paths"],
-                                 "constraint": "read_round_limit"}
+                                 "constraint": "read_round_limit",
+                                 "required_paths": reply.read_paths[:32],
+                                 "required_path_count": len(reply.read_paths),
+                                 "read_round": data["round"], "maximum_read_rounds": MAX_READ_ROUNDS}
                 reply.read_paths = []
             if reply.read_context and not reply.questions and data["round"] >= MAX_READ_ROUNDS:
                 reject_plan({**domain_error, "fields": ["read_context"], "constraint": "context_read_round_limit",
@@ -1151,8 +1172,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                     "方案已保存，但执行条件未满足，当前不能启动实施。\n" + "\n".join(issue["message"] for issue in preflight["issues"])
                 )
             if read_feedback and not reply.questions and not reply.read_paths:
-                exhausted = data.get("repair_round", 0) >= MAX_PLAN_REPAIRS or read_feedback["constraint"] == "read_round_limit"
+                exhausted = data.get("repair_round", 0) >= MAX_PLAN_REPAIRS
                 result["reply"] = (
+                    "本轮已达到读取轮数上限，仍缺少必要的冻结源码或环境声明。未保存或执行方案；具体缺口已保留。"
+                    if read_feedback["constraint"] == "read_round_limit" else
                     "补读请求仍未通过校验，已达到本轮自动修订上限。已有代码和你的答案已保留，尚未保存或执行方案。"
                     if exhausted else
                     "部分补读路径不存在或不可读取，系统正在根据仓库清单修正请求。已有代码和你的答案已保留，尚未保存或执行方案。"
