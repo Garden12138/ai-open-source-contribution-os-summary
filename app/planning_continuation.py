@@ -46,8 +46,15 @@ def resume_failed_model_planning(wb: Workbench, task_id: str, source: Any) -> An
     context_admission_failure = bool(failed and failed.state == "failed" and (
         failed.error_code == "planning_context_limit" or (failed.error_code == "planning_turn_failed"
             and failed.error_message == "规划上下文已达上限")))
+    from app.planning_diagnostics import planning_read_bounds_error, planning_read_bounds_repair
+    rejection = wb.latest(task_id, "model_output_rejected")
+    range_failure = bool(failed and failed.state == "failed" and failed.error_code == "planning_output_invalid"
+        and failed.payload.get("agent_runtime_version") == "agent-runtime-v2"
+        and rejection and rejection.actor_id == "planner" and rejection.job_id == failed.id
+        and rejection.payload.get("policy") == "planning-v5-independent-actions"
+        and planning_read_bounds_error(rejection.payload))
     if (state.to_state != "planning" or failed is None or failed.kind != "planning_turn"
-            or not (transport_failure or narration or context_admission_failure)):
+            or not (transport_failure or narration or context_admission_failure or range_failure)):
         return None
     data = failed.payload
     context, plan = wb.latest(task_id, "context_ready"), wb.latest_plan(task_id)
@@ -67,6 +74,13 @@ def resume_failed_model_planning(wb: Workbench, task_id: str, source: Any) -> An
             "plan_repair": {"reason_code": "planning_output_invalid",
                 "constraint": "plan_required_after_repair_or_read",
                 "remediation": "The prior reply did not read or save anything. Return actual reads, a complete plan or material structured questions; read-only investigation needs no additional permission."}}
+    elif range_failure:
+        from app.planner import MAX_PLAN_REPAIRS, MAX_READ_ROUNDS
+        if data.get("repair_round", 0) >= MAX_PLAN_REPAIRS:
+            return None
+        data = {**data, "repair_round": data.get("repair_round", 0) + 1,
+            "plan_repair": planning_read_bounds_repair(rejection.payload,
+                remaining_rounds=max(0, MAX_READ_ROUNDS-data.get("round", 0)))}
     job = wb.enqueue(task_id, failed.kind, data, key="planning-model-retry:" + failed.id,
         max_attempts=1, timeout_seconds=failed.timeout_seconds, commit=False)
     wb.append(task_id, "planning_model_retry_requested", {
@@ -74,7 +88,8 @@ def resume_failed_model_planning(wb: Workbench, task_id: str, source: Any) -> An
         "source_id": source.id, "source_hash": source.record_hash,
         "request_hash": content_hash(data["text"]), "context_hash": context.record_hash,
         "usage_at_retry": planning_usage(wb, task_id), "execution_authorized": False,
-        "retry_reason": "missing_planning_progress" if narration else failed.error_code,
+        "retry_reason": "missing_planning_progress" if narration else "planning_read_bounds_invalid" if range_failure else failed.error_code,
+        **({"rejection_hash": rejection.record_hash} if range_failure else {}),
     }, key="planning-model-retry-receipt:" + failed.id, actor="orchestrator",
         job_id=job.id, commit=False)
     return job

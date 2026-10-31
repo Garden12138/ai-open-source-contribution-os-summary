@@ -17,7 +17,8 @@ from app.providers.codex_cli import CodexExecInvocation
 from app.providers.contracts import ProviderIdentity, ProviderStage
 from app.sandbox_worker.specs import SandboxPolicy
 from app.security import ensure_no_sensitive_data, SensitiveDataError
-from app.planning_diagnostics import planning_validation_details, planning_domain_details
+from app.planning_diagnostics import (planning_validation_details, planning_domain_details,
+    planning_read_bounds_error, planning_read_bounds_repair)
 from app.planning_reads import planning_read_paths, planning_environment_paths
 from app.workbench import Workbench, WorkbenchError
 from app.workbench_worker import WorkbenchJobWorker
@@ -944,8 +945,10 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 read_count_error = (data.get("agent_runtime_version") == "agent-runtime-v2"
                     and details.get("fields") == ["read_context"]
                     and details.get("validation_types") == ["too_long"])
+                read_bounds_error = (data.get("agent_runtime_version") == "agent-runtime-v2"
+                    and planning_read_bounds_error(details))
                 repair_envelope = (bool(details.get("validation_types"))
-                    and (set(details["validation_types"]) <= repairable_types or read_count_error)
+                    and (set(details["validation_types"]) <= repairable_types or read_count_error or read_bounds_error)
                     and data.get("repair_round", 0) < MAX_PLAN_REPAIRS)
                 wb.append(data["task_id"], "model_output_rejected", {
                     **details,
@@ -962,6 +965,9 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                             read_rounds_remaining=max(0, MAX_READ_ROUNDS-data.get("round", 0)),
                             instruction=("No read rounds remain. Return a complete plan using actual inspected evidence, or material structured questions if evidence is insufficient. Do not request read_context/read_paths or claim unread source was inspected."
                                 if no_more_reads else "Return at most four context read requests in this round. Each reference must be currently issued. Do not merge extra requests into one field or claim rejected requests were read; existing read rounds and cumulative budgets still apply."))
+                    if read_bounds_error:
+                        repair = planning_read_bounds_repair(details,
+                            remaining_rounds=max(0, MAX_READ_ROUNDS-data.get("round", 0)))
                     child = wb.enqueue(data["task_id"], TURN, {
                         **data, "repair_round": data.get("repair_round", 0) + 1,
                         "plan_repair": repair,

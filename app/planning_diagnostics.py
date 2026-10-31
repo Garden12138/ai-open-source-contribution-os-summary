@@ -74,6 +74,34 @@ SAFE_FIELDS = frozenset(
 )
 
 
+def planning_read_bounds_error(details: dict) -> bool:
+    """Only numeric page-bound failures may use the existing v2 repair slots."""
+    fields, types = details.get("fields"), details.get("validation_types")
+    return (details.get("reason_code") == "planning_output_invalid"
+        and isinstance(fields, list) and bool(fields) and all(isinstance(v, str) for v in fields)
+        and set(fields) <= {"read_context.max_lines", "read_context.max_bytes", "read_context.offset", "read_context.start_line"}
+        and isinstance(types, list) and bool(types) and all(isinstance(v, str) for v in types)
+        and set(types) <= {"less_than_equal", "greater_than_equal"})
+
+
+def planning_read_bounds_repair(details: dict, *, remaining_rounds: int) -> dict:
+    """Tell the model the real schema bounds; never clamp or execute bad intent."""
+    from app.context_compaction import ContextRead
+
+    properties = ContextRead.model_json_schema()["properties"]
+    bounds = {}
+    for field in ("max_lines", "max_bytes", "offset", "start_line"):
+        prop = properties[field]
+        numeric = next((v for v in prop.get("anyOf", [prop]) if v.get("type") == "integer"), {})
+        bounds[field] = {k: numeric[k] for k in ("minimum", "maximum") if k in numeric}
+    return {**{k: details[k] for k in ("reason_code", "fields", "validation_types")},
+        "constraint": "context_read_parameter_bounds", "context_read_bounds": bounds,
+        "read_rounds_remaining": remaining_rounds,
+        "instruction": ("No read rounds remain. Return a complete evidence-based plan or material questions; do not request reads."
+            if remaining_rounds == 0 else
+            "Rejected reads were not executed. Correct the listed page parameters within these bounds, using issued references. Do not infer omitted source. Existing read, repair and model budgets still apply.")}
+
+
 def planning_domain_details(error: ValueError) -> dict:
     """Map only our fixed validator messages; never echo rejected values."""
     message = str(error)
