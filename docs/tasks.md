@@ -5450,6 +5450,46 @@ See `read-budget-checks.json`, `read-budget-deployment.json` and
 remains failed, Linux amd64 blocked, and native Baseline/Coding/Verify/Review
 unverified. No phase gate is promoted; current task remains UPEVE-E04.
 
+Read-allowance native retest (2026-10-31): user “继续验收” authorizes work
+within the retained five calls. The unchanged original natural-language request
+uses four real DeepSeek calls, with actual remaining-read counts **6, 3, 1, 0**
+and exactly six tool results. It ends successfully as a bounded observation,
+without `conversation_tool_budget` or rejected steps. This verifies the quota
+maintenance at its actual boundary. The model nevertheless classifies the
+investigation as `observe` and returns `respond`, with no planning dispatch;
+the original natural-language planning acceptance therefore still fails.
+
+To separately check the planning path under the same five-call allowance, the
+existing visible “读取仓库并准备方案” control is used with the one remaining
+call. It enters the actual planner and requests four context references. Its
+follow-up Job `642dca84-55a1-441a-9d7b-7f5a0eade759` stops before another model
+invocation with `planning_budget_exceeded` at lifetime **38 calls**. Job success
+of the first read request is not a saved Plan or delivered fix. Both native
+messages are independently recorded; the explicit control does not relabel the
+natural-language result as success. No operator business patch, direct Plan
+insertion, execution or third-party write occurs.
+
+This continuation uses five actual calls, all upstream HTTP200: 44,423 known
+input / 8,161 output. Lifetime known use is now **38 calls / 769,038 input /
+46,440 output**; three old unknown calls still reserve **1,350,000 input /
+40,960 output**. Remaining: **0 calls / 1,880,962 input / 112,600 output**.
+Source/Profile/budget caps and prior failures remain unchanged. All five role
+children/four health endpoints are live; source hashes match the prior complete
+1682-pass regression (not rerun because code is unchanged). The read quota
+boundary passes, natural-language planning routing fails, no Plan exists, and
+native Baseline/Coding/Verify/Review remain not_run.
+
+Evidence: `deepseek-native-read-retest.json`, `deepseek-explicit-plan-entry.json`,
+`deepseek-continuation-audit.json`. A concrete proposal
+`deepseek-planning-call-extension-proposal.json`, hash `f3a80871...25fce508`,
+changes only the lifetime call cap **38 to 50** (at most 12 more calls); input
+4M/output 200K and all historical usage/reserves stay unchanged. It uses one
+native explicit continue through the existing budget-recovery planning path;
+that path creates a new planning request and retains the old failed round,
+not a fabricated exact-payload resume or natural-language routing pass. No
+budget change has been applied; exact confirmation is pending. No gate is
+promoted, and the current specialty task remains UPEVE-E04.
+
 
 ---
 
