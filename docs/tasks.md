@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Native child planning resumes after a context projection fix, but rejects max_lines beyond160 and reaches local call cap50. Generic bounded correction/recovery passes1743 regressions and isolated-deploys; call-only50→64 consent is pending. No child Plan or execution; native, historical Node and Linux gates remain open. |
+| Feature note | Approved call-only cap64 is applied; one native corrected response requests valid source reads, then their delivery fails the96KB context gate before a second call. Thirteen calls remain; generic historical-discussion indexing passes1748 regressions and is isolated-deployed, awaiting supplemental native recovery control consent. No child Plan or execution; native, historical Node and Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5672,6 +5672,52 @@ Native bounds-repair effectiveness and Baseline/Coding/Verify/independent Review
 remain not_run; parent Plan still needs upstream identity scope revision.0/4
 native first outcomes,0/15 environment baselines, historical Node failure and
 Linux amd64 blocker remain unchanged. No gate is checked; task stays UPEVE-E04.
+
+
+Approved64-call native recovery and source delivery maintenance (2026-11-01 local):
+[Approval](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64-approval.json)
+applies only the50→64 call cap, preserving4M/200K input/output, all known usage
+and three unknown-call holds. [Actual native receipt](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64.json)
+uses the one permitted recovery control and **one complete DeepSeek call**.
+The numeric correction succeeds: four valid source reads are parsed. The next
+Job475d4ded fails planning_context_limit **before a second model invocation**.
+No child Plan or execution is produced; the old parent/failures remain intact.
+Lifetime51 calls/1,214,594 known input/110,121 output; unchanged unknown holds
+1,350,000 input/40,960 output. Remaining13 calls/1,435,406 input/48,919 output.
+This is a local context failure, not evidence of depleted provider credits.
+
+A [consistent-copy diagnosis](acceptance/universal-environment-v1/source-delivery-context-diagnosis.json)
+reproduces98,898 bytes even with four minimum256-byte pages. Generic v2 history
+projection now groups older assistant proposals in source-labelled immutable
+references, without generated summaries or dropped originals. Human instructions,
+current Plan, exact checks, rules and new tool pages retain their existing
+semantics; legacy/small histories stay unchanged. [Controlled fixed replay](acceptance/universal-environment-v1/source-delivery-context-replay.json)
+fits94,443 bytes using the existing fair page delivery/continuations. All96KB,
+read/repair, output/time and security limits remain. Both replays use copies of
+the business DB **and artifacts**, no model, and omit only the terminal lease
+check in the copy; they are not native success or execution evidence.
+
+[Checks](acceptance/universal-environment-v1/source-delivery-checks.json) at
+sourcef4c0886 pass **1748 default/62 skipped/0 failed**, **48 focused**, and final
+five new cases after constant extraction. Pre-fix new cases retain3 failures/2
+passes. Compileall/runtime integrity/diff pass. [Deployment](acceptance/universal-environment-v1/source-delivery-deployment.json)
+restarts only the five idle owned host roles; children/four health endpoints,
+parent/hash history and budget pass. Publisher/formal services/OCI interfaces
+stay intact. Zero model calls follow maintenance. [Audit](acceptance/universal-environment-v1/source-delivery-final-audit.json)
+records actual results and historical preservation; native effectiveness of this
+new projection is still not_run.
+
+[Supplemental concrete preview](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-proposal.json)
+`2f0d199d...024f6786` requests at most3 native recovery controls/13 calls within
+the **existing64/4M/200K limits**, only for the same frozen read-only request
+(payloadf40e09e6...cf7383, read round1/repair round1 retained). New root requests,
+execution and publication remain excluded. The earlier exact preview allowed
+one recovery control and that control was used; unused call allowance alone is
+not another control grant. Supplemental confirmation is pending; other safe
+engineering/evidence work continues. Native first outcomes0/4 and complete
+environment baselines0/15 remain separate and unchanged. Historical Node still
+fails, native Linux amd64 is blocked/not_run, and native Baseline/Coding/Verify/
+independent Review remain not_run. No stage gate is checked; UPEVE-E04 is current.
 
 
 ---

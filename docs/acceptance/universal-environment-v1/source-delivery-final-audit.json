@@ -1,0 +1,114 @@
+{
+  "version": "upeve-source-delivery-final-audit-v1",
+  "recorded_at": "2026-10-31T16:33:31.528181+00:00",
+  "engine_revision": "f4c0886eb4256ec1baefa9eecfde6875c735eac3",
+  "tested_source_manifest_hash": "4e9c05d927a2fcddf016231b5f1dbac8ee74faac34026c87a4e0bb4ee54858b3",
+  "tested_source_files": 234,
+  "native_extension64_model_calls": 1,
+  "native_bounds_repair_effectiveness": "passed_actual_valid_read_requests",
+  "native_source_delivery_status": "failed_planning_context_limit_before_second_call",
+  "native_source_delivery_fix_effectiveness": "not_run_supplemental_control_confirmation_pending",
+  "controlled_before_minimum_prompt_bytes": 98898,
+  "controlled_after_prompt_bytes": 94443,
+  "hard_prompt_limit_unchanged": 96000,
+  "new_model_calls_after_maintenance": 0,
+  "new_child_plan_count": 0,
+  "parent_plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "parent_plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "e86191223627e5b9b794f71d6ab5bbde0daf9e7c08848b146b1ab0bba3fb7e5b",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 51,
+      "input_tokens": 1214594,
+      "output_tokens": 110121
+    },
+    "remaining": {
+      "calls": 13,
+      "input_tokens": 1435406,
+      "output_tokens": 48919
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "old_use_and_unknown_holds_retained": true,
+  "native_failed_jobs_and_all_events_preserved": true,
+  "verified_native_event_chain_length": 322,
+  "source_Profile_and_defaults_preserved": true,
+  "historical_files_preserved": 74,
+  "default_regression": {
+    "tests": 1810,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1748
+  },
+  "focused_passed": 48,
+  "before_fix_failed": 3,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "owned_roles_live": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "active_jobs": 0,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "files_before_audit": 468,
+    "findings": [],
+    "raw_vault_inspected": false
+  },
+  "pending_supplemental_control_proposal_hash": "2f0d199d9a9d636e628a0fd6abe6c8674f75b5a49b60ee823bf3ecb4024f6786",
+  "new_root_planning_requests": 0,
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_baseline_coding_verify_independent_review": "not_run",
+  "new_execution_approvals": 0,
+  "third_party_writes": 0,
+  "formal_data_modified": false,
+  "current_task": "UPEVE-E04"
+}

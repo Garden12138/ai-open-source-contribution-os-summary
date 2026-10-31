@@ -1,0 +1,276 @@
+{
+  "version": "upeve-source-delivery-context-replay-v1",
+  "recorded_at": "2026-10-31T16:28:24.655835+00:00",
+  "classification": "controlled_consistent_copy_not_native_success",
+  "native_job_id": "475d4ded-1e95-42b6-9b4f-5701fe529d6b",
+  "native_payload_hash": "f40e09e6c915975f379f2e3fa7f5ff4f8abbe8aba3058a8f280f69dd71cf7383",
+  "outcome": "prompt_admitted_before_stubbed_model",
+  "hard_prompt_limit": 96000,
+  "model_calls": 0,
+  "native_database_modified": false,
+  "original_artifacts_written": false,
+  "terminal_lease_check_omitted_only_in_copy": true,
+  "source_state_guards_preserved": true,
+  "previews": [
+    {
+      "prompt_bytes": 106313,
+      "prompt_hash": "08fd26e3bf7776f926b40389adb6c2d08bdd6a1d452989f70c3b1d5028eb2e54",
+      "record_checkpoint": false,
+      "top_level_bytes": {
+        "baseline_recovery": 4,
+        "context_management": 7309,
+        "context_read_history": 2,
+        "context_reads": 22126,
+        "conversation": 3260,
+        "current_plan": 3553,
+        "evidence": 29528,
+        "execution_status": 12034,
+        "inputs": 2816,
+        "pending_plan": 4,
+        "plan_repair": 594,
+        "planning_state": 404,
+        "read_feedback": 4,
+        "request": 1220,
+        "rules": 12891,
+        "task_memory": 10304
+      },
+      "page_bytes": [
+        4727,
+        3159,
+        6855,
+        4694
+      ],
+      "foundation_entries": [
+        {
+          "path": ".github/pull_request_template.md",
+          "bytes": 245
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "bytes": 689
+        },
+        {
+          "path": ".vscode/settings.json",
+          "bytes": 44
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "bytes": 1584
+        },
+        {
+          "path": "app/package.json",
+          "bytes": 484
+        },
+        {
+          "path": "extension/.vscodeignore",
+          "bytes": 209
+        },
+        {
+          "path": "extension/package.json",
+          "bytes": 3281
+        },
+        {
+          "path": "extension/tsconfig.test.json",
+          "bytes": 181
+        },
+        {
+          "path": "package.json",
+          "bytes": 1018
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "bytes": 32
+        },
+        {
+          "path": "web/next.config.mjs",
+          "bytes": 131
+        },
+        {
+          "path": "web/package.json",
+          "bytes": 752
+        },
+        {
+          "path": "web/postcss.config.mjs",
+          "bytes": 144
+        }
+      ],
+      "reference_count": 41
+    },
+    {
+      "prompt_bytes": 94443,
+      "prompt_hash": "8479877fad727fc5975eb2e460690361fd071ad012dcb29b4b167bd57f3c5a2a",
+      "record_checkpoint": false,
+      "top_level_bytes": {
+        "baseline_recovery": 4,
+        "context_management": 7309,
+        "context_read_history": 2,
+        "context_reads": 10256,
+        "conversation": 3260,
+        "current_plan": 3553,
+        "evidence": 29528,
+        "execution_status": 12034,
+        "inputs": 2816,
+        "pending_plan": 4,
+        "plan_repair": 594,
+        "planning_state": 404,
+        "read_feedback": 4,
+        "request": 1220,
+        "rules": 12891,
+        "task_memory": 10304
+      },
+      "page_bytes": [
+        1726,
+        1210,
+        2424,
+        1714
+      ],
+      "foundation_entries": [
+        {
+          "path": ".github/pull_request_template.md",
+          "bytes": 245
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "bytes": 689
+        },
+        {
+          "path": ".vscode/settings.json",
+          "bytes": 44
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "bytes": 1584
+        },
+        {
+          "path": "app/package.json",
+          "bytes": 484
+        },
+        {
+          "path": "extension/.vscodeignore",
+          "bytes": 209
+        },
+        {
+          "path": "extension/package.json",
+          "bytes": 3281
+        },
+        {
+          "path": "extension/tsconfig.test.json",
+          "bytes": 181
+        },
+        {
+          "path": "package.json",
+          "bytes": 1018
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "bytes": 32
+        },
+        {
+          "path": "web/next.config.mjs",
+          "bytes": 131
+        },
+        {
+          "path": "web/package.json",
+          "bytes": 752
+        },
+        {
+          "path": "web/postcss.config.mjs",
+          "bytes": 144
+        }
+      ],
+      "reference_count": 41
+    },
+    {
+      "prompt_bytes": 94443,
+      "prompt_hash": "8479877fad727fc5975eb2e460690361fd071ad012dcb29b4b167bd57f3c5a2a",
+      "record_checkpoint": true,
+      "top_level_bytes": {
+        "baseline_recovery": 4,
+        "context_management": 7309,
+        "context_read_history": 2,
+        "context_reads": 10256,
+        "conversation": 3260,
+        "current_plan": 3553,
+        "evidence": 29528,
+        "execution_status": 12034,
+        "inputs": 2816,
+        "pending_plan": 4,
+        "plan_repair": 594,
+        "planning_state": 404,
+        "read_feedback": 4,
+        "request": 1220,
+        "rules": 12891,
+        "task_memory": 10304
+      },
+      "page_bytes": [
+        1726,
+        1210,
+        2424,
+        1714
+      ],
+      "foundation_entries": [
+        {
+          "path": ".github/pull_request_template.md",
+          "bytes": 245
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "bytes": 689
+        },
+        {
+          "path": ".vscode/settings.json",
+          "bytes": 44
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "bytes": 1584
+        },
+        {
+          "path": "app/package.json",
+          "bytes": 484
+        },
+        {
+          "path": "extension/.vscodeignore",
+          "bytes": 209
+        },
+        {
+          "path": "extension/package.json",
+          "bytes": 3281
+        },
+        {
+          "path": "extension/tsconfig.test.json",
+          "bytes": 181
+        },
+        {
+          "path": "package.json",
+          "bytes": 1018
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "bytes": 32
+        },
+        {
+          "path": "web/next.config.mjs",
+          "bytes": 131
+        },
+        {
+          "path": "web/package.json",
+          "bytes": 752
+        },
+        {
+          "path": "web/postcss.config.mjs",
+          "bytes": 144
+        }
+      ],
+      "reference_count": 41
+    }
+  ],
+  "engine_revision": "f4c0886eb4256ec1baefa9eecfde6875c735eac3",
+  "frozen_inputs_unchanged": [
+    "rules",
+    "request",
+    "current_plan"
+  ],
+  "current_plan_commands_unchanged": true,
+  "native_effectiveness": "not_run"
+}

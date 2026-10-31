@@ -1,0 +1,99 @@
+{
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "parent_plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "parent_plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "planning_profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+  "planning_profile_record_hash": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd",
+  "defaults_record_hash": "84b1e9ed7b8649f8b41fe14f0aeeedeb51cac04d22761e387851f0ff78ae9eec",
+  "task_profiles": {
+    "analysis": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "planning": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+    "implementation": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "review": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e"
+  },
+  "original_goal_hash": "4f2f7a97fad37067578006415e4797950698bcea4887f1241b75df099a44d653",
+  "per_call_output_limit": 16384,
+  "per_call_timeout_seconds": 300,
+  "version": "upeve-native-source-delivery-recovery-proposal-v1",
+  "recorded_at": "2026-10-31T16:31:58.015295+00:00",
+  "status": "awaiting_supplemental_native_recovery_control_confirmation",
+  "engine_revision": "f4c0886eb4256ec1baefa9eecfde6875c735eac3",
+  "tested_source_manifest_hash": "4e9c05d927a2fcddf016231b5f1dbac8ee74faac34026c87a4e0bb4ee54858b3",
+  "current_budget": {
+    "version": "planning-budget-v1",
+    "revision": "e86191223627e5b9b794f71d6ab5bbde0daf9e7c08848b146b1ab0bba3fb7e5b",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 51,
+      "input_tokens": 1214594,
+      "output_tokens": 110121
+    },
+    "remaining": {
+      "calls": 13,
+      "input_tokens": 1435406,
+      "output_tokens": 48919
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "max_additional_model_calls": 13,
+  "max_native_recovery_controls": 3,
+  "max_new_root_planning_requests": 0,
+  "failed_job_id": "475d4ded-1e95-42b6-9b4f-5701fe529d6b",
+  "failed_payload_hash": "f40e09e6c915975f379f2e3fa7f5ff4f8abbe8aba3058a8f280f69dd71cf7383",
+  "expected_recovered_payload_hash": "f40e09e6c915975f379f2e3fa7f5ff4f8abbe8aba3058a8f280f69dd71cf7383",
+  "expected_read_round": 1,
+  "expected_repair_round": 1,
+  "scope": "Resume the same frozen read-only child-planning request. Deliver its already-requested source pages and use existing read/repair counters; retain all four exact CI checks. No new root planning request or execution.",
+  "recovery_controls_condition": "Current source-delivery planning_context_limit, or a subsequent proven pre-model context-admission failure in this same lineage after a verified generic fix. Never retry an unknown model outcome through this grant.",
+  "stop_conditions": [
+    "saved_child_plan",
+    "material_structured_question",
+    "non_context_terminal_failure",
+    "source_plan_Profile_changed",
+    "any_existing_budget_limit",
+    "three_supplemental_native_recovery_controls_used"
+  ],
+  "call_or_input_or_output_caps_raised": false,
+  "old_use_and_unknown_holds_reset": false,
+  "Profile_changed": false,
+  "execution_approved": false,
+  "publication_approved": false,
+  "earlier_extension_approval_hash": "4a094390f8aaf70288fee7b1060b79351fbd2495ee5e6626587fa2912a03f172",
+  "earlier_native_recovery_controls_used": 1,
+  "earlier_native_recovery_control_maximum": 1,
+  "reason_for_supplemental_confirmation": "The exact earlier preview authorized only one native recovery control and that control has been used. Remaining model-call allowance alone does not authorize another control.",
+  "maintenance_check_evidence": "source-delivery-checks.json",
+  "maintenance_deployment_evidence": "source-delivery-deployment.json",
+  "controlled_replay_evidence": "source-delivery-context-replay.json",
+  "actual_failure_evidence": "deepseek-native-readonly-extension-64-audit.json",
+  "controlled_replay_is_native_success": false,
+  "native_recovery_dispatched": false,
+  "proposal_hash": "2f0d199d9a9d636e628a0fd6abe6c8674f75b5a49b60ee823bf3ecb4024f6786"
+}
