@@ -133,7 +133,7 @@ class VerificationEnvironmentContract(StrictModel):
             raise ValueError("expected_reproduction_requires_exact_target_and_control")
         if self.admission == "static_admitted":
             adapter = self.resolver_versions.get("adapter")
-            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1", "node-toolchain-v2"}:
+            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1", "node-toolchain-v2", "node-toolchain-v3"}:
                 raise ValueError("environment_adapter_version_unsupported")
             python = adapter in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4"}
             required = {"requirements", "constraints", "requirements_roots"} if python else {"independent_directories"}
@@ -145,7 +145,7 @@ class VerificationEnvironmentContract(StrictModel):
                     raise ValueError("environment_cache_policy_invalid")
             if set(self.preparation) != required:
                 raise ValueError("environment_recipe_schema_invalid")
-            if adapter == "node-toolchain-v2" and any(c.leaf_commands is None for c in self.commands):
+            if adapter in {"node-toolchain-v2", "node-toolchain-v3"} and any(c.leaf_commands is None for c in self.commands):
                 raise ValueError("environment_command_graph_incomplete")
             if python and (self.preparation["requirements"] != [d.requirement for d in self.declarations if not d.constraint]
                     or self.preparation["constraints"] != [d.requirement for d in self.declarations if d.constraint]):

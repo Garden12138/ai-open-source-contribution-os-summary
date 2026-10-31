@@ -7,7 +7,7 @@ import shlex
 from pathlib import PurePosixPath
 from app.environment_engine.source import FrozenSource, ResolutionError, relative_path
 
-VERSION = "node-script-chain-v2"
+VERSION = "node-script-chain-v3"
 MANAGERS = {"npm", "pnpm", "yarn", "bun"}
 
 
@@ -28,6 +28,50 @@ def script_directory(source: FrozenSource, current: str, destination: str) -> st
     if result != "." and not any(path.startswith(result + "/") for path in source.inventory):
         raise ResolutionError("node_script_cwd_missing", (result,))
     return result
+
+
+def filtered_directory(source: FrozenSource, current: str, selector: str) -> str:
+    """Resolve one exact pnpm workspace name, with no scope/glob fallback."""
+    if (len(selector) > 214 or ".." in selector
+            or not re.fullmatch(r"(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*", selector)):
+        raise ResolutionError("node_filter_unsupported")
+    roots = [PurePosixPath(current), *PurePosixPath(current).parents]
+    root = next((p for p in roots if str(p / "pnpm-workspace.yaml") in source.inventory), None)
+    if root is None:
+        raise ResolutionError("node_filter_workspace_missing")
+    workspace = str(root / "pnpm-workspace.yaml")
+    text = source.read(workspace, VERSION)
+    keys = re.findall(r"(?m)^packages\s*:.*$", text)
+    if (len(keys) != 1 or not re.fullmatch(r"packages:\s*(?:#.*)?", keys[0])
+            or re.search(r"(?m)^(?:['\"]packages['\"]|<<)\s*:", text)):
+        raise ResolutionError("node_workspace_declaration_invalid", (workspace,))
+    prefix = "" if str(root) == "." else str(root) + "/"
+    package = prefix + "package.json"
+    try:
+        metadata = json.loads(source.read(package, VERSION))
+        if not isinstance(metadata, dict):
+            raise ValueError
+        from app.node_environments import _workspace_packages
+        candidates = {p: None for p in source.inventory if p.startswith(prefix)
+            and PurePosixPath(p).name == "package.json"
+            and not {"node_modules", ".git"} & set(PurePosixPath(p).parts)}
+        members = _workspace_packages(candidates, metadata, prefix, source.entries, "pnpm")
+        matched = []
+        for path in members:
+            value = json.loads(source.read(path, VERSION))
+            if not isinstance(value, dict) or value.get("name") is not None and not isinstance(value["name"], str):
+                raise ValueError
+            if value.get("name") == selector:
+                matched.append(path)
+    except ResolutionError:
+        raise
+    except (ValueError, TypeError):
+        raise ResolutionError("node_workspace_declaration_invalid", (workspace,)) from None
+    if len(matched) != 1:
+        raise ResolutionError("node_filter_ambiguous" if matched else "node_filter_no_exact_match", (workspace,))
+    destination = str(PurePosixPath(matched[0]).parent)
+    relative = destination[len(prefix):] if prefix else destination
+    return script_directory(source, str(root), relative or ".")
 
 
 def script_graph(source: FrozenSource, argv: tuple[str, ...], cwd: str) -> dict:
@@ -51,6 +95,20 @@ def script_graph(source: FrozenSource, argv: tuple[str, ...], cwd: str) -> dict:
             if len(args) > 2 and args[pos] in flags:
                 directory = script_directory(source, directory, args[2])
                 pos += 2
+            if executable == "pnpm" and pos < len(args) and (
+                    args[pos] in {"--filter", "-F"} or args[pos].startswith("--filter=")):
+                if args[pos].startswith("--filter="):
+                    selector = args[pos].split("=", 1)[1]
+                    pos += 1
+                else:
+                    if len(args) <= pos + 1:
+                        raise ResolutionError("node_filter_unsupported")
+                    selector = args[pos + 1]
+                    pos += 2
+                if len(args) != pos + 2 or args[pos] != "run" or args[pos + 1].startswith("-"):
+                    raise ResolutionError("node_filter_command_unsupported")
+                directory = filtered_directory(source, directory, selector)
+                chain.append("pnpm#filter=" + selector + "@cwd=" + directory)
             if pos < len(args) and args[pos] == "exec" and executable == "pnpm" and len(args) > pos + 1:
                 units.add(directory)
                 walk(args[pos + 1:], directory, stack)

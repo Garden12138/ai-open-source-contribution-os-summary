@@ -61,7 +61,7 @@ class PythonResolver:
 
 
 class NodeResolver:
-    version = "node-toolchain-v2"
+    version = "node-toolchain-v3"
 
     def resolve(self, source: FrozenSource, selected: dict, commands: list[dict]) -> tuple[list, list[CommandNode], dict]:
         from app.environment_engine.node import script_graph
