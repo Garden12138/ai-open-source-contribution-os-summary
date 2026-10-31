@@ -5490,6 +5490,45 @@ not a fabricated exact-payload resume or natural-language routing pass. No
 budget change has been applied; exact confirmation is pending. No gate is
 promoted, and the current specialty task remains UPEVE-E04.
 
+Call-only extension consent (2026-10-31): the user's new “确认” approves exact
+proposal `f3a80871...25fce508`; approval `8c6ddfea...93900f9` binds the same
+task/source/Profile and changes only calls **38 to 50**. Input 4M/output 200K,
+38 known calls, all known usage and three unknown allowances stay unchanged at
+application. One native explicit “继续” uses the existing budget recovery and
+creates the documented new read-only planning request, without invoking the
+conversation classifier, replaying an old model POST, or authorizing execution.
+The prior failed round remains immutable. Request/result evidence is
+`deepseek-planning-call-extension.json`; maximum additional calls is 12. The
+first actual planning call terminates `deepseek_completion_truncated`; no Plan
+or native acceptance is claimed. Code is unchanged from the 1682-pass `72cf875`
+source snapshot.
+
+The real high-effort call returned upstream HTTP200 and then `finish_reason=length`
+(identified by the strict decoder), with known **49,660 input / 16,384 output**
+over 180.637 seconds. The raw response/private reasoning and exact reasoning /
+final-content split were not retained, so reasoning-only exhaustion is not
+proven. No truncated response is repaired into a Plan. Known usage is recorded,
+not replaced by an unknown reserve or a fabricated zero. Lifetime totals are
+**39 calls / 818,698 known input / 62,824 output**; the same three old unknown
+calls retain 1,350,000 input / 40,960 output. Remaining: **11 calls / 1,831,302
+input / 96,216 output**. The approved one-request window stops at its terminal
+failure without automatic replay. See `deepseek-high-truncation-observation.json`
+and `deepseek-call-extension-audit.json`. Five role children and four health
+endpoints remain live; historical files/events and prior failed Jobs are intact.
+
+A concrete unbound low-effort planning Profile is prepared through the native
+configuration API: `f3687acf-ef9a-4b59-9b7f-c17ad5132382`, hash
+`5538d8a2...536d9fd`. Same DeepSeek V4 Pro/connection, 16K cap and 300s timeout;
+only reasoning high to low (plus the descriptive Profile name) would change
+for this task's planning stage. Global defaults, other stage selections,
+credentials and all budgets remain unchanged. The exact trial proposal
+`deepseek-planning-low-proposal.json`, hash `59f6c37f...faee7f1d`, permits one
+new read-only request within the existing eleven-call remainder only after
+fresh profile-change consent. The Profile is saved but unbound; zero calls use
+it and its effectiveness is not_run. Lower effort is a test hypothesis, not a
+proven repair. Exact confirmation is pending; E3/Node, native E2E and Linux
+gates remain open, with no Plan/execution/final acceptance.
+
 
 ---
 
