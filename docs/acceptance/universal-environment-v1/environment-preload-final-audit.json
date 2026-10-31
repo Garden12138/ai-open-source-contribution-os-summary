@@ -1,0 +1,84 @@
+{
+  "version": "upeve-environment-preload-final-audit-v1",
+  "recorded_at": "2026-10-31T06:56:15.144779+00:00",
+  "engine_revision": "9aade9356a239fe5d00c0efee63c0dbb3cd91889",
+  "native_trial_status": "five_complete_calls_but_no_saved_plan",
+  "native_trial_result_sha256": "e4fff8dcbd3027341f9534bcad4275ea008889f22ea2d634ab9ca1c149580e90",
+  "pre_maintenance_model_failure_and_all_history_preserved": true,
+  "new_native_requests_after_maintenance": 0,
+  "new_model_calls_after_maintenance": 0,
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "0d25fcc63f3f87a2474341dc405ca7844a1cc3d3b2b36c125d25eb4652436694",
+    "record_hash": "e7556bfa348c7a495353949b616baf8567c4605c3b05e79d8fd1bbc92432fe3a",
+    "limits": {
+      "calls": 50,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 44,
+      "input_tokens": 982107,
+      "output_tokens": 83716
+    },
+    "remaining": {
+      "calls": 6,
+      "input_tokens": 1667893,
+      "output_tokens": 75324
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "profile_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "other_stages_and_global_defaults_unchanged": true,
+  "tested_source_files": 234,
+  "tested_source_manifest_hash": "e4e98f2413170e12c9a54e964702c17eaa24decf0cc2448a476f5b330206e8cd",
+  "default_regression": {
+    "tests": 1753,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1691
+  },
+  "focused_passed": 27,
+  "deployment_evidence": "environment-preload-deployment.json",
+  "real_OCI_component": "environment-preload-oci.json",
+  "historical_files_preserved": 74,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "json_files_before_audit": 434,
+    "findings": [],
+    "raw_vault_inspected": false
+  },
+  "old_low_trial_final_job_state": "succeeded_with_deferred_draft_not_native_planning_success",
+  "native_effectiveness_after_fix": "not_run",
+  "native_baseline_coding_verify_review": "not_run",
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "new_execution_approvals": 0,
+  "third_party_writes": 0,
+  "formal_data_modified": false,
+  "pending_retry_proposal_hash": "43190800f13da4b08ed9202f65f288bddab3d690ae2cd7166a1927d8b2008dab",
+  "current_task": "UPEVE-E04"
+}

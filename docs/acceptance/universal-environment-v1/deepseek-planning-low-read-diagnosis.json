@@ -1,0 +1,35 @@
+{
+  "version": "upeve-deepseek-low-read-diagnosis-v1",
+  "recorded_at": "2026-10-31T06:47:14.890183+00:00",
+  "result_file_sha256": "e4fff8dcbd3027341f9534bcad4275ea008889f22ea2d634ab9ca1c149580e90",
+  "final_job_id": "f7f161a4-ead7-4d9e-b2b1-38119206d347",
+  "context_checkpoint_hash": "8a10c883db498bcb45dcb01e93e0068d2ce1ecadec4f280b79c1010e9575a7b5",
+  "context_event_hash": "1c7d79c640a209ecf75747688c28d2bf4267acb278917c23a07af7ca679f10bc",
+  "model_read_round": 4,
+  "maximum_read_rounds": 4,
+  "repair_round": 0,
+  "maximum_repairs": 2,
+  "missing_plan_capture_paths": [],
+  "environment_required_paths": [
+    "pnpm-lock.yaml"
+  ],
+  "environment_status": "pending_read",
+  "environment_reason_code": "environment_evidence_missing",
+  "captured_source_count": 48,
+  "prompt_remaining_read_rounds": 0,
+  "actual_final_read_feedback": {
+    "reason_code": "planning_read_limit",
+    "fields": [
+      "read_paths"
+    ],
+    "constraint": "read_round_limit"
+  },
+  "draft_saved": false,
+  "raw_final_response_retained": false,
+  "exact_original_model_read_intent_known": false,
+  "conclusion": "Automatic environment closure alone requires the absent pnpm lock at an exhausted read round. This proves an environment prerequisite scheduling gap, not a model-only schema violation. The repair-limit message is inaccurate because repair_round is zero.",
+  "all_five_calls_completed_without_truncation": true,
+  "native_planning_passed": false,
+  "new_model_requests": 0,
+  "source_before_fix_sha256": "ee70ddc6db9f7fba6555e6a2994c740123ab905a8fc3656ac1b03dd54af71d85"
+}

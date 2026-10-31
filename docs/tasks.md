@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | The user selected domestic DeepSeek V4 Pro for the four global stages; a real authenticated structured connection test passes after restoring a stopped Provider Worker. Existing task bindings/budgets remain intact. Native delivery and Linux platform gates remain open. |
+| Feature note | DeepSeek low-effort planning returns five complete responses but no saved Plan: the environment lock was requested after the read cap. Generic declaration preloading is fixed, tested (1691 pass) and isolated-deployed; a six-call native repeat awaits confirmation. Node, native delivery and Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5528,6 +5528,54 @@ fresh profile-change consent. The Profile is saved but unbound; zero calls use
 it and its effectiveness is not_run. Lower effort is a test hypothesis, not a
 proven repair. Exact confirmation is pending; E3/Node, native E2E and Linux
 gates remain open, with no Plan/execution/final acceptance.
+
+
+Approved planning-only low-effort trial (2026-10-31 local): user “允许” binds
+proposal `59f6c37f...ee7f1d`; [approval](acceptance/universal-environment-v1/deepseek-planning-low-approval.json)
+changes only this task’s planning Profile, preserving high defaults/other stages
+and 16K/300s plus lifetime50/4M/200K limits. Five actual calls return complete
+outputs without truncation, known +163,409 input/+20,892 output. The draft is
+deferred, no Plan saved. [Diagnosis](acceptance/universal-environment-v1/deepseek-planning-low-read-diagnosis.json)
+proves automatic environment closure requires absent `pnpm-lock.yaml` after
+read round4/4; repair_round0 also disproves the displayed “repair limit” cause.
+Exact original model read intent is unknown because raw output was not retained.
+Job success is not planning success; the original rejection stays immutable.
+
+[Final audit](acceptance/universal-environment-v1/deepseek-planning-low-audit.json)
+retains lifetime44/982,107 known input/83,716 output, the three unknown-call
+reserves1,350,000/40,960, and remaining six calls/1,667,893 input/75,324 output.
+Generic maintenance preloads statically selected declarations before model
+planning, protects them from context eviction, and names missing paths/read
+limits without claiming repairs exhausted. Existing model/read/repair caps and
+legacy routing stay intact. A separate [real OCI component](acceptance/universal-environment-v1/environment-preload-oci.json)
+reads/hash-verifies the missing67,635-byte lock under unchanged network-free
+non-root/read-only policy; this draft graph closes in memory only. Native task
+context/Plan is untouched, no further model request occurs. Full native
+preparation/Baseline/Coding/Verify/Review remain not_run. Native first outcomes
+0/4, environment baselines0/15, Node failure and Linux blocker remain unchanged.
+Current specialty task is still UPEVE-E04; no phase gate is checked.
+
+
+Maintenance source `9aade9356a239fe5d00c0efee63c0dbb3cd91889` now passes
+**1691 default /62 skipped /0 failed**, plus **27 focused contracts**, compileall,
+runtime integrity and diff checks. Four pre-fix failing contracts are retained;
+nine new cases verify generic declaration capture, limits/eviction and diagnostics.
+[Checks](acceptance/universal-environment-v1/environment-preload-checks.json),
+[isolated redeployment](acceptance/universal-environment-v1/environment-preload-deployment.json)
+and [final audit](acceptance/universal-environment-v1/environment-preload-final-audit.json)
+verify five role children/four health endpoints, all234 source hashes,74 historical
+files, native event/Job preservation, SQLite integrity/FKs and sanitized records.
+Only the isolated host roles restart; Publisher/formal services stay unchanged.
+Zero native requests/calls follow maintenance; real post-fix native effectiveness
+is **not_run**, and no existing gate is promoted.
+
+A [concrete one-request repeat preview](acceptance/universal-environment-v1/deepseek-environment-preload-retest-proposal.json)
+`43190800...008dab` uses the same low Profile and at most six remaining calls
+within unchanged50/4M/200K and16K/300s limits, retaining usage/reserves. It stops
+at Plan/material clarification/stale input/terminal failure/cap; execution still
+requires an exact saved Plan approval. Confirmation is pending because the last
+exact grant covered one request, which has ended. No repeated model request is
+inferred from unused allowance. Current specialty task remains UPEVE-E04.
 
 
 ---

@@ -1,0 +1,167 @@
+{
+  "version": "upeve-deepseek-planning-low-audit-v1",
+  "recorded_at": "2026-10-31T06:44:19.434105+00:00",
+  "engine_revision": "1fe473ba41e0d7b8c8843a25334bc1a6ea990cdd",
+  "status": "request_ended_without_plan",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "proposal_hash": "59f6c37f175bfcbd817cb96d4b0c3e3802eb525e023625a638fb9064faee7f1d",
+  "approval_hash": "d802b11d7aa0fa1c3294e892cea777b5412b8f3fa1e12e7d714495c9bf089d7d",
+  "result_file_sha256": "e4fff8dcbd3027341f9534bcad4275ea008889f22ea2d634ab9ca1c149580e90",
+  "actual_model_calls": 5,
+  "known_input_delta": 163409,
+  "known_output_delta": 20892,
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "0d25fcc63f3f87a2474341dc405ca7844a1cc3d3b2b36c125d25eb4652436694",
+    "record_hash": "e7556bfa348c7a495353949b616baf8567c4605c3b05e79d8fd1bbc92432fe3a",
+    "limits": {
+      "calls": 50,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 44,
+      "input_tokens": 982107,
+      "output_tokens": 83716
+    },
+    "remaining": {
+      "calls": 6,
+      "input_tokens": 1667893,
+      "output_tokens": 75324
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "old_use_and_unknown_reserves_retained": true,
+  "only_task_planning_profile_changed": true,
+  "global_defaults_changed": false,
+  "per_call_output_limit": 16384,
+  "per_call_timeout_seconds": 300,
+  "profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+  "profile_record_hash": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "model_usage_receipts": [
+    {
+      "input_tokens": 28489,
+      "output_tokens": 1870,
+      "duration_ms": 16882,
+      "provider": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+      }
+    },
+    {
+      "input_tokens": 33057,
+      "output_tokens": 1713,
+      "duration_ms": 17016,
+      "provider": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+      }
+    },
+    {
+      "input_tokens": 32820,
+      "output_tokens": 5018,
+      "duration_ms": 46019,
+      "provider": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+      }
+    },
+    {
+      "input_tokens": 34206,
+      "output_tokens": 2569,
+      "duration_ms": 25080,
+      "provider": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+      }
+    },
+    {
+      "input_tokens": 34837,
+      "output_tokens": 9722,
+      "duration_ms": 89120,
+      "provider": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+      }
+    }
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "owned_role_children_live": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "pre_request_events_preserved": 241,
+  "native_journal_events_preserved": 27,
+  "historical_high_failure_preserved": true,
+  "historical_files_preserved": 74,
+  "tested_source_files_unchanged": 234,
+  "full_default_regression_not_rerun": true,
+  "prior_default_passed": 1682,
+  "prior_default_skipped": 62,
+  "active_jobs": 0,
+  "plan_count": 0,
+  "new_execution_approvals": 0,
+  "raw_credentials_read": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "json_files_before_audit": 428,
+    "findings": []
+  },
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_baseline_coding_verify_review": "not_run",
+  "current_task": "UPEVE-E04"
+}
