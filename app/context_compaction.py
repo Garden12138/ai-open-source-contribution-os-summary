@@ -228,12 +228,28 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
         else:
             raw_evidence['inventory'] = paths
 
+    project_status_graphs = page_source_files and _bytes(body) > target_bytes
+
     def project(value: Any, path: tuple[str, ...]) -> Any:
         # Frozen requirements, exact commands/current plan, the newest request
         # and explicitly returned tool reads must remain complete.
         if path and path[0] in {"rules", "request", "message", "current_plan", "approved_plan",
                                "context_reads", "context_read_history", "tool_results", "plan_repair", "read_feedback"}:
             return value
+        if (project_status_graphs and path and path[0] == "execution_status"
+                and isinstance(value, dict) and value.get("version") == "verification-environment-contract-v1"
+                and _bytes(value) > 2048):
+            return {"version": value["version"], "contract_hash": content_hash(value),
+                "admission": value.get("admission"), "resolver_versions": value.get("resolver_versions"),
+                "command_count": len(value.get("commands", [])), "unresolved": value.get("unresolved", []),
+                "reference_id": reference(value, "execution verification contract"), "partial": True,
+                "read_hint": "Read this reference for the exact contract and provenance. Static admission is not preparation or verification."}
+        if (project_status_graphs and path == ("execution_status", "environment_engine", "commands")
+                and isinstance(value, list) and all(isinstance(node, dict) for node in value)
+                and _bytes(value) > 2048):
+            ref = reference(value, "execution verification command graph")
+            return [{**{key: node[key] for key in ("command_id", "argv", "working_directory", "resolution") if key in node},
+                "reference_id": ref, "command_index": index, "partial": True} for index, node in enumerate(value)]
         if isinstance(value, dict):
             if "path" in value and "content" in value and "prior_hash" in value:
                 text = value.get("content")
