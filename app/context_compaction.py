@@ -29,6 +29,7 @@ PLANNING_TRIGGER_BYTES = 220_000
 # 48 KB soft target. Leave 16 KB below v2's unchanged 96 KB admission ceiling.
 PAGED_HISTORY_TARGET_BYTES = 80_000
 PAGED_FOUNDATION_BYTES = 12_000
+PAGED_DISCUSSION_GROUP_SIZE = 16
 MAX_REFERENCES = 512
 
 
@@ -179,10 +180,25 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
     # Preserve recent dialogue exactly when small; older discussion is indexed
     # instead of silently disappearing behind the previous last-12-turn window.
     older_assistant = [e for e in history if e.kind == "assistant_message"][:-6]
-    memory["older_discussion"] = [{"source_hash": e.record_hash,
-        "reference_id": reference({k: e.payload[k] for k in ("reply", "questions", "plan_error", "plan_id")
-                                   if k in e.payload}, "historical assistant proposal", e.record_hash)}
-        for e in older_assistant]
+    if page_source_files and len(older_assistant) > PAGED_DISCUSSION_GROUP_SIZE:
+        # Long-running tasks otherwise repeat every historical reference in
+        # both memory and its manifest, leaving no room for new source pages.
+        # Group original proposals, never model-generated history summaries.
+        memory["older_discussion"] = []
+        for start in range(0, len(older_assistant), PAGED_DISCUSSION_GROUP_SIZE):
+            group = older_assistant[start:start + PAGED_DISCUSSION_GROUP_SIZE]
+            originals = [{"event_id": e.id, "sequence": e.sequence, "source_hash": e.record_hash,
+                "proposal": {k: e.payload[k] for k in ("reply", "questions", "plan_error", "plan_id")
+                             if k in e.payload}} for e in group]
+            memory["older_discussion"].append({
+                "reference_id": reference(originals, "historical assistant discussion"),
+                "message_count": len(group), "from_sequence": group[0].sequence,
+                "through_sequence": group[-1].sequence, "partial": True})
+    else:
+        memory["older_discussion"] = [{"source_hash": e.record_hash,
+            "reference_id": reference({k: e.payload[k] for k in ("reply", "questions", "plan_error", "plan_id")
+                                       if k in e.payload}, "historical assistant proposal", e.record_hash)}
+            for e in older_assistant]
     body = deepcopy(payload)
     original_bytes = _bytes(body)
     large = original_bytes > trigger_bytes
