@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | DeepSeek low-effort planning returns five complete responses but no saved Plan: the environment lock was requested after the read cap. Generic declaration preloading is fixed, tested (1691 pass) and isolated-deployed; a six-call native repeat awaits confirmation. Node, native delivery and Linux gates remain open. |
+| Feature note | Native preload retest saves its first Plan with four CI checks. Generic pnpm exact-filter adapter v3 passes 1725 regressions and real OCI checks, then isolated-deploys. Source review requires a native child Plan for missing upstream ID propagation; one planning call remains. Native delivery, historical Node and Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5576,6 +5576,55 @@ at Plan/material clarification/stale input/terminal failure/cap; execution still
 requires an exact saved Plan approval. Confirmation is pending because the last
 exact grant covered one request, which has ended. No repeated model request is
 inferred from unused allowance. Current specialty task remains UPEVE-E04.
+
+
+Approved post-preload native retest (2026-10-31 local): user “允许” authorizes
+proposal43190800...008dab, recorded by [exact approval](acceptance/universal-environment-v1/deepseek-environment-preload-retest-approval.json).
+[Actual journal](acceptance/universal-environment-v1/deepseek-environment-preload-native-retest.json)
+captures the lock before any model call (seq273<276), then five complete calls
+save actual PlanVersion `cb2aa72a-58a6-45e2-a26f-0daf9c3ba354`, hash
+`bc9791d8...ccf50d9`, retaining four exact CI commands. Native preload effectiveness
+and Plan persistence pass; native delivery does not. The initial preflight is
+blocked by one exact pnpm filter command; the collector's Plan-ready label means
+Plan existence only. Its original blocked receipt remains immutable.
+
+Generic Node adapter v3 resolves one exact unique declared workspace name and
+explicit run script with complete source/cwd provenance, rejecting uncertain
+selectors, ambiguous/invalid source, widened flags, dropped args, installers and
+cycles. [Checks](acceptance/universal-environment-v1/pnpm-filter-checks.json) at
+source `61cbbc0d68e212fce91d453ac260c9e287d46b0b` pass **1725 default /62 skipped
+/0 failed**, **105 focused**, compileall/runtime integrity/diff checks.34 new
+cases and the earlier23-failure/5-pass run are preserved. A [real pnpm10.11.0 OCI
+component](acceptance/universal-environment-v1/pnpm-filter-oci.json) prepares through
+the restricted proxy and executes two intended-package-only checks after proxy
+shutdown, with non-root/read-only/network-none policy and source hashes intact.
+An initial observer-hook receipt failure is retained separately. No fixture or
+static graph is counted as native delivery. Exact v2 wire/hash roundtrip passes,
+and v3 closes the same four commands without rewriting the Plan or old preflight.
+
+[Operator source review](acceptance/universal-environment-v1/deepseek-native-plan-source-review.json)
+finds the saved web-only Plan incomplete: frozen transcript/hook emitters omit
+stable call IDs, so start-side generated IDs cannot identify out-of-order ends.
+The native planner must produce a child Plan establishing the upstream/consumer
+contract and required test scope. This is not independent ReviewRun success;
+Codex supplies no external business patch and does not insert/rewrite a Plan.
+Current v3 API readiness is static admission only; execution approval is withheld.
+
+[Deployment](acceptance/universal-environment-v1/pnpm-filter-deployment.json) and
+[final audit](acceptance/universal-environment-v1/pnpm-filter-final-audit.json)
+verify five owned role children/four healthy endpoints, all234 source hashes,
+74 historical files, Plan/events/Jobs, SQLite integrity/FKs and sanitized data.
+Only isolated host roles restart; formal services/Publisher remain unchanged.
+Lifetime49 calls/1,147,323 input/107,360 output; the three old unknown-call
+reserves1,350,000/40,960 remain. Remaining one call/1,502,677 input/51,680 output.
+No native request/model call follows Plan; no execution/publication approval.
+A [concrete one-call native child-plan preview](acceptance/universal-environment-v1/deepseek-native-plan-revision-proposal.json)
+`c7904ce6...d3e385` awaits confirmation against the exact parent/source/Profile;
+it retains all four commands and existing caps and must stop if another call
+is needed. This is a new read-only request, not execution consent.
+Native Baseline/Coding/Verify/independent Review remain not_run;0/4 native first
+outcomes,0/15 environment baselines, historical Node failure and Linux amd64
+blocker stay unchanged. No stage gate is promoted; current task is UPEVE-E04.
 
 
 ---

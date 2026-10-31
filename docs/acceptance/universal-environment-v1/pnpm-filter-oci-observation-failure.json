@@ -1,0 +1,10 @@
+{
+  "version": "upeve-pnpm-filter-oci-observation-failure-v1",
+  "recorded_at": "2026-10-31T08:01:40.636251+00:00",
+  "status": "receipt_failed_after_command_assertions",
+  "reason_code": "test_observer_overrode_unused_method",
+  "detail": "The evidence collector subclass overrode _run, while DockerVerifyRuntime calls _run_container. No valid final OCI receipt was written. The temporary workspace and dependency/proxy resources were cleaned in finally. Correct the observer and repeat the component run.",
+  "native_success": false,
+  "native_task_modified": false,
+  "model_calls": 0
+}

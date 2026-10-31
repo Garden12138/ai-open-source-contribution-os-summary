@@ -1,0 +1,125 @@
+{
+  "version": "upeve-pnpm-filter-final-audit-v1",
+  "recorded_at": "2026-10-31T08:11:18.568931+00:00",
+  "engine_revision": "61cbbc0d68e212fce91d453ac260c9e287d46b0b",
+  "tested_source_manifest_hash": "0d19e2ac312cdd5dd10ff3ca1dabed81f806fd5bfff5c684192dd25842cc2624",
+  "tested_production_files": 234,
+  "native_trial_evidence": "deepseek-environment-preload-native-retest.json",
+  "native_trial_result_sha256": "0ce6a10c03ec079a51f10f2cd717bf307488fa92a300cbe6c83920cddf10281f",
+  "approved_native_trial_model_calls": 5,
+  "native_prerequisite_capture_before_model": "passed",
+  "native_plan_save": "passed_actual_model_generated_Plan",
+  "plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "plan_content_hash": "6df6cb25cb7a5ac68590e5964b6f3b310528273723a0057cd77cd5d1f641c848",
+  "plan_quality": "needs_native_child_revision",
+  "source_review_evidence": "deepseek-native-plan-source-review.json",
+  "source_review_is_independent_ReviewRun": false,
+  "original_preflight_status": "blocked",
+  "original_preflight_report_hash": "f08109f71be27bd5b861d762d0cadacd486d0cbd50453f9c33b91b67ae3dfa38",
+  "original_v2_contract_hash": "9f423678f537349a41eb312da7a9fd7580ebef60390c0439c2e9229e9a4bec00",
+  "original_v2_wire_and_hash_preserved": true,
+  "current_preflight_status": "ready_static_only",
+  "current_preflight_report_hash": "6cd8f6e56c9db3da1943dbd3a83273d6d929fedba4380656567feeea4bfd49ca",
+  "current_static_contract_hash": "5af5363a582d6dbde92b464fb0568e9699f7ec499fcf70d5b589853c3280152e",
+  "current_adapter": "node-toolchain-v3",
+  "static_readiness_does_not_prove_source_plan_quality_or_baseline": true,
+  "all_four_original_CI_commands_retained": true,
+  "native_plan_or_business_patch_modified_by_operator": false,
+  "new_native_requests_after_plan": 0,
+  "new_model_calls_after_plan": 0,
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "338401fab7991ce505b6e6e9835255a9e1aba9d80dfc695da38b9c815ee90183",
+    "record_hash": "e7556bfa348c7a495353949b616baf8567c4605c3b05e79d8fd1bbc92432fe3a",
+    "limits": {
+      "calls": 50,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 49,
+      "input_tokens": 1147323,
+      "output_tokens": 107360
+    },
+    "remaining": {
+      "calls": 1,
+      "input_tokens": 1502677,
+      "output_tokens": 51680
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "old_use_and_unknown_reserves_retained": true,
+  "default_regression": {
+    "tests": 1787,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1725
+  },
+  "focused_passed": 105,
+  "real_OCI_component_passed_commands": 2,
+  "OCI_observer_first_receipt_failure_preserved": true,
+  "deployment_evidence": "pnpm-filter-deployment.json",
+  "owned_roles_live": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "historical_files_preserved": 74,
+  "native_prior_events_and_terminal_jobs_preserved": true,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "json_files_before_audit": 446,
+    "findings": [],
+    "raw_vault_inspected": false
+  },
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_baseline_coding_verify_review": "not_run",
+  "new_execution_approvals": 0,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "pending_native_revision_proposal_hash": "c7904ce66988f0c0fd7ffe93f4ab9dbc972b9d798f0f21ce424c745380d3e385",
+  "current_task": "UPEVE-E04"
+}

@@ -1,0 +1,134 @@
+{
+  "version": "upeve-native-plan-operator-source-review-v1",
+  "recorded_at": "2026-10-31T08:04:38.095690+00:00",
+  "classification": "operator_readonly_source_review_not_independent_ReviewRun",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "native_result_sha256": "0ce6a10c03ec079a51f10f2cd717bf307488fa92a300cbe6c83920cddf10281f",
+  "status": "native_child_plan_required_before_execution_approval",
+  "findings": [
+    {
+      "code": "stable_call_id_not_propagated_by_event_producers",
+      "severity": "blocking",
+      "facts": "ToolResultBlock.tool_use_id is a transcript field, not proof of a web event payload field. Frozen TranscriptParser start/end and HookServer start/end/failure emit payloads omit the stable call identifier. The Plan limits writes to four web files and explicitly defers checking upstream propagation.",
+      "impact": "Generating a new local ID at start cannot reliably match a later out-of-order completion when neither event carries their shared call ID. The saved web-only plan does not establish the claimed end-to-end identity contract.",
+      "remediation": "Have the native planner inspect event producers and prepare a child Plan with all necessary producer/consumer paths and regressions. Preserve the four CI commands and require fresh exact execution approval."
+    }
+  ],
+  "source_evidence": [
+    {
+      "path": "extension/src/protocol.ts",
+      "sha256": "3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5",
+      "line_spans": [
+        {
+          "first": 84,
+          "last": 91,
+          "selected_text_sha256": "ce34fea8f054cb83e57da0210717b1134e142997c25ae98ee1470c997da0416d"
+        }
+      ]
+    },
+    {
+      "path": "extension/src/transcript-parser.ts",
+      "sha256": "1124a36d2667624dfcb44a1ed988c7ed63930e6233cebe7872105099343181d9",
+      "line_spans": [
+        {
+          "first": 364,
+          "last": 374,
+          "selected_text_sha256": "999f7cd7a66875deffe0bddad0ea05a7485927e29ee2e5695ae74bb46d298f5b"
+        },
+        {
+          "first": 435,
+          "last": 446,
+          "selected_text_sha256": "d68a67a476cc107d965cb47970e475a6fc3021bc27bb3282056a4bfa306f74fa"
+        }
+      ]
+    },
+    {
+      "path": "extension/src/hook-server.ts",
+      "sha256": "b77b14ed4a731f7d21192759774568d93385fcb1c0b25c538f6601d6069ed3a9",
+      "line_spans": [
+        {
+          "first": 32,
+          "last": 37,
+          "selected_text_sha256": "3f26dd38bd3c0a76c5b59996ea962f9272a522690b2ad206d14636864f25b79a"
+        },
+        {
+          "first": 214,
+          "last": 223,
+          "selected_text_sha256": "6a188042bd8e969530965b50850603dc55aa7dc3ea0e2c10fd798840e993dc3a"
+        },
+        {
+          "first": 235,
+          "last": 245,
+          "selected_text_sha256": "ed41b4d937e6a0a64eb450ae91f056b403a27d4b903144b79ead939045f1a7a0"
+        },
+        {
+          "first": 252,
+          "last": 261,
+          "selected_text_sha256": "3610c6b982c9f33b3af68fbde853b036eb134a4597fbfff7b370ecfcc7076bff"
+        }
+      ]
+    }
+  ],
+  "four_CI_commands_retained": [
+    {
+      "command_id": "root_tests",
+      "purpose": "运行根目录测试套件（scripts、app、web hooks/lib），覆盖新增回归测试所在目录",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "purpose": "运行 extension 测试套件",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "purpose": "extension 类型检查",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "purpose": "web 类型检查",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "original_preflight_status": "blocked",
+  "original_preflight_report_hash": "f08109f71be27bd5b861d762d0cadacd486d0cbd50453f9c33b91b67ae3dfa38",
+  "new_filter_static_component": "pnpm-filter-current-plan-static.json",
+  "collector_plan_ready_label_means_only_plan_exists": true,
+  "business_patch_written_by_operator": false,
+  "plan_inserted_or_rewritten_by_operator": false,
+  "independent_ReviewRun_passed": false,
+  "new_model_requests": 0,
+  "new_execution_approvals": 0,
+  "native_delivery": false,
+  "remaining_planning_calls": 1
+}
