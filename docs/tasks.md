@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Native preload retest saves its first Plan with four CI checks. Generic pnpm exact-filter adapter v3 passes 1725 regressions and real OCI checks, then isolated-deploys. Source review requires a native child Plan for missing upstream ID propagation; one planning call remains. Native delivery, historical Node and Linux gates remain open. |
+| Feature note | Native child planning resumes after a context projection fix, but rejects max_lines beyond160 and reaches local call cap50. Generic bounded correction/recovery passes1743 regressions and isolated-deploys; call-only50→64 consent is pending. No child Plan or execution; native, historical Node and Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5625,6 +5625,53 @@ is needed. This is a new read-only request, not execution consent.
 Native Baseline/Coding/Verify/independent Review remain not_run;0/4 native first
 outcomes,0/15 environment baselines, historical Node failure and Linux amd64
 blocker stay unchanged. No stage gate is promoted; current task is UPEVE-E04.
+
+
+Approved one-call native child revision (2026-10-31 local): user “允许” binds
+[c7904ce6...d3e385](acceptance/universal-environment-v1/deepseek-native-plan-revision-proposal.json),
+recorded in [approval](acceptance/universal-environment-v1/deepseek-native-plan-revision-approval.json).
+The first Job fails planning_context_limit before any model call. A controlled
+consistent-copy replay reproduces111,740 bytes; generic v2 graph indexing reduces
+the same request to93,821 bytes, preserving current Plan/request/rules and
+retrievable exact graphs. The96KB guard, API facts, approved commands and all
+budgets remain. Sourcef156147 passes1729 default/62 skipped/0 failed and43 focused,
+with isolated redeployment. This controlled replay is not native success.
+
+[Existing native recovery](acceptance/universal-environment-v1/deepseek-native-plan-revision-resume.json)
+continues the exact same frozen Job payload (hash9c830b5f...bda0a9a), without a
+fresh planning request or rewriting the failed Job; user also steers “继续”.
+One real93,414-byte prompt reaches DeepSeek HTTP200, known33,563 input/1,453
+output/15,214ms. The response fails read_context.max_lines<=160; exact value/raw
+output were not retained, no invalid read executes and no child Plan is saved.
+The schema rejection is the actual failure; the local50-call cap also becomes
+exhausted. This is not evidence of provider credit balance. The context fix
+passes in the real path; full native planning still fails.
+
+Generic bounded read-parameter correction/recovery is now implemented without
+clamping, widening bounds, resetting read rounds or adding repair slots. It
+requires the exact trusted rejection/failed Job and unchanged source/model/parent;
+exhausted budgets and stale/pause state still stop it. [Checks](acceptance/universal-environment-v1/read-bounds-checks.json)
+at sourcef6aaa40 pass **1743 default/62 skipped/0 failed**, **76 focused**,
+compileall/runtime integrity/diff;14 new cases retain pre-fix8 failures/5 passes.
+A [copy-only recovery preflight](acceptance/universal-environment-v1/read-bounds-controlled-replay.json)
+proves cap50 denial and a simulated64-call correction fits94,393 bytes; this
+is not actual budget consent or native recovery. [Isolated deployment](acceptance/universal-environment-v1/read-bounds-deployment.json)
+verifies five role children/four healthy endpoints, unchanged original receipts,
+Plan, usage and Publisher/formal services. Zero real calls follow maintenance.
+
+[Final audit](acceptance/universal-environment-v1/native-plan-revision-final-audit.json)
+retains234 production hashes,74 historical files, Plan/events/Jobs, defaults,
+SQLite integrity/FKs and sanitized records. Lifetime50/1,180,886 known input/108,813
+output; three unknown-call holds1,350,000/40,960 retained. Remaining0 calls/
+1,469,114 input/50,227 output. A [call-only50→64 exact preview](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64-proposal.json)
+`3a3d1b86...98cee8` proposes at most14 more calls under unchanged4M/200K and
+16K/300s limits, continuing only the existing frozen read-only request with all
+four CI checks and original read/repair counters. Confirmation is pending;
+actual budget remains50, no new root planning request or execution is authorized.
+Native bounds-repair effectiveness and Baseline/Coding/Verify/independent Review
+remain not_run; parent Plan still needs upstream identity scope revision.0/4
+native first outcomes,0/15 environment baselines, historical Node failure and
+Linux amd64 blocker remain unchanged. No gate is checked; task stays UPEVE-E04.
 
 
 ---

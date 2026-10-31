@@ -1,0 +1,33 @@
+{
+  "version": "upeve-native-plan-revision-approval-v1",
+  "recorded_at": "2026-10-31T08:21:15.857602+00:00",
+  "actor": "local-user",
+  "user_response": "允许",
+  "decision": "approved",
+  "approved_proposal_hash": "c7904ce66988f0c0fd7ffe93f4ab9dbc972b9d798f0f21ce424c745380d3e385",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "parent_plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "parent_plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "planning_profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+  "planning_profile_record_hash": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd",
+  "engine_revision": "61cbbc0d68e212fce91d453ac260c9e287d46b0b",
+  "tested_source_manifest_hash": "0d19e2ac312cdd5dd10ff3ca1dabed81f806fd5bfff5c684192dd25842cc2624",
+  "approved_task_lifetime_limits": {
+    "calls": 50,
+    "input_tokens": 4000000,
+    "output_tokens": 200000
+  },
+  "max_additional_model_calls": 1,
+  "max_new_readonly_planning_requests": 1,
+  "request_body_hash": "c1952dd160814412cd5dbeaba959ecbfcae803dbc76cec71177204a95a97d486",
+  "per_call_output_limit": 16384,
+  "per_call_timeout_seconds": 300,
+  "old_use_and_unknown_reserves_retained": true,
+  "budget_or_output_caps_raised": false,
+  "execution_approved": false,
+  "publication_approved": false,
+  "approval_hash": "f1dc4c408f8af61bde27c20a958aa7113d310aa9ff2a4e6ce8877a3e8cd1bbc3"
+}

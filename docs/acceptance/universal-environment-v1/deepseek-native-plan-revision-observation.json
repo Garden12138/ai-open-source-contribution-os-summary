@@ -1,0 +1,87 @@
+{
+  "version": "upeve-native-plan-revision-result-observation-v1",
+  "recorded_at": "2026-10-31T08:55:59.653671+00:00",
+  "native_result_sha256": "34244e366aedde865e5cb3a78427a67781781a45deccc309f0aa15fad1747663",
+  "original_zero_call_failure_sha256": "d76aeb624caf24a1cb803e556daa53cb3d4595d39262daf50363b00040a7e497",
+  "parent_plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "parent_plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "original_failed_job_id": "98f25c5e-72e5-4f09-9e48-6065ccdb7093",
+  "recovered_job_id": "aa4e1b94-356e-44c0-982d-9ba008525632",
+  "request_payload_hash": "9c830b5ffa12432ed0f6405498e1c9d214eb9c6205b9bc59e72bd88b67da0a9a",
+  "same_frozen_payload": true,
+  "new_planning_requests": 0,
+  "retry_control_messages": 1,
+  "actual_model_calls": 1,
+  "actual_prompt_bytes": 93414,
+  "hard_prompt_bytes_unchanged": 96000,
+  "native_context_projection_effectiveness": "passed_admitted_before_actual_model_call",
+  "native_planning_result": "failed_schema_bounds_no_child_plan",
+  "error_code": "planning_output_invalid",
+  "field": "read_context.max_lines",
+  "constraint": "less_than_equal160",
+  "exact_original_requested_value_retained": false,
+  "invalid_read_intents_executed": 0,
+  "native_child_plan_count": 0,
+  "usage": {
+    "input_tokens": 33563,
+    "output_tokens": 1453,
+    "duration_ms": 15214,
+    "provider": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+    }
+  },
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "d61c18a4dce07aef47ad968369284d1596f4ff8bb870df7a706cfc3c8f434eca",
+    "record_hash": "e7556bfa348c7a495353949b616baf8567c4605c3b05e79d8fd1bbc92432fe3a",
+    "limits": {
+      "calls": 50,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 50,
+      "input_tokens": 1180886,
+      "output_tokens": 108813
+    },
+    "remaining": {
+      "calls": 0,
+      "input_tokens": 1469114,
+      "output_tokens": 50227
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "local_call_cap_also_exhausted": true,
+  "provider_account_balance_inferred": false,
+  "new_execution_approvals": 0,
+  "third_party_writes": 0,
+  "native_baseline_coding_verify_independent_review": "not_run",
+  "upstream_status_observation": {
+    "http_status": 200,
+    "line_sha256": "6af4eaa7dc0927f0924bad015fac151211bb102c1ce4ab1ef34d30a77960c5eb",
+    "source": "/tmp/upeve-isolated-20261029-v2/final-model-gateway.log",
+    "correlation": "one native model call in the matching quiet interval; no upstream request ID retained"
+  }
+}
