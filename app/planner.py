@@ -52,6 +52,10 @@ class Clarification(BaseModel):
 
 class PlanningPlan(PlanVersionCreateRequest):
     model_config = ConfigDict(extra="forbid")
+    files_likely_to_change: list[str] = Field(
+        min_length=1, max_length=500,
+        description="Exact writable allowlist enforced during Coding. Include concrete paths for EVERY source, configuration and new/modified test file promised by implementation_steps or tests_to_add_or_run. A test named only in prose is not writable. Use the inspected repository test layout; never defer required test paths until execution.",
+    )
     implementation_steps: list[str] = Field(
         min_length=1, max_length=100,
         description="Ordered implementation steps as plain strings, never objects or nested arrays.",
