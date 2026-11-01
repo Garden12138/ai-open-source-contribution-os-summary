@@ -1,0 +1,116 @@
+{
+  "version": "upeve-native-inventory-headroom-context-recovery-v1",
+  "recorded_at": "2026-11-01T05:38:33.462731+00:00",
+  "proposal_hash": "fb611b2e070e3ce36c41b440f6affc16352e2beee35bc3bd19886031fbd2caa7",
+  "approval_hash": "7df9a1e0b7f886ebf06051263cdec910efbebd2ebe04b8e823d658fbeb74bf6a",
+  "request_number": 1,
+  "context_recovery_control_number": 1,
+  "maximum_context_recovery_controls": 2,
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "start_sequence": 358,
+  "failed_job_id": "e243c3bb-9e66-4526-bc8e-ca22c598c491",
+  "failed_payload_hash": "1615247c13e6723ab1ae06a3a846edae0d6ec39305d4b4ed4501f4ee1752ec0a",
+  "expected_recovered_payload_hash": "1615247c13e6723ab1ae06a3a846edae0d6ec39305d4b4ed4501f4ee1752ec0a",
+  "expected_read_round": 3,
+  "expected_repair_round": 0,
+  "budget_before_control": {
+    "version": "planning-budget-v1",
+    "revision": "ee551375da270874b30a48345ac3cc154efb2815137a7c57db95ecb8b86fb267",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 57,
+      "input_tokens": 1406630,
+      "output_tokens": 125534
+    },
+    "remaining": {
+      "calls": 7,
+      "input_tokens": 1243370,
+      "output_tokens": 33506
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "session_budget_before_request": {
+    "version": "planning-budget-v1",
+    "revision": "3185c3f5594d48851ff41c6a9578ae9f93340ba42426c22c7304f386d4a9e829",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 54,
+      "input_tokens": 1312010,
+      "output_tokens": 120261
+    },
+    "remaining": {
+      "calls": 10,
+      "input_tokens": 1337990,
+      "output_tokens": 38779
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "session_max_additional_model_calls": 10,
+  "session_calls_used_before_control": 3,
+  "maximum_further_calls": 7,
+  "maintenance_engine_revision": "7cfed8c74fbe811fa2801dcf503c5fb9d205ef7a",
+  "maintenance_source_manifest_hash": "b1c73b4ab4910be8cd725d6c5a2c1c2d3b73d2b097ca752fe15d39f122b191ab",
+  "native_failed_job_had_no_model_call": true,
+  "budget_or_Profile_or_source_changed": false,
+  "new_root_planning_request": false,
+  "execution_approved": false,
+  "publication_approved": false,
+  "status": "native_context_admitted_next_read_delivery_later_failed",
+  "native_message_receipt": {
+    "message_id": "e432aeb0-38de-42e2-91e1-a312518c1f94",
+    "status": "processing",
+    "text": "已收到，正在处理。"
+  },
+  "recovered_job_id": "e4d3783c-757d-41e5-9960-47d9ca66b285",
+  "recovered_payload_verified": true,
+  "actual_recovered_prompt_bytes": 94247,
+  "native_plan_id": null
+}

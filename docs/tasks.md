@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Approved same-request recovery passes native context delivery in3 actual calls, then fails JSON/read bounds at the existing2-repair cap; no child Plan. Ten lifetime calls remain. Generic always-current read guidance passes1753 regressions/42 focused tests and is isolated-deployed; new-request confirmation is pending; native, historical Node and Linux gates remain open. |
+| Feature note | Native request1 uses5 real calls/2 source-context recoveries and saves Plan2 with producer/consumer scope and all4 commands. Operator review blocks missing extension test write paths. Generic paging/write-scope guidance passes1762 regressions and isolated-deploys. Five planning calls remain; exact new-parent revision is pending. Native, historical Node and Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5779,6 +5779,86 @@ prohibited new root requests and stopped on non-context failure. Native first
 outcomes0/4, environment baselines0/15, historical Node failure, Linux blocker
 and unrun Baseline/Coding/Verify/independent Review remain. UPEVE-E04 is current;
 no stage gate is promoted.
+
+
+Approved native request1 → real Plan2, test-write scope still blocked (2026-11-01):
+[Approval](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-approval.json)
+`7df9a1e0...74bf6a` binds previewfb611b2e...fbd2caa7. [Native receipt](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1.json)
+uses **one new request/five real model calls/two context-only recoveries**. All
+five responses pass the envelope/read validation, with no extra correction
+slots. Calls1–3 expose the current read contract, then delivery Jobe243c3bb fails
+before call4. Its [original failure](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-context-failure.json)
+is preserved: even minimum pages total97,824 bytes. Generic v2 pressure indexing
+retains known/focused paths, gives the full inventory a queryable hash reference,
+and shares duplicate read hints. [Checks](acceptance/universal-environment-v1/inventory-headroom-checks.json)
+at7cfed8c pass1757 default/62 skipped/52 focused, with3 pre-fix failures/1 pass;
+[copy replay](acceptance/universal-environment-v1/inventory-headroom-context-replay.json)
+fits94,236 bytes without model/native DB writes. [Deployment](acceptance/universal-environment-v1/inventory-headroom-deployment.json)
+verifies five owned roles/four healthy endpoints.
+
+The first authorized [native recovery](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-recovery-1.json)
+keeps the exact failed payload/read3/repair0 and admits an actual94,247-byte
+prompt. Its complete response requests the last read round; Jobec5944ca fails
+before call5, again preserved in a [separate receipt](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-context-failure-2.json).
+A new copy diagnosis reproduces97,700 bytes even at minimum pages. Generic
+background paging at702bc55 moves bulky status/snapshot/older conversation and
+history detail behind source-bound references; identical complete human text
+keeps its first literal plus every occurrence's original position/event/hash.
+It preserves permissions, preparation/verification facts, current Plan/commands,
+current reads and repository instructions, with no generated decision summary.
+[Checks](acceptance/universal-environment-v1/background-pressure-checks.json)
+pass1762 default/62 skipped/57 focused;5 new cases retain2 pre-fix failures/3
+passes and original fixture-pressure calibration failures. Originals roundtrip,
+canaries fail before writes, legacy/small contexts remain. Compileall/runtime
+integrity/diff pass. [Copy replay](acceptance/universal-environment-v1/background-pressure-context-replay.json)
+fits95,416 bytes with15,413 actual source-page bytes. This is controlled evidence,
+not native success. [Deployment](acceptance/universal-environment-v1/background-pressure-deployment.json)
+preserves idle isolated services, Publisher and formal data.
+
+The second/final authorized [context recovery](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-recovery-2.json)
+keeps read4/repair0 and the exact failed payload. Actual prompt95,764 bytes
+contains15,413 source bytes, with zero read rounds/requests remaining. The real
+model saves child Plan2 `9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57`, record hash
+`81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6`,
+content hash`af2f2a7100397bc3fc5443a7819b5cba063e81c22b3f060023a6c41b3532fb0d`.
+Producer and consumer write scope is included, and all four original command
+IDs/argv/cwd are unchanged. The grant stops at this saved Plan; its second fresh
+request is unused. [Batch audit](acceptance/universal-environment-v1/deepseek-native-plan2-batch-audit.json)
+verifies5 known calls,2 pre-model failures with no billed model calls, immutable
+payloads/counters, prior history/74 files and no execution approval. Lifetime
+**59 calls/1,474,279 input/147,591 output**; unchanged unknown holds1,350,000/
+40,960. Remaining **5 calls/1,175,721 input/11,449 output**, caps64/4M/200K.
+
+[Operator source review](acceptance/universal-environment-v1/deepseek-native-plan2-source-review.json)
+is not an independent ReviewRun. Plan2 promises transcript-parser/hook-server
+extension regressions but lists no extension/test write path among its six
+paths. Frozen Runtime v2 would permit only the listed paths; no denied patch
+or Coding run has actually occurred. Static preflight ready is not preparation
+or semantic execution approval. A native child must add exact test paths before
+an execution preview. No manual Plan edit/business patch is used.
+
+A generic model-facing PlanningPlan field description at8470ca1 now explains
+that all promised source/config/test files require exact writable paths. All
+existing numeric schema/runtime constraints are identical. [Checks](acceptance/universal-environment-v1/write-scope-guidance-checks.json)
+pass1762 default/62 skipped/75 focused plus compileall/runtime integrity/diff;
+no tests were added for a description-only change, and the initial nonexistent
+focused-test filename invocation is recorded. [Isolated deployment](acceptance/universal-environment-v1/write-scope-guidance-deployment.json)
+keeps both Plans/history/budget and five roles/four healthy endpoints. Zero
+native calls follow this new guidance; effectiveness is not_run.
+
+[New-parent concrete preview](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope-proposal.json)
+`3bb12cfd...69f95f0e` proposes one new read-only native request/at most the existing
+five calls, retaining Plan2's six paths/four commands and adding
+extension/test/transcript-parser.test.ts and extension/test/hook-server.test.ts.
+The native planner must use the real extension tsx/node:test layout, not a
+manual Plan insertion. Confirmation is pending because the earlier grant ends
+at a saved child and pins the old parent. There is no cap/Profile change or
+execution/publication approval. [Final audit](acceptance/universal-environment-v1/native-plan2-final-audit.json)
+records current source/health/provenance. Native first deliveries0/4 and full
+environment baselines0/15 remain unchanged; Plan2 is only a planning substep.
+Historical Node still fails, Linux amd64 is blocked/not_run, and native Baseline/
+Coding/Verify/independent Review remain not_run. UPEVE-E04 remains current; no
+phase gate is checked.
 
 
 ---

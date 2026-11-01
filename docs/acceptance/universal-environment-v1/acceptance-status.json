@@ -482,14 +482,14 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "d20f8d548ed741b0dd90b842e2d4b20c620ca507",
+  "engine_revision": "8470ca1ae27ce9799cea0c2987339a0c11460f85",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1815,
+    "tests": 1824,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1753
+    "passed": 1762
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -498,7 +498,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "active-read-limits-checks.json",
+  "latest_default_evidence": "write-scope-guidance-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -507,9 +507,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "deepseek-native-source-delivery-recovery.json",
-  "latest_isolated_deployment": "active-read-limits-deployment.json",
-  "latest_history_and_security_audit": "active-read-limits-final-audit.json",
+  "latest_native_retest": "deepseek-native-active-read-limits-retest-1.json",
+  "latest_isolated_deployment": "write-scope-guidance-deployment.json",
+  "latest_history_and_security_audit": "native-plan2-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -537,21 +537,21 @@
     "terminal_reason": "model_gateway_transport_failure_unknown_outcome"
   },
   "native_current_known_usage": {
-    "calls": 54,
-    "input_tokens": 1312010,
-    "output_tokens": 120261
+    "calls": 59,
+    "input_tokens": 1474279,
+    "output_tokens": 147591
   },
   "native_current_unknown_reserves": {
     "input_tokens": 1350000,
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "active-read-limits-final-audit.json",
-  "latest_targeted_evidence": "read-budget-checks.json",
+  "latest_final_observation": "native-plan2-final-audit.json",
+  "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
-    "calls": 10,
-    "input_tokens": 1337990,
-    "output_tokens": 38779
+    "calls": 5,
+    "input_tokens": 1175721,
+    "output_tokens": 11449
   },
   "explicit_user_retry": {
     "evidence": "explicit-model-retry.json",
@@ -590,7 +590,7 @@
   },
   "latest_real_model_connection_evidence": "deepseek-real-connection.json",
   "deepseek_native_acceptance": {
-    "status": "native_context_delivery_passed_planning_failed_JSON_then_read_bounds_at_repair_cap",
+    "status": "native_Plan2_saved_producer_scope_fixed_extension_test_write_scope_missing",
     "evidence": [
       "deepseek-native-model-switch.json",
       "deepseek-native-budget-proposal.json",
@@ -649,19 +649,29 @@
       "deepseek-native-readonly-extension-64-audit.json",
       "deepseek-native-source-delivery-recovery-approval.json",
       "deepseek-native-source-delivery-recovery.json",
-      "deepseek-native-source-delivery-recovery-audit.json"
+      "deepseek-native-source-delivery-recovery-audit.json",
+      "deepseek-native-active-read-limits-retest-approval.json",
+      "deepseek-native-active-read-limits-retest-1.json",
+      "deepseek-native-active-read-limits-retest-1-context-failure.json",
+      "deepseek-native-active-read-limits-retest-1-context-failure-2.json",
+      "deepseek-native-active-read-limits-retest-1-recovery-1.json",
+      "deepseek-native-active-read-limits-retest-1-recovery-2.json",
+      "deepseek-native-plan2-source-review.json",
+      "deepseek-native-plan2-batch-audit.json",
+      "native-plan2-final-audit.json",
+      "deepseek-native-plan3-test-scope-proposal.json"
     ],
     "proposal_hash": "dd328a3327c374bd59541e0dcfbf3ea5ea3151f46cf0eedd1c84ca6ca08e44a0",
     "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
     "budget_raised": true,
-    "actual_model_calls": 24,
+    "actual_model_calls": 29,
     "execution_approved": false,
     "native_first_outcomes_unchanged": true,
     "approval_hash": "cd674d790d2fc4ae3bb7e054759171deac17afdae8df5fb68cf8d9846331f5f2",
-    "fresh_request_count": 7,
-    "terminal_reason": "planning_output_invalid_read_context.max_lines_at_repair_round2",
-    "plan_count": 1,
-    "remaining_calls": 10,
+    "fresh_request_count": 8,
+    "terminal_reason": "saved_child_Plan_stops_grant_operator_review_blocks_test_write_paths",
+    "plan_count": 2,
+    "remaining_calls": 5,
     "automatic_second_request_authorized": false,
     "native_after_read_budget_fix": "read_allowance_enforced_and_observation_finished_no_plan",
     "initial_approved_request_model_calls": 3,
@@ -682,16 +692,20 @@
     "current_static_admission": "passed_after_generic_pnpm_filter_v3",
     "native_plan_quality_passed": false,
     "native_plan_save_passed": true,
-    "latest_child_revision_model_calls": 5,
+    "latest_child_revision_model_calls": 10,
     "latest_child_revision_pre_model_failures": 2,
     "latest_child_revision_fresh_requests": 1,
     "latest_child_revision_native_retry_controls": 3,
     "native_context_projection_fix": "passed_real_model_call_with93414_byte_prompt",
     "native_bounds_repair_fix": "passed_complete_native_response_with_valid_reads",
-    "new_child_plan_count": 0,
+    "new_child_plan_count": 1,
     "same_payload_recovery_controls_are_not_fresh_planning_requests": true,
     "latest_extension64_model_calls": 1,
-    "native_source_delivery_projection_fix": "passed_actual_prompts94456_94344_94308"
+    "native_source_delivery_projection_fix": "passed_actual_prompts94456_94344_94308",
+    "native_plan2_id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+    "native_plan2_record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+    "native_plan2_producer_scope_passed": true,
+    "native_plan2_execution_scope_passed": false
   },
   "latest_explicit_plan_entry": "deepseek-explicit-plan-entry.json",
   "pending_planning_call_extension": {
@@ -954,7 +968,7 @@
     "new_child_plan_count": 0
   },
   "active_read_limits_maintenance": {
-    "status": "implemented_full_regression_isolated_deployed_native_effectiveness_not_run",
+    "status": "implemented_tested_deployed_native_guidance_and_three_valid_responses_passed",
     "engine_revision": "d20f8d548ed741b0dd90b842e2d4b20c620ca507",
     "default_regression": {
       "tests": 1815,
@@ -966,7 +980,7 @@
     "focused_passed": 42,
     "new_test_cases": 5,
     "before_fix_failed": 4,
-    "native_effectiveness": "not_run_current_request_repair_slots_exhausted",
+    "native_effectiveness": "passed_current_contract_and_five_valid_native_responses_Plan2_saved_scope_incomplete",
     "new_native_model_calls": 0,
     "request_limits_and_immutable_payloads_preserved": true,
     "evidence": [
@@ -977,7 +991,7 @@
     ]
   },
   "pending_active_read_limits_native_retest": {
-    "status": "awaiting_exact_new_readonly_request_confirmation",
+    "status": "approved_completed_at_real_child_Plan_test_scope_still_blocked",
     "proposal_hash": "fb611b2e070e3ce36c41b440f6affc16352e2beee35bc3bd19886031fbd2caa7",
     "evidence": "deepseek-native-active-read-limits-retest-proposal.json",
     "max_additional_model_calls": 10,
@@ -990,6 +1004,80 @@
       "maximum_repair_rounds": 2
     },
     "old_failed_request_counters_preserved": true,
+    "caps_raised": false,
+    "execution_approved": false,
+    "new_model_calls": 5,
+    "approval_hash": "7df9a1e0b7f886ebf06051263cdec910efbebd2ebe04b8e823d658fbeb74bf6a",
+    "new_root_requests_used": 1,
+    "context_recovery_controls_used": 2,
+    "new_plan_id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+    "new_plan_record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+    "second_request_unused_grant_stopped_at_saved_Plan": true
+  },
+  "inventory_headroom_maintenance": {
+    "status": "implemented_full_regression_deployed_native_recovery_delivery_passed",
+    "engine_revision": "7cfed8c74fbe811fa2801dcf503c5fb9d205ef7a",
+    "default_passed": 1757,
+    "default_skipped": 62,
+    "focused_passed": 52,
+    "controlled_before_minimum_bytes": 97824,
+    "controlled_after_bytes": 94236,
+    "actual_native_prompt_bytes": 94247,
+    "native_followup_delivery_hit_new_context_pressure": true,
+    "evidence": [
+      "inventory-headroom-checks.json",
+      "inventory-headroom-context-diagnosis.json",
+      "inventory-headroom-context-replay.json",
+      "inventory-headroom-deployment.json",
+      "deepseek-native-active-read-limits-retest-1-recovery-1.json"
+    ]
+  },
+  "background_pressure_maintenance": {
+    "status": "implemented_full_regression_deployed_native_delivery_and_Plan_save_passed_not_execution",
+    "engine_revision": "702bc559ae471888b036997492f019394363989a",
+    "default_passed": 1762,
+    "default_skipped": 62,
+    "focused_passed": 57,
+    "controlled_before_minimum_bytes": 97700,
+    "controlled_after_bytes": 95416,
+    "actual_native_prompt_bytes": 95764,
+    "actual_native_source_page_bytes": 15413,
+    "all_prior_sources_and_readiness_and_permission_facts_retained": true,
+    "evidence": [
+      "background-pressure-checks.json",
+      "background-pressure-context-diagnosis.json",
+      "background-pressure-context-replay.json",
+      "background-pressure-deployment.json",
+      "deepseek-native-active-read-limits-retest-1-recovery-2.json"
+    ]
+  },
+  "write_scope_guidance_maintenance": {
+    "status": "description_only_implemented_full_regression_isolated_deployed_native_effectiveness_not_run",
+    "engine_revision": "8470ca1ae27ce9799cea0c2987339a0c11460f85",
+    "default_regression": {
+      "tests": 1824,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1762
+    },
+    "focused_passed": 75,
+    "all_existing_numeric_scope_constraints_identical": true,
+    "new_native_model_calls": 0,
+    "evidence": [
+      "write-scope-guidance-checks.json",
+      "write-scope-guidance-deployment.json"
+    ]
+  },
+  "pending_plan3_test_scope_revision": {
+    "status": "awaiting_exact_new_parent_readonly_revision_confirmation",
+    "proposal_hash": "3bb12cfda683b58e88967d944329bbd620df18c5133ab1cfdbc19a3869f95f0e",
+    "evidence": "deepseek-native-plan3-test-scope-proposal.json",
+    "parent_plan_id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+    "parent_record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+    "max_additional_model_calls": 5,
+    "max_new_root_planning_requests": 1,
+    "expected_write_path_count": 8,
     "caps_raised": false,
     "execution_approved": false,
     "new_model_calls": 0
