@@ -482,14 +482,14 @@
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "f4c0886eb4256ec1baefa9eecfde6875c735eac3",
+  "engine_revision": "d20f8d548ed741b0dd90b842e2d4b20c620ca507",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1810,
+    "tests": 1815,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1748
+    "passed": 1753
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -498,7 +498,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "source-delivery-checks.json",
+  "latest_default_evidence": "active-read-limits-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -507,11 +507,11 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "deepseek-native-readonly-extension-64.json",
-  "latest_isolated_deployment": "source-delivery-deployment.json",
-  "latest_history_and_security_audit": "source-delivery-final-audit.json",
+  "latest_native_retest": "deepseek-native-source-delivery-recovery.json",
+  "latest_isolated_deployment": "active-read-limits-deployment.json",
+  "latest_history_and_security_audit": "active-read-limits-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
-  "latest_context_component": "source-delivery-context-replay.json",
+  "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
     "proposal_hash": "50d46b44cfac323e080c4ae0fa9c1c70eeeacaa3cebf1af6e31c3eb2a1e3d0a7",
     "scope": "one_isolated_task_planning_only",
@@ -537,21 +537,21 @@
     "terminal_reason": "model_gateway_transport_failure_unknown_outcome"
   },
   "native_current_known_usage": {
-    "calls": 51,
-    "input_tokens": 1214594,
-    "output_tokens": 110121
+    "calls": 54,
+    "input_tokens": 1312010,
+    "output_tokens": 120261
   },
   "native_current_unknown_reserves": {
     "input_tokens": 1350000,
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "source-delivery-final-audit.json",
+  "latest_final_observation": "active-read-limits-final-audit.json",
   "latest_targeted_evidence": "read-budget-checks.json",
   "native_current_remaining": {
-    "calls": 13,
-    "input_tokens": 1435406,
-    "output_tokens": 48919
+    "calls": 10,
+    "input_tokens": 1337990,
+    "output_tokens": 38779
   },
   "explicit_user_retry": {
     "evidence": "explicit-model-retry.json",
@@ -590,7 +590,7 @@
   },
   "latest_real_model_connection_evidence": "deepseek-real-connection.json",
   "deepseek_native_acceptance": {
-    "status": "native_bounds_repair_passed_next_source_delivery_context_limit",
+    "status": "native_context_delivery_passed_planning_failed_JSON_then_read_bounds_at_repair_cap",
     "evidence": [
       "deepseek-native-model-switch.json",
       "deepseek-native-budget-proposal.json",
@@ -646,19 +646,22 @@
       "deepseek-native-readonly-extension-64-proposal.json",
       "deepseek-native-readonly-extension-64-approval.json",
       "deepseek-native-readonly-extension-64.json",
-      "deepseek-native-readonly-extension-64-audit.json"
+      "deepseek-native-readonly-extension-64-audit.json",
+      "deepseek-native-source-delivery-recovery-approval.json",
+      "deepseek-native-source-delivery-recovery.json",
+      "deepseek-native-source-delivery-recovery-audit.json"
     ],
     "proposal_hash": "dd328a3327c374bd59541e0dcfbf3ea5ea3151f46cf0eedd1c84ca6ca08e44a0",
     "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
     "budget_raised": true,
-    "actual_model_calls": 21,
+    "actual_model_calls": 24,
     "execution_approved": false,
     "native_first_outcomes_unchanged": true,
     "approval_hash": "cd674d790d2fc4ae3bb7e054759171deac17afdae8df5fb68cf8d9846331f5f2",
     "fresh_request_count": 7,
-    "terminal_reason": "planning_context_limit_before_second_call_after_extension64",
+    "terminal_reason": "planning_output_invalid_read_context.max_lines_at_repair_round2",
     "plan_count": 1,
-    "remaining_calls": 13,
+    "remaining_calls": 10,
     "automatic_second_request_authorized": false,
     "native_after_read_budget_fix": "read_allowance_enforced_and_observation_finished_no_plan",
     "initial_approved_request_model_calls": 3,
@@ -679,15 +682,16 @@
     "current_static_admission": "passed_after_generic_pnpm_filter_v3",
     "native_plan_quality_passed": false,
     "native_plan_save_passed": true,
-    "latest_child_revision_model_calls": 2,
+    "latest_child_revision_model_calls": 5,
     "latest_child_revision_pre_model_failures": 2,
     "latest_child_revision_fresh_requests": 1,
-    "latest_child_revision_native_retry_controls": 2,
+    "latest_child_revision_native_retry_controls": 3,
     "native_context_projection_fix": "passed_real_model_call_with93414_byte_prompt",
     "native_bounds_repair_fix": "passed_complete_native_response_with_valid_reads",
     "new_child_plan_count": 0,
     "same_payload_recovery_controls_are_not_fresh_planning_requests": true,
-    "latest_extension64_model_calls": 1
+    "latest_extension64_model_calls": 1,
+    "native_source_delivery_projection_fix": "passed_actual_prompts94456_94344_94308"
   },
   "latest_explicit_plan_entry": "deepseek-explicit-plan-entry.json",
   "pending_planning_call_extension": {
@@ -900,7 +904,7 @@
     }
   },
   "source_delivery_history_maintenance": {
-    "status": "implemented_full_regression_isolated_deployed_native_effectiveness_not_run",
+    "status": "implemented_full_regression_deployed_native_context_delivery_passed",
     "engine_revision": "f4c0886eb4256ec1baefa9eecfde6875c735eac3",
     "default_regression": {
       "tests": 1810,
@@ -914,7 +918,7 @@
     "controlled_before_minimum_bytes": 98898,
     "controlled_after_bytes": 94443,
     "hard_limit_unchanged": 96000,
-    "native_effectiveness": "not_run_supplemental_recovery_control_confirmation_pending",
+    "native_effectiveness": "passed_actual_native_prompts94456_94344_94308_planning_still_failed",
     "new_model_calls": 0,
     "evidence": [
       "source-delivery-context-diagnosis.json",
@@ -922,10 +926,16 @@
       "source-delivery-checks.json",
       "source-delivery-deployment.json",
       "source-delivery-final-audit.json"
+    ],
+    "actual_native_first_prompt_bytes": 94456,
+    "actual_native_prompt_bytes": [
+      94456,
+      94344,
+      94308
     ]
   },
   "pending_source_delivery_recovery": {
-    "status": "awaiting_supplemental_native_recovery_control_confirmation",
+    "status": "approved_applied_three_calls_terminal_schema_failure_at_repair_cap",
     "proposal_hash": "2f0d199d9a9d636e628a0fd6abe6c8674f75b5a49b60ee823bf3ecb4024f6786",
     "evidence": "deepseek-native-source-delivery-recovery-proposal.json",
     "max_additional_model_calls": 13,
@@ -933,8 +943,55 @@
     "max_new_root_planning_requests": 0,
     "caps_raised": false,
     "execution_approved": false,
-    "new_model_calls": 0,
+    "new_model_calls": 3,
     "existing_read_round": 1,
-    "existing_repair_round": 1
+    "existing_repair_round": 1,
+    "approval_hash": "ac7d7ff492ddc03ab92f90e16b68c3a9d09eab969cb581e305224301767d6318",
+    "native_recovery_controls_used": 1,
+    "remaining_controls_usable_after_terminal_failure": false,
+    "final_read_round": 2,
+    "final_repair_round": 2,
+    "new_child_plan_count": 0
+  },
+  "active_read_limits_maintenance": {
+    "status": "implemented_full_regression_isolated_deployed_native_effectiveness_not_run",
+    "engine_revision": "d20f8d548ed741b0dd90b842e2d4b20c620ca507",
+    "default_regression": {
+      "tests": 1815,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1753
+    },
+    "focused_passed": 42,
+    "new_test_cases": 5,
+    "before_fix_failed": 4,
+    "native_effectiveness": "not_run_current_request_repair_slots_exhausted",
+    "new_native_model_calls": 0,
+    "request_limits_and_immutable_payloads_preserved": true,
+    "evidence": [
+      "active-read-limits-checks.json",
+      "active-read-limits-controlled-replay.json",
+      "active-read-limits-deployment.json",
+      "active-read-limits-final-audit.json"
+    ]
+  },
+  "pending_active_read_limits_native_retest": {
+    "status": "awaiting_exact_new_readonly_request_confirmation",
+    "proposal_hash": "fb611b2e070e3ce36c41b440f6affc16352e2beee35bc3bd19886031fbd2caa7",
+    "evidence": "deepseek-native-active-read-limits-retest-proposal.json",
+    "max_additional_model_calls": 10,
+    "max_new_root_planning_requests": 2,
+    "max_context_admission_recovery_controls": 2,
+    "new_request_local_counters": {
+      "initial_read_round": 0,
+      "initial_repair_round": 0,
+      "maximum_read_rounds": 4,
+      "maximum_repair_rounds": 2
+    },
+    "old_failed_request_counters_preserved": true,
+    "caps_raised": false,
+    "execution_approved": false,
+    "new_model_calls": 0
   }
 }

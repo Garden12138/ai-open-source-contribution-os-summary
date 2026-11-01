@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Approved call-only cap64 is applied; one native corrected response requests valid source reads, then their delivery fails the96KB context gate before a second call. Thirteen calls remain; generic historical-discussion indexing passes1748 regressions and is isolated-deployed, awaiting supplemental native recovery control consent. No child Plan or execution; native, historical Node and Linux gates remain open. |
+| Feature note | Approved same-request recovery passes native context delivery in3 actual calls, then fails JSON/read bounds at the existing2-repair cap; no child Plan. Ten lifetime calls remain. Generic always-current read guidance passes1753 regressions/42 focused tests and is isolated-deployed; new-request confirmation is pending; native, historical Node and Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5718,6 +5718,67 @@ engineering/evidence work continues. Native first outcomes0/4 and complete
 environment baselines0/15 remain separate and unchanged. Historical Node still
 fails, native Linux amd64 is blocked/not_run, and native Baseline/Coding/Verify/
 independent Review remain not_run. No stage gate is checked; UPEVE-E04 is current.
+
+
+Supplemental source-delivery native acceptance (2026-11-01): user “允许” is
+recorded against preview2f0d199d...024f6786 in [approval](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-approval.json).
+[Native journal](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery.json)
+uses one recovery control, preserves exact payloadf40e09e6...cf7383 and read1/
+repair1, and runs **three actual model calls**. Real prompts94,456/94,344/94,308
+bytes all pass the96KB gate. Fair source deliveries record105,905→94,456 and
+101,854→94,344 bytes with honest partial pages. This proves the history-indexing
+fix in the native path, not successful planning or a native delivery.
+
+First response requests valid reads; second is rejected json_invalid; the last
+existing automatic correction is rejected read_context.max_lines<=160 at repair
+round2/2, read round2/4. Exact raw JSON/bad numeric value are not retained, and
+rejected reads never execute. There is no new child Plan. The grant stops on
+this non-context terminal failure; its two unused context-recovery controls do
+not permit another schema retry. [Audit](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-audit.json)
+retains original source/parent/Profile/defaults/failed Jobs/events and all74
+historical files. Additional known usage97,416 input/10,140 output; lifetime
+**54 calls/1,312,010 input/120,261 output**. Three old unknown holds remain
+1,350,000/40,960. Remaining **10 calls/1,337,990 input/38,779 output** under
+unchanged64/4M/200K caps. No provider-balance conclusion is drawn.
+
+Generic maintenance at sourced20f8d5 exposes enforced ContextRead numeric bounds
+and current request/repair capacity in **every** v2 planning prompt, including
+JSON/envelope corrections. Earlier range guidance is refreshed only in the
+prompt view; frozen Job data/hashes stay intact. No clamping, schema relaxation,
+additional repair slots or legacy prompt change is introduced. The native JSON
+response was not retained; this guidance is not claimed to fix its generation.
+[Checks](acceptance/universal-environment-v1/active-read-limits-checks.json) pass
+**1753 default/62 skipped/0 failed**, **42 focused**;5 new cases preserve4
+pre-fix failures/1 pass. The initial short-corrupt-JSON fixture normalized to an
+empty outcome; the corrected actual-json_invalid fixture and pre-fix run are
+both recorded. Compileall/runtime integrity/diff pass.
+
+[Copy-only replay](acceptance/universal-environment-v1/active-read-limits-controlled-replay.json)
+observes current bounds in94,308/95,283-byte unissued prompts, preserves source
+and frozen payloads, and proves the exhausted request still refuses recovery
+despite ten available calls. It uses DB+artifact copies/no model, omitting only
+the already-terminal lease check in the copy. [Isolated deployment](acceptance/universal-environment-v1/active-read-limits-deployment.json)
+verifies five owned children/four health endpoints; zero native calls follow
+maintenance. [Final audit](acceptance/universal-environment-v1/active-read-limits-final-audit.json)
+records unchanged history/budget/security. The new guidance's native effect is
+not_run. Formal services, Publisher and OCI boundaries remain intact.
+
+[Concrete next preview](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-proposal.json)
+`fb611b2e...fbd2caa7` requests at most2 **new** native read-only planning requests,
+using at most the existing10 calls and2 context-only recovery controls, with
+unchanged source/parent/Profile/four CI checks and64/4M/200K caps. Each new
+request starts its normal local4-read/2-repair allowance; this is explicitly a
+new request, not preservation of the exhausted old request's counters. The old
+request/failures/cumulative use/unknown holds stay immutable. A second request
+requires the first to finish with a known bounded planning/evidence failure,
+no child Plan/material question/security/unknown provider outcome, unchanged
+bindings and available lifetime capacity. Stop at child Plan/material question/
+stale input/security or unknown outcome/any budget cap. No execution/publication
+is granted. New confirmation is pending because the previous exact grant
+prohibited new root requests and stopped on non-context failure. Native first
+outcomes0/4, environment baselines0/15, historical Node failure, Linux blocker
+and unrun Baseline/Coding/Verify/independent Review remain. UPEVE-E04 is current;
+no stage gate is promoted.
 
 
 ---

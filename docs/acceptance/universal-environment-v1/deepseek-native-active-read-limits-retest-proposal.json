@@ -1,0 +1,122 @@
+{
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "parent_plan_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+  "parent_plan_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+  "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "planning_profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+  "planning_profile_record_hash": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd",
+  "defaults_record_hash": "84b1e9ed7b8649f8b41fe14f0aeeedeb51cac04d22761e387851f0ff78ae9eec",
+  "task_profiles": {
+    "analysis": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "planning": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+    "implementation": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "review": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e"
+  },
+  "original_goal_hash": "4f2f7a97fad37067578006415e4797950698bcea4887f1241b75df099a44d653",
+  "per_call_output_limit": 16384,
+  "per_call_timeout_seconds": 300,
+  "version": "upeve-native-active-read-limits-retest-proposal-v1",
+  "recorded_at": "2026-11-01T05:19:43.402687+00:00",
+  "status": "awaiting_exact_new_readonly_request_confirmation",
+  "engine_revision": "d20f8d548ed741b0dd90b842e2d4b20c620ca507",
+  "tested_source_manifest_hash": "98880aa36e207b86d9d1989ec08fe5cd368d951aca7d410c0391db8f38ecac68",
+  "current_budget": {
+    "version": "planning-budget-v1",
+    "revision": "3185c3f5594d48851ff41c6a9578ae9f93340ba42426c22c7304f386d4a9e829",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 54,
+      "input_tokens": 1312010,
+      "output_tokens": 120261
+    },
+    "remaining": {
+      "calls": 10,
+      "input_tokens": 1337990,
+      "output_tokens": 38779
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "request_endpoint": "/api/v1/tasks/f0e017fa-d2a6-4eb8-8a94-32bb1d29586c/workbench/messages",
+  "request_body": {
+    "mode": "planning",
+    "text": "请只读审查并修订当前 PlanVersion cb2aa72a-58a6-45e2-a26f-0daf9c3ba354。冻结源码中的 extension/src/transcript-parser.ts 第364–374、435–446行，以及 extension/src/hook-server.ts 第214–223、235–245、252–261行，发送的 tool_call_start/end payload 没有透传稳定调用 ID。protocol.ts 的 ToolResultBlock.tool_use_id 属于原始 transcript 类型，不能据此认定 web payload 已携带这个字段。当前仅修改四个 web 文件的方案，不能依靠在 start 生成一个本地 ID 就可靠关联后续乱序 end。上述是待原生 Agent 核验的操作者只读审查结论，不是执行授权。请根据实际冻结源码核对生产端→传输→消费端的标识链；必要时准备 child Plan，补齐必要生产端/消费端和对应回归测试范围。保持现有公共行为，先新增回归测试并记录真实失败，再实现并验证。必须原样保留当前四条 CI 验证命令的 ID、argv 和工作目录，不删除或缩小检查。如果必要证据尚未读到，先请求实际源码读取，不猜测字段已透传。当前只允许调查和保存可审阅修订方案；不实施、不发布，仍需对新 Plan 精确批准。",
+    "parent_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+    "expected_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+    "refresh": false,
+    "model_profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382"
+  },
+  "request_body_hash": "c1952dd160814412cd5dbeaba959ecbfcae803dbc76cec71177204a95a97d486",
+  "max_additional_model_calls": 10,
+  "max_new_root_planning_requests": 2,
+  "max_context_admission_recovery_controls": 2,
+  "new_request_local_counters": {
+    "initial_read_round": 0,
+    "initial_repair_round": 0,
+    "maximum_read_rounds": 4,
+    "maximum_repair_rounds": 2
+  },
+  "original_exhausted_request": {
+    "job_id": "379f9fe8-fd6f-452a-9a50-1adeb386f09b",
+    "payload_hash": "5d9e97b4502c74ca406092dfd4c6303bacc9dbec89dee0aa8a0ed3431cc957aa",
+    "read_round": 2,
+    "repair_round": 2,
+    "state": "failed"
+  },
+  "scope": "At most two new native read-only planning requests for the same frozen goal/source/parent/Profile and exact four CI checks, using existing lifetime capacity. New requests start their normal local read/repair counters; old request counters, all failures, known usage and unknown holds remain immutable. No implementation or publication.",
+  "second_request_condition": "Only after the first request ends without a new Plan or material question, with a known planning_output_invalid/read-round-evidence failure, every new model call has known usage, unchanged frozen bindings, and remaining lifetime capacity. Never retry an unknown provider outcome or security rejection.",
+  "context_recovery_condition": "Only proven pre-model planning_context_limit in one of these requests after a verified generic fix; preserve that request payload/counters. At most two such controls across both requests.",
+  "stop_conditions": [
+    "saved_new_child_Plan",
+    "material_structured_question",
+    "source_parent_Profile_changed",
+    "security_or_unknown_provider_outcome",
+    "any_existing_lifetime_budget_limit",
+    "two_new_readonly_requests_used",
+    "unsupported_terminal_failure"
+  ],
+  "call_or_input_or_output_caps_raised": false,
+  "old_usage_or_unknown_holds_reset": false,
+  "Profile_changed": false,
+  "old_failed_request_counter_reset": false,
+  "new_request_counters_restart_explicitly_disclosed": true,
+  "execution_approved": false,
+  "publication_approved": false,
+  "preceding_approval_hash": "ac7d7ff492ddc03ab92f90e16b68c3a9d09eab969cb581e305224301767d6318",
+  "preceding_grant_ended_by": "non_context_terminal_failure_at_existing_repair_round2",
+  "reason_for_new_confirmation": "The preceding exact grant permits no new root planning requests and stops on non-context terminal failure. Its exhausted request cannot be resumed by available call capacity or a prompt fix.",
+  "maintenance_check_evidence": "active-read-limits-checks.json",
+  "maintenance_deployment_evidence": "active-read-limits-deployment.json",
+  "controlled_replay_evidence": "active-read-limits-controlled-replay.json",
+  "actual_failure_evidence": "deepseek-native-source-delivery-recovery-audit.json",
+  "active_guidance_native_effectiveness": "not_run",
+  "invalid_JSON_generation_fixed": false,
+  "native_new_request_dispatched": false,
+  "classification": "D_maintenance_not_new_unseen_or_native_delivery",
+  "proposal_hash": "fb611b2e070e3ce36c41b440f6affc16352e2beee35bc3bd19886031fbd2caa7"
+}
