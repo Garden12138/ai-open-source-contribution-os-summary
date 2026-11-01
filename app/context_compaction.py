@@ -392,6 +392,8 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
                     inventory_count=len(original), inventory_reference=ref)
                 if not any(item["reference_id"] == ref for item in body["context_management"]["references"]):
                     body["context_management"]["references"].append(references[ref])
+        from app.context_pressure import page_background
+        page_background(body, payload, reference)
     ensure_no_sensitive_data(body, context="compacted prompt")
     prompt = canonical_json(body)
     prompt_bytes = len(prompt.encode())
