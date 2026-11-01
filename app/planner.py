@@ -299,6 +299,11 @@ class PlanningService(Workbench):
                 payload.update(paths=list(dict.fromkeys(paths)), **{
                     name: context.payload[name] for name in ("branch", "base_sha", "archive_hash", "image")
                 })
+            elif runtime_version == "agent-runtime-v2" and not payload.get("context_reads"):
+                from app.planning_read_reuse import prior_read_checkpoint
+                prior = prior_read_checkpoint(self, task_id, model_profile_id)
+                if prior:
+                    payload["prior_read_checkpoint_hash"] = prior
         # Event and queue commit together; double submits are bounded by unique keys.
         from app.jobs import JobService
 
@@ -716,12 +721,19 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             pending_context_delivery = data.pop("context_delivery_pending", False)
             new_context_delivery = bool(data.get("context_reads") or pending_context_delivery)
             cached = None
+            reuse = None
             if data.get("context_read_cache_hash"):
                 candidate = wb.read(data["context_read_cache_hash"])
                 if candidate.get("source") == source_binding(wb, data["task_id"]):
                     cached = candidate
                 else:
                     data.pop("context_read_cache_hash")
+            if (cached is None and not data.get("context_reads") and data.get("prior_read_checkpoint_hash")
+                    and data.get("agent_runtime_version") == "agent-runtime-v2" and data.get("round", 0) == 0):
+                from app.planning_read_reuse import reused_read_pages
+                pages, reuse = reused_read_pages(wb, data["task_id"], data["prior_read_checkpoint_hash"], data.get("model_profile_id"))
+                cached = {"source": source_binding(wb, data["task_id"]), "results": pages, "history": []}
+                new_context_delivery = True  # Bound the copy newly delivered to this request.
             if data.get("context_reads"):
                 requests = [ContextRead.model_validate(r) for r in data["context_reads"]]
                 context_results = read_context(wb, data["task_id"], data["context_checkpoint_hash"], requests)
@@ -733,7 +745,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 context_results = cached["results"]
                 if data.get("agent_runtime_version") == "agent-runtime-v2":
                     context_read_history = cached.get("history", [])
-            delivery_history = ({**cached, "results":[]} if pending_context_delivery and cached is not None else cached)
+            delivery_history = ({**cached, "results":[]} if (pending_context_delivery or reuse) and cached is not None else cached)
             data.pop("context_reads", None)
             data.pop("context_checkpoint_hash", None)
             latest = wb.latest_plan(data["task_id"])
@@ -809,6 +821,8 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             from app.context_compaction import planning_history_cursor
             paged_sources = data.get("agent_runtime_version") == "agent-runtime-v2"
             if paged_sources:
+                if reuse:
+                    prompt_payload["context_read_reuse"] = reuse
                 remaining_reads = max(0, MAX_READ_ROUNDS-data.get("round", 0))
                 repair = prompt_payload.get("plan_repair")
                 if isinstance(repair, dict) and "read_rounds_remaining" in repair:
