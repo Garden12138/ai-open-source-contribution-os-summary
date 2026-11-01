@@ -360,6 +360,11 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
             result["text_indexed"] = True
             body["context_management"]["references"] = list(references.values())
     if page_source_files and isinstance(evidence, dict):
+        for entry in evidence.get("entries", []):
+            if entry.get("context_reference"):
+                # Indexed entries can already be shorter than the indexing
+                # threshold. Their repeated hint still belongs in read_rule.
+                entry.pop("read_hint", None)
         # A repository entry already carries its source hash next to the exact
         # reference ID. Share that fact in the prompt, while the checkpoint's
         # full reference manifest remains authoritative for read validation.
@@ -374,6 +379,19 @@ def compact_prompt(wb: Workbench, task_id: str, payload: dict, *, scope: str,
             body["context_management"]["read_rule"] += (
                 " Shared repository source hashes are carried by evidence.entries[].prior_hash next to the matching context_reference."
             )
+        from app.planning_delivery import HARD_PROMPT_BYTES
+        inventory = evidence.get("inventory")
+        if (_bytes(body) > HARD_PROMPT_BYTES and isinstance(inventory, list)
+                and not evidence.get("inventory_partial")):
+            known = {entry["path"] for entry in evidence.get("entries", [])} | focus
+            selected = [path for path in inventory if path in known]
+            if _bytes(inventory) - _bytes(selected) > 1024:
+                original = payload["evidence"]["inventory"]
+                ref = reference(original, "repository inventory")
+                evidence.update(inventory=selected, inventory_partial=True,
+                    inventory_count=len(original), inventory_reference=ref)
+                if not any(item["reference_id"] == ref for item in body["context_management"]["references"]):
+                    body["context_management"]["references"].append(references[ref])
     ensure_no_sensitive_data(body, context="compacted prompt")
     prompt = canonical_json(body)
     prompt_bytes = len(prompt.encode())
