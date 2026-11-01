@@ -18,7 +18,7 @@ from app.providers.contracts import ProviderIdentity, ProviderStage
 from app.sandbox_worker.specs import SandboxPolicy
 from app.security import ensure_no_sensitive_data, SensitiveDataError
 from app.planning_diagnostics import (planning_validation_details, planning_domain_details,
-    planning_read_bounds_error, planning_read_bounds_repair)
+    planning_read_bounds, planning_read_bounds_error, planning_read_bounds_repair)
 from app.planning_reads import planning_read_paths, planning_environment_paths
 from app.workbench import Workbench, WorkbenchError
 from app.workbench_worker import WorkbenchJobWorker
@@ -805,13 +805,23 @@ class PlanningTurnWorker(WorkbenchJobWorker):
             from app.context_compaction import planning_history_cursor
             paged_sources = data.get("agent_runtime_version") == "agent-runtime-v2"
             if paged_sources:
+                remaining_reads = max(0, MAX_READ_ROUNDS-data.get("round", 0))
+                repair = prompt_payload.get("plan_repair")
+                if isinstance(repair, dict) and "read_rounds_remaining" in repair:
+                    # Repair guidance may have been issued before later reads.
+                    # Refresh its view, never the immutable Job's original data.
+                    prompt_payload["plan_repair"] = {**repair, "read_rounds_remaining": remaining_reads}
                 prompt_payload["context_read_history"] = context_read_history
+                prompt_payload["rules"].append("planning_state.context_read_limits contains the enforced current request count and numeric page bounds. Obey these limits on every response, including JSON/envelope repairs. Use continuation pages instead of exceeding max_lines/max_bytes. No remaining read or repair capacity is restored by a correction.")
                 prompt_payload["rules"].append("Large source files, including requested paths, are indexed rather than inlined. Use read_context.query on their reference to locate code/test symbols, then start_line/max_lines for exact source. read_paths only captures missing source; repeating a captured path gives the same index. After inspecting needed evidence, finalize the pending plan. No tests or code execution is authorized here.")
                 prompt_payload["rules"].append("Each context read identifies its actual source_path. source_complete=true proves the full original file was returned and matched its content hash, even when partial=true describes a line selection or serialized envelope. Reuse that inspected source; do not spend another read round requesting the same complete file. source_complete=false never proves omitted source.")
                 prompt_payload["rules"].append("context_read_history retains earlier actual tool responses in this planning job lineage. Reuse their exact text alongside context_reads; a newer round does not undo earlier inspection. text_indexed=true retains metadata only: retrieve history_reference for omitted text when necessary. A query result is only matching lines, not a complete file. All read limits and approval requirements still apply.")
                 prompt_payload["rules"].append("Context max_bytes is an upper bound. delivery.limited pages contain only the returned prefix, never the omitted source. Use delivery.continuation parameters with the current issued reference matching source_path/source_hash; preserve the original query/line selectors. next_offset is the actual next byte, not proof of completeness. Delivery does not add read rounds.")
                 prompt_payload["planning_state"] = {
-                    "phase": "read_only_planning", "read_rounds_remaining": max(0, MAX_READ_ROUNDS-data.get("round", 0)),
+                    "phase": "read_only_planning", "read_rounds_remaining": remaining_reads,
+                    "repair_attempts_remaining": max(0, MAX_PLAN_REPAIRS-data.get("repair_round", 0)),
+                    "context_read_limits": {"maximum_requests": (PlanningEnvelope.model_json_schema()["properties"]["read_context"]["maxItems"]
+                        if remaining_reads else 0), "parameters": planning_read_bounds()},
                     "source_capture_index": [{"path": e["path"], "content_hash": e.get("prior_hash"),
                         "available": e.get("content") is not None,
                         "bytes": len((e.get("content") or "").encode())} for e in evidence["entries"]],

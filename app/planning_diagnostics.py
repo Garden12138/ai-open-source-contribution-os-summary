@@ -84,8 +84,8 @@ def planning_read_bounds_error(details: dict) -> bool:
         and set(types) <= {"less_than_equal", "greater_than_equal"})
 
 
-def planning_read_bounds_repair(details: dict, *, remaining_rounds: int) -> dict:
-    """Tell the model the real schema bounds; never clamp or execute bad intent."""
+def planning_read_bounds() -> dict[str, dict[str, int]]:
+    """Expose enforced numeric page bounds without provider-specific guesses."""
     from app.context_compaction import ContextRead
 
     properties = ContextRead.model_json_schema()["properties"]
@@ -94,8 +94,13 @@ def planning_read_bounds_repair(details: dict, *, remaining_rounds: int) -> dict
         prop = properties[field]
         numeric = next((v for v in prop.get("anyOf", [prop]) if v.get("type") == "integer"), {})
         bounds[field] = {k: numeric[k] for k in ("minimum", "maximum") if k in numeric}
+    return bounds
+
+
+def planning_read_bounds_repair(details: dict, *, remaining_rounds: int) -> dict:
+    """Tell the model the real schema bounds; never clamp or execute bad intent."""
     return {**{k: details[k] for k in ("reason_code", "fields", "validation_types")},
-        "constraint": "context_read_parameter_bounds", "context_read_bounds": bounds,
+        "constraint": "context_read_parameter_bounds", "context_read_bounds": planning_read_bounds(),
         "read_rounds_remaining": remaining_rounds,
         "instruction": ("No read rounds remain. Return a complete evidence-based plan or material questions; do not request reads."
             if remaining_rounds == 0 else
