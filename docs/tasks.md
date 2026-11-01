@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Native request1 uses5 real calls/2 source-context recoveries and saves Plan2 with producer/consumer scope and all4 commands. Operator review blocks missing extension test write paths. Generic paging/write-scope guidance passes1762 regressions and isolated-deploys. Five planning calls remain; exact new-parent revision is pending. Native, historical Node and Linux gates stay open. |
+| Feature note | Approved Plan3 revision uses3 real calls, then fails on a truncated 6,903-token completion; no new Plan. Plan2 still lacks promised extension test write paths. Source-bound read reuse passes1771 regressions/57 focused checks and isolated deployment; native effectiveness is unverified. Remaining2 calls/output0; an output-only resource preview awaits exact approval. Native, historical Node and Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5859,6 +5859,68 @@ environment baselines0/15 remain unchanged; Plan2 is only a planning substep.
 Historical Node still fails, Linux amd64 is blocked/not_run, and native Baseline/
 Coding/Verify/independent Review remain not_run. UPEVE-E04 remains current; no
 phase gate is checked.
+
+### 2026-11-01 Plan3 attempt: known truncation and exhausted output allowance
+
+[Exact approval](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope-approval.json)
+`2b72ba5a...0e9ab544` consumes the prior new-parent preview. The
+[actual native request](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope.json)
+runs on8470ca1: **three real calls**, two valid read responses, one real OCI
+source-capture Job, and no schema rejection. Native context now includes the
+existing extension transcript-parser and hook-entries tests. The final Job
+`56b44574-98dd-410c-83e4-952c1af649c1` fails
+`deepseek_completion_truncated` at read round2/repair round0. Its output limit
+is **6,903**, reduced automatically from the unchanged16,384 maximum by the
+remaining task allowance. Known failed-call usage is34,414 input/6,903 output;
+the private reasoning/final-content split and provider account balance are
+unknown. Partial output is rejected, never converted to a Plan.
+
+No Plan3 exists; both prior Plans and their hashes are unchanged. Plan2 still
+lacks its promised extension test write paths and is context-stale after the
+new source capture. The grant ends on the non-context terminal failure, not on
+an inferred permission to restart. Lifetime known use is **62 calls/1,572,455
+input/159,040 output**; three unknown-call holds remain1,350,000 input/40,960
+output. Under unchanged64/4M/200K limits, remaining capacity is **2 calls/
+1,077,545 input/0 output**. This is a local task limit, not evidence of an
+empty DeepSeek account.
+
+Generic maintenance atc4cfabe lets a fresh v2 planning request reuse earlier
+actual admitted repository pages only under the same task/source/Plan/state/
+policy/image/Profile binding, verified issued checkpoint and model-input hash.
+It rechecks that binding at consumption, retains actual selectors/partial
+flags, identifies the old source receipt, and claims zero new repository IO.
+Changed context/Plan/model, stop, corrupt/unissued receipt and legacy paths
+cannot inherit that receipt. New request-local counters are explicit; old
+failed rounds, usage and holds are retained. Budget exhaustion is checked
+before model access or reuse. No schema migration, write permission, model
+capacity, read/repair maximum or execution boundary changes.
+
+[Checks](acceptance/universal-environment-v1/read-reuse-checks.json) pass
+**1771 default/62 skipped/0 failed**, **57 focused**, compileall, runtime
+integrity and diff checks. Two of nine new cases fail against the pre-fix
+planner; an initial fixture's unsaved-Profile setup is corrected without
+relaxing a guard. The [disposable-copy replay](acceptance/universal-environment-v1/read-reuse-controlled-replay.json)
+first proves the real zero-output budget still blocks, then simulates250K
+output funding only in the copy. It measures a95,199-byte unissued prompt with
+four earlier pages and real source/lease checks, without any model call or
+native database/artifact mutation. That simulation is neither consent nor
+native success. [Deployment](acceptance/universal-environment-v1/read-reuse-deployment.json)
+restarts only five idle owned roles; four endpoints are healthy, all236 tested
+source files match, and the native journal/Plans/budget stay unchanged.
+
+[Final audit](acceptance/universal-environment-v1/native-plan3-read-reuse-final-audit.json)
+verifies396 task events,74 historical files, SQLite integrity/foreign keys and
+503 sanitized evidence files without credential-pattern findings. Reuse's
+native effectiveness remains not_run because output is exhausted.
+[Output-only preview](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-proposal.json)
+`635ad29f...b8eb3ee1` awaits fresh exact resource consent: output200K→250K only,
+unchanged64 calls/4M input and all use/holds, one read-only child-Plan request,
+at most the remaining two calls. It binds the current source/parent/Profile
+and retains all eight intended paths/four checks. No actual cap change or new
+model request follows maintenance. No execution/publication approval exists.
+Native first deliveries0/4, full environment baselines0/15, historical Node
+failure, Linux amd64 blocker and unrun native Baseline/Coding/Verify/independent
+Review remain unchanged. UPEVE-E04 is current; no phase gate is checked.
 
 
 ---

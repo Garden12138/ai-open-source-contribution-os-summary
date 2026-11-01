@@ -1,0 +1,2587 @@
+{
+  "version": "upeve-native-plan3-test-scope-v1",
+  "recorded_at": "2026-11-01T06:58:53.048530+00:00",
+  "classification": "D_native_explicit_planning_revision_after_operator_source_review_not_unseen",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "proposal_hash": "3bb12cfda683b58e88967d944329bbd620df18c5133ab1cfdbc19a3869f95f0e",
+  "approval_hash": "2b72ba5ab8e1f39951a7f324492c00131a4df407a4b3bce149361b1f0e9ab544",
+  "engine_revision": "8470ca1ae27ce9799cea0c2987339a0c11460f85",
+  "tested_source_manifest_hash": "ff95ca86414bf17380b6587357dcfd637c49060f04952db93bd3d4c4e804c545",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "profile_id": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+  "profile_record_hash": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd",
+  "new_profiles": {
+    "analysis": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "planning": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+    "implementation": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "review": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e"
+  },
+  "defaults_record_hash": "84b1e9ed7b8649f8b41fe14f0aeeedeb51cac04d22761e387851f0ff78ae9eec",
+  "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "parent_plan_id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+  "parent_plan_record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+  "plans_before": [
+    {
+      "id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+      "record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9"
+    },
+    {
+      "id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+      "record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6"
+    }
+  ],
+  "goal": "请只读修订当前 PlanVersion 9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57，保存其 native child Plan，不修改已有版本、不实施、不发布。当前方案已经补齐 transcript-parser/hook-server 到 web 消费端的稳定调用标识链，四条 CI 验证命令必须逐项保留 ID、argv 和工作目录。当前阻塞是：tests_to_add_or_run 承诺了两类 extension 回归测试，但 files_likely_to_change 仅有生产代码和 web 测试，缺少 extension 测试写路径。files_likely_to_change 是 Coding 的精确写权限，不是建议清单。请保留现有六条写路径，并明确加入 extension/test/transcript-parser.test.ts（已有文件）与 extension/test/hook-server.test.ts（新增文件），使测试描述和写范围一致；在测试安排中说明对应文件与断言。按冻结 extension/package.json 的 tsx --test test/**/*.test.ts 及实际测试风格设计；必要时补读现存 transcript-parser 测试和 hook-entries 测试，不在宿主执行项目代码。不要重复调研已确认的生产端问题，不扩大到额外业务文件或修改环境/验证命令。HookPayload 在冻结 hook-server.ts 中已有 tool_use_id 字段，可按源码核对；如发现确实需要范围外文件，返回实质问题，不能隐含扩大权限。所有新贡献代码/注释/测试名称使用英文。仍需对实际新 Plan 精确批准才能执行。",
+  "request_body_hash": "59a3b90b7383ea281cd4aa2ec1cfe2f0aee750367ed70f0b50df569f211d735b",
+  "budget_before_request": {
+    "version": "planning-budget-v1",
+    "revision": "2fd2d01a7764d8c88ec2b8e11b88c7a49623037205fb5f48af9621e8576ac069",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 59,
+      "input_tokens": 1474279,
+      "output_tokens": 147591
+    },
+    "remaining": {
+      "calls": 5,
+      "input_tokens": 1175721,
+      "output_tokens": 11449
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "max_additional_model_calls": 5,
+  "max_new_readonly_requests": 1,
+  "start_sequence": 381,
+  "history_before": [
+    {
+      "id": "645f8178-48d4-4ed2-8424-0584f9db5ad8",
+      "record_hash": "feb08fda4233512a42e0382316ee3607c05154b06e9731e01a092ffed4c07fb9"
+    },
+    {
+      "id": "b009d2eb-1977-4573-95db-eabc907faf29",
+      "record_hash": "f96b1703add957ee12421579a038124acb801e82e8dc437bc396093417a88791"
+    },
+    {
+      "id": "db7f2ccb-fa39-4114-a94a-a50017b08312",
+      "record_hash": "93f765877ac2e37aa518fedc570376ec3a24d350e4bd47e912abd99632edde78"
+    },
+    {
+      "id": "595fa5d4-1ae2-420c-b1d6-1712538c4259",
+      "record_hash": "e781a120888606fdbe214d4c038d09745f7832f2931fa1b4465738b494f6a624"
+    },
+    {
+      "id": "bff65b59-54ad-4fd4-9d10-a50e66b796a5",
+      "record_hash": "7f86b91a4935a1fd07b581600ea0abe49a43eaabd9429a319abcc5f77943fdbc"
+    },
+    {
+      "id": "9d598621-0c2f-4931-8a4b-4329af9bdbc0",
+      "record_hash": "fc255780d9461234414f272d22586b2c99c5b5472b503ffc4c7314d82ac42528"
+    },
+    {
+      "id": "d0517343-5137-45d1-89d3-097ce6e997bf",
+      "record_hash": "38d92151e9e0e6f36807a8d0a2b5a7cf87bef00f4bb1c55c02d4dac00fbf8c48"
+    },
+    {
+      "id": "a8bb69e5-1aa6-4505-8648-c344a14917c6",
+      "record_hash": "1e074dd837a87bd889b9cbf7ec6f73dc106fe6ebe2fb7e28528055966eb0a749"
+    },
+    {
+      "id": "4ecb79fb-4c41-4289-9396-9286a5ca3f0a",
+      "record_hash": "8acbca48dae806387cfc9a2857fe6448f60a9ba7b104015bcba8a081a343bd2a"
+    },
+    {
+      "id": "ab18d028-b7e7-4cb6-b37f-e043bfdf1550",
+      "record_hash": "6d6feffe5e5ee6f6e5ebfb061591bc26f2fce1f232812148402c28240ed06eb1"
+    },
+    {
+      "id": "3bfae2f1-6f35-4071-b0d7-291892114fb1",
+      "record_hash": "5f0f7241b990d26c1416e5960872b60d46d72acb42630f554951ed8764d0a53c"
+    },
+    {
+      "id": "ac39b743-61d6-4ae3-9ded-e96204795d06",
+      "record_hash": "0302382b0c1884e465909624b8c133e90757f1dc4bf5499e2030f04aa7b69890"
+    },
+    {
+      "id": "5d688621-4649-4f45-bdec-97ca4b5544d7",
+      "record_hash": "018d0ea4a53d44dca986a5ecba07d50207088b7564986e0561d60ec041f48ca4"
+    },
+    {
+      "id": "30483c8a-855e-46a6-8c18-528f6c35dfeb",
+      "record_hash": "039bd0ac2c25cfbcefb10aa8a8e0a6f72dee5ab51e55af4712f9a0c7c952ff19"
+    },
+    {
+      "id": "57420a6d-4f4a-49f4-9790-3b26c74802e5",
+      "record_hash": "da6e44877c924f076691be43438ebafb4a404251ec0059c852fc52b4f13c2d7f"
+    },
+    {
+      "id": "1b5315b1-f7e0-41c8-9d64-295f50dd97c9",
+      "record_hash": "8b7061bfe644c8ac124b197f97cd260e299e7ac284a4a1d32784dd359e1f2544"
+    },
+    {
+      "id": "424918ba-85bc-4b38-95f0-d1d153aee85c",
+      "record_hash": "24e5dca09054c85e3a239012cb70f6a07cd4af8ef383780e31f7b900b06a6a0e"
+    },
+    {
+      "id": "f53d2b96-6639-411a-b72a-d7a8573c168c",
+      "record_hash": "193ad2e6b3e4dd2a5aa192cb0efdd1471d57f5044e19f3796faf76368862e096"
+    },
+    {
+      "id": "b8f621a7-9f0b-4a7a-9522-d2f405b6f7f4",
+      "record_hash": "f5ab5b17e67b1c5116f67b3d9f896573af5f77e8c904fc7bfc654aa62ed84087"
+    },
+    {
+      "id": "f2da2559-e5b5-4943-85a0-d45dce10291e",
+      "record_hash": "2be7c2193b7da08220647be72ccffd31860d640ce8de526a14b15423d3e9f71f"
+    },
+    {
+      "id": "799e453a-525b-41bf-b8d7-2294bf9267dc",
+      "record_hash": "53a60d34610e15bbd64f7df72c51c8facbb3837bf99cc24fabecc33ad6b1ba86"
+    },
+    {
+      "id": "80bdeadc-0286-41bd-8cac-a1390ed05f1f",
+      "record_hash": "6cb0d5622e11d1975a30fc2a6b64bc6591748c6d1317665c40f2a950cce7309b"
+    },
+    {
+      "id": "d959c24b-92b6-4e50-bb18-363d82ee3ea1",
+      "record_hash": "24d134568cc5a45b30d0eeeeb7c7af0422bbfbbea5b6bc694b99c6cf07679d6e"
+    },
+    {
+      "id": "97ee4b20-bda9-4aa3-be88-83923a144dda",
+      "record_hash": "f218f861bc9132a9fc8c5b2b45e09d424e5ba11951ea650ca3d4ee56c1ec72d8"
+    },
+    {
+      "id": "25de34b1-940f-46f6-afd6-33a0750a8e73",
+      "record_hash": "7d5f521c8c85c1c316b2447ce696780f6d4e406e20139ff6be0d0ccb2fb7539f"
+    },
+    {
+      "id": "af38c223-f279-457a-9fa9-7177b1f52af4",
+      "record_hash": "2decf0344545746c7bee1569a7be8af906605942ab5abae7ba23478d1a3f8fc9"
+    },
+    {
+      "id": "e0777294-dbda-476c-96f2-e39995a702e6",
+      "record_hash": "3186b9a57fd5f0d67e0c2c9010e20e1eed5fa52144152900a247b253fb8591f6"
+    },
+    {
+      "id": "1f48fb09-d51f-4e76-81e6-b2fda59f334d",
+      "record_hash": "0dae7fa2e313b959a2f59413655782214436e3c9e80beb4451282ebc0419a388"
+    },
+    {
+      "id": "a7299767-09de-4a3b-8a40-6a2c76ec5c8c",
+      "record_hash": "5859360d4f4b4339ed3c263a48f7c14cacd88a6feca780785b4ef24555e57351"
+    },
+    {
+      "id": "4034ceb7-9c9a-49bf-bd6a-6950567f3a76",
+      "record_hash": "53e38e68874af9fbf3bc1d99ef8cf4c451dd4d79bd29d17707d3d3cec2c7fd9b"
+    },
+    {
+      "id": "1faf5692-2e86-4867-b7c6-9e3544a816f9",
+      "record_hash": "be6af95d9f66ba58188a85f9aace36cba37e0bedbd39027b3a73a7c65265bc59"
+    },
+    {
+      "id": "0da42d2e-7bc5-407e-958f-19677b1b573f",
+      "record_hash": "83124129e5efae4add0837891c1c23f788e334e11cbe6663f346675707e45cd3"
+    },
+    {
+      "id": "97dd3447-f309-4882-827a-706a17a181fc",
+      "record_hash": "3679ab65f6b36ee77b4bd33df5437e9c0f43860c68729c1181c23553315965a9"
+    },
+    {
+      "id": "84dd980a-eebb-434b-b5f8-3f8bec433ddc",
+      "record_hash": "ccfa1ce213c3eaa0062c620520aa99159aa037c57702b8fb6a1a6313a7e9eb8b"
+    },
+    {
+      "id": "8849df54-931e-4fa8-94fd-3e3da437afb0",
+      "record_hash": "1c3dff234580d1d0c7aee2ed7e674bbf629a83f76986b83a0833350eb1a151c3"
+    },
+    {
+      "id": "6c33501b-fc15-49fd-aff5-677df29896d5",
+      "record_hash": "d60d3e0f3554de5a8efeffbe0392d75707051f4dc6c784a13a3c946aa82f3129"
+    },
+    {
+      "id": "699541ff-50c6-48a8-ac63-210cb82224e5",
+      "record_hash": "af31f0fed90df10084a9fb505a6f70ed66d7cc77f142767186e4edc9e2259f28"
+    },
+    {
+      "id": "65abbfbd-e95d-4d28-a4b5-0b8e718106bc",
+      "record_hash": "c214f647532c51eef9bb1a2c80a93b78c19807beea8357d0dfa31f8af11711f8"
+    },
+    {
+      "id": "2155d711-8521-4598-ba04-eded91a7bebf",
+      "record_hash": "a2072900265a1aaeb6f949f28e48a719695a0de8e28e59d360c096265f2bfe2f"
+    },
+    {
+      "id": "14025557-933e-43d2-85e5-50ec5697c421",
+      "record_hash": "844da5925ec40dfc5472aadb3d7a1b4d854503c84ff70ce96ba415b6a8a0aa5a"
+    },
+    {
+      "id": "008cd055-717d-4ca4-8475-12b29ef00839",
+      "record_hash": "90e0ff9dbf7ad02b55ad7ee9f2e0961b58c1f2170948a5ca7af09055e9b5b1b1"
+    },
+    {
+      "id": "7c9508c0-d623-48f0-ad7d-5ae5be7b9ac4",
+      "record_hash": "4680c70952e06733e66bb4d20ed4112bf84d39f732dbdc3d90e030d41a9ac46e"
+    },
+    {
+      "id": "ca5cbfca-738a-420d-afb9-f3fa41784100",
+      "record_hash": "7503eb969588c1114b19a70c6e9f5b4746f527355c52921d1c9ee281e7c9d35e"
+    },
+    {
+      "id": "5058f7f3-50ee-4f15-a798-9e0701238455",
+      "record_hash": "667807165f8dfe26b2a5a3274c0995bc6f79d3ff5bc5380eb45ef1f612b8ab64"
+    },
+    {
+      "id": "2f418eab-4766-4c62-aeca-5de4f7852729",
+      "record_hash": "d5a9c746f78571f8f54aa0fb643cdf004ff243b97a1b70a20350ade4b030c4ad"
+    },
+    {
+      "id": "26a2f6c1-a320-4de9-92dc-e073c502ab90",
+      "record_hash": "6071b21ad91023145975d3a2e21d6a3161b67d7e2f20b8d5e9081e0b6a9d3338"
+    },
+    {
+      "id": "58bd39d3-8d91-4817-ad62-291a08ab2db3",
+      "record_hash": "a10880335e352a3affbc2825552274e7e1fb69e69c4bd5fd3bfcd0d9bdd285a4"
+    },
+    {
+      "id": "6617e3d6-8c3f-4905-8e82-2b7ee66d0688",
+      "record_hash": "6d34fc94276a46a494d64933cfb0b7ec40d82e881c166053a84d0259bda6c0e7"
+    },
+    {
+      "id": "fa7d1980-f3fc-4362-9ded-8c8da2d7bfe1",
+      "record_hash": "73a18b67563d170469b1c6c3176cf6456681ebb4e5dfbd0c7ee697be82f49262"
+    },
+    {
+      "id": "a8cbe7f2-e26c-4c36-8fd1-548df9942ed2",
+      "record_hash": "e0ae95a8a59bd96a1039fa3db3dfb1bbee77c5b1e585fdcf7cb91fecad4a0ed1"
+    },
+    {
+      "id": "2673713c-68af-440a-8463-df6299fcb303",
+      "record_hash": "7b521135f874ce4c86254231fb103aa72383187d2dde616d3669fc99e0168c7c"
+    },
+    {
+      "id": "937fa19c-2d0b-455b-b831-2daa0740f8b5",
+      "record_hash": "9ba1c352dd634265b02d3cb6d8282f3b0478badda5756e4713f8ce90a68429c9"
+    },
+    {
+      "id": "6c093536-71a2-4429-9c11-1b1a8d18bccc",
+      "record_hash": "66615d3953db48b7a39dafa1e3b9356bb62468d6855daa8b2955120d1d6bd994"
+    },
+    {
+      "id": "30ce52cc-5411-445c-9b8e-1390afacdd98",
+      "record_hash": "c4f4403dd216311128604d3bc7ecb2b042893421ccc1b39fbe4a65fe89869ed1"
+    },
+    {
+      "id": "5bd88b0f-a4b6-451e-9e68-b305c7f46504",
+      "record_hash": "061a8b9c652229e506cedf76c3c2582c04e8e69d321e2a9fa2a8ca9cc46e5ffe"
+    },
+    {
+      "id": "84e9083d-70a7-45a3-b667-81acaf0b48ff",
+      "record_hash": "f3c972b99f58f651869161a00550863f5fd1ea4ed498991a8cd84107458741da"
+    },
+    {
+      "id": "a3e7eb74-bd38-4d0c-b90f-a95c0346e4b3",
+      "record_hash": "183d28d7e78d1e9f3fbdd3a36246b7cbc25bf25f33b4aa07d5fd47c71fb32aa5"
+    },
+    {
+      "id": "e380083d-8788-424a-97e7-0306e85f73cc",
+      "record_hash": "fe9e3356c839dd7ec7e4d8f54a1333bf012145f587269099e844a0b391207b6a"
+    },
+    {
+      "id": "44dc1cbb-e8a3-4497-b38e-fe7e3a53efac",
+      "record_hash": "c3ed2bf42097338f49c6892bca0125584771f6d2edd0327d184540d37bc6b44b"
+    },
+    {
+      "id": "bd798f7c-8405-4d38-b414-21e9c45573ee",
+      "record_hash": "27f32ffa87b1a57626ba9a01a38523af3147182e9110e2b6efc68dcb15529ede"
+    },
+    {
+      "id": "aaab7d8b-bdbc-45bb-8d74-e9dfcfb965ae",
+      "record_hash": "56e0f6420098c58cf03ca6456ba76c609484956138fe91e16b006c1f5264896a"
+    },
+    {
+      "id": "ef76250d-9ecb-4373-8ede-1e626533743f",
+      "record_hash": "82ba7b452ce5ac3807e24959557c61234334c9ddc07d2eeeead8f14481e1890f"
+    },
+    {
+      "id": "7314548c-fdd0-4c9c-b343-213eb53e06f9",
+      "record_hash": "7bf42e6c9d7e1b3ba4cb3e2ae228a5f70c2b95bdeaf18a8ea6e613e27c73da57"
+    },
+    {
+      "id": "3f59f99e-430f-4b5a-94cb-35385e2fa17f",
+      "record_hash": "f1795faa6de4d682c71948a822d8c72f8b9ec61a75f9e18a2bb5c890525876f1"
+    },
+    {
+      "id": "62d646c4-684b-4a6c-a4b3-e3c1e36e1611",
+      "record_hash": "3bd66cb56528f67883abd966fcedcea7c2af7b3227fc552bb2241a6038973565"
+    },
+    {
+      "id": "ddda0b0e-cdcc-4695-880f-b6158f75aa92",
+      "record_hash": "ea0f70fb49ca26f9d6b405dfc29170c7c6599cfab951667c15174ce71dafdea2"
+    },
+    {
+      "id": "f6306d95-354b-476c-a64f-c1feb9ac9254",
+      "record_hash": "b48491b2e2141cd84353d07d00fec6d100f6c55b0aa93cff50695b1dde8203ce"
+    },
+    {
+      "id": "89f213db-1477-4fd9-ac22-212769982251",
+      "record_hash": "bf1c336430549ab6b59c390a8f58a184d8a7d4ffdc7c332a69faf55697266b6d"
+    },
+    {
+      "id": "6f27d207-d16f-4fd2-a09e-050b0d07128c",
+      "record_hash": "02a7a9b97717fedeee26cdef6a83635b67cf29670d0ea54878e97e8a4c09aa2a"
+    },
+    {
+      "id": "5ab827e7-ac17-443a-bdac-e864bb70b547",
+      "record_hash": "9fd39eab4e47eccc2a9f78984dd02b61c81731544c3b1c68efd5ff8fb3e885d6"
+    },
+    {
+      "id": "36a380ad-32e8-4b8a-befa-f4ab9891e8eb",
+      "record_hash": "af2478715937d1df5a714950bf2b0accf84f4b4e877cf45715041b38ea9f48f4"
+    },
+    {
+      "id": "86ae89b6-1a48-40c5-a704-c8c5f533ccf7",
+      "record_hash": "1cedc5b865e1f2c9987ae556df93cca491a98d88b45241826a437d41a7770677"
+    },
+    {
+      "id": "96748890-1075-4e16-9258-327e7ff450c0",
+      "record_hash": "31c3160cc258522c4614145d753ed9d3e18d3824c66bdf7347e3cdbe54b6ca47"
+    },
+    {
+      "id": "f010c793-8923-43ae-9d4f-89b6030c487e",
+      "record_hash": "ea14fbe887183c6b527273aaa0c28c56b38816cadf54109eb157fcd15ac2fca3"
+    },
+    {
+      "id": "e24a9cd0-bceb-4482-9fdb-5514b8eb8d3c",
+      "record_hash": "1c74de10a41d707fef35cdfc667226730cb52ae6f7997de10887de14ba6e7692"
+    },
+    {
+      "id": "c6ffbb1d-13d1-43b8-b9d7-448e984e6c6b",
+      "record_hash": "a9476c7e3f1580978c67c45d575c23de15aac5f444dbd89dce095c17f7c7bc2a"
+    },
+    {
+      "id": "8591519b-4798-489d-8d01-c24dc3b6b753",
+      "record_hash": "c1507eaa5162098aa74359983c54b2160825468aeeab231927548c90ea87a1b4"
+    },
+    {
+      "id": "aae92980-74b4-4273-8f9f-7303762a2ff5",
+      "record_hash": "ce60988ef5c7a2ec94c69ede6e12e259f4e644c23ec259c5905b1e0a4deb9a64"
+    },
+    {
+      "id": "11312743-638c-4dfe-adf6-e4f8f13aef3c",
+      "record_hash": "33d56f7ded4c0f3a69c469728070874d98e2201b9100015014677e4e200692fa"
+    },
+    {
+      "id": "f302a0ff-50bd-45b7-ad40-642e6df9e008",
+      "record_hash": "31e38eae36e3ea02d213caef37f61cdbacfe8ef71f510857adf48d2366720655"
+    },
+    {
+      "id": "cf36e4b1-c7b9-4737-b1cb-27c28e7f1fbe",
+      "record_hash": "25afd27f45de695441a606349122d76e76d72d70b42b30c20b7853fa7a455e02"
+    },
+    {
+      "id": "f5bc29f3-cd58-4fa8-be35-e24f1efa4e12",
+      "record_hash": "64875d413d4ba42b2a28a29d163204442b77bfddb7dc02cee7ebdf746d4f37c8"
+    },
+    {
+      "id": "aa31829d-dc65-4a09-9dc9-e15304f555de",
+      "record_hash": "58baa91c57f330ce4dac3b5509077ac538185b929c8ea96dee6ee126fa15e916"
+    },
+    {
+      "id": "62314018-552d-4a13-8fb7-fc35a5da2976",
+      "record_hash": "3c72b92e4bdb84856a2630e40792b5ba466512cc52515ea567926c875c87484a"
+    },
+    {
+      "id": "ad23e3af-d8aa-4883-bec8-280d583b9ea5",
+      "record_hash": "99e22ae745055daf442374f9aa06a731200c66e60df8379b7ca439c6055e84c2"
+    },
+    {
+      "id": "5e67a920-2475-40a7-9dd1-2b8482ec7990",
+      "record_hash": "5044bf373b63599490c7e5f4433722f990c947f438d677c294c15a6735805f8b"
+    },
+    {
+      "id": "ece406db-f8fa-4bbe-af14-e75694426965",
+      "record_hash": "cfd08ad07672f58dc0e813e9ab7bfb08d09c889c1adfe290c500c5bd192a7349"
+    },
+    {
+      "id": "3a6c4674-51c5-43ee-94e6-a5aa1323dd68",
+      "record_hash": "f003a62d0d41cbc1bc82af9384e10e5a7f7c39415de5b3dfd7eb911942b80452"
+    },
+    {
+      "id": "f4ade47c-a9bd-4f55-9cc1-bbdfaa6358c0",
+      "record_hash": "24a09a915cc7ed6feb4805d09956bcc1980af39faa47d85f10c4261f1bbc6dca"
+    },
+    {
+      "id": "501f7ebd-5137-4741-b3bd-a8468c5257a0",
+      "record_hash": "04e54b11cfdef58c437deb40f4b99516f0c5230b165135c0e1d41de2d469bbe6"
+    },
+    {
+      "id": "25c8a83f-712d-4469-afc8-7c0684a4c258",
+      "record_hash": "82821c9bb7a4f46f6cfcb94c435e4e5ef1c3b16855c4c430ca063fde3f055464"
+    },
+    {
+      "id": "9df0103c-9f76-4a96-88a8-d5c055f9db27",
+      "record_hash": "16fa23dddfcdaa2aa5040abb4d0925859be4f2fa66ab05fbc352150e45526549"
+    },
+    {
+      "id": "500cfd0f-cdc2-434a-b3c2-d745b070e7dc",
+      "record_hash": "da7d824b4da00e57404ee1d898cac538c0b6df1cfaeef43dcbfdf45a0dc617ea"
+    },
+    {
+      "id": "dc884c96-fda7-41e7-a370-cd9962c8c82a",
+      "record_hash": "b939cf59b8ea4116b8ad1449f34a349fe84ca566e8a092ebf07a422cee910a07"
+    },
+    {
+      "id": "bd5a37cf-0062-4c22-8d11-f7fffcd16d85",
+      "record_hash": "1b7ad48859fb29c233121b3fd0504149fc90d614e6078ba318e831e8d77844d2"
+    },
+    {
+      "id": "b1a6bd08-b8c2-4916-a2a0-183e72eaf0bc",
+      "record_hash": "289fccb560bb28c12e01d03c1fe09d748ff9ea826d38425ca3d1cc6e6774faf2"
+    },
+    {
+      "id": "04ffa9fe-966c-4437-9477-d38472adecc6",
+      "record_hash": "926ec420717327388e87f09051ad5c097c15f9217719207171f022470c746552"
+    },
+    {
+      "id": "1b9c2258-cbe4-4415-b35d-b7f1271365c4",
+      "record_hash": "3540ab40b57884a1ffea3fcb0521bd5d4559b2700e3d62dfd4a03351aca6de28"
+    },
+    {
+      "id": "59be2e36-b6b6-42bc-8302-f91ed5d372af",
+      "record_hash": "92aca7808ef73729ca15bc065433a2534516e289dcea4a87560e076e39948c48"
+    },
+    {
+      "id": "6cc8aa7e-c0e6-45f7-b767-a224cb07e4dc",
+      "record_hash": "0b66b2cdef93b7a1485472fc0e85fea6ab06f7849406127565108715cdd8c985"
+    },
+    {
+      "id": "9ca9298f-4db9-496f-928f-7795857c19ec",
+      "record_hash": "49fc7705c8afeff3e21cb35ebb34e117691d0cf13a7be7345f2cb5b99c4358bc"
+    },
+    {
+      "id": "9cb52ffb-22e8-4ef8-8671-5ca3ac757e30",
+      "record_hash": "54ae6efa12d3453562460aa279bc7f21ee145f8e000cccc75cd07bf887af566b"
+    },
+    {
+      "id": "5f806003-65b4-4463-abe8-adfc728e3f00",
+      "record_hash": "fb75660f750f1f3041bfa590475d210f89b66e3ead5579d9ece540bb81c20e0f"
+    },
+    {
+      "id": "67209a23-6ced-473a-b948-be7459789ccc",
+      "record_hash": "cd699362c3e6b8a17ab0179bdab20b72f9cf5e74ad29688652902f805cf0552c"
+    },
+    {
+      "id": "9a229d16-4d5e-4b4d-960e-45effc042e4f",
+      "record_hash": "b544ce09f55b211cd493c40b4ced741fd097b5717ef00716d9174a7f2a6cc4a1"
+    },
+    {
+      "id": "88a942ff-3382-4d26-95a1-c3973c63af74",
+      "record_hash": "2cec50661f3de1ec392a5946953a2cec712b3edf206efaf2cc9648a27b23ff8e"
+    },
+    {
+      "id": "2c91f5cc-b711-48e0-b49f-ea1b85e88885",
+      "record_hash": "1a77df98ccc0a86664f130f0e783b10155154f68d5cbdeae5f884631f87ee4d3"
+    },
+    {
+      "id": "7fb9f0c8-83bf-4c90-886b-5d74605ddb41",
+      "record_hash": "a7c3dff15ca07220703ccb49c7a2164773d321408e06f5cf9feded9bbc1f2ba3"
+    },
+    {
+      "id": "c6083492-51e1-4523-ad2c-922eab5c539d",
+      "record_hash": "05d56e52bb2c182dbd3470cc7145737ae82760c3d7917453bc7592c4fc358e48"
+    },
+    {
+      "id": "af806b4e-1c4e-4428-9497-de356a10a551",
+      "record_hash": "e2b46cc3326055207fac933d5a921b277ddb6bce4a37cd1c359ecb50ed5c9951"
+    },
+    {
+      "id": "2dce7c30-672e-46cd-b563-4be38dfef5cf",
+      "record_hash": "e7df615b2f0329913768fbb5d765591c5ba058fd983b668b23015c669ff2016c"
+    },
+    {
+      "id": "6972684f-4337-4c60-bd52-14d5b8204670",
+      "record_hash": "c48187152945ec287c35a40317ef0b810e9505ac3419fe411e22a71df1b6f8a1"
+    },
+    {
+      "id": "6337be6a-6cd1-4611-8a67-dbf2c2ba22f4",
+      "record_hash": "62b8aa473354198fa8ed9754cce7fbca6300f8bdf0dc4dfbb607c959cb864fdf"
+    },
+    {
+      "id": "c71cecef-71eb-4037-af00-0a3552cf6972",
+      "record_hash": "091a858ac1ae53cd7432f0b12414e5404e47cb9a5a77d42a66b33ea7db4890f1"
+    },
+    {
+      "id": "e4f23afe-56a4-45b0-8d4d-cc04dc8f92b4",
+      "record_hash": "0e628d5febf9b498e4f8944aab54f4582d9d0441b27aaf744566ad51ce374395"
+    },
+    {
+      "id": "dae30495-45a9-4989-ad00-722feeb6597c",
+      "record_hash": "85916489ccb3e701420aa2bce25d3e57f60933ea044c01de02edc8fbc1b0ac68"
+    },
+    {
+      "id": "1a27a34b-8d3f-4792-b9a3-9baf996e4a84",
+      "record_hash": "bf69a70f3eb4b3fbb18c7f49193ec16f076c0aaeb30b66f6c6fd13011280eac1"
+    },
+    {
+      "id": "1dac45b6-24ab-4c15-b1bb-0549ead0f950",
+      "record_hash": "2d714ba9bff4d07168c28632fab35f529f9bd41c9a5337693c0e911669a82645"
+    },
+    {
+      "id": "e40617bc-ae4a-4357-94b8-5511b7cf4b04",
+      "record_hash": "805920aa1fd749182cbd3aa92aaddb53aded3c9da99629d7193cd795138595b1"
+    },
+    {
+      "id": "4ff70dda-2277-4319-91bb-53cd657e715f",
+      "record_hash": "8ed8c69d26f38a9f4471921c59679c64900440529dc186b4d827392813b0ee63"
+    },
+    {
+      "id": "dd610000-2959-41c3-b910-4ebb20d281f1",
+      "record_hash": "bf4020674751702b387e644e10e245010822811805737377925f2ddb7c78d13a"
+    },
+    {
+      "id": "7ca3a2e0-bd84-4b88-8710-cbcba69ff011",
+      "record_hash": "2550445bfcba3dbf4779727bc7cb16a9081fff9cc658bff6a8924465a8c01f0a"
+    },
+    {
+      "id": "516c1749-8bcf-4502-8492-9e11e7107fb4",
+      "record_hash": "4bccb8eacf5ab255bf7be78310912dbe66e196f0f3428db032c4cbced37d5a12"
+    },
+    {
+      "id": "d6232fb1-cb54-4505-b207-d82b8cda6ea8",
+      "record_hash": "1c7d79c640a209ecf75747688c28d2bf4267acb278917c23a07af7ca679f10bc"
+    },
+    {
+      "id": "afdc0ee6-de8b-4d69-b747-85d054a081dc",
+      "record_hash": "e481492c03ce3af97457b6192de2f75db5616e10d0649628a1bf9de522b957be"
+    },
+    {
+      "id": "74fde049-8431-4be9-83ee-d2c3b2736efe",
+      "record_hash": "7d2deb8bab65bd9d12aeb9781e240eb7155af539a71cad00838806f82f80f159"
+    },
+    {
+      "id": "08cb6fe9-deec-4e70-afed-5b4a0ca0738b",
+      "record_hash": "63c8c2b890982a13ba3bd53a9366cc6d97a3ceb32f6cbd25c156e2e68209e9fa"
+    },
+    {
+      "id": "144a18ef-b974-4e6c-a62e-330bd215e9d6",
+      "record_hash": "79a86c2440ec65d4a9624d4c761af968df2deaea406fe1b44cbd682a1b1a56a3"
+    },
+    {
+      "id": "d840ba97-6a96-453a-bed6-72f66eb1d1e6",
+      "record_hash": "36ac75ac27c7598fc9851bb780c559cdbb9cde0b9145373cc5883275d78c1516"
+    },
+    {
+      "id": "79c817f5-c3ff-4bb1-a879-667b1584747d",
+      "record_hash": "d937c5a575bb259ef0f138adb7519420be2440a258411933c7b939c2ade1ebea"
+    },
+    {
+      "id": "82ae4bc1-4c68-4df2-b29c-7b57b7ea4c5c",
+      "record_hash": "1820137fd2921c288e9bbf4beb7ddd61ae25fc7845d7c89a1772246cef8de908"
+    },
+    {
+      "id": "b36fb595-e4fe-417e-86fe-55e5bc07ee09",
+      "record_hash": "1f6023e0d710029622f3c6efd4fb03a536a46ec8dcd07204d5417de21ee6eafe"
+    },
+    {
+      "id": "59c60679-41dc-416b-be97-d27b2d6cd60d",
+      "record_hash": "0012a8e19fc08d67fcf139ff505aa9f03c76d9c8675a3814defa31b1afeba810"
+    },
+    {
+      "id": "7d737498-226e-401a-ae01-04081184efa0",
+      "record_hash": "f9ea7420aa8a9f0eb85da68ecf2128cbe8f3dbf53d52edefefb980fcac6f4b51"
+    },
+    {
+      "id": "3cb4393e-1178-4aa8-8438-ca5ab013ecfd",
+      "record_hash": "eaf7ba8f5a7a6531ea83a5fd026d0d27bc2eb82b86f5f7d320f765077908f117"
+    },
+    {
+      "id": "175e45a1-336a-4299-8b93-7ee1ee1daa7c",
+      "record_hash": "ec2757529915d50103b80e937700defd578a681a00344bebe5db375b61c1fd72"
+    },
+    {
+      "id": "aba7c1ba-63f9-4d3b-8229-4c36e8998908",
+      "record_hash": "fe18f86b7d3be831c98684dc83f3c0d9509bb5f609d7e114fedf9745a6623b17"
+    },
+    {
+      "id": "43be28d8-d77b-4a8d-b49e-3c45a4b7c10c",
+      "record_hash": "aa24eb59da81a3a7af84c49bf0995a0bb7740e1d64add518f4d3a790f38650f5"
+    },
+    {
+      "id": "1b6887a2-0921-4377-a2d9-9f46a2fa685a",
+      "record_hash": "abda04c57a99bb2b17eb0ce305d6bfbe34c3ecf7b3b2bdb467b80c2e21cf7385"
+    },
+    {
+      "id": "76b096a4-0e01-43e6-8541-caddb55125f1",
+      "record_hash": "bbca12abb7c61ec769ead7dfc5ad0cb9f841f99f5cbd29b81bf18d5497144cb9"
+    },
+    {
+      "id": "96ccb2ac-b12a-4b87-aea6-6a159aec5f77",
+      "record_hash": "ca4e92396127790c59067e4e080ea34d944afd8e3dbac956bae9264851bd404c"
+    },
+    {
+      "id": "7c5358d1-93ce-45d4-a710-8012fbbdaa1f",
+      "record_hash": "1c840d54d671785b6248ca926075d207fb3095be673769ffeeed2716d6ec88c2"
+    },
+    {
+      "id": "b1e03e38-e0ce-4c57-b328-2f57b585b461",
+      "record_hash": "2f4bae7bfe01231f8a03564c149aa73e4710b4983e86f5e12b8f510bab1388c4"
+    },
+    {
+      "id": "c33478bc-4e9f-449d-874c-33426b426480",
+      "record_hash": "8f5eb7a9346742b2a521c2db04649d20f9e20cb8cfd7ee7b956893bc39298cf1"
+    },
+    {
+      "id": "1116764c-8650-4042-b197-11784f806ff2",
+      "record_hash": "20e3da797f9cee05dd1578794bdf7c54deb6d1981076a26cf90405e673924ab6"
+    },
+    {
+      "id": "f334579d-5994-4d45-9b97-2155b14c703a",
+      "record_hash": "a69bd344d0edd55daa26a209e6fad72a0d468fb8ece98e7f077dfa23d724a1d1"
+    },
+    {
+      "id": "ab9b450a-7949-4953-a737-5f4dd9668e93",
+      "record_hash": "85e5d1bf35a40a92df58114253b80bc328f812f034c5c2d93ed4b946c602854f"
+    },
+    {
+      "id": "aadbbe8d-f773-421e-a11c-ecb6d88edfac",
+      "record_hash": "71ddb0e39685ecc0f6a2fb26ff5d35bb00a1dcc362356a885f78940fbc2705ea"
+    },
+    {
+      "id": "8335afdc-9ace-4472-9067-b975c240aac1",
+      "record_hash": "7a95f9f2ad1b3cc6a1bfab9cc12d4283de8ce25fc844d30350e47bb107a09472"
+    },
+    {
+      "id": "f617a495-0ea5-4f59-99da-dca41196d1bc",
+      "record_hash": "8549a21d7f463ec7b60d12b0ed71f94ed97495312299a46901c4e0de6a2cda22"
+    },
+    {
+      "id": "99f06fc7-e40b-4f99-8bf7-fda01771548c",
+      "record_hash": "d6d0313dec8ffa8ed681a3437b478c98ec9be13cf79080e6b1d50d4f093d5847"
+    },
+    {
+      "id": "d0899b7e-b34f-4793-b2f3-88a75c77e19b",
+      "record_hash": "5ffd2d24718c32c0318df6839d151223e9c76df5e3e9ad122b3b3b79ae6f2416"
+    },
+    {
+      "id": "4f18d748-461c-4383-b36d-4e31e5ae1f73",
+      "record_hash": "06371b788be7f87df3970a7d42a04c85fe1c0a132960dea1541b6b69f7dc02d1"
+    },
+    {
+      "id": "93cb15c3-86b9-4026-8356-e78c6accb525",
+      "record_hash": "5083aeec7ef27d548afcf927cb5fdb9ab91985b882af18f38f03264b9f644a8d"
+    },
+    {
+      "id": "acffa761-5b16-4d8f-b46d-2582fa6b9869",
+      "record_hash": "70e24e362cca49d398578b099ce4b1bf2008633489c3222e6e9be58a94f999fe"
+    },
+    {
+      "id": "b5708d30-979c-4a84-91a9-cecdfb652847",
+      "record_hash": "bbe3635c1600b359d3afcc201e1b44d664c15d69644e56bf89ab3cfc78869e9f"
+    },
+    {
+      "id": "b7d9231f-c218-4499-b20b-72de5c99ac18",
+      "record_hash": "e1cd91788c96b1132a076600624a65c5dd4c3e05ef7523dc8fa7488be0e8093c"
+    },
+    {
+      "id": "fb0f218e-d68c-4de7-b696-317dd7af9006",
+      "record_hash": "b5cc6fc280a990440b1286e584bab1b699edbb2a22042aa3524ece0a54b22792"
+    },
+    {
+      "id": "00c01d1d-87d6-4982-9241-402785bf5447",
+      "record_hash": "60055bd9203b888202cc2442cb1d73f46e6e5ea961d3cb0d76b7687a1868fd18"
+    },
+    {
+      "id": "9aa0da3b-1102-45e9-abe2-4071430654de",
+      "record_hash": "498a25212477d2d2d1832a0e1d64dccc0b8089db8df1c7b96e015396109ed378"
+    },
+    {
+      "id": "8a68c89a-0572-40d3-b831-de2de624107f",
+      "record_hash": "436f772b68f74318c37ab099dfd85d7c4840ddfc3c642f244c81fe64ca1b68f5"
+    },
+    {
+      "id": "9f06a4c3-9148-4b4a-86a5-ed9b1ddb85db",
+      "record_hash": "22b0b13fc38f2441b8cbf94f03f753a333300882495127e704b9a3772a52344e"
+    },
+    {
+      "id": "38a354f8-8ebb-4e20-834a-38c81d0a99a6",
+      "record_hash": "6d5d483184208cc24bc3a6d3f2b03155e0bd4331a2b941c388fde523a5b70ef5"
+    },
+    {
+      "id": "18bc37c6-fffb-4cc9-ae52-6754c7135a18",
+      "record_hash": "f79e04e27f92d50be9f79086dd8f57accbc177caeae87d6b8c8b2ff8ab79b97f"
+    },
+    {
+      "id": "bad723f6-310c-4053-930b-cd084032bada",
+      "record_hash": "e3ec8da38d7d44a54951633f04cbba982b9791c004548a9c7b809afeebe57808"
+    },
+    {
+      "id": "468d154e-f775-4403-93ab-cccebbcda7f7",
+      "record_hash": "b71cab193b18dfdeed41e9453ec630291869480e6e73a410ab90b556e096f345"
+    },
+    {
+      "id": "11e2c5aa-23bc-4ca3-8839-5541435f08aa",
+      "record_hash": "6d19eead9ac0145c72ebf1d5e8325502f39dac944b48334e3e36d3366d87d429"
+    },
+    {
+      "id": "7ce55b89-42cf-4a0a-aef3-a705e5f4b366",
+      "record_hash": "31f0f91f17e3487cbc02d5c2ef290d1628a49159a4cfdd2d48f205c3b09874c1"
+    },
+    {
+      "id": "494cce3e-c4b8-4b54-bc09-cbb709286daa",
+      "record_hash": "ff9cd58f727e4e8ac8f2a7f7695124791b1fd9a07362f10e5f355735b6f555d7"
+    },
+    {
+      "id": "c53eb64f-3905-47e8-b796-82e4e27714e2",
+      "record_hash": "e9592dbfa02c60628f86e4d29fd92bb79dd00bd336e23caefd59d90db7ad4cd7"
+    },
+    {
+      "id": "e5174356-fde8-4527-a475-7fa71fa80b8f",
+      "record_hash": "451742684fa1c4cbcc4838dc97e9da580e467126039eda769f7aed6a0584dd10"
+    },
+    {
+      "id": "7ce98723-24a5-4a61-893b-327793c56169",
+      "record_hash": "51703158dc95fe0b5a7e23f27f4d2ad34c406c0b9a1ebe2a155c59155dd26e14"
+    },
+    {
+      "id": "42eb2a61-b9e5-4c14-82ae-47365cff42af",
+      "record_hash": "bfc2046c28103c023f76c089c0d95b9008bb134ad9498a35a70c3baa27d00298"
+    },
+    {
+      "id": "3b773af5-7b4a-456b-b02e-4f8026ac38c8",
+      "record_hash": "24e2894141683862545be8f7d9d43fff3c2251624b0d940eb977de781be5c90f"
+    },
+    {
+      "id": "d625fe89-ba19-4f85-bcc0-9cfa5f76ce91",
+      "record_hash": "6012b9fb2d677f7742429e32574d1fa267299714900e7b572bf5e6cbc4013b93"
+    },
+    {
+      "id": "a1c02e95-90f6-4da2-bc07-d96f94a73af2",
+      "record_hash": "8224bb5cbed4e4606e1b0291180589fd8d8b26ad9681e4f7d986414133db95a1"
+    },
+    {
+      "id": "3fc700e5-8640-4693-af05-05b12f159680",
+      "record_hash": "3f981698f2b2c400e56f71ae2b346cbba2a05f6aab225c4958da953299204d25"
+    },
+    {
+      "id": "c76e6232-bcf6-4494-8a2e-73634d31a6a9",
+      "record_hash": "7f928d13b64afdf2db4f7d4ce7fad30062929e180470ecf1e1fa2111328af0c2"
+    },
+    {
+      "id": "5e6b1c53-78e9-42fd-ae3c-4d575f3ae1a3",
+      "record_hash": "95d154e4d1e3b91f2e4ed7593e1e7a2d888fc8056eaf302d18634078b3e7dd88"
+    },
+    {
+      "id": "a337c8d2-3390-4ea7-97a8-769664883192",
+      "record_hash": "bd507f921a88ed098207a75e77a0540cc16561a5c5c8bf9cb1585650571f2e0f"
+    },
+    {
+      "id": "c1aed789-1079-4c5e-bc0f-97d48e9bc033",
+      "record_hash": "76121964444dd19048154c03703e2c4826f170c9efcf3112ba0c407f4421761e"
+    },
+    {
+      "id": "9391d055-bad5-4c80-ae94-138ffa4e2451",
+      "record_hash": "1daa68d62546d5ac4f1397efe86145aa362ebb005cce0c585a9cf1abe2cf3519"
+    },
+    {
+      "id": "0eb8d3e2-f127-443f-b29c-329ab16ce70d",
+      "record_hash": "fe53f18dd3e22a9654969bcde26005aec44f898cc8f50beb24ad03cbb7998ba6"
+    },
+    {
+      "id": "adf473c6-6582-47d9-9e80-f53451c5ed01",
+      "record_hash": "e9ff6f0f90d0c2c34fedff5a8a54a35ae5f5cf3116147c491ef64f6d9e882eb2"
+    },
+    {
+      "id": "fa634034-eaa9-42e6-8a1b-f3816abc59fc",
+      "record_hash": "110f155794b820ec4adcf42dc34f689493260f483c1507bf8ff2722aca00cb78"
+    },
+    {
+      "id": "b5ac7b37-23db-47eb-a4c9-34e2c2bebfef",
+      "record_hash": "7f505172acb87c21effcbaedb8d2db28eb882b2dfa6607ec56e176d87da5f450"
+    },
+    {
+      "id": "6224c00d-6dcc-4a4d-a4d8-bc6537a883e1",
+      "record_hash": "072d12560ba4124fdf2e50a2dce3b204e0b051cfb01b28740be27c0c70c524a2"
+    },
+    {
+      "id": "ec3030e8-fee0-4260-833f-b445d7c793b2",
+      "record_hash": "44b7d028cbfe25dc8707be93c20981a7b3d17ce920e352804211af8d0074abc5"
+    },
+    {
+      "id": "fe00987f-419d-4432-bd14-1034d703969a",
+      "record_hash": "e6ca259e64d6d90c245ec97b8ee9c61468244616f194d2203f05b4e597a2ab2f"
+    },
+    {
+      "id": "cd27a77b-9f62-47b6-aa69-61bbe135006c",
+      "record_hash": "0b31a9cbad2a99016b1acd33e8746df6b9dca3481ff3b04b54d5b3bbd8326d5e"
+    },
+    {
+      "id": "5e6fca0f-01ff-41d0-ad37-9eb15a4f09a1",
+      "record_hash": "81f5cbde8ad726f0623e66e9920002c725a371bd50f400a8acd22e11889d2c79"
+    },
+    {
+      "id": "8b055abf-58ea-4da0-9fdd-36ac011e594a",
+      "record_hash": "813c23f82b2343b53ea482b80808b0a124a25f1c493463569418186370108f8c"
+    },
+    {
+      "id": "9177a4cf-49f3-4fb2-a652-e70ca42b661b",
+      "record_hash": "27f6e919cd32f55bce31a07e02ae4c16982fdbfe287c0dc80e89cdadd5acb25d"
+    },
+    {
+      "id": "b6c220d3-c905-454a-aaf3-e52dfc29fb98",
+      "record_hash": "4542d0331099ba8ed60eb299a033da646e2b21d60cc77bb26a8de2f65510aef3"
+    },
+    {
+      "id": "d3bff9e1-3eda-4124-a724-268661903b89",
+      "record_hash": "56a2281dc7b6fd44d09466bc36063cf54f8bf61999421138ee19529cc5b04055"
+    },
+    {
+      "id": "23e6afee-e4e7-4bb0-8d7f-dfda92b0f194",
+      "record_hash": "7ac06bc2c4a1871a298a2ee7b9253adeeff54e813ea338d1495bfad0b97e084e"
+    },
+    {
+      "id": "82ed6f6b-d5cb-4e4a-8da5-0dc652cb4652",
+      "record_hash": "95765512e329ec1dd4618d23cd25c956004539a4313623abab63052597674861"
+    },
+    {
+      "id": "b05b2d71-fa5f-4909-a987-217c4a653350",
+      "record_hash": "c4589f1e65ab181a6868ed7c705c7fe44baec2dffbeb6866c099681798aebad4"
+    },
+    {
+      "id": "daf342f7-e9d6-46fc-b670-c7a93ecc8ac7",
+      "record_hash": "f84af63102d3d0ab607c171057b7ee1a6bdc26641842d2735bca21705769d2f8"
+    },
+    {
+      "id": "247f4bbd-6253-41f9-803f-db3ff57ed556",
+      "record_hash": "b722b30f30f05b1d076d0a28ec173bee2bb39ae93b48b42071a496e406bdc239"
+    },
+    {
+      "id": "35ff4ac6-e834-48a5-90a4-abd771fe4463",
+      "record_hash": "b1ab57c37761206fa614e24102dd6c0d28660e5f55c28b41e3af0ae40041bc1f"
+    },
+    {
+      "id": "c9e19ed5-90c8-4b49-b199-46087cc645a7",
+      "record_hash": "7a406a8d6464666b28e840e2c8928fdfb6ae4a34dc0954133e290a2c3c82bdd3"
+    },
+    {
+      "id": "21049f1f-5615-4882-b2b8-e8a3a9afdb4b",
+      "record_hash": "3850c1679b11e9e08325e5dff8a45d71c2ddf834b516320e2d7f5441f50f00a8"
+    },
+    {
+      "id": "f25ad969-a7e5-48cd-b1bc-6e30736bd7f3",
+      "record_hash": "fb9fb04796f34a38cf6ea478ebf461e51e63f6d58f3225e3a85513f91fecce1b"
+    },
+    {
+      "id": "91d04ba6-22f2-4c6d-a6d2-0fe8c5d57593",
+      "record_hash": "4abd560a74c3d1edce7bfff3a58ba6e6794fa8defea07fa271214db1bcee8f8b"
+    },
+    {
+      "id": "d2c25185-5de6-4f96-bd02-9d5efb281e94",
+      "record_hash": "5ade9cb8448ca38a138ef3ce4d67180ca1725460e7041edbce63b63215b6b5f2"
+    },
+    {
+      "id": "33e9b537-e3fb-4a0e-9084-92bd4ca44657",
+      "record_hash": "bfeac9eefe9ed3c8634f1202f7f5bb505a4ddca5011b1593b183f5ce05da1177"
+    },
+    {
+      "id": "36877071-e00b-46b3-a028-77b020d88e20",
+      "record_hash": "d1f35707f3d186ce30a7ea72e22b91885abd24ae01e4456fdb0a9a69dbd2016b"
+    },
+    {
+      "id": "c3ed134a-5a17-4e14-b7e7-c2dd71b739cb",
+      "record_hash": "be0960b725091569e77276ea30af1061c8f1397788c92d4d733d866f5df8e06f"
+    },
+    {
+      "id": "eeea384d-b79c-4a4a-b09b-0dd7f616a11f",
+      "record_hash": "041b5c9f730e84c2c3ac0f6784c0d1164fe48a8a4eb40e3cc09936948a6234d0"
+    },
+    {
+      "id": "edba8474-1a1e-4371-8d2c-22ddf7fca973",
+      "record_hash": "2cf194d01132c6d284ce301d2d6bcc860f13a7480cc717807c4248a05dbddf96"
+    },
+    {
+      "id": "ae5c4a76-cea0-4bae-9fef-079521e91d78",
+      "record_hash": "2880118e5bb68dc73d7f0a04b829e7dfdf853e2365ca7b391129670dee45dae1"
+    },
+    {
+      "id": "ef596a04-baa1-4d21-87a4-c0de566b06ec",
+      "record_hash": "926d0fcdd2400d477645087c72a87761e57c56ab1296d34cf359389076c623ab"
+    },
+    {
+      "id": "0b04d0a0-b876-4e70-a3eb-2c18f73cd782",
+      "record_hash": "f44776340c27a687921cd92192e613b740058a0fcae7c86a0c58833518d6f99d"
+    },
+    {
+      "id": "9c07ed03-d243-46f7-a69a-4a4429044138",
+      "record_hash": "30f6eb82fa13a2409bbb060b670ad946648cdbb26a02c55ab0d59902bfce61a9"
+    },
+    {
+      "id": "86d53ba0-caea-4a4a-bb7e-a14463fb78b0",
+      "record_hash": "d6b64624f12758f7e488c9ec5f89a52a5c15dfc89a38ea82a7c47dd2bb340817"
+    },
+    {
+      "id": "0339464e-acbc-4b83-825f-d0afc8ce87cf",
+      "record_hash": "6d6a5e43e2412cd8d097db00277cc1252c19cf7121ff11a170ca41dd5d252d88"
+    },
+    {
+      "id": "b0bb4b22-a45d-47f3-a9be-ee5320bbdbe8",
+      "record_hash": "73748e487444b3601cafdb75be380356e29ad6c57c75ba0cfc22c295b65a719b"
+    },
+    {
+      "id": "ceff59a4-1659-4e5d-bc71-766f483c369f",
+      "record_hash": "bda52937848fbdb25bedd75bfe890049c9778dffdaba4cffc817549625a72278"
+    },
+    {
+      "id": "40c12d18-9413-4e7e-9592-8fb997e1d0c9",
+      "record_hash": "65cf26a4b9212b2d840140c595590f37319632fc933057222167e95c6fe897fe"
+    },
+    {
+      "id": "aa0b65aa-6b5b-4459-b8b6-ee8ad293853d",
+      "record_hash": "9af0493e3f3dfcdab930c9f8799974078ddce1c3b96b6a9539d7b828642545c2"
+    },
+    {
+      "id": "c200c985-9186-4ee7-b129-b65eba9b752f",
+      "record_hash": "a3e5cbab125c4270175c2072f76f537c176f7a0693607b4bf98a59d10479b6d1"
+    },
+    {
+      "id": "584e0d98-01ed-4e57-a846-da51eca4c9bb",
+      "record_hash": "9f4eac96636d71ec9e9f1776d9211e7cb63499569272ceb4348a2be4267a1b4f"
+    },
+    {
+      "id": "8fbc602f-ae09-494e-add0-69173efbd02a",
+      "record_hash": "85ea9b3a3407e5b6034cd53bfc761bda7a9d3bbb1939849bbb277ae7250ae6b7"
+    },
+    {
+      "id": "ae12b2bb-d6b6-4022-8ede-6bf4de85b3c6",
+      "record_hash": "01b54296e1ea33a9dfc06bd83dfcc61cf0fb2124b9f3fb77996114bab8f4615a"
+    },
+    {
+      "id": "0906a8bd-ae50-49fd-ace0-adf631faab6b",
+      "record_hash": "df39e12772cf89099bf55c7a2c47bc87115691253221661fcac69f445f074e3e"
+    },
+    {
+      "id": "c5979291-d823-453e-8a77-379c60e2540a",
+      "record_hash": "e259c7b437d22a441585b9c1f26f14f7d9b27d3e9cda3d93f92e4f37c9e13d5d"
+    },
+    {
+      "id": "51a0cdec-d9c9-4d0a-a7cf-51e616ad6bc6",
+      "record_hash": "81f25707f622c0f63da5edb9717aeb946f080c3a8080abfd2bb9cd986e6b0570"
+    },
+    {
+      "id": "12f666a5-4f64-4e38-a10e-27ebbf507fbc",
+      "record_hash": "2395bc49ce95bb99f7343a08a2baac9cf036ca6b99b461b368fc2ac223401b05"
+    },
+    {
+      "id": "05228c1d-58e0-4c81-b346-8fc582cdc40d",
+      "record_hash": "d244c8f9bd1d7924345f65294c2a72425a88ea3a6adb2d8a212948cca11faa43"
+    },
+    {
+      "id": "71bf94a7-5415-4014-8c06-3858470557bb",
+      "record_hash": "b238e63ed9497f3b5a01526a0ead41bddb6fc65153d409a51dc799ea7c86ddc4"
+    },
+    {
+      "id": "0671bed7-7575-46a0-9331-ee06efac3c5a",
+      "record_hash": "e7556bfa348c7a495353949b616baf8567c4605c3b05e79d8fd1bbc92432fe3a"
+    },
+    {
+      "id": "4b3db938-4b17-44e1-9548-0ce0cb0c9da2",
+      "record_hash": "f86b42dd7bdda367580c664e4c6bf5804cec27b15fcdb5a9c4df8a1ecc4a6474"
+    },
+    {
+      "id": "ac3489ff-56ec-4651-8101-021d510c7552",
+      "record_hash": "eb0069df2c1709ee9f13ee73abf332f284b7e7d2e786a05020cd332bb8a0a245"
+    },
+    {
+      "id": "8441452b-089b-4e9b-bf52-a847daa99cf4",
+      "record_hash": "f8fe503811852d2bddc8b468658087cf39fff7732f7bcfe48cd651ae5dfffccc"
+    },
+    {
+      "id": "9c8ad9d9-f47b-4984-8b45-e8558b2c8e58",
+      "record_hash": "54c7cccfcceb50a4cef95853f5817f3e0c80272705e4927d07b54f4897ce5ace"
+    },
+    {
+      "id": "32d2a32e-a783-4066-8c5c-66051be84fa8",
+      "record_hash": "e919d3a1540b07b90cbeba332808dd15b7041b436bbd59f3d7edfc4284128deb"
+    },
+    {
+      "id": "13a86708-2fef-420e-bfe2-3cf26948bc93",
+      "record_hash": "8a3b06133958f7031d7955b16302a026028946d2d0008c0e8bfad664093a4a49"
+    },
+    {
+      "id": "0af4f61b-2a73-4606-bedd-604337a602f6",
+      "record_hash": "a173c4b4e0159e2f09b566dd2f945d7c0cab0acffc4ae2ff5c0d37ea0d9a3029"
+    },
+    {
+      "id": "2e2b07ba-35ba-4438-b2a2-2ef44037db9d",
+      "record_hash": "be267d835f8b47cdcb48aa3d7e77834f6f650b29fdd5ee4d7c6100cd8539aea2"
+    },
+    {
+      "id": "41622484-d502-4ccb-8c58-6d3d95421781",
+      "record_hash": "96790aee7922329d5054b75b6dcc303f0f0a1ef75aca3b8eb700d79c035233b8"
+    },
+    {
+      "id": "1f9eccfe-e6ae-41ce-aa70-64d6d09d2f45",
+      "record_hash": "bc6a8db6b4e630f3ab853e4c28fc7a8851f3a15b0d141c7957a1c985371d2f0f"
+    },
+    {
+      "id": "f26ca3ba-6a1f-4b6e-bd90-f7c024808297",
+      "record_hash": "13bfaf511ddfe4674df2e58d2b8f8d80c3c4331f30c85fe7a9c7863a0943d998"
+    },
+    {
+      "id": "516749ee-b70f-4781-bb60-2510b44ae167",
+      "record_hash": "e89a5858f137a2df0e783dd5b68239f138084245c645439e3cc55376f40930b0"
+    },
+    {
+      "id": "bed420e8-d2a2-4cb7-bc32-91914a35de22",
+      "record_hash": "b7d6ead3fdf3da0d92bf6625dcecd20a0c525f4eddaf047bab8e5d85b468eb86"
+    },
+    {
+      "id": "55b2352e-c2fd-4a21-a964-3bf3a8a1e6bb",
+      "record_hash": "a7a143b13a88a34042a548764132eb117aaeae1c5245c7ff3c6ef3d013a5f375"
+    },
+    {
+      "id": "2d933751-aa10-4346-a727-c6e5f5fabfef",
+      "record_hash": "112210c60a0335ef08b26eaa6c5487f3914fd021749cf7443b8772ad96d9ffe9"
+    },
+    {
+      "id": "93f9440f-a9ff-4e90-923a-9310b070c8aa",
+      "record_hash": "0732b555be3c10dbd6d2a19098715ca75a172aed6f8ba23fe7a7559901f2df13"
+    },
+    {
+      "id": "24fc13ef-7d2c-4a38-9183-5969c098af39",
+      "record_hash": "e388cf82127e593a11bbe0cf821aab26db6675a3d14c229cc56bafcfb4481567"
+    },
+    {
+      "id": "4cec4771-1d12-415a-a3a9-dcf0f3285fdb",
+      "record_hash": "b82ad5876bf8821fefcf161589a26d950dfaad3907f1dd6c6863726edb0f13df"
+    },
+    {
+      "id": "2caa9b73-1827-4290-b67b-ed7783912e16",
+      "record_hash": "e8cac87762e2f42e8cec052b08c3d1e1c1871709228d8d57ffeea7ec97e277c1"
+    },
+    {
+      "id": "8beff484-fc03-4d28-be3f-1cc81f486edf",
+      "record_hash": "eb37acd772ab77718b351bc88831668777afdf1e68c5cd4069081530450a8d52"
+    },
+    {
+      "id": "9535f2ce-0ce6-4c7a-a234-b742d60016b1",
+      "record_hash": "959d687c25cddae4ffd8e2ae5da2d0b10c0b6e2665874aa8122a174fd5491150"
+    },
+    {
+      "id": "54580b98-ea01-4bf8-995d-2c7ac188f36a",
+      "record_hash": "698b5f18c367d5fd09633f9ff6770f4a3c409d40ac995895ba8d35ddd468c772"
+    },
+    {
+      "id": "45f17946-af57-457a-8e83-48b3db7cca12",
+      "record_hash": "0cd892631f41c120c518d8f6f4bdbfff879665373e1071a07354f54501628891"
+    },
+    {
+      "id": "c9fc5012-831a-40f3-a688-7d24be435e98",
+      "record_hash": "3221fe3d839f341f74af240e9b43c9145b7eed6c0c367e7752b900a3f734b6ef"
+    },
+    {
+      "id": "3adff321-b498-4d82-8472-d1557de96f09",
+      "record_hash": "600023f63121d96e01b7a8247d3e25963be3cb963c24b1f7e5dde6a621bd66ef"
+    },
+    {
+      "id": "8be94a32-2268-42ed-a97d-3bdcd9d19b6e",
+      "record_hash": "91abfd4de9693bff80dc31fd425b4d49245f7a5eed359ffcc8ba833e20915f07"
+    },
+    {
+      "id": "64a2b2c5-ec79-4617-8109-ceebf83325e0",
+      "record_hash": "b857c1a7325464fc7c65d4ea7d8068fd77d01b79aa5ef95dcd69d2ac18a77194"
+    },
+    {
+      "id": "69648074-0482-4b8f-9d76-1bb38a5ac057",
+      "record_hash": "e064dcdaebffc50530e9d3a1f4662658a99a3e4fcf875a98acdb96a0fa5a9883"
+    },
+    {
+      "id": "db9048aa-5e09-4ace-a11a-e0fa0d250a2c",
+      "record_hash": "a1703c299c6e0b5d10c384a3e8c4222c7f848c61e74a9374f0eed13f6cca9f83"
+    },
+    {
+      "id": "ccc11206-e344-4762-a398-de77dfb6e645",
+      "record_hash": "9a17bc6eaf861369e53535f9fde7754ff882c32f556443e411813fb6677fb0d2"
+    },
+    {
+      "id": "834f28d9-e501-4579-93a4-016a3129b692",
+      "record_hash": "a450f1df2a3b8a5f9420a0fcf7ac0a69203e6f6f2be3959bbd1c2535c31af7d9"
+    },
+    {
+      "id": "14cd1491-cfcf-4af1-88a7-55963faddce0",
+      "record_hash": "03aff339e1ac1c60b84279ea92ea40dd3f674762fb97d2aeeace8c7ac5fc2e0a"
+    },
+    {
+      "id": "e6eed70c-fe17-4e06-b7fa-a9a745af0f7e",
+      "record_hash": "2114a3d768e46fb7379441e665f2c2e49ab3864245143355c6fbdcd1b7e2a19a"
+    },
+    {
+      "id": "77f0c9e5-f17f-4930-9ec9-084b8b7df464",
+      "record_hash": "fd318bd4259e8875e6631e3de96e62808c49ba8d7b1e625b39f448a9370969b0"
+    },
+    {
+      "id": "8de94dd2-0440-454c-ab0b-f6eb27d2dab1",
+      "record_hash": "bf66e823eeb750c8ed09af8c24769b0ce68ae82f873faf50ce21928d08186d3d"
+    },
+    {
+      "id": "ceeff9e5-4d99-4177-973b-82508b149e7e",
+      "record_hash": "5fcdf9011e8dd32c2752ed21d8f55fa2c68fd6efc174fd7a4939944b9bd50a22"
+    },
+    {
+      "id": "c7d76e20-85f9-4542-ae6a-18562c0b7e25",
+      "record_hash": "98faecd7ef81720e5cacf324a80f8352dab73ac18f864d6aee74a18127db15cc"
+    },
+    {
+      "id": "b9817a31-d162-433e-bc45-9ac37e63672a",
+      "record_hash": "049c06e8acf417dfd65aebd3b4290eef575f2ae27c2777807ff0dc1145c15941"
+    },
+    {
+      "id": "58ea53e1-3b81-4e8e-bc4b-cff4e5aafe31",
+      "record_hash": "762009cfa835a676255b087451da79a1a2019b3e3d3fb07692794479ddf3d4f6"
+    },
+    {
+      "id": "ba17f065-c005-4b5e-a8b5-ce728688df8c",
+      "record_hash": "1fb31ef891e177cacd0edf6b12bed09a0ea793c99932077b31a140611d8179d7"
+    },
+    {
+      "id": "01bb2b89-4281-4055-9c6a-b150c06b7bf9",
+      "record_hash": "94b03750bcad0a5b46b350497232dfde56bedead2e4f4e08232c48111297c2df"
+    },
+    {
+      "id": "93306cd1-be94-4cd9-a836-6fb01b69e13b",
+      "record_hash": "c284562114184825f8e413d9b0cacf5784c69b02be26df7ef042276772d0f2e7"
+    },
+    {
+      "id": "64c46a31-2a3a-4101-8cb5-3558059ca1c0",
+      "record_hash": "3fb591b10a76dd2ddad283556d6af2948ca57a8eed77fba178e1f27aa140a545"
+    },
+    {
+      "id": "71da9efb-e15c-4c7c-a17b-ec45414a7472",
+      "record_hash": "361126c9987cd8c6d1e7463abcb6c23efa14cabeff908de8b05341e9a7aeae1e"
+    },
+    {
+      "id": "b4ae7946-2526-4781-8e13-6e4f4075b23e",
+      "record_hash": "f4efd624add9b4502adf8637bf118a33e0c3f616d618f405858633b624f5f6d9"
+    },
+    {
+      "id": "c38a6909-5279-4d50-80a6-63a02f624b29",
+      "record_hash": "cfa91f9042c6cadae0f2153f497d075b634ad6c3549558fffee8b99376c6eed1"
+    },
+    {
+      "id": "12dcb061-6273-4ab3-a202-85b6585fb22a",
+      "record_hash": "af7a5b9b3f5cf93076c56923df0fd40dad79f3eb44b2cb84872209ccc0aa0882"
+    },
+    {
+      "id": "28716739-f5fc-4c93-9198-1b9575b62a41",
+      "record_hash": "0bb7740251f9ce956fc17f1dd7ee215ded18872e614acf1a9bc47787e56e6e88"
+    },
+    {
+      "id": "7dd8b014-dd25-45b2-bbb3-280b216d7c06",
+      "record_hash": "1df86a93a74bf37f5969b034a40c218c9d4b44706fbb74632e6a942c473a6ec3"
+    },
+    {
+      "id": "d95b3f93-368b-428c-9795-56e5089e3c64",
+      "record_hash": "da9f7762528addb7fe813602905874b72040faad70b23053e79b6ed367ccdece"
+    },
+    {
+      "id": "226b940d-bfe5-4439-8892-53723a8cbc3c",
+      "record_hash": "36ffb45331af7e5ee31ee5e158d121f7b7bc25b7973f259f22ca8b1643f4afc9"
+    },
+    {
+      "id": "d7d0f7fd-294b-48e8-94cc-23f53971edc8",
+      "record_hash": "c896f4179707072847d579c7d5417374fdffdded086ea1d815987efeafa12bf9"
+    },
+    {
+      "id": "3f37ef94-d423-4563-84ca-10186304e29c",
+      "record_hash": "dd7d7f10b0533791f1bca7ec0305263e719b3c957cb48c23503de35690d3e55b"
+    },
+    {
+      "id": "fd4d780a-50fd-455a-91f7-478730af62c9",
+      "record_hash": "b4dee3ad31e0b20decda3831a0a32199881f22971f880ada943f2017e08db747"
+    },
+    {
+      "id": "992258c4-c486-45c5-a488-e8cbd23bad90",
+      "record_hash": "2efba34de55dfe43195e90f46327eab6100a4c6ad34d3cf8a5d5690b87ed2d3d"
+    },
+    {
+      "id": "dd3f447c-ebaf-404c-8f9e-8955c29510fa",
+      "record_hash": "681a302099bf195953d88769bb22d187b6ded510e6cc822137c762a8c5e7ef5b"
+    },
+    {
+      "id": "4d3d6b14-463c-44ef-a528-d1dd892b08b7",
+      "record_hash": "84ba7ec7a516c3e716daf135c5f19f89baebd041072013260201105b145fca66"
+    },
+    {
+      "id": "de51b548-2470-4861-846d-8ea3cbd8c234",
+      "record_hash": "9f9d24cb69ca24650c6235c33723f1b69c14af3cad3afc575d1b595dd09ae3d7"
+    },
+    {
+      "id": "eb33d608-a5e5-4545-a201-1e6106bfc193",
+      "record_hash": "41e4567e739d892744e8ecef824c63464cdcb1a4811a54e44975d4d25acb51a7"
+    },
+    {
+      "id": "9e13fa89-8f7e-4625-8591-9cae9c3b3d18",
+      "record_hash": "d40da7b829b902a2406e1bf94f446b278ac6a2da7de397e57257d39a1c7d1d3a"
+    },
+    {
+      "id": "a59db0c2-12a0-422c-9fae-fe605ee218dc",
+      "record_hash": "6d10f23a40cd82ae4a8c9d213503c63fe925c9aa0e845c647de9d0f630900d9f"
+    },
+    {
+      "id": "a8b6ea27-30c4-485c-9955-0aea26756985",
+      "record_hash": "a675cbd63843df7ed5afd0d6c764602ec6530e37233e218918523002ad784dbc"
+    },
+    {
+      "id": "52a06c33-db45-4ed8-ac3b-31e778c7371e",
+      "record_hash": "6a62c699e7e5fe14b1979815ace7c9cc1d6b0bbcb7be7d6d9d4b7b8619535cb3"
+    },
+    {
+      "id": "043dac72-c828-4346-aa0f-dd3ecf08c8dc",
+      "record_hash": "54b74044bee845938e95752556a16c8309d573b6097bb851e9873e0ea2f307cf"
+    },
+    {
+      "id": "cb72479d-aeb8-4e78-9c00-f6964bf8eb2a",
+      "record_hash": "b94f2b40c82da55c1c26ed08b696a5a4782c5fcf41f85b5849d1ca0347f53f7d"
+    },
+    {
+      "id": "e470f686-5002-448d-ac3b-ffabd93e5ebe",
+      "record_hash": "f6d14635e51d29bb2b5d8eb1ddce615fd9181f7059edc62c4f01f37c5d821d71"
+    },
+    {
+      "id": "1aca5c5a-35fd-4c69-b540-8f031003a147",
+      "record_hash": "d62dd88d261491c50177460b4ae590f1d916f8442f7a8369dddc30aebd10e6b8"
+    },
+    {
+      "id": "e7ca3cb8-0ef0-4e6e-aeed-b6ad4e4cc8f6",
+      "record_hash": "8f27c9442a6c8a8b5b9f290f17846a1eae4141fec09fdfb2d2defd9ed373fb94"
+    },
+    {
+      "id": "a69fef81-c570-46e7-bf60-6c57b2ca0e64",
+      "record_hash": "aa89e2faa3832c6fe08a59cbd2f800c50768bd52f8a88089ac5b8af74517f915"
+    },
+    {
+      "id": "51ea2a98-e661-41c8-93b3-edd763badfad",
+      "record_hash": "1ffc9437a1960041e6d374e3c5b234cc2e4b6bbf44912655c64ce67ef1389251"
+    },
+    {
+      "id": "608983e9-4f7f-4eb7-b536-1346b260723b",
+      "record_hash": "99b2af6578e077fb2b6dc25489907a1f0d397276501520e2657bf75d31d57e84"
+    },
+    {
+      "id": "6d044c37-3f19-400a-9d2e-514b070f4068",
+      "record_hash": "191271679486d8be4f4015a42b0612d1705898a449af23573e0449d4b1c45a49"
+    },
+    {
+      "id": "826e2016-eee9-461f-902b-52ec4ec71880",
+      "record_hash": "5d1ba3cfdd1185f014e283c676ccbd98ad225293d10e2ee1bae71f163c4a1116"
+    },
+    {
+      "id": "dfb78abf-5aa5-4cf6-b357-9f80908acd5a",
+      "record_hash": "90637a2fe412e46b9388febab359dd47875b2b85cadd76e480f953e1de7354c2"
+    },
+    {
+      "id": "c38b38de-1b08-412f-9b7f-77954054baa1",
+      "record_hash": "854e5b796010536e1c69419629b068091e852212dcea403a904097b561b5191f"
+    },
+    {
+      "id": "62160978-48e9-4988-80ba-8da58527c0a1",
+      "record_hash": "395112db23f14160db4141620dfcedb55bc91013e4d05213e5c73c58c955a9b9"
+    },
+    {
+      "id": "28d3c56a-ea27-48ae-a1d1-534fc75b3e8e",
+      "record_hash": "b79524592d9feb60fb4db804b0350c553b02489f1d27a2e174ede09fdcf6a61b"
+    },
+    {
+      "id": "a378f3c7-a1ff-4913-830c-2f6fbd68c7b3",
+      "record_hash": "96c7b22fbddabc028be855275097964e2ebea5a9faa72fcd76392f1d5b73e74a"
+    },
+    {
+      "id": "986077ee-159d-478e-9e98-fd7fc2c9bbef",
+      "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246"
+    },
+    {
+      "id": "2c13a3d3-5d44-4280-9d54-88a769693252",
+      "record_hash": "98224e158812f023caa3a25f688bd0ace14315dd617a73f67276a39146efd274"
+    },
+    {
+      "id": "c9be7754-de3b-45ea-82c4-13ca812487cf",
+      "record_hash": "4e9f1e37167d5109beadd36bafe5fdf33c0555ce5ddc79ea6b4d4c7d9aeeca8c"
+    },
+    {
+      "id": "f85f56e2-c431-454e-8517-4abdf09856a1",
+      "record_hash": "b2cf70506b6a6900c482e09d7bde82afbe931ea296d1bb5f9adfd3f594057360"
+    },
+    {
+      "id": "8a5c92df-f0df-4c13-aff8-98af686a2951",
+      "record_hash": "188f1af51760f4b13c58224a7cf1ead4c05ea763e5b1e2d5c4e27fcb2e91b780"
+    },
+    {
+      "id": "dd94ac15-be6b-474a-904a-70378c4d6b9b",
+      "record_hash": "53e2d294538a263588e8257aa78d5ccb2a3ba239299df042b380906de4c0ec76"
+    },
+    {
+      "id": "ccb1a89d-b57a-4f0c-b643-d8aeb16acfcb",
+      "record_hash": "75cf8295a32bee83e0315d784b6997e43cfd9feac29e4c69445e4e3889e90529"
+    },
+    {
+      "id": "9f934c6d-21eb-4da4-beb8-445590675b1a",
+      "record_hash": "c4f14cabc2c28c82fd152947f9ac19b1fd971a0c1eb35d9156bcb33399b9725f"
+    },
+    {
+      "id": "54899992-1950-4320-a037-10bbd1c35dd3",
+      "record_hash": "9bd17e4647aace67df7bfc59711b6843d116753fe85de6db23df905e915031bb"
+    },
+    {
+      "id": "a176e4af-822c-4e15-bc54-4fe453b12d4a",
+      "record_hash": "d88368ce57d5fe9c6bd72ad3b28429c899798f67e49cd321a56dfc6ce3958921"
+    },
+    {
+      "id": "5d637255-e722-4712-b0f9-05f62b69fba4",
+      "record_hash": "451bb57bad09e052452451f121ed716e474ecd4ee0c4f6489fb149d231170ba6"
+    },
+    {
+      "id": "c48a85f7-a919-403d-bcc4-4e981cb397ac",
+      "record_hash": "64378b13f61a50911d079b925eb11ec5bf1b428e5866198b017212f8bce1e405"
+    },
+    {
+      "id": "38b1f5f1-df59-4e36-9c67-08d9ebd1ae81",
+      "record_hash": "c33a47aba43866c32769e2581addcb3a2c1b23b60ac16b38e72e13ca9412530b"
+    },
+    {
+      "id": "13bacd11-4275-49e3-8c36-5b6eba2dc8f6",
+      "record_hash": "492b2826754d62a2c3e780dc5dd918aced092998fe1d6859abce1fbbc0a540a7"
+    },
+    {
+      "id": "ca14323a-aede-4709-98cb-884c2bc591a5",
+      "record_hash": "8a8cb08e0116646bc417656ae77e65beea56a69cc507f65c7d3a138e1a581638"
+    },
+    {
+      "id": "5ff544c6-de46-419d-970b-c089c97bfe34",
+      "record_hash": "ac73ea1ea1a112be00177ccb61efd851dd9117266f790334e16c5eed1dacdb6f"
+    },
+    {
+      "id": "e919c9aa-e678-4f3f-a512-b929e58e8a62",
+      "record_hash": "163d5c583c34bfacaa22f128f4889b6a2644acbe49cce57aafa2294d6c259ffd"
+    },
+    {
+      "id": "1dd825ea-4fdb-412e-9a52-4ff4211eccb5",
+      "record_hash": "eb5da65a72c129e54c638e35ddf96b6b10af6d38561fdf0311a3ab8c019c87b0"
+    },
+    {
+      "id": "1e1e03e9-d99a-42e7-8f72-b01b81682f72",
+      "record_hash": "fcaea57a5a182c07f780484de4c4d45e9b11fdddf2bf74fef2f726abe90a454c"
+    },
+    {
+      "id": "6d5e69bd-e886-40ff-bd91-2b365ca567cf",
+      "record_hash": "2092e289a2fedbe75d21d8762eebec5fcf682acb9fb24eb0612b0a52b0de17b8"
+    },
+    {
+      "id": "691bf5ee-d6cd-4a34-b80a-dc7708e94f37",
+      "record_hash": "e2adc15675c3c210ed1edd13e0b9461a79612123f5e9530c0b924c7249f2bf40"
+    },
+    {
+      "id": "12a1bfc2-19f7-40a3-b910-1532e43bd0c3",
+      "record_hash": "521ca504489bc12f08c82e4ee636294516e5803bbaa02db73a5a3cf35cbbc54f"
+    },
+    {
+      "id": "6343cc99-05bb-452a-9f79-20716c653788",
+      "record_hash": "f9e52916bc2ce2bd46512d06819658ee36a3843cc6134b467116aeb2433c84d3"
+    },
+    {
+      "id": "3e10dfe6-3bfc-4175-b7e4-28fe113c1f31",
+      "record_hash": "50ca753a3d41ed61f82ddcff1aa602816fa39020bfa36f1edabaca2f6b3449cf"
+    },
+    {
+      "id": "86030861-a401-4924-a78e-63ddc12e99ab",
+      "record_hash": "5d699287a253357e053f1376bca567d667958e28db3b7628c30de900426277ee"
+    },
+    {
+      "id": "ac4da025-5e65-449a-b4e2-60f1852dee4c",
+      "record_hash": "5b843daa857cd8d176b2b4b2701fe19ddc9a48122e5043d6ffa587cad28ac355"
+    },
+    {
+      "id": "f5db10b5-7d91-4400-aef7-5943e516f6c4",
+      "record_hash": "58ef5d50f8029df736632244e33de9d1d9b2c794f5989ecfd1590c96548b3b28"
+    },
+    {
+      "id": "64fc491d-dd6d-4bac-9586-09bb43478b2b",
+      "record_hash": "ef26e3c5b9a220b86a25ab7d9bcdaef8c72e322a06afa7a4075bafd77e5c7178"
+    },
+    {
+      "id": "8673bbdd-10d5-422a-94b7-3c5ab686cea9",
+      "record_hash": "03a3f491eb7b3e0a66f614e649ee05e8c4bbd42fec1467108577adb26f0bc263"
+    },
+    {
+      "id": "f920bf21-e3af-48da-9231-fd69826d6ede",
+      "record_hash": "50b2addf8aa1423a42f14e967b652f544a59fb8183cddccab9b2d8c9b0e1e168"
+    },
+    {
+      "id": "89f30f30-aeec-4162-b1a9-57c81530b4e0",
+      "record_hash": "ff1cb5b651509519fee2067a82829f08fa316fb4ce69a3481d724bb94e8216f7"
+    },
+    {
+      "id": "74865289-773a-4196-a0ae-24674e4c486d",
+      "record_hash": "d642ebb0fead739a9dd912f13373e0c2760382e67dfd018e096352013695642b"
+    },
+    {
+      "id": "03d4687d-0019-4f6e-b612-815710188e38",
+      "record_hash": "1b2b4b0cf0a88c07c61e2dec1e3271bce66a46a45b1b4ba4d362b1082c5e6d0c"
+    },
+    {
+      "id": "634107ce-2642-46f5-a841-b091ca6e0950",
+      "record_hash": "e6e88155fdd232d0d672e6d6b5b2602e849e032012c38aa762f4e9e3a4bfaa32"
+    },
+    {
+      "id": "0df31326-4e68-4358-9842-eef41c146c4a",
+      "record_hash": "8f151508e495d407d8c0805c5b66f89e0a4a2b37c757e0faf4c6027dde7f3d4e"
+    },
+    {
+      "id": "5e5c33a1-3c88-44f1-9dab-cc911243f95c",
+      "record_hash": "06317218f9bf66a114e44faf5d0c522169af0d6183ecc6b5c6fcb2cdcf2571c4"
+    },
+    {
+      "id": "238f212a-d58f-41d8-9f0c-56a42c5e4e00",
+      "record_hash": "72e9389953d97f103b7b9611100ff1d7cb7678f1a1437c0723f7bd88e94e7f6c"
+    },
+    {
+      "id": "76901168-9900-4176-92c8-90c03f2cc71a",
+      "record_hash": "f4c916e9728b6e025bba4123a21a5d884abf13ca6619f9f997987c454423231b"
+    },
+    {
+      "id": "3b0af90e-70a5-4329-bbdb-ec79d85d8aab",
+      "record_hash": "68a46d12a0304f135d1930886d488a3648c22de29c98da00160e1bde1d640145"
+    },
+    {
+      "id": "5ab4956a-4f05-45be-8ff8-175b6919ff1e",
+      "record_hash": "e45d0aa4b0072eff20e2289960268d8d2f1b600aff2ca7e5af222f84cc5efcef"
+    },
+    {
+      "id": "8936ac0e-cb26-4ef7-9188-0e8caf504313",
+      "record_hash": "82c10907b032acc80264c5ec6a4a6481cd3740753c7971ba8131f45971c9e472"
+    },
+    {
+      "id": "9f55de60-62fb-4241-b9fa-86cbdec815bb",
+      "record_hash": "7bc3f632f3138403b961bfbc393ba535cc9f91abfb1df66f7504b89fe58f49cb"
+    },
+    {
+      "id": "d61e2375-4729-45af-9ebf-238a1e405c08",
+      "record_hash": "d2e33490eb5b49f2fac95d3515a4993e0a536284dd0504570a10e2417c5758ce"
+    },
+    {
+      "id": "df893f31-d942-49e7-aee4-2dcf36582050",
+      "record_hash": "05006207cbc4dc13bfe32d92ce05530ee58a2975884269674dfc80bfef9a7b42"
+    },
+    {
+      "id": "eacfb0b2-bf2b-4e04-bae1-7602424a3fdf",
+      "record_hash": "024e4b97bda58e9cd10a0c1028427c6cc21943447e822a47aa110c8d78aa98bd"
+    },
+    {
+      "id": "1b7e251f-ac10-4d50-854e-f8ff466437ed",
+      "record_hash": "ade814b4822824a37763425e9ff868a433b4e3645995479eb97a3d7980c9b7e7"
+    },
+    {
+      "id": "15c443e9-c0b5-4e47-a5c2-759b7b638b26",
+      "record_hash": "c9441c6a2896441c90900b7d788e2b3a01872670871908399b7b98aeff44d08a"
+    },
+    {
+      "id": "1f85c851-e969-4567-afec-47917e2a58ff",
+      "record_hash": "1ec24f42c2e9202b1ed61b44d05081b244eeeab43550a16783b38aa72ad43b77"
+    },
+    {
+      "id": "e432aeb0-38de-42e2-91e1-a312518c1f94",
+      "record_hash": "817a9ad8423b4deb5024e95dade2bf1c2a1fb459a11ea3872cfb7d59ef3579b1"
+    },
+    {
+      "id": "0e3a0155-8700-4746-8ace-f09d7a8c261f",
+      "record_hash": "2d5c05531e533ed1bc73de55f16302627b4067d9fc9c4e36b55f491876bf594f"
+    },
+    {
+      "id": "ae88d0c6-a82c-405a-b21f-c4bf061c8999",
+      "record_hash": "c655fd0c617efcf130ee85b0c0e0c5173a0b275fdbcca98afb90424918f59926"
+    },
+    {
+      "id": "dfd77f1a-4520-4fda-b093-631f46305311",
+      "record_hash": "ebdfddb8261f69793b072d01a0da51794cb81ffcdc072dd1c4eba55464005422"
+    },
+    {
+      "id": "6fb1fe68-1b49-47ff-9bf4-c2488d0e8b27",
+      "record_hash": "8804a977fd38d736ce8f880bbacaa144c84d24af12e69fc60b60392b0b207d29"
+    },
+    {
+      "id": "e03f937d-63ef-4795-a62c-d128740bb7fc",
+      "record_hash": "cb4fdff425b829cee4ec2accad2dd1a7f4d289672d018e265e96025ede91d9c9"
+    },
+    {
+      "id": "1eecbd8c-1ff2-453e-b522-8541a89a78c6",
+      "record_hash": "cfac04c7049b4acc85ba750e3505335373104f03640f85b6efea779b911d9f74"
+    },
+    {
+      "id": "fd3a7dfc-1a54-4dcf-8f15-af508a68a37c",
+      "record_hash": "0f5ccfd098ada364cda6c8bcb7245dc8f1e267d7ed9be1224476393c62b5c5e9"
+    },
+    {
+      "id": "26355938-0cb9-44b7-84d0-c0eb99a21c2b",
+      "record_hash": "2f35ac9912ec673606500daaca2b9b756cef493c67e88a2a9482d6c32d0f3b54"
+    },
+    {
+      "id": "12699c0f-ac18-42bc-a8af-cadedc0b23ea",
+      "record_hash": "0b978d78b5c2541bb13bc680dd0b44357b9f1c9571386da160e4c6c87f610be4"
+    },
+    {
+      "id": "7bd2add9-73db-402a-8cee-8f6b9cd24a76",
+      "record_hash": "da4c3b673ce62c38b31d917563ceba7b54622c67ea1379b6735a193a3bea1c29"
+    },
+    {
+      "id": "d5cc0752-33c3-4e2a-995f-c6ff93049f2d",
+      "record_hash": "a738199ef199aaa378af49e313b445f971600eaa0ca99680a3d4ee1ed1d69328"
+    },
+    {
+      "id": "269cfae2-1f78-4203-81be-81ff2feb452e",
+      "record_hash": "dc110d90bc8de406c939d797f1d3749fdfeb06e4fa7c734c01ff5a391af4a603"
+    },
+    {
+      "id": "ae8ce2a3-0617-4dde-949e-ce6c841840f6",
+      "record_hash": "61d06ed1e6680def7106df2912ae5fbc71d7e4d53c103429d6cbcdf378348421"
+    },
+    {
+      "id": "916538bd-9cf5-4607-bed3-ce3ec19bb575",
+      "record_hash": "58cc62886fe6f6e9ffd8edffca36ff0390d73eaf3bf666747a9a3ab525432aaf"
+    },
+    {
+      "id": "f48c1c4d-8627-4a81-be99-0afb0cb06bcd",
+      "record_hash": "696195d9ebccf2dada3c57d78c17dc06580f09134cd111e218d2f525df917773"
+    },
+    {
+      "id": "74fc3a59-77d1-4652-87b7-c2d23c3d35b8",
+      "record_hash": "9f5acd0128e82728e661dbdc8546892b3bfedefbbb2b58c5f8d9a0ed31659f1e"
+    },
+    {
+      "id": "573f7c9d-9ad2-4ad3-bc0d-6ce3781c7fae",
+      "record_hash": "1714b3a82e8053b583041e146c87752bcf6776cfe506e65d254273068827ed21"
+    },
+    {
+      "id": "d6fa3126-4907-42d2-abe8-0aa0b1a54010",
+      "record_hash": "65320df2c4d5569e1ab3ae47d6b56f077216ddf8a75e23dbd45ea570de428d6a"
+    },
+    {
+      "id": "76a3da34-25da-4302-bf41-927702e88551",
+      "record_hash": "060fdffb5555a0f8ab6e2ab0fdfe6606d2a2f8b0e1c0f4d6afeac5954d1315da"
+    },
+    {
+      "id": "cb098b31-5424-4868-8319-2c897815b173",
+      "record_hash": "9f21416108d3c9993678bbfd5936b48682d30c3688b425c84b5510150da6d619"
+    },
+    {
+      "id": "8e2f96fc-2845-4d2b-8fa9-8bf557d1c3a7",
+      "record_hash": "cb1d5e3c4db8d679eb6d0cf0262c632a4fb99c3854101eefe0c4630c2b283ef3"
+    },
+    {
+      "id": "a305b024-11b8-453a-91c9-98ba1824957f",
+      "record_hash": "a9740e66e9aac31abf5a9a5060779cd9b01da2fb4ca2235ef1245931fadaf165"
+    }
+  ],
+  "budget_raised": false,
+  "per_call_output_cap_raised": false,
+  "profile_changed": false,
+  "operator_business_patch_or_plan_insertion": false,
+  "natural_language_routing_test": false,
+  "execution_approved": false,
+  "publication_approved": false,
+  "status": "revision_failed_deepseek_completion_truncated",
+  "native_job_receipt": {
+    "id": "7a80805d-1aad-42f2-af53-67a67aa2e55c",
+    "kind": "planning_turn",
+    "state": "queued"
+  },
+  "updated_at": "2026-11-01T07:01:54.078726+00:00",
+  "actual_model_calls": 3,
+  "active_job_count": 0,
+  "budget_after": {
+    "version": "planning-budget-v1",
+    "revision": "05a0a44ad964fa70474123aa0017f0ea69928da331d84dc4f3cc9d0fce157a8e",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 62,
+      "input_tokens": 1572455,
+      "output_tokens": 159040
+    },
+    "remaining": {
+      "calls": 2,
+      "input_tokens": 1077545,
+      "output_tokens": 0
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "plan_count": 2,
+  "new_plan_count": 0,
+  "new_plans": [],
+  "plans": [
+    {
+      "id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+      "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+      "task_state_version_id": "56e45b83-75bb-4d8b-9368-6fe6940c0d4e",
+      "parent_version_id": null,
+      "parent_record_hash": null,
+      "schema_version": "1",
+      "version_number": 1,
+      "task_record_hash": "9fbcf671d496627aa6bafe3ad09aea978abc87d9317246d2a08879446a3ae33f",
+      "task_state_record_hash": "3536655bc42191ea127292d1797e3efe60b08d23be90a50d7fa1f9f796ce6c13",
+      "goal": "修复并行工具调用被错误去重、以及乱序结果按工具名错误完成的问题：在 web 仿真层引入稳定调用标识（tool_use_id）作为工具调用唯一身份，去重仅针对同一 id 的重复投递，完成时按 id 精确匹配单条调用。",
+      "acceptance_criteria": [
+        "同一 agent 对同一工具发起的多次并行调用（不同参数/文件）均被独立记录，不再被去重丢弃。",
+        "fileAttention 中每个被读取的文件都有独立条目。",
+        "乱序到达的工具结果按调用身份精确完成对应那条调用，不影响同工具的其他运行中调用。",
+        "现有测试与类型检查全部通过，公共行为不变。"
+      ],
+      "files_to_inspect": [
+        "web/hooks/simulation/handle-tool-events.ts",
+        "web/hooks/simulation/types.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/process-event.ts",
+        "extension/src/protocol.ts",
+        "extension/src/transcript-parser.ts",
+        "package.json",
+        ".github/workflows/ci.yml"
+      ],
+      "files_likely_to_change": [
+        "web/hooks/simulation/handle-tool-events.ts",
+        "web/hooks/simulation/types.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/handle-tool-events.test.ts"
+      ],
+      "implementation_steps": [
+        "在 handleToolCallStart 中从 payload 提取稳定调用标识（payload.tool_use_id，回退用 payload.toolCallId 或生成唯一 id），并以此作为 state.toolCalls 的 Map 键。",
+        "将去重逻辑改为按该唯一 id 判定（仅拦截真正的重复投递），移除按 (agent, tool) 组合去重的逻辑。",
+        "在 handleToolCallEnd 中按该唯一 id 精确匹配并仅完成/置错那一条 toolCall，不再按 (agent, tool, running) 批量完成。",
+        "若 ToolCallNode / MutableEventState 需要新增 toolCallId（或 tool_use_id）字段，同步在 web/lib/agent-types.ts 与 web/hooks/simulation/types.ts 补充类型定义。",
+        "确认 fileAttention 的写入以每次独立调用为单位，保证不同文件的读取各自生成条目。",
+        "新增回归测试（见 tests_to_add_or_run），先记录真实失败，再完成实现使测试通过。"
+      ],
+      "tests_to_add_or_run": [
+        "新增 web/hooks/simulation/handle-tool-events.test.ts：覆盖并行多个 Read 调用（不同文件）均被记录且 fileAttention 各文件独立；覆盖乱序结果按调用身份完成正确调用。",
+        "运行 pnpm test（根目录，覆盖 web/hooks/**/*.test.ts 等）。",
+        "运行 pnpm --dir extension test。",
+        "运行 pnpm --filter agent-flow run lint（extension 类型检查）。",
+        "运行 pnpm --dir web exec tsc --noEmit（web 类型检查）。"
+      ],
+      "commands_to_run": [
+        {
+          "command_id": "root_tests",
+          "purpose": "运行根目录测试套件（scripts、app、web hooks/lib），覆盖新增回归测试所在目录",
+          "argv": [
+            "pnpm",
+            "test"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "extension_tests",
+          "purpose": "运行 extension 测试套件",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "extension",
+            "test"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "extension_lint",
+          "purpose": "extension 类型检查",
+          "argv": [
+            "pnpm",
+            "--filter",
+            "agent-flow",
+            "run",
+            "lint"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "web_typecheck",
+          "purpose": "web 类型检查",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "web",
+            "exec",
+            "tsc",
+            "--noEmit"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "risks": [
+        "事件 payload 中稳定标识字段名（tool_use_id 或 toolCallId）需在实现时按实际事件结构核实；protocol.ts 第 90 行已有 tool_use_id 字段作为依据。",
+        "若 relay/hook-server 未透传 tool_use_id，则需在 relay 或 hook-server 侧补充透传，超出当前最小改动范围，需在实现前确认。"
+      ],
+      "questions_for_maintainer": [],
+      "content_hash": "6df6cb25cb7a5ac68590e5964b6f3b310528273723a0057cd77cd5d1f641c848",
+      "record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+      "created_at": "2026-10-31T07:52:05.744845Z"
+    },
+    {
+      "id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+      "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+      "task_state_version_id": "56e45b83-75bb-4d8b-9368-6fe6940c0d4e",
+      "parent_version_id": "cb2aa72a-58a6-45e2-a26f-0daf9c3ba354",
+      "parent_record_hash": "bc9791d81608a7a4b13d54d3ccb2d81c48e4a4a29483c018be669c48dccf50d9",
+      "schema_version": "1",
+      "version_number": 2,
+      "task_record_hash": "9fbcf671d496627aa6bafe3ad09aea978abc87d9317246d2a08879446a3ae33f",
+      "task_state_record_hash": "3536655bc42191ea127292d1797e3efe60b08d23be90a50d7fa1f9f796ce6c13",
+      "goal": "修复并行工具调用被错误去重、以及乱序结果按工具名错误完成的问题：在生产端（transcript-parser 与 hook-server）的 tool_call_start/tool_call_end 事件中透传稳定调用标识 tool_use_id，并在 web 仿真层按该标识进行去重与完成，替代按 (agent, tool) 组合去重与按工具名完成。",
+      "acceptance_criteria": [
+        "同一 agent 对同一工具发起的多次并行调用（不同 tool_use_id、不同参数/文件）均被独立记录，不再被去重丢弃。",
+        "fileAttention 中每个被读取的不同文件都有独立条目。",
+        "乱序到达的 tool_call_end 按 tool_use_id 精确完成对应那条调用，不影响同工具的其他运行中调用。",
+        "同一 tool_use_id 的重复投递（Hook Server 与 Session Watcher 竞态）仍被去重为单条调用。",
+        "现有测试与类型检查全部通过；对不含 tool_use_id 的旧 replay 数据保持兼容回退。"
+      ],
+      "files_to_inspect": [
+        "web/hooks/simulation/handle-tool-events.ts",
+        "web/hooks/simulation/types.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/process-event.ts",
+        "extension/src/protocol.ts",
+        "extension/src/transcript-parser.ts",
+        "extension/src/hook-server.ts",
+        "package.json",
+        ".github/workflows/ci.yml"
+      ],
+      "files_likely_to_change": [
+        "extension/src/transcript-parser.ts",
+        "extension/src/hook-server.ts",
+        "web/hooks/simulation/handle-tool-events.ts",
+        "web/hooks/simulation/types.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/handle-tool-events.test.ts"
+      ],
+      "implementation_steps": [
+        "在 extension/src/transcript-parser.ts 的 handleToolUse 中，将 transcript tool_use 块的 block.id 作为 tool_use_id 加入 tool_call_start 事件的 payload。",
+        "在 extension/src/transcript-parser.ts 的 handleToolResult 中，将 block.tool_use_id 作为 tool_use_id 加入 tool_call_end 事件的 payload。",
+        "在 extension/src/hook-server.ts 的 handlePreToolUse 中，将 hook 输入 payload.tool_use_id 加入 tool_call_start 事件 payload。",
+        "在 extension/src/hook-server.ts 的 handlePostToolUse 与 handlePostToolUseFailure 中，将 tool_use_id 加入 tool_call_end 事件 payload。",
+        "若 HookPayload 类型尚未声明 tool_use_id，则在 hook-server.ts（或 protocol.ts）补齐该字段，与 Claude Code PreToolUse/PostToolUse hook 输入的 tool_use_id 对齐。",
+        "在 web/hooks/simulation/handle-tool-events.ts 的 handleToolCallStart 中读取 payload.tool_use_id 作为稳定标识；无该字段时回退生成唯一本地 id。以该标识作为 toolCalls Map 键，并将去重逻辑改为按同一 tool_use_id 判定（仅拦截真正的重复投递），移除按 (agent, tool, 3 秒窗口) 去重。",
+        "在 handleToolCallEnd 中读取 payload.tool_use_id，按该标识精确匹配并完成/置错那一条调用；无该字段时回退到现有按 (agent, tool) 匹配以兼容旧 replay。",
+        "如 toolCall 节点需要新增调用标识字段，在 web/lib/agent-types.ts 与 web/hooks/simulation/types.ts 同步补齐类型。",
+        "先新增回归测试并记录真实失败，再实现上述改动，使测试转绿并保持既有公共行为。"
+      ],
+      "tests_to_add_or_run": [
+        "新增 extension 测试：transcript-parser 发出的 tool_call_start/tool_call_end payload 携带 tool_use_id（分别为 tool_use block.id 与 tool_result block.tool_use_id）。",
+        "新增 extension 测试：hook-server 发出的 tool_call_start/tool_call_end payload 携带来自 hook 输入的 tool_use_id。",
+        "新增 web/hooks/simulation/handle-tool-events.test.ts：同一 agent 对多个不同文件并行 Read（不同 tool_use_id）均被独立记录、fileAttention 每个文件独立条目；乱序结果按 tool_use_id 精确完成对应调用；同一 tool_use_id 重复投递被去重。",
+        "运行 pnpm test（根目录，覆盖 web/hooks/**/*.test.ts 与 web/lib/**/*.test.ts）。",
+        "运行 pnpm --dir extension test。",
+        "运行 pnpm --filter agent-flow run lint（extension 类型检查）。",
+        "运行 pnpm --dir web exec tsc --noEmit（web 类型检查）。"
+      ],
+      "commands_to_run": [
+        {
+          "command_id": "root_tests",
+          "purpose": "运行根目录测试套件（scripts、app、web hooks/lib），覆盖新增回归测试所在目录",
+          "argv": [
+            "pnpm",
+            "test"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "extension_tests",
+          "purpose": "运行 extension 测试套件",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "extension",
+            "test"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "extension_lint",
+          "purpose": "extension 类型检查",
+          "argv": [
+            "pnpm",
+            "--filter",
+            "agent-flow",
+            "run",
+            "lint"
+          ],
+          "working_directory": "."
+        },
+        {
+          "command_id": "web_typecheck",
+          "purpose": "web 类型检查",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "web",
+            "exec",
+            "tsc",
+            "--noEmit"
+          ],
+          "working_directory": "."
+        }
+      ],
+      "risks": [
+        "需在实现时核对 HookPayload 是否已声明/可用 tool_use_id（Claude Code PreToolUse/PostToolUse hook 的标准字段）；若类型缺失则补齐并确认真实 hook 输入确实提供该字段。",
+        "需确认 hook-server 的 tool_use_id 与 transcript-parser 的 block.id 对同一次工具调用取值一致，才能让去重正确折叠竞态同时保留不同调用。",
+        "不含 tool_use_id 的旧 replay 数据需要兼容回退路径，避免破坏既有回放行为。"
+      ],
+      "questions_for_maintainer": [],
+      "content_hash": "af2f2a7100397bc3fc5443a7819b5cba063e81c22b3f060023a6c41b3532fb0d",
+      "record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+      "created_at": "2026-11-01T06:00:17.634579Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "7a80805d-1aad-42f2-af53-67a67aa2e55c",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-11-01 06:58:53.179580",
+      "started_at": "2026-11-01 06:58:54.853105",
+      "completed_at": "2026-11-01 06:59:29.618902",
+      "payload_hash": "417c96e6ac59bef817861fa668045879fbe10d687ae318473cef6dbb6c712e91",
+      "result_data": {
+        "next_job_id": "5f9181d5-65e5-44b2-8a8d-07048b28677e"
+      }
+    },
+    {
+      "id": "5f9181d5-65e5-44b2-8a8d-07048b28677e",
+      "kind": "planning_context",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-11-01 06:59:29.606520",
+      "started_at": "2026-11-01 06:59:30.773605",
+      "completed_at": "2026-11-01 06:59:31.495174",
+      "payload_hash": "002461a7bf1cdd5c1214395d75e08766cb991dd754b7074cd4085b91ee2bc694",
+      "result_data": {
+        "next_job_id": "47e056e1-5e34-47b4-97f4-d0e4755933d9",
+        "context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c"
+      }
+    },
+    {
+      "id": "47e056e1-5e34-47b4-97f4-d0e4755933d9",
+      "kind": "planning_turn",
+      "state": "succeeded",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-11-01 06:59:31.481601",
+      "started_at": "2026-11-01 06:59:31.628221",
+      "completed_at": "2026-11-01 06:59:51.316168",
+      "payload_hash": "080b42ebca02afe88e280b0340d805b16b7f82f4d276a38005ad1060f8f1be8e",
+      "result_data": {
+        "next_job_id": "56b44574-98dd-410c-83e4-952c1af649c1"
+      }
+    },
+    {
+      "id": "56b44574-98dd-410c-83e4-952c1af649c1",
+      "kind": "planning_turn",
+      "state": "failed",
+      "error_code": "deepseek_completion_truncated",
+      "error_message": "模型回复长度达到输出上限（Token 超限），请在模型配置中调大 max_tokens 或缩小方案细节。",
+      "created_at": "2026-11-01 06:59:51.303837",
+      "started_at": "2026-11-01 06:59:51.322077",
+      "completed_at": "2026-11-01 07:01:06.098268",
+      "payload_hash": "d475ca944a8617cde53e1cddb463e3a3932a5463c6f33bfd1ed6bb37888c5a3a",
+      "result_data": {}
+    }
+  ],
+  "native_context_captures": [
+    {
+      "event_id": "cd7d7528-ce37-4137-b5d6-53fe50194171",
+      "sequence": 387,
+      "record_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+      "artifact_id": "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834",
+      "job_id": "5f9181d5-65e5-44b2-8a8d-07048b28677e",
+      "requested_paths": [
+        "extension/test/transcript-parser.test.ts",
+        "extension/test/hook-entries.test.ts"
+      ],
+      "round": 1,
+      "entries": [
+        {
+          "path": ".github/pull_request_template.md",
+          "sha256": "0dd7e867815aa8437bcd1dff20ee47d274013838006b1b16ec455231a8d7ba78",
+          "available": true,
+          "bytes": 245
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+          "available": true,
+          "bytes": 689
+        },
+        {
+          "path": ".gitignore",
+          "sha256": "65b5ef4681b7fe602ab874fd19ab69dd0e3c9d56f7bc59e9f949529722fafbb4",
+          "available": true,
+          "bytes": 402
+        },
+        {
+          "path": ".vscode/launch.json",
+          "sha256": "19a8b744af89bebdc8978c9ff8791c9ca4794b465587a5b1c9a15e10e4cfb17b",
+          "available": true,
+          "bytes": 366
+        },
+        {
+          "path": ".vscode/settings.json",
+          "sha256": "41e0641d0702286e83dd34d610eb4b45625d04040d6aea8905d814dd60381d32",
+          "available": true,
+          "bytes": 44
+        },
+        {
+          "path": ".vscode/tasks.json",
+          "sha256": "d022f556cf46867930ffd785a004185b2178cc6bef2497250b352e49ad69c99e",
+          "available": true,
+          "bytes": 569
+        },
+        {
+          "path": "CLA.md",
+          "sha256": "a04176e1ed18e09caffca9acde4d147691444cbb152c1584719989f524c59680",
+          "available": true,
+          "bytes": 2890
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "sha256": "2702478a05af68da366caad302b5ef3cea3121ec091f66b50d8a17a512f4abbd",
+          "available": true,
+          "bytes": 1584
+        },
+        {
+          "path": "TRADEMARK.md",
+          "sha256": "03a88ed1259b8004823294386b3be9ee0a9feb5315a93c9d30c2ffc782bb7f0e",
+          "available": true,
+          "bytes": 1659
+        },
+        {
+          "path": "app/build.js",
+          "sha256": "bb1bfb80f38e061197606b628f14365a657252244f151615d992ff020426eb1e",
+          "available": true,
+          "bytes": 1214
+        },
+        {
+          "path": "app/package.json",
+          "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+          "available": true,
+          "bytes": 484
+        },
+        {
+          "path": "extension/.vscodeignore",
+          "sha256": "1c8e46364f88b5dee4f0e3b7f2884df51566d5ce9e84241294043b5260f564c3",
+          "available": true,
+          "bytes": 209
+        },
+        {
+          "path": "extension/CHANGELOG.md",
+          "sha256": "237e5d1fec73ef1e9a0dcd4c40777151a58a32f202fef69de9fbf29d91ac1a67",
+          "available": true,
+          "bytes": 12541
+        },
+        {
+          "path": "extension/LICENSE",
+          "sha256": "8406309d6f8dc4bf0b893f7795390bc9718e13e9e7ebbafad0696eafd28bac6d",
+          "available": true,
+          "bytes": 1062
+        },
+        {
+          "path": "extension/esbuild.js",
+          "sha256": "15988ba84d50cc938c16208751359a5317c720cb144abd32da822fc7ad738c33",
+          "available": true,
+          "bytes": 649
+        },
+        {
+          "path": "extension/package.json",
+          "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+          "available": true,
+          "bytes": 3281
+        },
+        {
+          "path": "extension/src/hook-server.ts",
+          "sha256": "b77b14ed4a731f7d21192759774568d93385fcb1c0b25c538f6601d6069ed3a9",
+          "available": true,
+          "bytes": 12122
+        },
+        {
+          "path": "extension/src/protocol.ts",
+          "sha256": "3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5",
+          "available": true,
+          "bytes": 7015
+        },
+        {
+          "path": "extension/src/session-watcher.ts",
+          "sha256": null,
+          "available": false,
+          "bytes": 0
+        },
+        {
+          "path": "extension/src/transcript-parser.ts",
+          "sha256": "1124a36d2667624dfcb44a1ed988c7ed63930e6233cebe7872105099343181d9",
+          "available": true,
+          "bytes": 33130
+        },
+        {
+          "path": "extension/test/hook-entries.test.ts",
+          "sha256": "9b04ec38e2ac55458ff36eac43aed5cb540740acd324b67abaed1c4a349b7a9f",
+          "available": true,
+          "bytes": 5436
+        },
+        {
+          "path": "extension/test/transcript-parser.test.ts",
+          "sha256": "8d49a0d068ba247b4a75af1131962cc61d9311addeb100db0f6445be93f2839a",
+          "available": true,
+          "bytes": 10091
+        },
+        {
+          "path": "extension/tsconfig.json",
+          "sha256": "e692d000276642a306852480da1e7e6c8dfdf68332324a251ec34f081c85767a",
+          "available": true,
+          "bytes": 441
+        },
+        {
+          "path": "extension/tsconfig.test.json",
+          "sha256": "6d3661ee02ad9cffa9416d405890183ecfc0007543035b4c3e0fa0f417b61d9b",
+          "available": true,
+          "bytes": 181
+        },
+        {
+          "path": "package.json",
+          "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+          "available": true,
+          "bytes": 1018
+        },
+        {
+          "path": "pnpm-lock.yaml",
+          "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+          "available": true,
+          "bytes": 67635
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+          "available": true,
+          "bytes": 32
+        },
+        {
+          "path": "scripts/build-relay.js",
+          "sha256": "95b8e60b7f9ae40e1ed397508fa50cbf6dcf8438d1e7b5a0fa15e5001f3313f5",
+          "available": true,
+          "bytes": 572
+        },
+        {
+          "path": "scripts/dev-relay.ts",
+          "sha256": "d108a292b6c9114c7b4a9c6650464e3a47b66480f3257db83c7b9e067f941f81",
+          "available": true,
+          "bytes": 2142
+        },
+        {
+          "path": "scripts/telemetry.ts",
+          "sha256": null,
+          "available": false,
+          "bytes": 0
+        },
+        {
+          "path": "scripts/vscode-shim.js",
+          "sha256": "7e1957398e00fc118a6900936e239ce8b66c14bdd24348b7b184474211ca5169",
+          "available": true,
+          "bytes": 772
+        },
+        {
+          "path": "web/app-entry.tsx",
+          "sha256": "33225522ea27415a3abe6442eb5d55582074c6dea393459210bd2d6c23773ecc",
+          "available": true,
+          "bytes": 396
+        },
+        {
+          "path": "web/components.json",
+          "sha256": "060762649713523e82b4a1cf131fba79ab250407a109d7ae7dc045ff482ae36d",
+          "available": true,
+          "bytes": 427
+        },
+        {
+          "path": "web/hooks/simulation/handle-agent-events.ts",
+          "sha256": "4916c49b0157dacea27b293a63367754197f0d10e7c64da94799f797b32331a5",
+          "available": true,
+          "bytes": 7530
+        },
+        {
+          "path": "web/hooks/simulation/handle-subagent-events.ts",
+          "sha256": "3a1e5a0cdf2e716f875ed04d1f1a9834d377ede6fed0c52f727a904dcb4c57d0",
+          "available": true,
+          "bytes": 1223
+        },
+        {
+          "path": "web/hooks/simulation/handle-tool-events.ts",
+          "sha256": "43556669992773fba142d096766771af76ad64161d5d05e08f817cb0af0d2cd9",
+          "available": true,
+          "bytes": 6518
+        },
+        {
+          "path": "web/hooks/simulation/process-event.ts",
+          "sha256": "08808a3dbb5129f910b1bfa2c45db2641e81e333c09fcab1de7bea0f0e3585c1",
+          "available": true,
+          "bytes": 4631
+        },
+        {
+          "path": "web/hooks/simulation/types.ts",
+          "sha256": "5a73297acb10135b1fe2de7ccbb5c5b59b918815d35bd88d2262f744e65aeb19",
+          "available": true,
+          "bytes": 4416
+        },
+        {
+          "path": "web/hooks/simulation/ui-throttle.test.ts",
+          "sha256": "23b7ca80394a1dfcd5a942d00c448791222c068b0689f04e713649f577bc86e1",
+          "available": true,
+          "bytes": 1080
+        },
+        {
+          "path": "web/hooks/simulation/ui-throttle.ts",
+          "sha256": "17c03db8fd5f438287529bb92c176a8659b919f745f3be8d85355f1ea76efd7f",
+          "available": true,
+          "bytes": 897
+        },
+        {
+          "path": "web/lib/agent-types.ts",
+          "sha256": "aca228d727fc36f2dfd24aef581b760cb667960d62430484511d137f8719cbdd",
+          "available": true,
+          "bytes": 7545
+        },
+        {
+          "path": "web/lib/canvas-constants.ts",
+          "sha256": null,
+          "available": false,
+          "bytes": 0
+        },
+        {
+          "path": "web/lib/timeline-models.test.ts",
+          "sha256": "0cde6b67ab2d5d71cde5bbe652133945e430668266e0df8adf23082b36358a3e",
+          "available": true,
+          "bytes": 1112
+        },
+        {
+          "path": "web/next.config.mjs",
+          "sha256": "9a76401c63672c713585447a02424e0d6da10b7d32e353fd92fae4eb00162260",
+          "available": true,
+          "bytes": 131
+        },
+        {
+          "path": "web/package.json",
+          "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+          "available": true,
+          "bytes": 752
+        },
+        {
+          "path": "web/postcss.config.mjs",
+          "sha256": "54b5708e687b8c9ecc8dbeebf29801dbec1213f890c5e018d7ca9c1541a6f7e3",
+          "available": true,
+          "bytes": 144
+        },
+        {
+          "path": "web/tsconfig.json",
+          "sha256": "9c43305b728b4b57e97c63dcef97739d59491469c9c2ddfd24408fdf63e70f86",
+          "available": true,
+          "bytes": 695
+        },
+        {
+          "path": "web/vite.config.shared.ts",
+          "sha256": "0e61daa9dba5d210fcb239f57863ecc7d856a3c0d5985ebe369a06133520f13e",
+          "available": true,
+          "bytes": 1283
+        }
+      ]
+    }
+  ],
+  "context_checkpoints": [
+    {
+      "artifact_id": "80d1729002032faa02c8625be855920c175c55c1886f296cc564a73a75922e9d",
+      "scope": "planning",
+      "prompt_bytes": 91302,
+      "request_unchanged": true,
+      "active_read_limits": {
+        "maximum_requests": 4,
+        "parameters": {
+          "max_bytes": {
+            "maximum": 16000,
+            "minimum": 256
+          },
+          "max_lines": {
+            "maximum": 160,
+            "minimum": 1
+          },
+          "offset": {
+            "maximum": 2000000,
+            "minimum": 0
+          },
+          "start_line": {
+            "maximum": 1000000,
+            "minimum": 1
+          }
+        }
+      },
+      "read_rounds_remaining": 4,
+      "repair_attempts_remaining": 2
+    },
+    {
+      "artifact_id": "fadbbe3a2e0261cf60e4fc3f875b236836d56b0e101be966fe2fa0d10b90c67e",
+      "scope": "planning",
+      "prompt_bytes": 94257,
+      "request_unchanged": true,
+      "active_read_limits": {
+        "maximum_requests": 4,
+        "parameters": {
+          "max_bytes": {
+            "maximum": 16000,
+            "minimum": 256
+          },
+          "max_lines": {
+            "maximum": 160,
+            "minimum": 1
+          },
+          "offset": {
+            "maximum": 2000000,
+            "minimum": 0
+          },
+          "start_line": {
+            "maximum": 1000000,
+            "minimum": 1
+          }
+        }
+      },
+      "read_rounds_remaining": 3,
+      "repair_attempts_remaining": 2
+    },
+    {
+      "artifact_id": "e1606127c4c85889c96387446eed965ac7b045d8f7254b51f89af636f6acfa5c",
+      "scope": "planning",
+      "prompt_bytes": 95417,
+      "request_unchanged": true,
+      "active_read_limits": {
+        "maximum_requests": 4,
+        "parameters": {
+          "max_bytes": {
+            "maximum": 16000,
+            "minimum": 256
+          },
+          "max_lines": {
+            "maximum": 160,
+            "minimum": 1
+          },
+          "offset": {
+            "maximum": 2000000,
+            "minimum": 0
+          },
+          "start_line": {
+            "maximum": 1000000,
+            "minimum": 1
+          }
+        }
+      },
+      "read_rounds_remaining": 2,
+      "repair_attempts_remaining": 2
+    }
+  ],
+  "last_assistant_event": {
+    "id": "88c404bb-2edf-4dc8-ba14-e7f11f0f39a3",
+    "sequence": 391,
+    "kind": "assistant_message",
+    "job_id": "47e056e1-5e34-47b4-97f4-d0e4755933d9",
+    "payload": {
+      "reply": "",
+      "questions": [],
+      "read_paths": [],
+      "read_context": [
+        {
+          "reference_id": "248037d17420a87ef0dc75212c2b1678cfebce37faa997c020396dd83f21da1e",
+          "offset": 0,
+          "max_bytes": 11000,
+          "query": null,
+          "start_line": null,
+          "max_lines": 80
+        },
+        {
+          "reference_id": "d73656ba24bee4adf424854fb8ef41baa77fbefa349e8bebd7551f7bb8ed20d6",
+          "offset": 0,
+          "max_bytes": 6000,
+          "query": null,
+          "start_line": null,
+          "max_lines": 80
+        },
+        {
+          "reference_id": "43ccd3dcca9632c3c97f1abc4954a93cb4c04182e89dcf79cb74e078bc99140d",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": "handleToolUse",
+          "start_line": 340,
+          "max_lines": 120
+        },
+        {
+          "reference_id": "51318e41463ac3bb6511bac471186ea78ab4c524c7b7712536f47d23a3eed5d5",
+          "offset": 0,
+          "max_bytes": 8000,
+          "query": null,
+          "start_line": 204,
+          "max_lines": 70
+        }
+      ],
+      "plan": null,
+      "usage": {
+        "input_tokens": 32285,
+        "output_tokens": 1599,
+        "duration_ms": 17855,
+        "provider": {
+          "provider": "deepseek",
+          "adapter_version": "studio-deepseek-thinking-v1",
+          "model": "deepseek-v4-pro",
+          "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+        }
+      },
+      "context_checkpoint_hash": "fadbbe3a2e0261cf60e4fc3f875b236836d56b0e101be966fe2fa0d10b90c67e",
+      "action": "read",
+      "plan_deferred": false,
+      "plan_id": null,
+      "plan_receipt": {
+        "status": "not_requested",
+        "plan_id": null,
+        "execution_started": false
+      }
+    },
+    "record_hash": "82e097e6c21fd5af9a10e39acdcd3170f608b420f76f1de7fa68307868499ee7"
+  },
+  "rejections": [],
+  "failed_usage_receipts": [
+    {
+      "id": "25385b7b-8f54-476b-beef-b3fd55f3da91",
+      "sequence": 395,
+      "kind": "model_failed_usage",
+      "job_id": "56b44574-98dd-410c-83e4-952c1af649c1",
+      "payload": {
+        "version": "planning-failed-usage-v1",
+        "usage_unknown": false,
+        "usage": {
+          "input_tokens": 34414,
+          "output_tokens": 6903
+        },
+        "provider": {
+          "provider": "deepseek",
+          "adapter_version": "studio-deepseek-thinking-v1",
+          "model": "deepseek-v4-pro",
+          "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+        },
+        "reason_code": "deepseek_completion_truncated"
+      },
+      "record_hash": "7a23160c585ce917ccb3abfe816c4965692cc356d4ee86157ee4889bca2b2cc4"
+    }
+  ],
+  "model_call_receipts": [
+    {
+      "id": "36c89689-889c-4c76-b514-983496d5fab8",
+      "sequence": 384,
+      "kind": "model_call",
+      "job_id": "7a80805d-1aad-42f2-af53-67a67aa2e55c",
+      "payload": {
+        "provider": {
+          "provider": "deepseek",
+          "adapter_version": "studio-deepseek-thinking-v1",
+          "model": "deepseek-v4-pro",
+          "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+        },
+        "input_hash": "e899d94faed4cc6dd407e2c99633cad2622bc50a16eabcba0661becb80df67e7",
+        "context_checkpoint_hash": "80d1729002032faa02c8625be855920c175c55c1886f296cc564a73a75922e9d",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "aca9d650ab23625847250d160161db2c3ee906997b81b460f8754e3f1fdde7fe",
+        "output_token_limit": 11449,
+        "input_token_limit": 450000
+      },
+      "record_hash": "d4649df9566bfa8de5e5af79fe2e85cfe7c2dd9b52e5d95596af07a02ee534d6"
+    },
+    {
+      "id": "a7e70608-1445-4467-9b84-f349bacc72a2",
+      "sequence": 390,
+      "kind": "model_call",
+      "job_id": "47e056e1-5e34-47b4-97f4-d0e4755933d9",
+      "payload": {
+        "provider": {
+          "provider": "deepseek",
+          "adapter_version": "studio-deepseek-thinking-v1",
+          "model": "deepseek-v4-pro",
+          "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+        },
+        "input_hash": "18deee9605d06a669c686b49c9eb5d465d52ee8eb49da22719423f0558a08738",
+        "context_checkpoint_hash": "fadbbe3a2e0261cf60e4fc3f875b236836d56b0e101be966fe2fa0d10b90c67e",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "aca9d650ab23625847250d160161db2c3ee906997b81b460f8754e3f1fdde7fe",
+        "output_token_limit": 8502,
+        "input_token_limit": 450000
+      },
+      "record_hash": "c3aa6492cf9cf8ab6bb7d8e6afe7ba99772a3dec5f0ae625298db3a06e365026"
+    },
+    {
+      "id": "bfe301c6-12bc-40db-9257-055bb5e1da8b",
+      "sequence": 394,
+      "kind": "model_call",
+      "job_id": "56b44574-98dd-410c-83e4-952c1af649c1",
+      "payload": {
+        "provider": {
+          "provider": "deepseek",
+          "adapter_version": "studio-deepseek-thinking-v1",
+          "model": "deepseek-v4-pro",
+          "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+        },
+        "input_hash": "ba72a6e27951c5e0a1cbc63b2c5f4f4c3c52894a62e0b52d99aa0ae4a77f9ee3",
+        "context_checkpoint_hash": "e1606127c4c85889c96387446eed965ac7b045d8f7254b51f89af636f6acfa5c",
+        "policy": "planning-v5-independent-actions",
+        "output_schema_hash": "aca9d650ab23625847250d160161db2c3ee906997b81b460f8754e3f1fdde7fe",
+        "output_token_limit": 6903,
+        "input_token_limit": 450000
+      },
+      "record_hash": "b9416c1ddd8fc4652e4c8c23aaefec03bcae65ee9dcc15d254e6bfb000a9d7de"
+    }
+  ],
+  "journal": [
+    {
+      "id": "6d2b5684-dc70-4387-af9e-3da88638ae55",
+      "sequence": 382,
+      "kind": "user_message",
+      "record_hash": "86548a874eef28648356e3e9e3f9df52cb8fbcedeb367264800029b330b7ec5b"
+    },
+    {
+      "id": "285be880-97a1-4b54-8ef8-906fee5e8214",
+      "sequence": 383,
+      "kind": "context_checkpoint",
+      "record_hash": "ddcc80ba824594d8ae6e2d7d29949d702711d82f8c54dd2c109b2a4c55163e1e"
+    },
+    {
+      "id": "36c89689-889c-4c76-b514-983496d5fab8",
+      "sequence": 384,
+      "kind": "model_call",
+      "record_hash": "d4649df9566bfa8de5e5af79fe2e85cfe7c2dd9b52e5d95596af07a02ee534d6"
+    },
+    {
+      "id": "cf54256c-7c99-488b-99a2-0d122fdf3ce4",
+      "sequence": 385,
+      "kind": "assistant_message",
+      "record_hash": "acdf820f0567d705d0e84eadb337c3fe26a5099a727212527902fc694f861ed4"
+    },
+    {
+      "id": "3232b6ee-e273-4784-b777-cb85c69a712c",
+      "sequence": 386,
+      "kind": "job_queued",
+      "record_hash": "7f2781c432d71f1985d86eca544cf6440424898bf7db6a07e30236b395e969c7"
+    },
+    {
+      "id": "cd7d7528-ce37-4137-b5d6-53fe50194171",
+      "sequence": 387,
+      "kind": "context_ready",
+      "record_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c"
+    },
+    {
+      "id": "19c173ae-2875-4181-bb96-c56b3a9aabdc",
+      "sequence": 388,
+      "kind": "job_queued",
+      "record_hash": "d187e64b0ad6710c32a28bd615b28db49c9e869b2f82faf2a135f182464b4ef8"
+    },
+    {
+      "id": "4d306e4e-9d6e-4d80-8de8-81393973138c",
+      "sequence": 389,
+      "kind": "context_checkpoint",
+      "record_hash": "33469832c5c4c390755114ad44035ba5ceee9f06b7af5068a4b8c035dd701505"
+    },
+    {
+      "id": "a7e70608-1445-4467-9b84-f349bacc72a2",
+      "sequence": 390,
+      "kind": "model_call",
+      "record_hash": "c3aa6492cf9cf8ab6bb7d8e6afe7ba99772a3dec5f0ae625298db3a06e365026"
+    },
+    {
+      "id": "88c404bb-2edf-4dc8-ba14-e7f11f0f39a3",
+      "sequence": 391,
+      "kind": "assistant_message",
+      "record_hash": "82e097e6c21fd5af9a10e39acdcd3170f608b420f76f1de7fa68307868499ee7"
+    },
+    {
+      "id": "9db5c4a9-55cd-497f-ba91-a813483b9460",
+      "sequence": 392,
+      "kind": "job_queued",
+      "record_hash": "c07d287112b0e1af4ad81a8407dd9e6a8cada36fb95a74ab7547131e357335ab"
+    },
+    {
+      "id": "7a1b89df-0841-412f-99bd-b98e1317fe06",
+      "sequence": 393,
+      "kind": "context_checkpoint",
+      "record_hash": "b8af37fcd722291711eead3c6525e017ca91bbb6951254fd2a8191e7ba765fcf"
+    },
+    {
+      "id": "bfe301c6-12bc-40db-9257-055bb5e1da8b",
+      "sequence": 394,
+      "kind": "model_call",
+      "record_hash": "b9416c1ddd8fc4652e4c8c23aaefec03bcae65ee9dcc15d254e6bfb000a9d7de"
+    },
+    {
+      "id": "25385b7b-8f54-476b-beef-b3fd55f3da91",
+      "sequence": 395,
+      "kind": "model_failed_usage",
+      "record_hash": "7a23160c585ce917ccb3abfe816c4965692cc356d4ee86157ee4889bca2b2cc4"
+    },
+    {
+      "id": "1a0ec397-bf23-46fd-8c78-2e066bbc99c5",
+      "sequence": 396,
+      "kind": "conversation_result",
+      "record_hash": "67bc9e3b7c498ad417bf5e21469d91f9124f9e37d4fb9b50172f40269b05300e"
+    }
+  ],
+  "prior_events_and_terminal_jobs_preserved": true,
+  "new_execution_approvals": 0,
+  "native_deliveries": 0,
+  "external_writes": 0
+}

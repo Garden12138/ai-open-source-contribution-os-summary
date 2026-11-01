@@ -1,0 +1,220 @@
+{
+  "version": "upeve-native-plan3-read-reuse-final-audit-v1",
+  "recorded_at": "2026-11-01T07:28:22.698077+00:00",
+  "native_request_engine_revision": "8470ca1ae27ce9799cea0c2987339a0c11460f85",
+  "native_request_source_manifest_hash": "ff95ca86414bf17380b6587357dcfd637c49060f04952db93bd3d4c4e804c545",
+  "maintenance_engine_revision": "c4cfabe5e8493b9f99e5bffbe2b92356d3ed984b",
+  "maintenance_tested_source_manifest_hash": "89c543799e9b12504a9df721211dfe6960481fc5ce954a74487d7a985d3979cc",
+  "maintenance_source_files": 236,
+  "default_regression": {
+    "tests": 1833,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1771
+  },
+  "focused_passed": 57,
+  "native_request_result": "revision_failed_deepseek_completion_truncated",
+  "native_request_model_calls": 3,
+  "native_request_jobs": 4,
+  "native_new_child_Plan_count": 0,
+  "old_Plans_preserved": 2,
+  "native_known_usage_delta": {
+    "calls": 3,
+    "input_tokens": 98176,
+    "output_tokens": 11449
+  },
+  "native_output_limits": [
+    11449,
+    8502,
+    6903
+  ],
+  "last_failed_known_usage": {
+    "version": "planning-failed-usage-v1",
+    "usage_unknown": false,
+    "usage": {
+      "input_tokens": 34414,
+      "output_tokens": 6903
+    },
+    "provider": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "5538d8a232185d8c2b76574665bff1f491c163b5998c2e1e3551510cf536d9fd"
+    },
+    "reason_code": "deepseek_completion_truncated"
+  },
+  "private_reasoning_final_split_retained": false,
+  "provider_account_balance_proven": false,
+  "partial_completion_used_as_Plan": false,
+  "context_checkpoints": [
+    {
+      "checkpoint_hash": "80d1729002032faa02c8625be855920c175c55c1886f296cc564a73a75922e9d",
+      "prompt_hash": "e899d94faed4cc6dd407e2c99633cad2622bc50a16eabcba0661becb80df67e7",
+      "bytes": 91302
+    },
+    {
+      "checkpoint_hash": "fadbbe3a2e0261cf60e4fc3f875b236836d56b0e101be966fe2fa0d10b90c67e",
+      "prompt_hash": "18deee9605d06a669c686b49c9eb5d465d52ee8eb49da22719423f0558a08738",
+      "bytes": 94257
+    },
+    {
+      "checkpoint_hash": "e1606127c4c85889c96387446eed965ac7b045d8f7254b51f89af636f6acfa5c",
+      "prompt_hash": "ba72a6e27951c5e0a1cbc63b2c5f4f4c3c52894a62e0b52d99aa0ae4a77f9ee3",
+      "bytes": 95417
+    }
+  ],
+  "source_binding": {
+    "approved_plan_id": null,
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "authorization_hash": null,
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "baseline_result_hash": null,
+    "context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "plan_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "result_event_hash": null,
+    "state_hash": "3536655bc42191ea127292d1797e3efe60b08d23be90a50d7fa1f9f796ce6c13",
+    "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c"
+  },
+  "context": {
+    "artifact_id": "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "branch": "main",
+    "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "inputs_hash": "0cec471faba852530706781ccfa06624878c9132a24dcdecaa6b007ae4739c5a",
+    "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+    "record_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c"
+  },
+  "old_failed_request_counters": {
+    "read_round": 2,
+    "repair_round": 0
+  },
+  "new_generic_reuse_native_model_calls": 0,
+  "reuse_controlled_replay_only": {
+    "selected_prior_checkpoint": "e1606127c4c85889c96387446eed965ac7b045d8f7254b51f89af636f6acfa5c",
+    "unissued_prompt_bytes": 95199,
+    "reused_pages": 4,
+    "reused_source_paths": [
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-entries.test.ts",
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts"
+    ],
+    "reused_page_bytes": [
+      7828,
+      4318,
+      58,
+      2160
+    ],
+    "source_completion_flags": [
+      false,
+      false,
+      false,
+      false
+    ],
+    "request_and_current_Plan_unchanged": true,
+    "version": "upeve-read-reuse-controlled-replay-v1",
+    "recorded_at": "2026-11-01T07:17:15.298567+00:00",
+    "classification": "consistent_DB_and_artifact_copy_simulated_output_funding_not_native_success_or_consent",
+    "model_calls": 0,
+    "actual_output_cap_unchanged": 200000,
+    "simulated_copy_output_cap": 250000,
+    "live_output_budget_exhaustion_still_blocks": true,
+    "native_database_modified": false,
+    "original_artifacts_written": false,
+    "real_source_state_and_lease_checks_preserved": true,
+    "old_failed_job_and_usage_preserved": true,
+    "new_native_request_dispatched": false,
+    "native_effectiveness": "not_run"
+  },
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "05a0a44ad964fa70474123aa0017f0ea69928da331d84dc4f3cc9d0fce157a8e",
+    "record_hash": "6e63528fd60ec78f9911a01a3a67539147542f3f97d5c31a48bb1c03347e9246",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 200000
+    },
+    "usage": {
+      "calls": 62,
+      "input_tokens": 1572455,
+      "output_tokens": 159040
+    },
+    "remaining": {
+      "calls": 2,
+      "input_tokens": 1077545,
+      "output_tokens": 0
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "old_usage_and_unknown_holds_retained": true,
+  "native_events_verified": 396,
+  "historical_files_preserved": 74,
+  "source_Profile_defaults_preserved": true,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "owned_roles_live": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "active_jobs": 0,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_pattern_scan": {
+    "files_before_audit": 503,
+    "findings": [],
+    "raw_vault_inspected": false
+  },
+  "pending_output_only_proposal_hash": "635ad29f7af7454f5f89e4c3d7736220934e312e1b2215145a61a08bb8eb3ee1",
+  "new_resource_approval_received": false,
+  "execution_approved": false,
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_environment_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "native_baseline_coding_verify_independent_review": "not_run",
+  "third_party_writes": 0,
+  "formal_data_modified": false,
+  "current_task": "UPEVE-E04",
+  "draft_validation_correction": "Before presenting the resource preview, validation corrected its API endpoint to the existing /workbench/budget route and read failed request round=2 with default repair_round=0. No budget mutation or native dispatch occurred."
+}

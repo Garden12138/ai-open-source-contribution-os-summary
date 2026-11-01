@@ -1,14 +1,16 @@
 # UPEVE v1 acceptance ledger
 
 Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
-Deployed maintenance revision: `8d97e1411816ab1d67cd9118b3142702d359a41d`.
+Deployed maintenance revision: `c4cfabe5e8493b9f99e5bffbe2b92356d3ed984b`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1584 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
-first baselines. MiniMax credentials and four-stage Profile binding are verified;
-fresh native Python planning failed before source ingestion, and TypeScript
-discovery was blocked by metadata rate limiting. Neither reached approval or
-Coding. Native Linux amd64 remains blocked/not_run.
+1771 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
+first baselines. The DeepSeek D-maintenance task saved Plan2, whose promised
+extension test write scope remains incomplete. The approved Plan3 request then
+failed on truncated output, leaving2 calls/output0. Read reuse is deployed but
+has no native model verification; an output-only resource preview awaits consent.
+Native Baseline/Coding/Verify/independent Review remain not_run. Native Linux
+amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -990,3 +992,53 @@ A copy replay reproduces **97,700 bytes** at minimum pages. Background projectio
 Generic PlanningPlan metadata at8470ca1 clarifies that every promised source/config/new or modified test must have a concrete writable path. Existing min/max/schema/runtime permissions are unchanged. [Checks](write-scope-guidance-checks.json) pass **1762 default/62 skipped/75 focused**, compileall/runtime integrity/diff; the initial wrong focused-test filename is recorded. [Deployment](write-scope-guidance-deployment.json) preserves both Plans/history/budget and healthy isolated services. Zero calls use this new description so far; native effectiveness remains not_run.
 
 [New-parent preview](deepseek-native-plan3-test-scope-proposal.json), hash `3bb12cfda683b58e88967d944329bbd620df18c5133ab1cfdbc19a3869f95f0e`, requests **one new read-only request/at most five existing calls**, pinned to Plan2. It retains six current paths/four commands and explicitly adds extension/test/transcript-parser.test.ts plus extension/test/hook-server.test.ts using the inspected tsx/node:test layout. No cap/Profile change, manual Plan patch, execution or publication. Confirmation is pending because the preceding exact grant stopped at child Plan and bound the old parent. [Final audit](native-plan2-final-audit.json) records source/health/provenance and this pending gate. Native first outcomes0/4, full environment baselines0/15, historical Node failure, Linux amd64 blocker and unrun Baseline/Coding/Verify/independent Review remain unchanged; UPEVE-E04 stays current. This is a real planning substep, not native end-to-end delivery.
+
+## Plan3 scope revision fails on known truncation; read reuse awaits native verification
+
+[Exact approval](deepseek-native-plan3-test-scope-approval.json) binds the prior
+preview `3bb12cfd...69f95f0e`. The [native request](deepseek-native-plan3-test-scope.json)
+on8470ca1 makes **three real DeepSeek calls**, with two valid read responses,
+one real OCI source capture and no schema rejection. The last call receives a
+**6,903-token** output limit because the task allowance is almost exhausted;
+it fails `deepseek_completion_truncated`, with known34,414 input/6,903 output.
+The raw reasoning/final-content split and provider balance are unknown. No
+partial completion becomes a Plan, and no Plan3 is saved. Two old Plans remain
+immutable; Plan2 still lacks promised extension test write paths and is now
+context-stale after the test-source capture. The grant stops on that failure.
+
+Lifetime **62 calls/1,572,455 input/159,040 output**, old three-call holds
+**1,350,000 input/40,960 output**, unchanged limits64/4M/200K: remaining
+**2 calls/1,077,545 input/0 output**. This task cap does not establish an empty
+provider account. No retry clears holds or rewrites the failed read2/repair0.
+
+Generic v2 read reuse atc4cfabe reuses only actual earlier admitted repository
+pages under the same frozen task/source/Plan/state/policy/image/Profile. Issued
+checkpoint/model-input hashes and consumption-time binding are checked; source
+selectors, exact text and partial flags remain truthful. Explicit provenance
+states zero new repository IO. Changed source/Plan/model, stop, legacy, corrupt
+or unissued receipts cannot inherit pages. Budgets still gate access first;
+new request-local counters never refund old usage or rewrite old rounds.
+
+[Checks](read-reuse-checks.json) pass **1771 default/62 skipped/0 failed** and
+**57 focused**, compileall/runtime integrity/diff. Two new cases fail against
+the pre-fix planner; the initial unsaved-Profile fixture error is recorded and
+fixed without relaxing a guard. [Copy-only replay](read-reuse-controlled-replay.json)
+proves zero real output allowance still rejects a call. Simulated250K output
+funding in the disposable copy admits an unissued **95,199-byte** prompt with
+four verified old pages, preserving actual state/lease checks and making no
+model call or native DB/artifact write. Simulated funding is not real consent.
+[Deployment](read-reuse-deployment.json) restarts only five idle owned roles,
+matches all236 tested source files and checks four healthy endpoints; no new
+native request/call follows this maintenance. Reuse effectiveness is **not_run**.
+
+[Audit](native-plan3-read-reuse-final-audit.json) verifies396 native events,
+74 historical files, SQLite integrity/foreign keys and503 sanitized JSON files
+without credential findings. [Output-only preview](deepseek-native-plan3-output-only-proposal.json),
+hash `635ad29f7af7454f5f89e4c3d7736220934e312e1b2215145a61a08bb8eb3ee1`,
+awaits exact resource approval: output200K→250K, unchanged calls64/input4M and
+all use/holds, one new read-only Plan2 child request/at most two remaining calls.
+It binds the current source and tested engine and retains eight intended paths/
+four checks. The actual cap is unchanged. No execution/publication approval,
+native Baseline/Coding/Verify/independent Review or new unseen success exists.
+Native first deliveries0/4 and complete environment baselines0/15, historical
+Node failure, Linux amd64 blocker and current UPEVE-E04 remain unchanged.

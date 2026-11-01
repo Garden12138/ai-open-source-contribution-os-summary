@@ -1,0 +1,37 @@
+{
+  "selected_prior_checkpoint": "e1606127c4c85889c96387446eed965ac7b045d8f7254b51f89af636f6acfa5c",
+  "unissued_prompt_bytes": 95199,
+  "reused_pages": 4,
+  "reused_source_paths": [
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-entries.test.ts",
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts"
+  ],
+  "reused_page_bytes": [
+    7828,
+    4318,
+    58,
+    2160
+  ],
+  "source_completion_flags": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "request_and_current_Plan_unchanged": true,
+  "version": "upeve-read-reuse-controlled-replay-v1",
+  "recorded_at": "2026-11-01T07:17:15.298567+00:00",
+  "classification": "consistent_DB_and_artifact_copy_simulated_output_funding_not_native_success_or_consent",
+  "model_calls": 0,
+  "actual_output_cap_unchanged": 200000,
+  "simulated_copy_output_cap": 250000,
+  "live_output_budget_exhaustion_still_blocks": true,
+  "native_database_modified": false,
+  "original_artifacts_written": false,
+  "real_source_state_and_lease_checks_preserved": true,
+  "old_failed_job_and_usage_preserved": true,
+  "new_native_request_dispatched": false,
+  "native_effectiveness": "not_run"
+}
