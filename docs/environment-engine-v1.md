@@ -139,3 +139,13 @@ facts retroactively. These are additive event fields, without SQL changes; drain
 jobs and retain matching code/DB/artifacts before rollback. The maintained task
 has actual native preparation/8 probes/4 Baseline passes, then a terminal model
 response failure before tool execution; it has no completed contribution or Review.
+
+Studio tool mode explicitly binds `structured-result-tool-v1` in its trusted
+system instruction: the only registered result function returns the entire stage
+schema; application tool names in Agent input remain JSON data. The strict
+decoder continues rejecting multiple results or an unregistered function.
+Optional `completion-response-facts-v2` adds a bounded call count and envelope
+enum, retaining no raw names/arguments/reasoning. V1 event fields remain exact;
+no schema migration or budget/retry change is made. This protocol clarification
+and diagnostic detail require separate live verification; fixtures are not native
+success and cannot repair or reopen a historical terminal session.

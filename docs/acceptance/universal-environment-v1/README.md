@@ -1,10 +1,10 @@
 # UPEVE v1 acceptance ledger
 
 Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
-Deployed maintenance revision: `5c79b21556e1a711bf6eee4a293cbea6f4381554`.
+Deployed maintenance revision: `0ac8b77a878d1f4ad3d87f821fa22fe362e58a22`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1836 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
+1854 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
 first baselines. Exact Plan3 execution was approved: native Explore passed,
 dependency preparation failed before Baseline/Coding. Generic native CLI, CI
 version and replan binding fixes are deployed. A corrected pnpm10/Node22
@@ -14,9 +14,12 @@ Approved Plan4 execution now passes actual native preparation/8 probes/4 Baselin
 checks and reaches v2 Coding admission. Its first model request stops at
 deepseek_completion_invalid before any tools/writes; post-change Verify/Review
 remain not_run. Original response facts/actual usage are unavailable; retained
-budget reservations are not claimed spend. Safe diagnostics are deployed without
-retry or historical rewrite. One exact controlled read-only diagnostic preview
-2406f44c awaits consent. Planning use64 reaches its unchanged cap; unknown holds
+budget reservations are not claimed spend. One approved controlled diagnostic
+returns tool_calls/3409 input/277 output but no extractable structured result;
+it executes no tools and cannot reconstruct the old response. Generic single-
+result transport clarification and v2 envelope/count diagnostics are deployed,
+with strict rejection/limits retained. Live effect awaits one exact read-only
+retest351ca44a. Planning use64 reaches its unchanged cap; unknown holds
 remain. Native Linux amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
@@ -1321,3 +1324,57 @@ foreign keys and544 sanitized JSON records without credential-pattern findings.
 No job/model retry is active. The old blocked session's1800-second wall-clock
 budget has expired; deployment preserves it. A separate diagnostic cannot reset
 that clock, reopen the terminal checkpoint or count as a native model turn.
+
+## Approved one-call diagnostic: result transport fails; hardening awaits live retest
+
+[Approval464990ff](provider-readonly-diagnostic-approval.json) consumes2406f44c.
+[Actual controlled response](provider-readonly-diagnostic.json) has verified
+3409 input/277 output, one choice, finish=tool_calls, tool-call/reasoning presence
+and no final text; extraction fails final_content_missing. No tool executes,
+no native turn is inserted, no clock/budget is reset. Choice count does not
+establish tool-call count. Exact envelope shape remains unknown because v1 facts
+did not capture it. This measured call's usage cannot replace the old native
+reservation or establish what its historical response contained. Balance is
+unverified. [Observation](structured-transport-observation.json) verifies448
+unchanged events/checkpoint/budgets and classifies this as a controlled diagnostic,
+without a claim to native recovery or success.
+
+Static inspection finds an ambiguous protocol boundary: input describes Agent
+application tools, but the API registers only one structured-result function.
+Generic0ac8b77 adds an explicit trusted `structured-result-tool-v1` instruction:
+one complete result, application calls kept inside its schema array. Unknown
+function names/multiple results/bad arguments still reject; no guessed mapping,
+extra registered tool, unsupported API parameter or first-call selection exists.
+`completion-response-facts-v2` adds bounded call count and envelope enums without
+retaining raw function names, arguments or private reasoning. Legacy v1 remains
+byte-for-byte compatible in its wire fields. This hardening is not a conclusion
+about the exact old envelope, and live effectiveness remains **not_run**.
+
+[Checks](structured-transport-checks.json) pass **1854 default/62 skipped/0 failed**,
+115 focused/18 new cases, compileall/runtime integrity/diff. The initial fixture
+gateway namespace fails the existing endpoint allowlist twice; only fixture
+values change, with no relaxed guard. Multiple/unknown calls stay rejected,
+input/schema/Profile/caps stay exact and canary text is omitted. No migration or
+dependency is added. [Deployment](structured-transport-deployment.json) verifies
+240 tested files, five owned idle roles/four healthy endpoints,448 unchanged
+events, old expired checkpoint, actual native4/4 Baseline and unchanged first
+probe. Publisher is not rebuilt. No post-hardening model call has run.
+
+[Exact retest preview](structured-transport-retest-proposal.json), hash
+`351ca44ab8a29823b8455d99bf7aaa2798f79d34dbd52e34c6d05dad238738f1`, awaits
+fresh consent for one read-only controlled request: original business prompt/
+Decision schema/high Profile, new bound trusted instruction,4096 output/300s,
+one gateway/upstream POST/no retry. [Helper](structured_transport_probe.py)
+executes no proposed tools, records a bounded valid result or safe v2 failure,
+then stops. It cannot resume the old terminal session, change native budgets,
+insert the probe as a native turn or count as delivery. The preceding one-call
+grant is consumed; AGENTS precise consent still gates this new action. Native0/4,
+U0/15, historical Node failure and native Linux blocker remain; UPEVE-E04 is current.
+
+
+[Final audit](structured-transport-final-audit.json) verifies240 source files,
+74 original historical files,448 chained native events, four Plans/two execution
+approvals, the one controlled probe's approval/result hashes, original expired
+checkpoint/budgets, SQLite integrity/foreign keys and551 sanitized JSON records
+without credential-pattern findings. Four endpoints remain healthy. New wire
+retest351ca44a is unapproved/unrun; no gate or denominator is promoted.

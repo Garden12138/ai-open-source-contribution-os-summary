@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Exact Plan4 previewfccdcdcc was approved: real native preparation,8 entrypoint probes and4 Baseline checks pass; actual v2 Coding admission reaches one credential-gateway model call, then stops at deepseek_completion_invalid before any tool/write. Original response details/actual usage are unavailable;10426/4096 are retained reservations, not claimed spend. Generic safe failure diagnostics are deployed at5c79b21:1836 passed/62 skipped/62 focused, four health endpoints pass,448 events preserved. Exact single read-only diagnostic preview2406f44c awaits consent; no native retry, planning cap reset or Review. Historical Node, native E2E and Linux gates stay open. |
+| Feature note | Approved one-call diagnostic2406f44c returns verified tool_calls/3409 input/277 output but no extractable registered structured result; it executes no tools and preserves448 native events/old expired session/budgets. Exact tool-envelope cause remains unknown. Generic single-result transport instruction and v2 envelope/count diagnostics are deployed at0ac8b77:1854 passed/62 skipped/115 focused; strict decoder and all limits remain. Live hardening effect awaits exact one-call read-only retest351ca44a approval. Prior actual native8 probes/4 Baseline passes stand; Coding patch/Verify/Review and historical Node/generalization/Linux gates remain incomplete. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6206,6 +6206,68 @@ records with no credential-pattern findings. Zero jobs or model retries are
 active. The original blocked session's1800-second wall-clock budget has now
 expired; no restart resets it. The separately proposed diagnostic cannot resume
 that session or insert a decision into it. No stage gate or U success is added.
+
+### 2026-11-02 One approved diagnostic isolates the structured transport boundary
+
+[Exact approval464990ff](acceptance/universal-environment-v1/provider-readonly-diagnostic-approval.json)
+consumes preview2406f44c. [Actual single controlled request](acceptance/universal-environment-v1/provider-readonly-diagnostic.json)
+uses the same frozen prompt/schema/high Profile with4096 output cap, no retry.
+It returns one **choice**, `finish=tool_calls`, verified3409 input/277 output,
+tool-call and reasoning presence, no final text, and `final_content_missing`.
+The client fails to extract the exact registered structured-result function.
+One choice is not proof of one tool call. V1 facts did not retain tool-call count,
+function-name match or argument shape, so exact alternative remains **unverified**.
+This new response cannot reconstruct or supply usage for the older native failure.
+The account balance is not probed. [Observation audit](acceptance/universal-environment-v1/structured-transport-observation.json)
+verifies448 unchanged native events/checkpoint/budgets, no tool execution,
+no native recovery and no business patch. The separate probe is not a native turn,
+native recovery or delivery; old conservative reservations are not refunded.
+
+Static protocol inspection identifies a concrete ambiguity: the API registers
+only the structured-result function, while the Agent input describes application
+tools and says to use them; trusted system text did not explicitly distinguish
+these namespaces. Generic hardening0ac8b77 now specifies exactly one complete
+registered result, with application calls inside its schema-defined array.
+This clarifies the existing wire contract; it does not add API functions,
+forced DeepSeek choice, guessed arguments, unsupported API parameters or first-
+call selection. The decoder still rejects multiple results and unknown names.
+Additive `completion-response-facts-v2` records only bounded call count and a
+strict tool-envelope enum (including count/name/argument failures); old v1 wire
+stays exact. This does **not** prove which old alternative occurred or that
+the instruction fixes the live model. Source tests do not substitute for it.
+
+[Checks](acceptance/universal-environment-v1/structured-transport-checks.json)
+pass **1854/62 skipped/0 failed**,115 focused/18 new cases, compileall/runtime
+integrity/diff. Two initial focused runs fail because the fixture's gateway
+host/service/network are outside the existing allowlist; only the fixture is
+corrected. No endpoint guard is relaxed. DeepSeek/MiniMax/OpenAI tools and JSON
+schema modes retain exact user input/schema/Profile and output caps; rejected
+names/arrays and credential/reasoning canaries remain safe. No SQL migration
+or dependency is needed. [Deployment](acceptance/universal-environment-v1/structured-transport-deployment.json)
+restarts only five idle owned roles, verifies240 source files/four health
+endpoints and unchanged448 events, passed native Baseline, old expired checkpoint,
+budgets and first probe. Publisher is not rebuilt. No new call tests the hardening.
+
+[New exact read-only retest preview](acceptance/universal-environment-v1/structured-transport-retest-proposal.json)
+`351ca44ab8a29823b8455d99bf7aaa2798f79d34dbd52e34c6d05dad238738f1`
+awaits fresh consent for **one** controlled request after hardening, same original
+business prompt/schema/Profile,4096 output/300s/no retry, one gateway/upstream
+POST. It explicitly binds the new trusted instruction, source and
+[reviewable helper](acceptance/universal-environment-v1/structured_transport_probe.py).
+A valid Decision's proposed tools still never execute. A failure records v2 facts
+and stops. The expired native session cannot resume or accept this result; no
+planning/coding budget is extended/reset and no original failure is overwritten.
+The preceding exact one-call grant is consumed, so AGENTS precise authorization
+requires this separate action's consent. Native first deliveries0/4, U full
+baselines0/15, H Node failure, E3–E6 and Linux gates remain. UPEVE-E04 is current.
+
+[Final transport audit](acceptance/universal-environment-v1/structured-transport-final-audit.json)
+verifies240 current source files,74 original historical files,448 chained native
+records, four Plans/two execution approvals, the single controlled probe's
+consent/result hashes, old expired checkpoint and all budgets, SQLite integrity/
+foreign keys and551 sanitized JSON records with no credential-pattern findings.
+All four local endpoints are healthy. Post-hardening live requests remain0;
+retest351ca44a consent is pending. No gate or native/U denominator changes.
 
 ---
 

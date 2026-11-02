@@ -198,7 +198,10 @@
         "ci-native-plan4-execution-proposal.json",
         "ci-native-plan4-execution.json",
         "ci-native-plan4-model-failure-diagnosis.json",
-        "provider-failure-facts-checks.json"
+        "provider-failure-facts-checks.json",
+        "structured-transport-checks.json",
+        "structured-transport-deployment.json",
+        "structured-transport-observation.json"
       ],
       "limit": "API/browser components plus native read-only planning; no native Coding/Verify/Review delivery"
     },
@@ -241,7 +244,10 @@
         "ci-native-child-replan-audit.json",
         "ci-native-plan4-execution-proposal.json",
         "ci-native-plan4-execution-approval.json",
-        "ci-native-plan4-baseline.json"
+        "ci-native-plan4-baseline.json",
+        "structured-transport-checks.json",
+        "structured-transport-deployment.json",
+        "structured-transport-observation.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -288,7 +294,10 @@
         "ci-native-child-replan-audit.json",
         "ci-native-plan4-execution-proposal.json",
         "provider-failure-facts-checks.json",
-        "provider-failure-facts-deployment.json"
+        "provider-failure-facts-deployment.json",
+        "structured-transport-checks.json",
+        "structured-transport-deployment.json",
+        "structured-transport-observation.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
     },
@@ -314,7 +323,10 @@
         "deepseek-native-readonly-extension-64-proposal.json",
         "pnpm-native-entrypoint-checks.json",
         "ci-toolchain-checks.json",
-        "provider-failure-facts-checks.json"
+        "provider-failure-facts-checks.json",
+        "structured-transport-checks.json",
+        "structured-transport-deployment.json",
+        "structured-transport-observation.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -531,19 +543,22 @@
         "ci-native-child-replan-audit.json",
         "ci-native-plan4-execution-proposal.json",
         "provider-failure-facts-checks.json",
-        "provider-failure-facts-deployment.json"
+        "provider-failure-facts-deployment.json",
+        "structured-transport-checks.json",
+        "structured-transport-deployment.json",
+        "structured-transport-observation.json"
       ],
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "5c79b21556e1a711bf6eee4a293cbea6f4381554",
+  "engine_revision": "0ac8b77a878d1f4ad3d87f821fa22fe362e58a22",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1898,
+    "tests": 1916,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1836
+    "passed": 1854
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -552,7 +567,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "provider-failure-facts-checks.json",
+  "latest_default_evidence": "structured-transport-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -562,8 +577,8 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "ci-native-plan4-execution.json",
-  "latest_isolated_deployment": "provider-failure-facts-deployment.json",
-  "latest_history_and_security_audit": "ci-native-plan4-final-audit.json",
+  "latest_isolated_deployment": "structured-transport-deployment.json",
+  "latest_history_and_security_audit": "structured-transport-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -600,7 +615,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-plan4-final-audit.json",
+  "latest_final_observation": "structured-transport-final-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -1511,11 +1526,17 @@
       "provider-failure-facts-checks.json",
       "provider-failure-facts-deployment.json",
       "ci-native-plan4-model-failure-diagnosis.json",
-      "ci-native-plan4-final-audit.json"
-    ]
+      "ci-native-plan4-final-audit.json",
+      "provider-readonly-diagnostic-approval.json",
+      "provider-readonly-diagnostic.json",
+      "structured-transport-observation.json"
+    ],
+    "controlled_live_v1_effectiveness": "passed_safe_facts_and_reported_usage_observed_one_approved_probe",
+    "native_effectiveness": "not_run_old_response_cannot_be_reconstructed",
+    "controlled_probe_requests": 1
   },
   "pending_readonly_model_diagnostic": {
-    "status": "awaiting_exact_single_readonly_diagnostic_consent",
+    "status": "approved_consumed_one_controlled_call_final_content_missing",
     "proposal_hash": "2406f44ce23a8e2df698f891749ae0ef38571f5ec5476682e65cfdd5d3a1bad1",
     "evidence": "provider-readonly-diagnostic-proposal.json",
     "script": "provider_diagnostic_probe.py",
@@ -1523,12 +1544,79 @@
     "max_new_model_requests": 1,
     "max_output_tokens": 4096,
     "timeout_seconds": 300,
-    "actual_new_requests": 0,
+    "actual_new_requests": 1,
     "native_session_resume_approved": false,
     "native_budget_reset_or_extension_approved": false,
     "native_success": false,
     "planning_or_coding_task_lifetime_use_or_unknown_holds_reset": false,
     "publication_approved": false,
-    "cannot_reset_expired_native_runtime_clock": true
+    "cannot_reset_expired_native_runtime_clock": true,
+    "approval_hash": "464990ffd8dbc114193d926b8e9d38cd7aecfde9b51d85855c735848e51040e4",
+    "reported_usage": {
+      "input_tokens": 3409,
+      "output_tokens": 277
+    },
+    "safe_response_facts": {
+      "version": "completion-response-facts-v1",
+      "reason": "final_content_missing",
+      "choice_count": 1,
+      "finish": "tool_calls",
+      "final_text_present": false,
+      "tool_calls_present": true,
+      "reasoning_present": true
+    },
+    "native_runtime_changed": false,
+    "result_evidence": "provider-readonly-diagnostic.json",
+    "observation_evidence": "structured-transport-observation.json"
+  },
+  "structured_transport_maintenance": {
+    "status": "generic_instruction_and_v2_envelope_facts_tested_deployed_live_effect_unverified",
+    "engine_revision": "0ac8b77a878d1f4ad3d87f821fa22fe362e58a22",
+    "source_manifest_hash": "5ce734e538836391cc6dd91b824a4cb8e022840edc595e46f912ce9711652b7c",
+    "default_regression": {
+      "tests": 1916,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1854
+    },
+    "focused_passed": 115,
+    "new_cases": 18,
+    "trusted_contract": "structured-result-tool-v1",
+    "facts_version": "completion-response-facts-v2",
+    "legacy_v1_fact_wire_exact": true,
+    "observed_probe_finish": "tool_calls",
+    "observed_probe_usage": {
+      "input_tokens": 3409,
+      "output_tokens": 277
+    },
+    "exact_old_tool_envelope": "unverified_v1_did_not_capture",
+    "unknown_names_or_multiple_calls_still_rejected": true,
+    "input_schema_Profile_budgets_and_retry_rules_unchanged": true,
+    "post_hardening_model_calls": 0,
+    "native_recovery_requests": 0,
+    "native_live_success": false,
+    "evidence": [
+      "structured-transport-observation.json",
+      "structured-transport-checks.json",
+      "structured-transport-deployment.json",
+      "structured-transport-final-audit.json"
+    ]
+  },
+  "pending_structured_transport_retest": {
+    "status": "awaiting_exact_single_readonly_wire_retest_consent",
+    "proposal_hash": "351ca44ab8a29823b8455d99bf7aaa2798f79d34dbd52e34c6d05dad238738f1",
+    "evidence": "structured-transport-retest-proposal.json",
+    "script": "docs/acceptance/universal-environment-v1/structured_transport_probe.py",
+    "script_sha256": "a0e940449076dabac67550957d2544d117cfcb9dac1e2314020676f16fe75bad",
+    "max_model_requests": 1,
+    "max_output_tokens": 4096,
+    "timeout_seconds": 300,
+    "automatic_retries": 0,
+    "actual_new_requests": 0,
+    "native_resume_approved": false,
+    "native_budget_reset_or_extension_approved": false,
+    "execute_proposed_tools": false,
+    "native_success": false
   }
 }
