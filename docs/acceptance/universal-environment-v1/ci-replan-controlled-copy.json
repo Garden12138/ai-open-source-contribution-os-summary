@@ -1,0 +1,58 @@
+{
+  "replan_emits_runtime_v2": true,
+  "replan_preserves_explicit_planning_Profile": true,
+  "parent_Plan3_hash_preserved": true,
+  "original_call_usage": {
+    "calls": 63,
+    "input_tokens": 1606663,
+    "output_tokens": 163251
+  },
+  "unissued_prompt_bytes": 94242,
+  "current_plan_id": null,
+  "current_plan_hash": null,
+  "planning_state": {
+    "context_read_limits": {
+      "maximum_requests": 4,
+      "parameters": {
+        "max_bytes": {
+          "maximum": 16000,
+          "minimum": 256
+        },
+        "max_lines": {
+          "maximum": 160,
+          "minimum": 1
+        },
+        "offset": {
+          "maximum": 2000000,
+          "minimum": 0
+        },
+        "start_line": {
+          "maximum": 1000000,
+          "minimum": 1
+        }
+      }
+    },
+    "next_step": "investigate_source_and_propose_plan",
+    "notice": "Captured source is available by hash; it is not a claim that the model has read every omitted line.",
+    "pending_plan_available": false,
+    "phase": "read_only_planning",
+    "read_rounds_remaining": 4,
+    "repair_attempts_remaining": 2,
+    "source_capture_basis": "Use evidence.entries for captured paths, hashes and availability; indexed source is not fully inspected.",
+    "source_capture_count": 48
+  },
+  "request_unchanged": true,
+  "source_reuse_claim": null,
+  "prompt_admitted_without_model": true,
+  "version": "upeve-ci-replan-controlled-copy-v1",
+  "recorded_at": "2026-11-02T02:15:23.219173+00:00",
+  "classification": "consistent_disposable_DB_and_artifact_copy_API_and_prompt_contract_not_native_success",
+  "goal": "只读修订当前 Plan3，保存其 native child Plan，不实施、不发布。业务目标、八条 files_likely_to_change、测试安排以及四条 commands_to_run 的 ID、argv、working_directory 逐项保持不变。冻结 .github/workflows/ci.yml 明确使用 pnpm/action-setup 的 version: 10 和 actions/setup-node 的 node-version: 22；平台现已通用解析这些声明，新的环境合同与旧执行授权不同，需要新版本绑定当前状态与环境，不能覆盖旧 Plan、批准或准备失败。该环境已在独立受限 OCI 组件中完成准备、真实入口探针及四条原检查；组件结果不能冒充本任务原生 Baseline/Coding/Review。现有源码、测试、CI、锁文件均已捕获，已有生产端与测试范围结论保持；本次只重新冻结正确环境并保存可审阅方案，不重复调查或读取已有源码。如确有实质缺口，请明确提出，不能隐含扩展范围或换检查。所有新增贡献代码、注释与测试名称仍使用英文。新方案仍需人工精确批准才能执行。",
+  "real_model_calls": 0,
+  "native_requests": 0,
+  "native_database_or_artifacts_modified": false,
+  "source_state_lease_and_budget_checks_bypassed": false,
+  "real_old_execution_approval_or_failure_rewritten": false,
+  "native_journal_unchanged": true,
+  "native_effectiveness": "not_run"
+}

@@ -1,16 +1,18 @@
 # UPEVE v1 acceptance ledger
 
 Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
-Deployed maintenance revision: `c4cfabe5e8493b9f99e5bffbe2b92356d3ed984b`.
+Deployed maintenance revision: `71c8ced8fbd21c4ea6df4d149cd1ab4014d1e82d`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1771 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
-first baselines. After the failed truncated scope revision, an approved output-only
-extension permits one real DeepSeek call to save Plan3 with all eight paths and
-four original commands. Read reuse now has real model-input and Plan-save
-evidence. Static admission and upstream SHA match pass; exact Plan execution
-approval is pending. Native Baseline/Coding/Verify/independent Review remain
-not_run. Native Linux amd64 remains blocked/not_run.
+1810 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
+first baselines. Exact Plan3 execution was approved: native Explore passed,
+dependency preparation failed before Baseline/Coding. Generic native CLI, CI
+version and replan binding fixes are deployed. A corrected pnpm10/Node22
+environment passes8 real entrypoint probes and4 original checks in a separate
+OCI component; this is not native Baseline/Coding/Review or an unseen success.
+Changed environment bindings reject the old approval. Read-only child-plan
+preview098f49b3 awaits consent for at most the1 remaining planning call, without
+new budget or released unknown holds. Native Linux amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -1108,3 +1110,91 @@ only that same verified container with zero pending Jobs, preserving original
 image/config/mounts/permissions/restart policy and native journal. No formal
 service, credential, model usage or execution approval changes. Exact Plan3
 execution confirmation remains pending; “继续” is not treated as approval.
+
+## Approved Plan3 execution: native preparation fails; CI toolchain maintenance
+
+The next exact “允许” approves preview4275a961. [Approval30fd38ba](deepseek-native-plan3-execution-approval.json)
+and [native result](deepseek-native-plan3-execution.json) record authorization
+cf32a58b, Attempt37f2f49d, successful Explore Jobd8847d2c and failed preparation
+Job087590be, failure artifactd6065b2c/specf58ecf1a. The native grant reaches its
+environment-failure stop condition. No new model call, coding repair or business
+patch occurs; Baseline/Coding/Verify/independent Review remain **not_run**.
+
+The original receipt only says preparation failed. Separate same-condition
+[supervisor](deepseek-native-plan3-preparation-diagnosis.json),
+[entry](deepseek-native-plan3-preparation-entry-diagnosis.json) and
+[package](deepseek-native-plan3-preparation-package-diagnosis.json) probes expose
+ENOEXEC at pnpm --version: acquired pnpm12.17.0's CLI is a shebangless install
+placeholder. This is consistent with the official [pnpm install source](https://raw.githubusercontent.com/pnpm/pnpm/main/pnpm/npm/pnpm/install.js),
+which replaces the placeholder during install hooks. Hooks remain disabled.
+Generic f250465 validates the declared same-version optional Linux/glibc native
+package and bounded ELF architecture, then materializes four known private bin
+paths with an inventory-hashed receipt. There is no shell fallback. OSError
+becomes a redacted typed diagnostic; large trusted supervisor source uses exact
+bounded lossless transport rather than an oversized Linux argv entry.
+
+[Checks](pnpm-native-entrypoint-checks.json) pass1789/62 skipped,107 focused.
+Initial [argument transport failure](pnpm-native-entrypoint-controlled-preparation.json),
+[typed entry failure](pnpm-native-entrypoint-controlled-preparation-transport.json)
+and [alias-layout diagnosis](pnpm-native-entrypoint-controlled-adapter-diagnosis.json)
+are preserved. [Corrected acquisition](pnpm-native-entrypoint-controlled-preparation-corrected.json)
+passes real manager invocation but later fails the offline build. Full pnpm12
+compatibility and native recovery are not claimed. Unknown formats/platforms,
+links, declaration conflicts and receipt tampering reject.
+
+The task's frozen CI actually declares pnpm10/Node22. Generic5ef1cab binds
+literal known-action inputs or version files, source hash/line and compatible
+manifest ranges in new node-toolchain-v4 contracts; unsupported dynamic or
+ambiguous YAML rejects. Legacy inspection/contracts remain unchanged. Fix71c8ced
+also preserves Runtime v2 and the explicit task planning Profile at the normal
+replan control; disabled v2 rejects and new defaults cannot rebind old tasks.
+[Final checks](ci-toolchain-checks.json) pass **1810 default/62 skipped/0 failed**,
+122 CI-focused/40 replan-focused, desktop/mobile browser components and routine
+compile/runtime/JS/diff checks. Initial fixture failures and offline browser
+setup failures are recorded; final results do not turn those failures into passes.
+No new production dependency or SQL migration is needed.
+
+[Real restricted OCI component](ci-toolchain-controlled-environment.json) uses
+the corrected CI recipe: pnpm10.34.9, Node22.23.2,8 real entrypoint receipts,
+**4/4 original checks passed** (47 root tests,78 extension tests,two typechecks),
+unchanged source inventory. No native task/approval/artifact is altered and no
+model call occurs. Original bounded logs are held outside Git at raw-record
+SHA bc1b91cb; extension stdout is explicitly a truncated display excerpt. Its
+78-test summary was generated from validated full bytes before display truncation
+and binds the original stream hash; the full original stdout cannot be rehashed
+from the export. The public redacted command export has its own hash. This D result
+is not native Baseline/Coding/Verify/Review and cannot change U0/15 or native0/4.
+
+[Deployment](ci-toolchain-deployment.json) restarts only five idle owned host
+roles, verifies238 tested source files, four healthy endpoints and416 unchanged
+events/three Plans/budgets/bindings. Publisher is not rebuilt and its configuration
+is unchanged. [Static check](ci-toolchain-current-task-static.json) rejects old
+approval as environment_stale: new preflight2e98ea5a/contractcf3aeef1 differ.
+The [copy-only probe](ci-replan-controlled-copy-confirmed.json) checks the normal
+API, lease and unissued94,242-byte prompt. Complete original Plan3 content hash
+is retained; native DB/artifacts and all use/unknown holds are untouched. Initial
+[probe](ci-replan-controlled-copy.json) looked for envelope IDs in the Plan
+content object and reported null for those absent keys; the confirmed probe
+checks the actual content hash and frozen parent identifiers explicitly.
+
+[New read-only preview](ci-native-child-replan-proposal.json), hash
+`098f49b3bf155637ed701be76640ffb69c8a31e39ae321dded42e3892adc5488`, awaits
+exact consent: one native child-plan request/at most one existing remaining
+DeepSeek call, same8 paths/4 checks, no cap/Profile increase or hold release.
+Lifetime use63/1,606,663/163,251, unknown holds1,350,000/40,960 across3 calls,
+limits64/4M/250K and remaining1/1,043,337/45,789 are preserved. Stop at saved
+child, material question, terminal failure or cap; no automatic extra control,
+execution or publication. New frozen environment inputs make old authorization
+stale under AGENTS.md. All historical failures and open stage/platform gates
+remain; current task is UPEVE-E04.
+
+[Maintenance audit](ci-toolchain-final-audit.json) verifies238 source files,
+74 original historical files,416 chained events, three Plans, exact approval,
+failure/Explore artifacts, three terminal jobs, SQLite integrity/foreign keys
+and530 sanitized JSON records with no credential-pattern/canary findings.
+The complete raw-record and baseline hashes verify. Seven retained complete
+streams are rehashed; extension stdout remains a hash-bound excerpt/summary,
+without a claim to retain its full bytes. Initial audit failure on an overly
+strong full-log assumption is recorded. No product guard changed and no new
+native request/model call followed this maintenance. Child-plan consent remains
+pending; the old exact execution approval is consumed and environment-stale.

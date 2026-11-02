@@ -59,6 +59,20 @@ separate from real model journeys.
   explicit independent tool directories with their own locks; acquisition ignores
   scripts, builds occur offline, and each independent root is frozen. Existing
   npm/pnpm/Yarn/Bun drivers and the Vitest 2.1.9 data-only cache adapter remain.
+- New `node-toolchain-v4` contracts bind literal `pnpm/action-setup` version
+  and `actions/setup-node` node-version/version-file inputs to their exact
+  source hash and line. These intersect manifest ranges. Dynamic, conflicting,
+  indirect or unsupported declarations stop safely; CI is never executed.
+  Old non-UPEVE inspection and v1/v2/v3 contracts retain their original meaning.
+- pnpm12's declared native CLI can be prepared without lifecycle hooks on
+  supported Linux glibc arm64/x64: validate same-version optional-package
+  metadata, four known bin declarations and bounded ELF architecture, then
+  materialize only those private tool entrypoints. An inventory-hashed receipt
+  detects tampering. Unknown versions, platforms, links or metadata fail closed.
+  Actual `--version` must succeed; `OSError` becomes a redacted typed failure,
+  with no shell fallback. The old unpinned pnpm12 component passed acquisition
+  after this adapter but failed its later offline build; full compatibility is
+  unproven. The separate CI-pinned pnpm10/Node22 component passes all four checks.
 - Arbitrary subprocess-capable JS installers, npx/dlx/network wrappers, shell
   evaluation, inline Python checks with unproven semantics and unsupported
   multi-Python-package contracts remain explicit gaps. They do not become ready.
@@ -105,7 +119,13 @@ with an old verifier. Do not run this candidate against production storage.
 
 The current development instance at `http://127.0.0.1:18090` has a new database
 and artifact root under `/tmp/upeve-isolated-20261029-v2`. API, coordinator and
-Sandbox Worker and Provider run with a separate Gateway on 18091. The user-saved
-MiniMax-M3 Profile is bound across four stages and real structured connection and
-model-list Jobs passed. New native plans/exact approvals remain separate.
-Publisher is disabled. The older trial service/data remain unchanged.
+Sandbox Worker and Provider run with a separate Gateway on 18091. The
+user-selected domestic DeepSeek connection is now bound to the maintained
+TypeScript task: planning uses its explicit low-effort Profile; implementation
+and independent Review retain the separate high-effort Profile. A normal goal
+revision inherits the task's explicit planning Profile and existing Runtime v2,
+never new global defaults or a silent legacy downgrade. Disabled v2 rejects.
+These changes add no database schema and rewrite no historical jobs or receipts.
+The isolated Publisher runs separately on18092; there is no publication consent.
+The older trial service/data remain unchanged. Current deployment and real vs
+controlled outcomes are recorded in the [acceptance ledger](acceptance/universal-environment-v1/README.md).

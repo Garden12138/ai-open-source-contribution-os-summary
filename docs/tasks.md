@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Approved output-only extension retains old usage/holds; one real DeepSeek call reuses four verified pages and saves Plan3 with all8 paths/all4 exact commands. Static preflight and upstream SHA match pass; exact execution preview awaits fresh Plan approval. Source remains the1771-pass/57-focused c4cfabe deployment. Planning allowance remaining1 call/45,789 output. Native E2E, historical Node and Linux gates stay open. |
+| Feature note | Exact Plan3 execution was approved: native Explore passed, dependency preparation failed before Baseline/Coding. Generic pnpm native-entrypoint, literal CI toolchain and replan runtime/Profile fixes are deployed at71c8ced:1810 passed/62 skipped. Corrected pnpm10/Node22 environment passes8 entrypoint probes and4 original checks in an independent OCI component, not native success. Old execution authorization is environment-stale; exact read-only child-plan preview098f49b3 awaits consent for at most the1 remaining call, with all old usage/holds retained. Native E2E, historical Node and Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5997,6 +5997,84 @@ changed, and no model call or execution approval is added. The initial failed
 health check is not misreported as a pass. Exact Plan execution consent remains
 pending; the preview hash and all budgets are unchanged.
 
+### 2026-11-02 Approved Plan3 execution fails before Baseline; generic toolchain fixes
+
+The user's exact consent consumes preview4275a961; [approval](acceptance/universal-environment-v1/deepseek-native-plan3-execution-approval.json)
+hash30fd38ba binds that action. [Native result](acceptance/universal-environment-v1/deepseek-native-plan3-execution.json)
+records authorizationcf32a58b, Attempt37f2f49d, successful Explore Jobd8847d2c
+and failed preparation Job087590be (`environment_preparation_failed`). The
+failure artifactd6065b2c and original signed specf58ecf1a remain immutable.
+Baseline/Coding/Verify/independent Review are **not_run**, with zero additional
+model calls, no business patch and no coding repair consumed. The approved
+stop condition is reached; execution is not automatically retried.
+
+Controlled replays preserve the recipe/image/policy/resource/network bounds
+and expose the trusted supervisor's missing diagnostic: pnpm12.17.0's acquired
+CLI placeholder is not directly executable (`ENOEXEC`). The initial native
+receipt did not retain a traceback; this root cause is supported by separate
+same-condition metadata/entry probes, not invented native logs. Generic fix
+f250465 validates and materializes declared same-version Linux/glibc ELF CLI
+entrypoints without lifecycle scripts or shell fallback, with an inventory-
+hashed receipt and typed redacted OS errors. Its enlarged trusted program uses
+bounded lossless transport to stay below Linux's per-argument limit. Initial
+transport and alias-layout component failures remain in the ledger. Corrected
+acquisition succeeds, but that unpinned component still fails the offline build.
+[Manager checks](acceptance/universal-environment-v1/pnpm-native-entrypoint-checks.json)
+pass1789/62 skipped and107 focused; this is not full pnpm12 or native success.
+
+The frozen CI explicitly requests pnpm10 and Node22; old discovery ignored
+the action inputs. Generic fix5ef1cab introduces literal step-bound CI parsing,
+hash/line provenance, manifest-range intersection and versioned v4 contracts.
+Expressions, conflicting/missing/indirect declarations and ambiguous ranges
+reject; no workflow is executed. Legacy contracts and exact checks remain.
+Native replan routing fix71c8ced preserves the explicit task planning Profile
+and existing v2, rejects disabled v2, and does not inherit new global defaults.
+[Final checks](acceptance/universal-environment-v1/ci-toolchain-checks.json)
+pass **1810/62 skipped/0 failed**,122 CI-focused/40 replan-focused, desktop/mobile
+browser components, compileall/runtime integrity/JS syntax/diff. No DB schema
+change, budget increase, dependency addition or historical rewrite is needed.
+
+[Real controlled OCI result](acceptance/universal-environment-v1/ci-toolchain-controlled-environment.json)
+prepares pnpm10.34.9/Node22.23.2, passes8 entrypoint probes and **4/4 original
+checks** (root47 tests, extension78, two typechecks), with unchanged source
+inventory. Original bounded log records remain outside Git, referenced by raw
+record SHA bc1b91cb; extension stdout is a truncated display excerpt, with its
+78-test summary bound to the full stream hash at capture time. Its full original
+bytes cannot be independently rehashed from this export. Public log-free exports
+have a separate hash. This is a D component
+after maintenance, **not this task's native Baseline/Coding/Review**, nor a new
+unseen success. Cumulative U environment baselines0/15 and native first
+deliveries0/4 stay unchanged.
+
+[Isolated deployment](acceptance/universal-environment-v1/ci-toolchain-deployment.json)
+restarts only the five idle owned roles, verifies all238 tested source files,
+four healthy endpoints,416 unchanged events, all three Plans, failed jobs,
+budgets and task model binding; Publisher/config/image is unchanged. The new
+preflight2e98ea5a/contractcf3aeef1 reject old execution approval as
+`environment_stale`. [Consistent-copy API/prompt probe](acceptance/universal-environment-v1/ci-replan-controlled-copy-confirmed.json)
+retains complete Plan3 content7bcea4e1 in an unissued94,242-byte prompt under
+normal lease/state/budget checks, with no native writes or model calls.
+
+[New exact read-only preview](acceptance/universal-environment-v1/ci-native-child-replan-proposal.json)
+hash098f49b3bf155637ed701be76640ffb69c8a31e39ae321dded42e3892adc5488
+awaits consent for one native child-plan request and at most the **one remaining
+DeepSeek planning call**. Limits64/4M/250K, known use63/1,606,663/163,251 and
+old three-call holds1,350,000/40,960 remain. Preserve all eight paths/four checks;
+stop at saved child, clarification, terminal failure or cap. No recovery
+control, execution, publication, formal-data change or operator Plan insertion
+is included. A saved child still needs a new exact execution preview/consent.
+The previous consent cannot cover changed frozen inputs (AGENTS immutable
+provenance rule). E0–E2 pass; E3/H Node, E4, E5, native Linux amd64 and existing
+roadmap gates stay open. Current specialty task remains **UPEVE-E04**.
+
+[Maintenance audit](acceptance/universal-environment-v1/ci-toolchain-final-audit.json)
+verifies238 source files,74 historical files,416 chained task events, three
+immutable Plans, approval/failure/Explore artifacts, all three terminal jobs,
+SQLite integrity/foreign keys and530 sanitized JSON records, with no credential
+pattern/canary findings. Raw record and baseline hashes verify; retained complete
+streams are rehashed separately from the explicitly excerpted extension stdout.
+The initial audit's overly strong full-log assumption failed and is recorded;
+no product guard or test was weakened. New child-plan consent remains pending.
 
 ---
 
