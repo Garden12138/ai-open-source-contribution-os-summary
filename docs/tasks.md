@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Approved Plan3 revision uses3 real calls, then fails on a truncated 6,903-token completion; no new Plan. Plan2 still lacks promised extension test write paths. Source-bound read reuse passes1771 regressions/57 focused checks and isolated deployment; native effectiveness is unverified. Remaining2 calls/output0; an output-only resource preview awaits exact approval. Native, historical Node and Linux gates stay open. |
+| Feature note | Approved output-only extension retains old usage/holds; one real DeepSeek call reuses four verified pages and saves Plan3 with all8 paths/all4 exact commands. Static preflight and upstream SHA match pass; exact execution preview awaits fresh Plan approval. Source remains the1771-pass/57-focused c4cfabe deployment. Planning allowance remaining1 call/45,789 output. Native E2E, historical Node and Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -5921,6 +5921,81 @@ model request follows maintenance. No execution/publication approval exists.
 Native first deliveries0/4, full environment baselines0/15, historical Node
 failure, Linux amd64 blocker and unrun native Baseline/Coding/Verify/independent
 Review remain unchanged. UPEVE-E04 is current; no phase gate is checked.
+
+### 2026-11-01 Approved output extension: native Plan3 saves in one call
+
+[Exact resource approval](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-approval.json)
+`c14bb91a...64f25888` binds the output-only preview. The native budget API
+appends only output200K→250K; calls64/input4M, all known usage, and all three
+unknown-call holds are retained. [Actual native request](acceptance/universal-environment-v1/deepseek-native-plan3-output-only.json)
+uses **one real DeepSeek call**, with34,208 known input/4,211 output. The
+95,680-byte issued prompt passes the unchanged96KB bound and contains exactly
+the four previously admitted source-page objects, verified against old
+checkpoint`e1606127...f6acfa5c` and the new actual model-input hash. Reuse has
+zero repository IO, read0/repair0; it is now real model-delivery evidence,
+separate from the prior disposable-copy simulation.
+
+Real native child Plan3`c4983f55-0c00-4b2a-ad86-73a45b85b27e` is saved with
+record hash`ea61d04c2a973a1aa9ff84a5984983a2d6cece904746829f8f0c3b47f9b0d00b`,
+content hash`7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed`,
+parent Plan2 unchanged. It retains all six old paths and explicitly adds the
+existing transcript-parser test and new hook-server test, with corresponding
+start/end/failure assertions and the actual node:test layout. All four original
+command IDs/argv/cwd are identical; the extension test purpose is only clarified.
+The [operator scope review](acceptance/universal-environment-v1/deepseek-native-plan3-source-review.json)
+finds no remaining scope blocker. This is not an independent ReviewRun, actual
+Issue reproduction, prepared environment or verification pass.
+
+The read-only grant stops at this saved Plan, without using its second call.
+Lifetime known use is **63 calls/1,606,663 input/163,251 output**; unchanged
+unknown holds1,350,000/40,960 across three calls; remaining **1 call/1,043,337
+input/45,789 output**. No prior failed/truncated request or old Plan is edited.
+[Audit](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-audit.json)
+verifies402 task events,74 historical files,236 unchanged tested source files,
+SQLite integrity/foreign keys and510 sanitized JSON records, with no credential
+findings. Source remainsc4cfabe, the1771-pass/62-skipped/57-focused deployment;
+no production source change warrants another suite run or service restart.
+All four local health endpoints pass.
+
+[Read-only upstream observation](acceptance/universal-environment-v1/deepseek-native-plan3-head-proxy-diagnosis.json)
+confirms HTTP200 and main SHA equal to the frozen base. The first optional
+operator probe passed a hex string instead of decoded proxy-key bytes; its
+failure is preserved in [the initial observation](acceptance/universal-environment-v1/deepseek-native-plan3-head-observation.json).
+Correct decoding fixes the trusted probe without changing product code,
+Publisher configuration, credentials or permissions. It was not a network,
+GitHub-token or native workflow failure.
+
+[Exact execution preview](acceptance/universal-environment-v1/deepseek-native-plan3-execution-proposal.json)
+`4275a961...f788aa0` binds Plan3, snapshot/analysis, context, model identities,
+eight write paths, four commands, policy/image, workspace scope, preflight
+`dc953973...6f7e3f6b1` and contract`c31fc440...e444e126`. Static admission is
+ready; preparation and Baseline remain unverified. The proposed sequence is
+restricted package preparation, all four pre-change checks, native v2 Coding,
+real regression failure/repair, Verify and independent Review, with final
+human acceptance still required. Existing v2 limits remain24 model calls/
+200K input/32K output/1800s,64 reads/24 writes/6 checks and at most two code
+repairs; Review retains its independent evidence-bound job/Profile limits.
+Planning old use/holds are not execution budget credits. No cap/Profile changes,
+external writes, publication or formal-data mutation are included.
+
+Exact Plan execution approval is pending. The subsequent “继续” resumes safe
+record work and is not silently converted into a new Plan approval. Native
+Baseline/Coding/Verify/independent Review remain not_run; first deliveries0/4,
+full environment baselines0/15, historical Node failure, native Linux amd64
+blocker and all stage gates remain unchanged. UPEVE-E04 is still current.
+
+2026-11-02 continuation: [fresh execution readiness](acceptance/universal-environment-v1/deepseek-native-plan3-execution-readiness.json)
+rechecks the same preview bindings and current upstream SHA through the product
+GitHubClient, verifies402 unchanged events/74 historical files/236 source files,
+five live host roles and four health endpoints, and scans512 sanitized JSON
+records. The first health pass finds the owned Publisher stopped with exit0,
+no OOM/error and unknown stop cause. [Recovery receipt](acceptance/universal-environment-v1/deepseek-native-plan3-publisher-recovery.json)
+records starting exactly the same container after proving zero queued/active
+Jobs. Its image/config/two narrow mounts/non-root/read-only/cap-drop/security
+options/restart policy remain identical. No formal service or credential is
+changed, and no model call or execution approval is added. The initial failed
+health check is not misreported as a pass. Exact Plan execution consent remains
+pending; the preview hash and all budgets are unchanged.
 
 
 ---

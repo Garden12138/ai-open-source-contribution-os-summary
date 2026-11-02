@@ -1,0 +1,30 @@
+{
+  "version": "upeve-native-plan3-head-proxy-diagnosis-v1",
+  "recorded_at": "2026-11-01T08:30:12.596520+00:00",
+  "publisher_settings": {
+    "available": true,
+    "connected": true,
+    "state": "connected",
+    "account_hash": "04e4692d56eedae62429fcd407217be8ab4aa5f522552f9d50c8c840f0a16fa8",
+    "login": "Garden12138",
+    "scopes": [
+      "repo"
+    ],
+    "checked_at": "2026-10-29T09:24:44.992498+00:00",
+    "job_id": "1f9d3604-2cce-4269-a07b-33c63d3102be",
+    "job_state": "succeeded",
+    "error": null,
+    "discovery_shared": true
+  },
+  "internal_read_http_status": 200,
+  "third_party_writes": 0,
+  "raw_error_or_credential_included": false,
+  "initial_operator_probe_failure": "The optional trusted host probe passed a hex string where Settings requires decoded bytes. The product service configuration is unchanged; this correction uses bytes.fromhex without reading the GitHub token.",
+  "upstream_http_status": 200,
+  "rate_limit_headers": {
+    "x-ratelimit-remaining": "4998",
+    "x-ratelimit-reset": "1793525411"
+  },
+  "observed_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "matches_frozen_base": true
+}

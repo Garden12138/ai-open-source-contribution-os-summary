@@ -1,0 +1,85 @@
+{
+  "version": "upeve-native-plan3-operator-source-review-v1",
+  "recorded_at": "2026-11-01T08:31:56.774310+00:00",
+  "classification": "operator_readonly_Plan_scope_review_not_independent_ReviewRun",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "c4983f55-0c00-4b2a-ad86-73a45b85b27e",
+  "plan_record_hash": "ea61d04c2a973a1aa9ff84a5984983a2d6cece904746829f8f0c3b47f9b0d00b",
+  "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "parent_plan_id": "9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57",
+  "parent_record_hash": "81c0180fa3c6c9d38c4fe4f0ff3ee4b4f5ccf39b160ec30a41bdc9a3a447e8d6",
+  "status": "scope_and_command_gap_resolved_ready_for_exact_execution_preview",
+  "native_real_Plan_saved": true,
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands_preserved": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "test_scope_observations": [
+    "Existing transcript-parser test has a writable exact path and explicit start/end tool_use_id assertions.",
+    "New hook-server test has a writable exact path, node:test/assert style and explicit pre/post/failure propagation assertions.",
+    "Web regression path is retained for concurrent same-tool calls, file attention, out-of-order ends and duplicate IDs.",
+    "All six previous paths and four original command IDs/argv/cwd are retained; only extension test paths are added."
+  ],
+  "blocking_findings": [],
+  "execution_risks": [
+    "需确认 hook-server 的 tool_use_id 与 transcript-parser 的 block.id 对同一次工具调用取值一致，才能让去重正确折叠竞态同时保留不同调用。",
+    "不含 tool_use_id 的旧 replay 数据需要兼容回退路径，避免破坏既有回放行为。"
+  ],
+  "source_review_is_not_actual_regression_reproduction": true,
+  "toolchain_prepared": "unverified",
+  "baseline_verified": "unverified",
+  "Issue_bug_reproduced": false,
+  "coding_patch_produced": false,
+  "independent_ReviewRun": "not_run",
+  "execution_approved": false,
+  "operator_business_patch_or_Plan_insertion": false
+}

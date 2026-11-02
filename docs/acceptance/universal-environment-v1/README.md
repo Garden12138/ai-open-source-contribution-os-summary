@@ -5,12 +5,12 @@ Deployed maintenance revision: `c4cfabe5e8493b9f99e5bffbe2b92356d3ed984b`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
 1771 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
-first baselines. The DeepSeek D-maintenance task saved Plan2, whose promised
-extension test write scope remains incomplete. The approved Plan3 request then
-failed on truncated output, leaving2 calls/output0. Read reuse is deployed but
-has no native model verification; an output-only resource preview awaits consent.
-Native Baseline/Coding/Verify/independent Review remain not_run. Native Linux
-amd64 remains blocked/not_run.
+first baselines. After the failed truncated scope revision, an approved output-only
+extension permits one real DeepSeek call to save Plan3 with all eight paths and
+four original commands. Read reuse now has real model-input and Plan-save
+evidence. Static admission and upstream SHA match pass; exact Plan execution
+approval is pending. Native Baseline/Coding/Verify/independent Review remain
+not_run. Native Linux amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -1042,3 +1042,69 @@ four checks. The actual cap is unchanged. No execution/publication approval,
 native Baseline/Coding/Verify/independent Review or new unseen success exists.
 Native first deliveries0/4 and complete environment baselines0/15, historical
 Node failure, Linux amd64 blocker and current UPEVE-E04 remain unchanged.
+
+## Approved output-only extension: native Plan3 saved, execution approval pending
+
+[Exact resource approval](deepseek-native-plan3-output-only-approval.json), hash
+`c14bb91a0e081aabb94c37bf1fc4825404597756833ec4515b74a3e464f25888`,
+permits only output200K→250K and one read-only child-Plan request, at most two
+calls. The native budget API preserves calls64/input4M and every old known use/
+unknown hold. [Actual result](deepseek-native-plan3-output-only.json) uses
+**one real DeepSeek call**, **34,208 input/4,211 output**, without truncation,
+schema rejection or context recovery. The actual **95,680-byte** prompt
+includes exactly the four earlier issued source-page objects, verified by
+checkpoint and actual model-input hashes; reuse executes zero repository IO.
+Read0/repair0 are new request counters, never a refund of old failed rounds.
+
+The native workflow saves Plan3`c4983f55-0c00-4b2a-ad86-73a45b85b27e`, record
+hash`ea61d04c2a973a1aa9ff84a5984983a2d6cece904746829f8f0c3b47f9b0d00b`,
+content hash`7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed`.
+All six old paths and four exact command IDs/argv/cwd remain; the two extension
+test paths are added and linked to concrete start/end/failure assertions using
+the existing node:test style. [Operator scope review](deepseek-native-plan3-source-review.json)
+finds the prior missing-test-scope blocker resolved. It is not independent
+Review, real Issue reproduction or an actual test run. Source was not patched
+by the operator and no Plan was manually inserted.
+
+The grant stops at saved Plan3, leaving its second call unused. Lifetime
+**63 calls/1,606,663 input/163,251 output**, old holds1,350,000/40,960 across
+three unknown calls; remaining **1 call/1,043,337 input/45,789 output**.
+[Audit](deepseek-native-plan3-output-only-audit.json) verifies402 journal events,
+74 historical files,236 unchanged source files, SQLite integrity/foreign keys
+and510 sanitized JSON files without credential findings. The tested c4cfabe
+deployment remains1771 default passed/62 skipped/57 focused; no production
+change requires a repeated suite or redeploy. Four health endpoints pass.
+
+[Corrected read-only head probe](deepseek-native-plan3-head-proxy-diagnosis.json)
+gets HTTP200 and the same frozen main SHA through the existing narrow proxy.
+[Initial probe failure](deepseek-native-plan3-head-observation.json) is retained:
+the operator supplied the proxy-key hex string where decoded bytes were
+required. Correcting the probe does not change service code, settings,
+credentials or permissions; it was not a network/token or native-workflow failure.
+
+[Exact execution preview](deepseek-native-plan3-execution-proposal.json), hash
+`4275a961362c86b9c2ff1011ce71ae9da310e0d268a4846dabf15d29af788aa0`,
+binds Plan3/snapshot/analysis/context/models, eight write paths/four checks,
+workspace/image/policy, preflight and verification contract. It proposes
+restricted dependency preparation, all four pre-change checks, native Coding,
+real regression failure/repair, Verify and independent Review, with existing
+v2 limits24 calls/200K input/32K output/1800s and at most two code repairs.
+Review remains an independent evidence-bound bounded job. Planning old usage
+and unknown holds are retained; no extra cap/Profile change or publication is
+included. Static ready is not prepared or baseline-verified.
+
+Execution consent is pending; “继续” is not silently interpreted as a new Plan
+approval. Native Baseline/Coding/Verify/independent Review remain not_run.
+Original first deliveries0/4 and complete environment baselines0/15, historical
+Node failure, Linux amd64 blocker and all open stage gates remain unchanged.
+
+2026-11-02: [Fresh readiness](deepseek-native-plan3-execution-readiness.json)
+verifies the same preview, current upstream SHA via the product GitHubClient,
+402 unchanged events,74 historical files,236 tested source files, five live
+roles and four healthy endpoints;512 JSON files pass the credential-pattern
+scan. An initial health check finds the owned Publisher stopped cleanly with
+unknown cause. [Recovery](deepseek-native-plan3-publisher-recovery.json) starts
+only that same verified container with zero pending Jobs, preserving original
+image/config/mounts/permissions/restart policy and native journal. No formal
+service, credential, model usage or execution approval changes. Exact Plan3
+execution confirmation remains pending; “继续” is not treated as approval.

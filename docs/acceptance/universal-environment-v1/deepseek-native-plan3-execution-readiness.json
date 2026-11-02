@@ -1,0 +1,106 @@
+{
+  "version": "upeve-native-plan3-execution-readiness-v1",
+  "recorded_at": "2026-11-02T01:06:15.315998+00:00",
+  "proposal_hash": "4275a961362c86b9c2ff1011ce71ae9da310e0d268a4846dabf15d29af788aa0",
+  "plan_id": "c4983f55-0c00-4b2a-ad86-73a45b85b27e",
+  "plan_record_hash": "ea61d04c2a973a1aa9ff84a5984983a2d6cece904746829f8f0c3b47f9b0d00b",
+  "execution_request_schema": "passed",
+  "all_preview_bindings_unchanged": true,
+  "preflight_hash": "dc9539735921df27bae70306eeb6de20dba46bfcca97c3f4ee437616f7e3f6b1",
+  "fresh_read_only_upstream_observation": {
+    "branch": "main",
+    "sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "matches_frozen_base": true,
+    "transport": "product_GitHubClient_via_existing_narrow_Publisher_read_proxy"
+  },
+  "active_jobs": 0,
+  "execution_attempts": 0,
+  "execution_approval_events": 0,
+  "native_events_preserved": 402,
+  "owned_live_roles": [
+    "serve",
+    "worker",
+    "sandbox-worker",
+    "model-gateway",
+    "provider-worker"
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "source_files_verified": 236,
+  "source_manifest_hash": "89c543799e9b12504a9df721211dfe6960481fc5ce954a74487d7a985d3979cc",
+  "prior_default_regression": {
+    "tests": 1833,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1771
+  },
+  "production_source_changes": false,
+  "suite_rerun_or_redeploy_required": false,
+  "credential_pattern_scan": {
+    "JSON_files_before_record": 512,
+    "findings": [],
+    "raw_vault_inspected": false
+  },
+  "historical_files_preserved": 74,
+  "budget": {
+    "version": "planning-budget-v1",
+    "revision": "b457cb2cd92fe78159b058b88aef422f36c1cdbd2354c8bf969734ad26719538",
+    "record_hash": "a377b5d6ba7f0945842e695650caa4490c6d876253a7de9cb0e3be180aa50c42",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 250000
+    },
+    "usage": {
+      "calls": 63,
+      "input_tokens": 1606663,
+      "output_tokens": 163251
+    },
+    "remaining": {
+      "calls": 1,
+      "input_tokens": 1043337,
+      "output_tokens": 45789
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "latest_user_steering": "继续",
+  "steering_is_new_Plan_approval": false,
+  "exact_Plan_execution_confirmation_pending": true,
+  "native_baseline_coding_verify_independent_Review": "not_run",
+  "third_party_writes": 0,
+  "formal_data_modified": false
+}

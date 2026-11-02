@@ -1,0 +1,29 @@
+{
+  "version": "upeve-native-plan3-owned-publisher-recovery-v1",
+  "recorded_at": "2026-11-02T01:05:58.758014+00:00",
+  "container_id": "b51af90b0aff0caa39792e45fc48215cbba9abfb5f84c21ca0c134fd1c6c5ade",
+  "container_name": "upeve-publisher-20261029-shared",
+  "image_digest": "sha256:1ee9dfe74ec9e7384fd3ec52cc909526ee90e401402985ceb7b54e8f7d0fa499",
+  "before": {
+    "Status": "exited",
+    "Running": false,
+    "ExitCode": 0,
+    "FinishedAt": "2026-11-02T01:01:53.884281731Z",
+    "OOMKilled": false
+  },
+  "after_running": true,
+  "stop_cause": "unknown_no_OOM_or_error_recorded",
+  "action": "start_same_owned_container",
+  "image_config_mounts_privileges_restart_policy_unchanged": true,
+  "health": {
+    "status": "ok"
+  },
+  "queued_or_active_jobs_before_start": 0,
+  "native_journal_unchanged": true,
+  "native_events_preserved": 402,
+  "new_model_calls": 0,
+  "execution_approved": false,
+  "publication_or_third_party_write": false,
+  "formal_data_modified": false,
+  "credential_values_or_vault_read": false
+}
