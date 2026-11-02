@@ -83,7 +83,9 @@
         "deepseek-native-plan-revision-proposal.json",
         "ci-toolchain-current-task-static.json",
         "ci-toolchain-controlled-environment.json",
-        "ci-toolchain-checks.json"
+        "ci-toolchain-checks.json",
+        "ci-native-plan4-execution.json",
+        "ci-native-plan4-baseline.json"
       ],
       "limit": "Explicit locked independent roots pass; historical subprocess wrapper unsupported"
     },
@@ -140,7 +142,8 @@
         "pnpm-filter-final-audit.json",
         "deepseek-native-plan-revision-proposal.json",
         "ci-toolchain-controlled-environment.json",
-        "deepseek-native-plan3-execution.json"
+        "deepseek-native-plan3-execution.json",
+        "ci-native-plan4-baseline.json"
       ],
       "limit": "Historical Python exact five pass; historical Node exact eight remain unsupported"
     },
@@ -163,7 +166,8 @@
         "H-python-ci-parser-01",
         "H-python-cache-final",
         "ci-toolchain-controlled-environment.json",
-        "deepseek-native-plan3-execution.json"
+        "deepseek-native-plan3-execution.json",
+        "ci-native-plan4-baseline.json"
       ],
       "limit": "Actual controlled assertion + passing control; expectation is a fixture contract, not human authorization"
     },
@@ -191,7 +195,10 @@
         "ci-native-child-replan-approval.json",
         "ci-native-child-replan.json",
         "ci-native-child-replan-audit.json",
-        "ci-native-plan4-execution-proposal.json"
+        "ci-native-plan4-execution-proposal.json",
+        "ci-native-plan4-execution.json",
+        "ci-native-plan4-model-failure-diagnosis.json",
+        "provider-failure-facts-checks.json"
       ],
       "limit": "API/browser components plus native read-only planning; no native Coding/Verify/Review delivery"
     },
@@ -232,7 +239,9 @@
         "ci-native-child-replan-approval.json",
         "ci-native-child-replan.json",
         "ci-native-child-replan-audit.json",
-        "ci-native-plan4-execution-proposal.json"
+        "ci-native-plan4-execution-proposal.json",
+        "ci-native-plan4-execution-approval.json",
+        "ci-native-plan4-baseline.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -277,7 +286,9 @@
         "ci-native-child-replan-approval.json",
         "ci-native-child-replan.json",
         "ci-native-child-replan-audit.json",
-        "ci-native-plan4-execution-proposal.json"
+        "ci-native-plan4-execution-proposal.json",
+        "provider-failure-facts-checks.json",
+        "provider-failure-facts-deployment.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
     },
@@ -302,7 +313,8 @@
         "native-plan-revision-final-audit.json",
         "deepseek-native-readonly-extension-64-proposal.json",
         "pnpm-native-entrypoint-checks.json",
-        "ci-toolchain-checks.json"
+        "ci-toolchain-checks.json",
+        "provider-failure-facts-checks.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -491,7 +503,8 @@
         "macos-doctor.json",
         "checks.json#cache_node_regression",
         "H-python-cache-final",
-        "ci-toolchain-controlled-environment.json"
+        "ci-toolchain-controlled-environment.json",
+        "ci-native-plan4-baseline.json"
       ],
       "limit": "Actual Darwin arm64 + OrbStack OCI; controlled classification"
     },
@@ -516,19 +529,21 @@
         "ci-native-child-replan-approval.json",
         "ci-native-child-replan.json",
         "ci-native-child-replan-audit.json",
-        "ci-native-plan4-execution-proposal.json"
+        "ci-native-plan4-execution-proposal.json",
+        "provider-failure-facts-checks.json",
+        "provider-failure-facts-deployment.json"
       ],
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
   ],
-  "engine_revision": "71c8ced8fbd21c4ea6df4d149cd1ab4014d1e82d",
+  "engine_revision": "5c79b21556e1a711bf6eee4a293cbea6f4381554",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1872,
+    "tests": 1898,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1810
+    "passed": 1836
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -537,7 +552,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "ci-toolchain-checks.json",
+  "latest_default_evidence": "provider-failure-facts-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -546,9 +561,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "ci-native-child-replan.json",
-  "latest_isolated_deployment": "ci-toolchain-deployment.json",
-  "latest_history_and_security_audit": "ci-native-child-replan-audit.json",
+  "latest_native_retest": "ci-native-plan4-execution.json",
+  "latest_isolated_deployment": "provider-failure-facts-deployment.json",
+  "latest_history_and_security_audit": "ci-native-plan4-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -585,7 +600,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-child-replan-audit.json",
+  "latest_final_observation": "ci-native-plan4-final-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -629,7 +644,7 @@
   },
   "latest_real_model_connection_evidence": "deepseek-real-connection.json",
   "deepseek_native_acceptance": {
-    "status": "native_readonly_Plan4_saved_awaiting_exact_execution_consent",
+    "status": "native_Plan4_environment_Baseline_and_Coding_admission_passed_first_model_response_invalid",
     "evidence": [
       "deepseek-native-model-switch.json",
       "deepseek-native-budget-proposal.json",
@@ -782,9 +797,25 @@
     "native_plan4_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
     "native_plan4_scope_passed": true,
     "native_plan4_static_preflight_ready": true,
-    "native_plan4_execution_approved": false,
-    "native_plan4_Baseline_Coding_Verify_Review": "not_run",
-    "planning_call_cap_exhausted": true
+    "native_plan4_execution_approved": true,
+    "native_plan4_Baseline_Coding_Verify_Review": {
+      "Baseline": "passed",
+      "Coding": "admitted_first_model_response_invalid_no_tools_or_patch",
+      "Verify": "not_run",
+      "independent_Review": "not_run"
+    },
+    "planning_call_cap_exhausted": true,
+    "native_plan4_preparation": "passed",
+    "native_plan4_Baseline": "passed_4_of_4",
+    "native_plan4_Coding_admission": true,
+    "native_plan4_model_starts": 1,
+    "native_plan4_valid_model_decisions": 0,
+    "native_plan4_failure_reason": "deepseek_completion_invalid",
+    "native_plan4_model_actual_usage": "unreported_not_retained",
+    "native_plan4_conservative_reservation": {
+      "input_tokens": 10426,
+      "output_tokens": 4096
+    }
   },
   "latest_explicit_plan_entry": "deepseek-explicit-plan-entry.json",
   "pending_planning_call_extension": {
@@ -1333,7 +1364,12 @@
     "real_controlled_OCI_root_tests": 47,
     "real_controlled_OCI_extension_tests": 78,
     "browser": "passed_readonly_component_desktop_and_mobile",
-    "native_Baseline_Coding_Verify_Review": "not_run",
+    "native_Baseline_Coding_Verify_Review": {
+      "Baseline": "passed",
+      "Coding": "admission_passed_model_blocked_before_tool_call",
+      "Verify": "not_run",
+      "Review": "not_run"
+    },
     "old_native_failure_or_approval_rewritten": false,
     "new_native_model_calls": 0,
     "caps_or_unknown_holds_changed": false,
@@ -1348,7 +1384,9 @@
       "ci-native-child-replan-approval.json",
       "ci-native-child-replan.json",
       "ci-native-plan4-source-review.json",
-      "ci-native-child-replan-audit.json"
+      "ci-native-child-replan-audit.json",
+      "ci-native-plan4-execution.json",
+      "ci-native-plan4-baseline.json"
     ],
     "log_retention": "Extension stdout display excerpt is truncated; the original full-stream hash and pre-excerpt measured 78-test summary are retained. Full stdout bytes cannot be independently rehashed from the export.",
     "source_security_audit": {
@@ -1359,7 +1397,7 @@
       "credential_pattern_findings": 0
     },
     "native_replan_effectiveness": "passed_real_v2_DeepSeek_explicit_Profile_and_child_Plan4_save",
-    "native_preparation_effectiveness": "not_run",
+    "native_preparation_effectiveness": "passed_actual_native_Plan4_8_entrypoints_and_4_Baseline_checks",
     "native_followup_model_calls": 1
   },
   "pending_ci_environment_child_replan": {
@@ -1394,7 +1432,7 @@
     "audit_evidence": "ci-native-child-replan-audit.json"
   },
   "pending_plan4_execution": {
-    "status": "awaiting_exact_Plan4_execution_consent",
+    "status": "approved_consumed_native_Baseline_passed_first_Coding_response_invalid_stopped",
     "proposal_hash": "fccdcdcc17e7f8d6915d49e54270d9f73d076a8c0faa3af534ada99856d0e713",
     "evidence": "ci-native-plan4-execution-proposal.json",
     "plan_id": "057b1990-c3e0-4c18-9c46-6d7bd6bfb66b",
@@ -1428,8 +1466,69 @@
     },
     "planning_call_cap_exhausted": true,
     "planning_budget_change_approved": false,
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
-    "native_attempt_or_model_calls_under_this_proposal": 0
+    "native_attempt_or_model_calls_under_this_proposal": 0,
+    "approval_hash": "62d500be6b1e51ff82c66f68dd289ed039239678b1ff5e3aaa56c492bcdf9669",
+    "native_execution_authorization_hash": "25d560ebb3205d5296aaa8514a7f4d7b8d8d757025cd8c0efff0a71913a587eb",
+    "native_attempts": 1,
+    "native_model_starts": 1,
+    "native_model_decisions": 0,
+    "native_Baseline": "passed_4_of_4",
+    "native_entrypoint_probes": 8,
+    "native_patch": false,
+    "native_post_change_Verify": "not_run",
+    "native_independent_Review": "not_run",
+    "original_native_Plan3_failure_preserved": true,
+    "extra_recovery_controls_used": 0,
+    "execution_evidence": [
+      "ci-native-plan4-execution-approval.json",
+      "ci-native-plan4-execution.json",
+      "ci-native-plan4-baseline.json",
+      "ci-native-plan4-model-failure-diagnosis.json"
+    ],
+    "native_runtime_seconds_remaining_at_final_audit": 0,
+    "terminal_session_can_resume_with_unused_call_capacity": false
+  },
+  "provider_failure_observability_maintenance": {
+    "status": "tested_deployed_native_effectiveness_not_run",
+    "engine_revision": "5c79b21556e1a711bf6eee4a293cbea6f4381554",
+    "default_regression": {
+      "tests": 1898,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1836
+    },
+    "focused_passed": 62,
+    "new_cases": 26,
+    "source_manifest_hash": "4c7d64248b033145a812cfb91740d8bc40336784cc1ad1f6f3009ed0439292ea",
+    "actual_original_failure_cause": "unverified_missing_historical_response_fields",
+    "old_native_448_events_and_failure_reservations_retained": true,
+    "new_native_model_retries_or_probes": 0,
+    "caps_retries_approvals_or_profiles_changed": false,
+    "evidence": [
+      "provider-failure-facts-checks.json",
+      "provider-failure-facts-deployment.json",
+      "ci-native-plan4-model-failure-diagnosis.json",
+      "ci-native-plan4-final-audit.json"
+    ]
+  },
+  "pending_readonly_model_diagnostic": {
+    "status": "awaiting_exact_single_readonly_diagnostic_consent",
+    "proposal_hash": "2406f44ce23a8e2df698f891749ae0ef38571f5ec5476682e65cfdd5d3a1bad1",
+    "evidence": "provider-readonly-diagnostic-proposal.json",
+    "script": "provider_diagnostic_probe.py",
+    "script_sha256": "3eec009840a02b5a3cfa656e90c531ac2149974b1a183f410e418b564d7e0b09",
+    "max_new_model_requests": 1,
+    "max_output_tokens": 4096,
+    "timeout_seconds": 300,
+    "actual_new_requests": 0,
+    "native_session_resume_approved": false,
+    "native_budget_reset_or_extension_approved": false,
+    "native_success": false,
+    "planning_or_coding_task_lifetime_use_or_unknown_holds_reset": false,
+    "publication_approved": false,
+    "cannot_reset_expired_native_runtime_clock": true
   }
 }

@@ -1,20 +1,23 @@
 # UPEVE v1 acceptance ledger
 
 Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
-Deployed maintenance revision: `71c8ced8fbd21c4ea6df4d149cd1ab4014d1e82d`.
+Deployed maintenance revision: `5c79b21556e1a711bf6eee4a293cbea6f4381554`.
 **Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
 Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1810 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
+1836 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
 first baselines. Exact Plan3 execution was approved: native Explore passed,
 dependency preparation failed before Baseline/Coding. Generic native CLI, CI
 version and replan binding fixes are deployed. A corrected pnpm10/Node22
 environment passes8 real entrypoint probes and4 original checks in a separate
 OCI component; this is not native Baseline/Coding/Review or an unseen success.
-Changed environment bindings reject the old approval. Approved child-plan
-preview098f49b3 uses exactly1 call to save native Plan4 with identical content
-and new state/environment binding; all8 paths/4 checks remain. Planning use64
-reaches its unchanged cap; unknown holds remain. Exact Plan4 execution preview
-fccdcdcc awaits consent. Native Linux amd64 remains blocked/not_run.
+Approved Plan4 execution now passes actual native preparation/8 probes/4 Baseline
+checks and reaches v2 Coding admission. Its first model request stops at
+deepseek_completion_invalid before any tools/writes; post-change Verify/Review
+remain not_run. Original response facts/actual usage are unavailable; retained
+budget reservations are not claimed spend. Safe diagnostics are deployed without
+retry or historical rewrite. One exact controlled read-only diagnostic preview
+2406f44c awaits consent. Planning use64 reaches its unchanged cap; unknown holds
+remain. Native Linux amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -1253,3 +1256,68 @@ still gates execution. No planning budget increase, publication, Push/PR or form
 data change is included. Native Baseline/Coding/Verify/Review remain not_run,
 native first deliveries0/4 and complete U baselines0/15 stay unchanged, historical
 Node remains failed, Linux amd64 remains blocked, UPEVE-E04 remains current.
+
+## Approved Plan4 execution: native Baseline passes, Coding response blocked
+
+[Approval62d500be](ci-native-plan4-execution-approval.json) binds previewfccdcdcc.
+[Actual run](ci-native-plan4-execution.json) records authorization25d560eb,
+Attempt775ef4f2, Exploredee3ad07 and preparationceae3b4d. Native pnpm10.34.9/
+Node22.23.2 prepare successfully, with8 real entrypoint probes and **4/4 original
+Baseline checks**:47 root tests,78 extension tests,two typechecks. [Proof](ci-native-plan4-baseline.json)
+verifies the Plan4 contractc2dab4d9, dependencyde878c7e, receipt811852ce,
+entrypointe863138e, Baselinea889979e, inspectionbc06919a and baseline-event6a39fc2c
+links into TaskSpec327ef693. Original code inventory remains unchanged. The
+initial export's component-style hash assumptions fail; the native inspection
+and event-record bindings are explicitly checked instead, without data changes.
+
+This is real native environment/admission evidence after maintenance, **not**
+an unseen first success or a complete contribution. The v2 session0a263d67
+issues one real Coding request, then durably handles ProviderRunError
+`deepseek_completion_invalid` in model Job2744a05c and blocks at checkpoint
+4b64319a. Job succeeded describes handled failure; no valid Decision, tool
+call, code write, Issue regression, post-change Verify or independent Review
+exists. Code repair0. Dependency volumes are disposed by ordinary terminal
+cleanup. All old Plan3 failures and four Plans remain immutable. Native0/4
+first deliveries and unseen0/15 complete baselines stay unchanged.
+
+[Read-only investigation](ci-native-plan4-model-failure-diagnosis.json) cannot
+recover the original final status/choice/content/usage fields: the old exception
+path discarded them. Exact cause, truncation and account balance are unverified.
+Its charged10,426 input/4,096 output are **conservative reservations**, not known
+spend. No retry clears those charges or the old planning64-call use/unknown holds.
+The grant stops at the nonretryable model boundary. DeepSeek's documented
+[final-status and usage fields](https://api-docs.deepseek.com/api/create-chat-completion/)
+are the basis of validation, not evidence of what this particular response held.
+
+Generic5c79b21 preserves safe enum/boolean response facts in typed failures and
+records reported/unreported/invalid/over-reservation usage separately from the
+retained reservation. Private reasoning and provider text never enter this
+receipt. Existing success parsing, retry rules,4096 per-call/24-call/32K session
+bounds, blocked-state semantics and approvals stay unchanged. [Checks](provider-failure-facts-checks.json)
+pass **1836 default/62 skipped/0 failed**,62 focused/26 new cases and compile/
+runtime/diff checks. No SQL migration or production dependency is introduced.
+[Deployment](provider-failure-facts-deployment.json) verifies240 source files,
+448 unchanged native events/checkpoint/budgets/Plans/Baseline, five live owned
+roles and four healthy endpoints. Publisher is not rebuilt. No new native or
+controlled model request uses the added diagnostics yet; effectiveness is not_run.
+
+[Read-only diagnostic preview](provider-readonly-diagnostic-proposal.json), hash
+`2406f44ce23a8e2df698f891749ae0ef38571f5ec5476682e65cfdd5d3a1bad1`, awaits
+separate exact consent for one controlled request with the original frozen
+prompt/Decision schema and saved high Profile, max4096 output/300s, no retry.
+The [reviewable helper](provider_diagnostic_probe.py) checks approval/script/
+source/profile/journal hashes and restricts its gateway credential to one request.
+It may record safe response facts and reported usage or a validated outcome/tool
+names, executes no proposed tools and cannot resume or reset the old native
+session or insert its result as a native turn. No business patch, native retry,
+budget extension, publication or external repository write is included. Original
+native failure and open E3/H Node, E4, E5 and Linux gates remain; UPEVE-E04 is current.
+
+
+[Final audit](ci-native-plan4-final-audit.json) verifies448 native events,
+74 historical files,240 current source files, four Plans/two execution approvals,
+all original failure and current Baseline/TaskSpec/prompt links, SQLite integrity/
+foreign keys and544 sanitized JSON records without credential-pattern findings.
+No job/model retry is active. The old blocked session's1800-second wall-clock
+budget has expired; deployment preserves it. A separate diagnostic cannot reset
+that clock, reopen the terminal checkpoint or count as a native model turn.

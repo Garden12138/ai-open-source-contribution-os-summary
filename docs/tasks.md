@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Approved read-only preview098f49b3 uses exactly1 DeepSeek call and saves native Plan4 with identical Plan3 content, eight paths/four commands and new state/CI environment binding. Source71c8ced remains1810 passed/62 skipped; four health endpoints pass. Planning use64 calls reaches its unchanged cap, with old unknown holds retained. Exact execution previewfccdcdcc awaits new Plan4 consent; native Baseline/Coding/Verify/Review remain not_run after the old preparation failure. Independent pnpm10/Node22 OCI component passes8 probes/4 checks, not native success. Historical Node and Linux gates stay open. |
+| Feature note | Exact Plan4 previewfccdcdcc was approved: real native preparation,8 entrypoint probes and4 Baseline checks pass; actual v2 Coding admission reaches one credential-gateway model call, then stops at deepseek_completion_invalid before any tool/write. Original response details/actual usage are unavailable;10426/4096 are retained reservations, not claimed spend. Generic safe failure diagnostics are deployed at5c79b21:1836 passed/62 skipped/62 focused, four health endpoints pass,448 events preserved. Exact single read-only diagnostic preview2406f44c awaits consent; no native retry, planning cap reset or Review. Historical Node, native E2E and Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6132,6 +6132,80 @@ change or planning budget increase is included. AGENTS exact Plan approval is
 still required; the preceding “允许” authorized only read-only planning.
 Native first deliveries0/4, U baselines0/15, historical Node failure, Linux
 amd64 blocker and all open gates remain. Current specialty task is UPEVE-E04.
+
+### 2026-11-02 Approved Plan4: native environment passes; first Coding response blocked
+
+[Execution approval62d500be](acceptance/universal-environment-v1/ci-native-plan4-execution-approval.json)
+consumes previewfccdcdcc. [Actual native run](acceptance/universal-environment-v1/ci-native-plan4-execution.json)
+records authorization25d560eb, root Job66210ff6, Attempt775ef4f2, successful
+Explore Jobdee3ad07 and preparation Jobceae3b4d. Original Plan3's preparation
+failure and all four immutable Plans remain. This time pnpm10.34.9/Node22.23.2
+really prepare under the original credential-free package proxy/offline policy.
+[Native Baseline/admission evidence](acceptance/universal-environment-v1/ci-native-plan4-baseline.json)
+verifies8 entrypoint probes and **4/4 original checks**:47 root tests,78 extension
+tests and two typechecks. Contractc2dab4d9, dependencyde878c7e, preparation
+receipt811852ce, entrypointe863138e and Baselinea889979e remain hash-addressed.
+The native baseline-event hash6a39fc2c binds the TaskSpec; inspection hashbc06919a
+binds its actual command evidence. Source inventory is unchanged. Initial export
+checks incorrectly assumed component list/result-ID hashing; explicit native
+inspection/event links now verify without changing product or historical data.
+
+Actual v2 session0a263d67 starts with TaskSpec327ef693 and frozen environment
+evidence, then sends **one real credential-gateway Coding request**. Job2744a05c
+handles `ProviderRunError` by recording `deepseek_completion_invalid` and a
+terminal blocked checkpoint4b64319a. Job succeeded means the rejection was
+durably handled, **not that a valid model decision or contribution succeeded**.
+No tool call, source read by the coding tool, code write, regression reproduction,
+post-change Verify or independent Review occurs. Code repair use0. Dependencies
+are disposed by normal terminal cleanup; this does not reverse the passed
+preparation/Baseline. Original native first deliveries0/4 and U baselines0/15
+are unchanged: this is a maintained D journey, not a new unseen success.
+
+[Failure investigation](acceptance/universal-environment-v1/ci-native-plan4-model-failure-diagnosis.json)
+finds the original v2 exception path did not retain provider response facts or
+reported usage. Exact upstream finish/choice/content/usage shape and balance are
+**unverified**; the error is not proof of quota exhaustion or output truncation.
+The checkpoint conservatively charges1 call/10,426 input/4,096 output as
+**reservations**, not measured spend. All planning use64/1,639,419/166,739 and
+three old holds1,350,000/40,960 remain. No automatic retry or budget refund occurs.
+The execution grant stops at the nonretryable model boundary.
+
+Generic observability fix5c79b21 adds strictly allowlisted enum/boolean response
+facts to typed provider errors and a separate v2 failure receipt for reported,
+unreported, invalid or over-reservation usage. It never stores response/private
+reasoning text, settles the failed reservation, changes existing retry semantics
+or creates a new authorization. Old failures remain unchanged and cannot gain
+facts retroactively. [Checks](acceptance/universal-environment-v1/provider-failure-facts-checks.json)
+pass **1836/62 skipped/0 failed**,62 focused with26 new contract/API cases,
+compileall/runtime integrity/diff. No SQL migration or new dependency is needed.
+[Deployment](acceptance/universal-environment-v1/provider-failure-facts-deployment.json)
+restarts only five idle owned roles; all240 tested source files and four healthy
+endpoints verify,448 events/checkpoint/Plans/Baseline/budgets remain unchanged,
+Publisher is not rebuilt. New diagnostic effectiveness is **not_run**.
+
+[Exact read-only diagnostic preview](acceptance/universal-environment-v1/provider-readonly-diagnostic-proposal.json)
+`2406f44ce23a8e2df698f891749ae0ef38571f5ec5476682e65cfdd5d3a1bad1`
+awaits human consent for one separately recorded controlled request: identical
+hash-verified original prompt/Decision schema and saved high Profile, max4096
+output, existing300s timeout, one gateway request/one upstream POST attempt,
+no retry. The [reviewable helper](acceptance/universal-environment-v1/provider_diagnostic_probe.py)
+checks the exact approval/script/source/model/journal hashes before issuing it.
+It records only safe response facts/reported usage or validated outcome/tool
+names; none of those proposed tools execute. It cannot resume the blocked
+native session, reset time/call/token budgets, insert its response as a native
+turn or count as native success. No new request has been issued. AGENTS exact
+approval and the prior preview's model-failure stop condition require fresh
+consent for this additional diagnostic action. E3/H Node, E4, E5, Linux amd64
+and all prior gates remain open; UPEVE-E04 remains current.
+
+[Final audit](acceptance/universal-environment-v1/ci-native-plan4-final-audit.json)
+verifies448 chained events,74 historical files,240 current source files, four
+Plans/two execution approvals, original failure and current Baseline/entrypoint/
+TaskSpec/prompt artifacts, SQLite integrity/foreign keys and544 sanitized JSON
+records with no credential-pattern findings. Zero jobs or model retries are
+active. The original blocked session's1800-second wall-clock budget has now
+expired; no restart resets it. The separately proposed diagnostic cannot resume
+that session or insert a decision into it. No stage gate or U success is added.
 
 ---
 

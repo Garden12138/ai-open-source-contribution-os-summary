@@ -129,3 +129,13 @@ These changes add no database schema and rewrite no historical jobs or receipts.
 The isolated Publisher runs separately on18092; there is no publication consent.
 The older trial service/data remain unchanged. Current deployment and real vs
 controlled outcomes are recorded in the [acceptance ledger](acceptance/universal-environment-v1/README.md).
+
+Runtime v2 provider failures now include optional `completion-response-facts-v1`
+enums/booleans and `agent-provider-failure-v1` receipts. Reported token usage is
+separate from the still-charged conservative reservation; absent usage is never
+zero. No provider text/private reasoning, budget refund, new retry or authority
+is added. Old failure events remain readable and cannot acquire missing response
+facts retroactively. These are additive event fields, without SQL changes; drain
+jobs and retain matching code/DB/artifacts before rollback. The maintained task
+has actual native preparation/8 probes/4 Baseline passes, then a terminal model
+response failure before tool execution; it has no completed contribution or Review.
