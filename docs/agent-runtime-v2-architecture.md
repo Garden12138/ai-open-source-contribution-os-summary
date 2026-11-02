@@ -230,3 +230,15 @@ failures, unverified/excessive usage and exhausted quota still block. A versione
 rejection receipt stores bounded count facts only, with no raw provider data.
 Already blocked sessions retain their terminal checkpoint; this behavior cannot
 retroactively resume them or fill missing historical response metadata.
+
+New native transport hashes also freeze the prompt projection policy. Registered
+API function schemas are referenced instead of duplicated in user input. The
+recent eight receipt summaries stay inline; the complete history index, including
+all original receipt references and correlation IDs, is a content-addressed
+`agent-tool-history-index-v1` artifact bound to session/binding/source. A model
+start issues that read-only index through the existing context-artifact mechanism.
+Paging uses the same scoped read_artifact tool; arbitrary references still deny.
+Nothing is dropped from the journal or full index. Approved inputs, checks, paths,
+feedback and the32,000-byte admission cap remain exact. Legacy structured prompts
+retain their original wire. Old native contract hashes remain readable but stale
+for execution; adoption needs a new child plan and precise approval.

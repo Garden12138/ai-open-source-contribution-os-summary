@@ -133,7 +133,7 @@ def prompt_for(journal: AgentJournal) -> dict:
     from app.models import ReviewRun, ExecutionAttempt
     prior_ids = list(journal.wb.session.scalars(select(ExecutionAttempt.id).where(ExecutionAttempt.task_id == journal.task_id)))
     reviews = list(journal.wb.session.scalars(select(ReviewRun).where(ReviewRun.execution_attempt_id.in_(prior_ids)).order_by(ReviewRun.created_at)))
-    return {
+    prompt = {
         "version": "agent-runtime-v2", "goal": spec.goal,
         "binding": spec.binding.model_dump(), "write_paths": spec.write_paths,
         "task_context_artifact": input_artifact,
@@ -168,6 +168,12 @@ def prompt_for(journal: AgentJournal) -> dict:
         "protocol_feedback": next((e.payload["failure"] for e in reversed(journal.events())
             if e.kind == "agent_v2_model_rejected"), None),
     }
+    from app.agent_v2.native_tools import NATIVE_HISTORY_WINDOW, project_native_prompt
+    history_artifact = None
+    if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
+        history_artifact = journal.wb.artifact({"version": "agent-tool-history-index-v1", "session_id": journal.session_id,
+            "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": cp.source_hash, "rows": index})
+    return project_native_prompt(prompt, spec, history_artifact=history_artifact)
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:
@@ -214,8 +220,11 @@ class AgentModelWorker(WorkbenchJobWorker):
                 raise WorkbenchError("此模型未验证工具调用能力。", code="agent_model_tools_unsupported")
             from app.providers.nvidia_nim import NvidiaNimGatewayRunner
             real_transport = isinstance(getattr(adapter, "runner", None), NvidiaNimGatewayRunner)
+            context_artifacts = [prompt["task_context_artifact"]]
+            if spec.model_transport is not None and prompt.get("history_evidence"):
+                context_artifacts.append(prompt["history_evidence"]["artifact_id"])
             journal.append("model_started", {"prompt_artifact": journal.wb.artifact(prompt),
-                "context_artifacts": [prompt["task_context_artifact"]],
+                "context_artifacts": context_artifacts,
                 "transport": "credential_gateway" if real_transport else "fixture",
                 "input_bound": bound, "output_reservation": output_limit}, key="model-start:" + job.id, job_id=job.id)
             running = journal.transition(cp, state="model", usage=usage, key="model-cp:" + job.id, job_id=job.id)

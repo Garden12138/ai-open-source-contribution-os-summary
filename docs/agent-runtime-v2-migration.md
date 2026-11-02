@@ -99,7 +99,7 @@ and unresolved acceptance are documented in [environment-engine-v1.md](environme
 
 New Runtime v2 plans with a bound DeepSeek implementation profile pin
 `agent-native-tools-v1` and a hash of the restricted function schemas, trusted
-instruction and four-call limit. Exact execution preview/API confirmation includes
+instruction, four-call limit and versioned prompt projection. Exact execution preview/API confirmation includes
 `model_transport_hash`; authorization and TaskSpec retain the same contract.
 `0041_native_model_tools` guards new plan/authorization event JSON and rejects
 removing the transport from an authorization. It changes no historical rows.
@@ -118,3 +118,12 @@ plans, approvals, attempts and reviews and check integrity/foreign keys. To reco
 stop writers and restore the matched backup; preserve subsequent evidence and usage
 separately. Never remove a frozen transport or clear budgets for rollback. The
 isolated deployment does not update formal services or their data.
+
+The schema-reference/history-index projection changes that contract digest and
+therefore requires a newly bound child plan; it cannot reinterpret an old native
+approval. Existing SQL0041/hash guards and context-artifact lists already cover
+the unchanged domain shape. The full paged index is versioned advisory evidence,
+not a second workflow store or new execution authority. Older structured TaskSpec
+and prompt wire remain exact. Drain before rolling code back; preserve the newer
+artifacts, failures and usage, and let incompatible native hashes block instead
+of stripping their binding or clearing a checkpoint.
