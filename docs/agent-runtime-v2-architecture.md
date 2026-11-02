@@ -211,3 +211,11 @@ and TaskSpec; existing frozen sessions keep their original structured transport.
 See [migration](agent-runtime-v2-migration.md#forward-revision-0041-frozen-native-model-functions)
 and the [acceptance ledger](acceptance/universal-environment-v1/README.md) for
 controlled versus native evidence and unresolved gates.
+
+SQLite workflow advancement takes the same write lock as exact stop before
+reading its decision snapshot. A successor that wins that transaction belongs
+to the stop's frozen cancellation scope; a stop that wins is observed before
+any successor decision. Locking only the later append left a stale coordinator
+able to enqueue after stop. The worker independently checks the latest stop
+before allocating a workspace. Actual rejected-race evidence and the deterministic
+failure-before/fix-after test remain distinct from native Issue delivery evidence.

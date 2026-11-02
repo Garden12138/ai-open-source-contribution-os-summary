@@ -537,6 +537,10 @@ def retry_execution_job(wb: Workbench, job_id: str, settings: Settings, *, commi
 
 
 def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
+    # Serialize the decision snapshot with stop_workflow and successor enqueue.
+    # Locking only when appending a later event leaves an already-read tick stale.
+    from app.cla import _lock
+    _lock(wb)
     events = wb.history(task_id)
     start = wb.latest(task_id, "automation_started")
     stop = wb.latest(task_id, "stop_requested")
