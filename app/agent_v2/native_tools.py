@@ -10,7 +10,7 @@ from app.agent_v2.contracts import Decision, ModelTransport, StrictModel, TaskSp
 from app.agent_v2.tools import RestrictedToolRegistry
 from app.providers.codex_cli import CodexExecInvocation
 from app.providers.contracts import ProviderIdentity, ProviderRunError, ProviderStage, ProviderUsage
-from app.providers.response_diagnostics import completion_response_facts
+from app.providers.response_diagnostics import CompletionResponseFacts, completion_response_facts
 from app.provenance import canonical_json, content_hash
 from app.security import SensitiveDataError, ensure_no_sensitive_data
 
@@ -22,6 +22,22 @@ INSTRUCTION = (
     f"Call {FINISH} only after the platform has verified the final edits, or {BLOCKED} when unable to proceed. "
     "A terminal function must be the only call in its turn. Never invent another function or an approval/publication action."
 )
+
+
+class NativeCallCountProtocolError(ProviderRunError):
+    """A rejected whole batch can use only the existing protocol repair quota."""
+    def __init__(self, count: int, *, usage: ProviderUsage, diagnostic: CompletionResponseFacts) -> None:
+        if type(count) is not int or count <= 4:
+            raise ValueError("native_call_count_error_invalid")
+        super().__init__("agent_native_call_count_invalid", "Native function batch exceeds four calls; no calls executed",
+            retryable=False, usage=usage, diagnostic=diagnostic)
+        self.received_call_count = count if count <= 1024 else None
+
+    def rejection_receipt(self) -> dict[str, Any]:
+        return {"version": "native-function-protocol-rejection-v1", "reason": "too_many_calls",
+            "max_allowed_calls": 4, "received_call_count": self.received_call_count,
+            "count_exceeds_diagnostic_bound": self.received_call_count is None,
+            "whole_batch_rejected": True, "executed_calls": 0}
 
 
 class TerminalReply(StrictModel):
@@ -94,6 +110,9 @@ def parse_native_decision(value: Mapping, *, spec: TaskSpec, request_id: str) ->
     if not isinstance(message, Mapping) or message.get("role") != "assistant":
         reject("agent_native_message_invalid")
     calls = message.get("tool_calls")
+    if isinstance(calls, list) and len(calls) > 4:
+        raise NativeCallCountProtocolError(len(calls), usage=measured,
+            diagnostic=completion_response_facts(value, "final_content_missing"))
     if not isinstance(calls, list) or not 1 <= len(calls) <= 4:
         reject("agent_native_call_count_invalid")
     registered = RestrictedToolRegistry()

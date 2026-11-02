@@ -219,3 +219,14 @@ any successor decision. Locking only the later append left a stale coordinator
 able to enqueue after stop. The worker independently checks the latest stop
 before allocating a workspace. Actual rejected-race evidence and the deterministic
 failure-before/fix-after test remain distinct from native Issue delivery evidence.
+
+A native response containing more than four calls rejects its entire batch before
+argument parsing or tool execution. A trusted parser exception may use the existing
+two protocol corrections only when reported usage is verified within that turn's
+reservation. Each correction is a new persistent model Job charged to the same
+call/token/time limits; failed reservations remain charged. It never selects the
+first four calls, enlarges the limit or uses provider-retry allowance. Other
+failures, unverified/excessive usage and exhausted quota still block. A versioned
+rejection receipt stores bounded count facts only, with no raw provider data.
+Already blocked sessions retain their terminal checkpoint; this behavior cannot
+retroactively resume them or fill missing historical response metadata.

@@ -230,14 +230,18 @@ class AgentModelWorker(WorkbenchJobWorker):
                 journal = AgentJournal(Workbench(s, self.settings.artifact_root), job.payload["task_id"], job.payload["session_id"])
                 cp = journal.checkpoint()
                 from app.agent_v2.adapter import ModelProtocolError
+                from app.agent_v2.native_tools import NativeCallCountProtocolError
                 secret = isinstance(exc, SensitiveDataError)
                 provider = isinstance(exc, ProviderRunError)
-                dimension = "provider_retries" if provider else "protocol_repairs"
+                native_count = isinstance(exc, NativeCallCountProtocolError)
+                protocol = native_count and exc.usage is not None and (
+                    exc.usage.input_tokens <= bound and exc.usage.output_tokens <= output_limit)
+                dimension = "provider_retries" if provider and not protocol else "protocol_repairs"
                 remaining = journal.remaining()[dimension]
-                retry = not secret and remaining > 0 and (not provider or (exc.retryable and "truncated" not in exc.code))
-                info = failure(journal, "security" if secret else "model" if provider else "protocol",
+                retry = not secret and remaining > 0 and (protocol or not provider or (exc.retryable and "truncated" not in exc.code))
+                info = failure(journal, "security" if secret else "model" if provider and not protocol else "protocol",
                     "agent_sensitive_output" if secret else exc.code if provider else "agent_model_output_invalid",
-                    "inspect_diagnostic" if secret or not retry else "retry_provider" if provider else "correct_schema", retryable=retry)
+                    "inspect_diagnostic" if secret or not retry else "retry_provider" if provider and not protocol else "correct_schema", retryable=retry)
                 diagnostic = {"failure": info.model_dump(), "exception_type": type(exc).__name__}
                 if provider:
                     # Reservations stay charged after failure. Report measured
@@ -245,6 +249,8 @@ class AgentModelWorker(WorkbenchJobWorker):
                     from app.agent_v2.provider_failures import provider_failure_receipt
                     diagnostic["provider_failure_receipt"] = provider_failure_receipt(
                         exc, input_bound=bound, output_limit=output_limit)
+                if native_count:
+                    diagnostic["protocol_rejection_receipt"] = exc.rejection_receipt()
                 if isinstance(exc, ModelProtocolError):
                     diagnostic["output_artifact"] = journal.wb.artifact({"raw_output": exc.content})
                 journal.append("model_rejected", diagnostic,
