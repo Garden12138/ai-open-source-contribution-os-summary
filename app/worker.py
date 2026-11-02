@@ -468,7 +468,7 @@ class ContribOSProviderWorker:
         self.model_test = ModelTestWorker(database, settings, worker_id=worker_id)
         self.agent_v2 = None
         if settings.agent_runtime_v2_enabled and self.coding is not None:
-            from app.agent_v2.adapter import StructuredModelAdapter
+            from app.agent_v2.adapter import model_adapter
             from app.agent_v2.loop import AgentModelWorker
             def adapter_factory(session, spec):
                 from app.model_settings import ModelSettingsService, task_identity
@@ -477,7 +477,7 @@ class ContribOSProviderWorker:
                 profile_id = models.task_profiles(spec.binding.task_id).get("implementation")
                 runner = runner_for_profile(settings, models.profile(profile_id)) if profile_id else self.coding.runner
                 identity = task_identity(session, settings, spec.binding.task_id, "implementation")
-                return StructuredModelAdapter(runner, identity, spec.binding.attempt_id)
+                return model_adapter(runner, identity, spec)
             self.agent_v2 = AgentModelWorker(database, settings, adapter_factory, worker_id=worker_id)
 
     async def run_once(self, *, now: datetime | None = None) -> Job | None:

@@ -1,4 +1,5 @@
 from app.migrations.core import Migration
+from app.migrations.versions.v0041_native_model_tools import MIGRATION as NATIVE_MODEL_TOOLS
 from app.migrations.versions.v0040_deepseek_reviews import MIGRATION as DEEPSEEK_REVIEWS
 from app.migrations.versions.v0039_environment_contracts import MIGRATION as ENVIRONMENT_CONTRACTS
 from app.migrations.versions.v0038_agent_runtime_v2 import MIGRATION as AGENT_RUNTIME_V2
@@ -133,6 +134,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     AGENT_RUNTIME_V2,
     ENVIRONMENT_CONTRACTS,
     DEEPSEEK_REVIEWS,
+    NATIVE_MODEL_TOOLS,
 )
 
 __all__ = ["MIGRATIONS"]

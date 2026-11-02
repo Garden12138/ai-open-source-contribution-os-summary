@@ -119,6 +119,10 @@ def authorize_execution(
     if preflight["status"] != "ready":
         issue = preflight["issues"][0] if preflight["issues"] else {"code":"execution_preflight_failed", "message":"执行条件尚未校验完成。"}
         raise WorkbenchError(issue["message"], code=issue["code"])
+    transport = binding.payload.get("agent_model_transport")
+    if transport is not None and (not settings.agent_runtime_v2_enabled or
+            task_identity(wb.session, settings, task_id, "implementation").provider != "deepseek"):
+        raise WorkbenchError("模型工具协议与当前运行时或模型不符。", code="agent_model_transport_stale")
     from app.workspace_scope import selected_workspace_paths
     workspace_paths = selected_workspace_paths(environment, set(evidence["inventory"]), set(content.files_likely_to_change))
     if len(workspace_paths) > 64:
@@ -154,6 +158,8 @@ def authorize_execution(
     }
     if preflight.get("baseline_failure_policy"):
         payload["baseline_failure_policy"] = preflight["baseline_failure_policy"]
+    if transport is not None:
+        payload["agent_model_transport"] = transport
     job, _ = JobService(wb.session).enqueue(
         kind=START,
         idempotency_key="execute:" + key,

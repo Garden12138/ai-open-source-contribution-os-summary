@@ -58,6 +58,11 @@ class Limits(StrictModel):
     seconds: int = Field(default=1800, ge=30, le=7200)
 
 
+class ModelTransport(StrictModel):
+    version: Literal["agent-native-tools-v1"] = "agent-native-tools-v1"
+    tools_schema_hash: Hash
+
+
 class TaskSpec(StrictModel):
     version: Literal["agent-runtime-v2"] = "agent-runtime-v2"
     binding: Binding
@@ -66,12 +71,15 @@ class TaskSpec(StrictModel):
     write_paths: list[str] = Field(min_length=1, max_length=500)
     commands: list[dict[str, Any]] = Field(min_length=1, max_length=100)
     environment_evidence: dict[str, str] | None = None
+    model_transport: ModelTransport | None = None
 
     @model_serializer(mode="wrap")
     def legacy_wire(self, handler: Any) -> dict[str, Any]:
         value = handler(self)
         if self.environment_evidence is None:
             value.pop("environment_evidence", None)
+        if self.model_transport is None:
+            value.pop("model_transport", None)
         return value
 
     @field_validator("write_paths")

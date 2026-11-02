@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from app.agent_v2.contracts import Decision
+from app.agent_v2.contracts import AgentModelAdapter, Decision, TaskSpec
+from app.providers.contracts import ProviderIdentity
 from app.providers.codex_cli import CodexExecInvocation
 from app.providers.contracts import ProviderStage
 from app.provenance import canonical_json, content_hash
@@ -14,6 +15,14 @@ class ModelProtocolError(ValueError):
     def __init__(self, content: str) -> None:
         super().__init__("agent_model_output_invalid")
         self.content = content
+
+
+def model_adapter(runner: Any, identity: ProviderIdentity, spec: TaskSpec) -> AgentModelAdapter:
+    """Only an explicitly frozen new contract selects native API functions."""
+    if spec.model_transport is not None:
+        from app.agent_v2.native_tools import NativeToolsModelAdapter
+        return NativeToolsModelAdapter(runner, identity, spec)
+    return StructuredModelAdapter(runner, identity, spec.binding.attempt_id)
 
 
 class StructuredModelAdapter:

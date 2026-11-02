@@ -35,6 +35,17 @@ def freeze_spec(wb: Workbench, attempt_id: str, settings: Settings, *, limits: L
     outcome = baseline_outcome(baseline_value)
     if outcome["status"] != "passed":
         raise WorkbenchError("修改前检查未通过，不能当作代码回归修复。", code="agent_baseline_blocked")
+    transport = auth.payload.get("agent_model_transport")
+    if transport != wb.binding(attempt.task_id, plan.id).payload.get("agent_model_transport"):
+        raise WorkbenchError("方案与授权的模型工具协议不一致。", code="agent_model_transport_stale")
+    if transport is not None:
+        from app.agent_v2.native_tools import require_native_transport
+        try:
+            transport = require_native_transport(transport)
+            if auth.payload["implementation"]["provider"] != "deepseek":
+                raise ValueError()
+        except ValueError:
+            raise WorkbenchError("冻结的模型工具协议不可用，需要新方案及精确确认。", code="agent_model_transport_stale") from None
     return TaskSpec(binding=Binding(
         task_id=attempt.task_id, snapshot_id=attempt.snapshot_id,
         snapshot_hash=attempt.snapshot_inputs_hash, attempt_id=attempt.id, attempt_hash=attempt.record_hash,
@@ -45,7 +56,7 @@ def freeze_spec(wb: Workbench, attempt_id: str, settings: Settings, *, limits: L
         model_binding_hash=content_hash({"implementation": auth.payload["implementation"], "review": auth.payload["review"]})),
         goal=plan.goal, write_paths=list(plan.files_likely_to_change),
         commands=[c.to_wire() for c in plan_sandbox_commands(plan)], limits=limits or Limits(),
-        environment_evidence=environment_evidence)
+        environment_evidence=environment_evidence, model_transport=transport)
 
 
 class TaskOrchestrator:

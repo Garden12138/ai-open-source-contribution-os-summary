@@ -210,6 +210,17 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
     context = wb.latest(task_id, "context_ready")
     selected = environment if environment is not None else task_environment(wb, task_id)
     issues = []
+    model_transport = None
+    if plan is not None:
+        binding = next((e for e in reversed(wb.history(task_id)) if e.kind == "plan_bound" and e.plan_version_id == plan.id), None)
+        model_transport = binding.payload.get("agent_model_transport") if binding else None
+        if model_transport is not None:
+            from app.agent_v2.native_tools import require_native_transport
+            try:
+                require_native_transport(model_transport)
+            except ValueError:
+                issues.append({"code": "agent_model_transport_stale", "stage": "coding", "paths": [],
+                    "message": "冻结的模型工具协议已变化，请保存新方案后精确确认。"})
     if selected.get("environment_engine"):
         from app.config import environment_engine_configuration
         if environment_engine_configuration() != selected["environment_engine"]:
@@ -287,4 +298,6 @@ def task_preflight(wb: Any, task_id: str, *, environment: dict[str, Any] | None 
     if selected.get("project_directories"):
         from app.baseline_feedback import POLICY
         report["baseline_failure_policy"] = POLICY
+    if model_transport is not None:
+        report["agent_model_transport"] = model_transport
     return {**report, "report_hash":content_hash(report)}

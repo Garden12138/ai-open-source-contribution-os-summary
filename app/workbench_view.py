@@ -118,6 +118,9 @@ def workbench_view(wb: Workbench, task_id: str) -> dict[str, Any]:
             "question_busy": any(j.kind == "execution_question" and j.state not in TERMINAL_STATES for j in jobs),
             "event_cursor": events[-1].sequence if events else 0}
     from app.execution_acceptance import acceptance_view
+    if binding and binding.payload.get("agent_model_transport") is not None:
+        view["model_transport"] = binding.payload["agent_model_transport"]
+        view["model_transport_hash"] = content_hash(view["model_transport"])
     view["acceptance"] = acceptance_view(wb, task_id)
     from app.publisher_accounts import account_record
     publisher = account_record(wb.session)

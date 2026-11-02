@@ -153,7 +153,9 @@ def test_migration_from_0039_retains_review_rows_and_can_restore_backup(tmp_path
         target = sqlite3.connect(backup)
         raw.backup(target)
         target.close()
-    report = db.create_schema()
+    with monkeypatch.context() as patch:
+        patch.setattr(versions, 'MIGRATIONS', tuple(m for m in MIGRATIONS if m.revision <= '0040_deepseek_reviews'))
+        report = db.create_schema()
     assert report.applied == ('0040_deepseek_reviews',)
     with db.engine.connect() as c:
         assert list(c.connection.driver_connection.execute('SELECT * FROM review_runs')) == before

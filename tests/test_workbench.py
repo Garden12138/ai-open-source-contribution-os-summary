@@ -459,7 +459,7 @@ class ReadOnlyGitHub:
         return branch, "a" * 40
 
 
-def automatic_fixture(tmp_path, configure_models=None, *, runtime_v2=False):
+def automatic_fixture(tmp_path, configure_models=None, *, runtime_v2=False, native_transport=False):
     from app.archives import RepositoryArchiveStore
     from app.changesets import ChangeSetStore
     from app.coding import CodingContextJobWorker, NvidiaCodingJobWorker
@@ -500,6 +500,10 @@ def automatic_fixture(tmp_path, configure_models=None, *, runtime_v2=False):
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
         plan = wb.latest_plan(task_id)
+        if native_transport:
+            plan = wb.save(task_id, PlanVersionCreateRequest(**content.hash_payload(), parent_version_id=plan.id),
+                context_hash=wb.latest(task_id, "context_ready").record_hash, key="fixture-native-transport",
+                runtime_version="agent-runtime-v2")
         authorize_execution(
             wb,
             task_id,
@@ -862,7 +866,7 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
         "0037_baseline_feedback",
         "0038_agent_runtime_v2",
         "0039_environment_contracts",
-        "0040_deepseek_reviews",
+        "0040_deepseek_reviews", "0041_native_model_tools",
     )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash

@@ -336,6 +336,7 @@ class PlanningService(Workbench):
         *,
         context_hash: str,
         key: str,
+        runtime_version: str | None = None,
     ) -> object:
         prior = next(
             (e for e in self.history(task_id) if e.idempotency_key == "bind:" + key),
@@ -357,7 +358,7 @@ class PlanningService(Workbench):
         context = self.latest(task_id, "context_ready")
         if context is None or context_hash != context.record_hash:
             raise WorkbenchError("代码依据已更新，请重新载入")
-        plan = self.persist_plan(task_id, request, context, key=key, actor="local-user")
+        plan = self.persist_plan(task_id, request, context, key=key, actor="local-user", runtime_version=runtime_version)
         from app.execution_preflight import task_preflight
         preflight = task_preflight(self, task_id)
         self.append(task_id, "assistant_message", {
@@ -405,6 +406,7 @@ class PlanningService(Workbench):
         key: str,
         actor: str,
         environment_engine: dict | None = None,
+        runtime_version: str | None = None,
     ) -> object:
         content = plan_content(request)
         if (
@@ -425,6 +427,14 @@ class PlanningService(Workbench):
         if not (set(content.files_likely_to_change) & known) <= inspected:
             raise WorkbenchError("修改前必须读取已有文件")
         plans = PlanVersionService(self.session)
+        transport = None
+        if runtime_version == "agent-runtime-v2":
+            from app.model_settings import ModelSettingsService
+            models = ModelSettingsService(self.session)
+            profile_id = models.task_profiles(task_id, bind=True).get("implementation")
+            if profile_id and models.identity(profile_id).provider == "deepseek":
+                from app.agent_v2.native_tools import native_model_transport
+                transport = native_model_transport().model_dump()
         if request.parent_version_id:
             parent = plans.get_verified(request.parent_version_id)
             if parent.task_id != task_id:
@@ -437,11 +447,14 @@ class PlanningService(Workbench):
                 ),
                 None,
             )
+            if runtime_version is None and binding is not None:
+                transport = binding.payload.get("agent_model_transport")
             unchanged_basis = (
                 parent.task_state_record_hash == self.require_planning(task_id)
                 and binding is not None
                 and binding.payload["context_hash"] == context.record_hash
                 and not self.models_changed_after(task_id, binding.sequence)
+                and binding.payload.get("agent_model_transport") == transport
             )
             plan = (
                 parent
@@ -470,6 +483,7 @@ class PlanningService(Workbench):
                 "context_id": context.id,
                 "plan_hash": plan.record_hash,
                 **({"environment_engine": environment_engine} if environment_engine else {}),
+                **({"agent_model_transport": transport} if transport else {}),
             },
             key="bind:" + key,
             actor=actor,
@@ -1186,7 +1200,7 @@ class PlanningTurnWorker(WorkbenchJobWorker):
                 draft.parent_version_id = data["parent_id"]
                 # No path/command truncation or conversion of unresolved questions into risks.
                 plan = wb.persist_plan(data["task_id"], draft, context, key="ai-plan:" + job.id, actor="planner",
-                    environment_engine=data.get("environment_engine"))
+                    environment_engine=data.get("environment_engine"), runtime_version=data.get("agent_runtime_version"))
             result["plan_id"] = plan.id if plan else None
             if result.get("plan_error") and data.get("repair_round", 0) >= MAX_PLAN_REPAIRS:
                 result["reply"] = "方案仍未通过校验，已达到本轮自动修订上限。未保存或执行；具体字段错误已保留，可缩小范围后继续修订。"

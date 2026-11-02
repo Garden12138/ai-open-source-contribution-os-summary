@@ -201,14 +201,15 @@ class AgentModelWorker(WorkbenchJobWorker):
             if cp.state != "ready" or cp.revision != job.payload["checkpoint_hash"]:
                 raise WorkbenchError("模型回合已过期。", code="agent_checkpoint_stale")
             prompt = prompt_for(journal)
-            bound = len(canonical_json(prompt).encode()) + 2 * len(canonical_json(Decision.model_json_schema()).encode()) + 512
-            if bound > 32000:
+            adapter = self.adapter_factory(s, spec)
+            bound = (adapter.input_bound(prompt) if hasattr(adapter, "input_bound") else
+                len(canonical_json(prompt).encode()) + 2 * len(canonical_json(Decision.model_json_schema()).encode()) + 512)
+            if type(bound) is not int or not 0 < bound <= 32000:
                 raise WorkbenchError("模型上下文需分页后才能继续。", code="agent_context_budget")
             output_limit = min(4096, journal.remaining()["output_tokens"])
             if output_limit < 128:
                 raise WorkbenchError("运行输出预算不足。", code="agent_budget_exceeded")
             usage = journal.charge(cp, {"model_calls": 1, "input_tokens": bound, "output_tokens": output_limit})
-            adapter = self.adapter_factory(s, spec)
             if adapter.capability not in {"structured_tools", "native_tools"}:
                 raise WorkbenchError("此模型未验证工具调用能力。", code="agent_model_tools_unsupported")
             from app.providers.nvidia_nim import NvidiaNimGatewayRunner

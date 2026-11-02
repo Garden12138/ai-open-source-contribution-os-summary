@@ -370,7 +370,7 @@ export function mountContributionWorkbench(root, taskId, options) {
   }
   function executionBinding(plan) {
     return JSON.stringify([plan.id, plan.record_hash, data.context?.record_hash,
-      data.model_binding_hash, data.execution?.preflight?.report_hash, data.native_resources?.receipt_hash]);
+      data.model_binding_hash, data.execution?.preflight?.report_hash, data.native_resources?.receipt_hash, data.execution?.model_transport_hash]);
   }
   function canExecutePlan(plan, binding) {
     const current = data.plans?.at(-1);
@@ -381,7 +381,8 @@ export function mountContributionWorkbench(root, taskId, options) {
   async function executePlan(plan, binding, modelBinding) {
     if (!canExecutePlan(plan, binding)) throw new Error("方案或执行依据已变化，请重新核对当前方案。");
     await post("/execute", {plan_id:plan.id, plan_hash:plan.record_hash,
-      approve_plan:true, start_execution:true, max_repairs:2, model_binding_hash:modelBinding || null, conversation:true});
+      approve_plan:true, start_execution:true, max_repairs:2, model_binding_hash:modelBinding || null, conversation:true,
+      ...(data.execution?.model_transport_hash ? {model_transport_hash:data.execution.model_transport_hash} : {})});
     if (drawer.open) drawer.close();
   }
   function showPlan(plan) {
@@ -398,6 +399,7 @@ export function mountContributionWorkbench(root, taskId, options) {
       for (const command of plan.commands_to_run) drawerBody.append(node("pre", JSON.stringify(command, null, 2)));
     }
     const cachePolicy = data.execution?.environment_engine?.data_cache_policy;
+    if (data.execution?.model_transport) drawerBody.append(node("p", "此方案冻结了受限原生工具接口；工具调用仍受批准路径、检查命令和累计预算约束。真实编码及验证结果尚待执行。"));
     if (cachePolicy) drawerBody.append(node("p", `验证工具 ${cachePolicy.distribution} ${cachePolicy.distribution_versions?.join(" / ") || cachePolicy.distribution_version} 使用临时数据缓存 ${cachePolicy.directory}（最多 ${cachePolicy.max_bytes / 1048576} MiB）。缓存不能执行程序，源文件和依赖保持只读。此准备范围随当前方案确认。`));
     drawerBody.append(node("p", "确认后先准备隔离环境并运行修改前测试，再实现、断网验证和独立审查。范围内最多自动修复两轮。"));
     const start = confirmation("确认方案并开始", true, () => executePlan(plan, binding, modelBinding));

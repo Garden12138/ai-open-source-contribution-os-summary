@@ -6,6 +6,7 @@ import ipaddress
 import json
 import socket
 import time
+from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
@@ -19,6 +20,7 @@ from app.model_settings import (
 )
 from app.provenance import canonical_json, content_hash
 from app.providers.contracts import ProviderIdentity, ProviderRunError, ProviderStage
+from app.providers.codex_cli import CodexExecInvocation
 from app.providers.analysis_wire import (
     PAIRED_ANALYSIS_ADAPTER_VERSION, PAIRED_ANALYSIS_INSTRUCTION,
     paired_analysis_schema, decode_paired_analysis,
@@ -30,6 +32,7 @@ from app.providers.gateway import (
     InternalModelGateway,
     CredentialedModelGatewayUpstream,
     GatewayProviderCredential,
+    GatewayTaskCredential,
 )
 from app.providers.nvidia_nim import (
     NvidiaNimGatewayRunner,
@@ -200,6 +203,43 @@ class StudioRunner(NvidiaNimGatewayRunner):
             if self.profile.get(field) is not None:
                 payload[field] = self.profile[field]
         started = time.monotonic()
+        try:
+            data = await self._post_data(credential, payload)
+            provider = self.profile["connection"]["provider"]
+            content, usage = _completion(
+                data,
+                error_prefix=provider,
+                provider_label=(
+                    {MINIMAX_PROVIDER: "MiniMax", DEEPSEEK_PROVIDER: "DeepSeek"}.get(provider, "模型服务")
+                ),
+            )
+            ensure_no_sensitive_data(content, context="model output")
+            if paired:
+                decoded = decode_paired_analysis(json.loads(content))
+                required = invocation.output_schema["required"]
+                missing = next((field for field in required if field not in decoded), None)
+                if missing or set(decoded) - set(required):
+                    code = f"missing_{missing}" if missing else "extra_fields"
+                    raise ProviderRunError(
+                        f"studio_analysis_fields_{code}",
+                        "模型报告字段不完整或含有未定义字段，报告未保存。",
+                        retryable=False,
+                    )
+                content = canonical_json(decoded)
+            return NvidiaNimCompletion(
+                content=content,
+                input_tokens=usage["input_tokens"],
+                output_tokens=usage["output_tokens"],
+                cached_input_tokens=usage["cached_input_tokens"],
+                duration_ms=round((time.monotonic() - started) * 1000),
+            )
+        except (httpx.TransportError, ValueError):
+            raise ProviderRunError(
+                "model_connection_failed", "模型连接失败或响应无效", retryable=True
+            ) from None
+
+
+    async def _post_data(self, credential: GatewayTaskCredential, payload: dict) -> Any:
         owned = self._client is None
         client = self._client or httpx.AsyncClient(
             timeout=self.profile["timeout_seconds"] + 15, trust_env=False
@@ -241,42 +281,32 @@ class StudioRunner(NvidiaNimGatewayRunner):
                     error_message,
                     retryable=retryable,
                 )
-            data = response.json()
-            provider = self.profile["connection"]["provider"]
-            content, usage = _completion(
-                data,
-                error_prefix=provider,
-                provider_label=(
-                    {MINIMAX_PROVIDER: "MiniMax", DEEPSEEK_PROVIDER: "DeepSeek"}.get(provider, "模型服务")
-                ),
-            )
-            ensure_no_sensitive_data(content, context="model output")
-            if paired:
-                decoded = decode_paired_analysis(json.loads(content))
-                required = invocation.output_schema["required"]
-                missing = next((field for field in required if field not in decoded), None)
-                if missing or set(decoded) - set(required):
-                    code = f"missing_{missing}" if missing else "extra_fields"
-                    raise ProviderRunError(
-                        f"studio_analysis_fields_{code}",
-                        "模型报告字段不完整或含有未定义字段，报告未保存。",
-                        retryable=False,
-                    )
-                content = canonical_json(decoded)
-            return NvidiaNimCompletion(
-                content=content,
-                input_tokens=usage["input_tokens"],
-                output_tokens=usage["output_tokens"],
-                cached_input_tokens=usage["cached_input_tokens"],
-                duration_ms=round((time.monotonic() - started) * 1000),
-            )
-        except (httpx.TransportError, ValueError):
-            raise ProviderRunError(
-                "model_connection_failed", "模型连接失败或响应无效", retryable=True
-            ) from None
+            return response.json()
         finally:
             if owned:
                 await client.aclose()
+
+    async def complete_native_tools(self, invocation: CodexExecInvocation, tools: list[dict], instruction: str) -> tuple[dict, int]:
+        """Provider-native functions return data only; tools execute in the worker."""
+        if self.profile["connection"]["provider"] != DEEPSEEK_PROVIDER or invocation.stage != ProviderStage.CHANGE_SET:
+            raise ProviderRunError("agent_native_tools_unsupported", "Native function transport is unsupported for this stage/provider", retryable=False)
+        if self.broker is None or invocation.model != self.profile["model"] or self.profile["structured_output"] != "tools":
+            raise ProviderRunError("model_profile_mismatch", "Native function profile binding is invalid", retryable=False)
+        if not 1 <= len(tools) <= 16:
+            raise ProviderRunError("agent_native_tool_contract_invalid", "Native tool definitions are invalid", retryable=False)
+        payload = {"model": invocation.model, "_contribos_profile": self.profile,
+            "messages": [{"role": "system", "content": instruction}, {"role": "user", "content": invocation.prompt}],
+            "tools": tools, "tool_choice": "auto", "stream": False,
+            "max_tokens": min(self.profile["max_tokens"], invocation.output_token_limit or self.profile["max_tokens"])}
+        credential = self.broker.issue(invocation)
+        started = time.monotonic()
+        try:
+            data = await self._post_data(credential, payload)
+        except (httpx.TransportError, ValueError):
+            raise ProviderRunError("model_connection_failed", "模型连接失败或响应无效", retryable=True) from None
+        if not isinstance(data, dict):
+            raise ProviderRunError("agent_native_response_invalid", "Native response is invalid", retryable=False)
+        return data, round((time.monotonic() - started) * 1000)
 
 
 _FAKE_IP_NET = ipaddress.ip_network("198.18.0.0/15")

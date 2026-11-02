@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from app.jobs import TERMINAL_STATES, JobConflictError
 from app.planner import PlanningService
 from app.plans import PlanVersionError
+from app.provenance import content_hash
 from app.planning import ContributionTaskError
 from app.schemas import JobResponse, PlanVersionResponse, PlanVersionCreateRequest
 from app.task_states import ContributionTaskStateService
@@ -74,6 +75,7 @@ class ExecutePlanRequest(BaseModel):
     start_execution: bool
     max_repairs: int = Field(default=2, ge=2, le=2)
     model_binding_hash: str | None = None
+    model_transport_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     conversation: bool = False
 
 
@@ -692,7 +694,8 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         try:
             plan = PlanningService(
                 session, request.app.state.settings.artifact_root
-            ).save(task_id, payload.plan, context_hash=payload.context_hash, key=key)
+            ).save(task_id, payload.plan, context_hash=payload.context_hash, key=key,
+                runtime_version="agent-runtime-v2" if request.app.state.settings.agent_runtime_v2_enabled else None)
             session.commit()
             return PlanVersionResponse.model_validate(plan)
         except (PlanVersionError, IntegrityError):
@@ -719,6 +722,12 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             raise HTTPException(403, "需要明确批准方案并启动执行")
         settings = request.app.state.settings
         wb = Workbench(session, settings.artifact_root)
+        old_authorization = next((e for e in wb.history(task_id) if e.idempotency_key == "authorize:" + key), None)
+        frozen_transport = (old_authorization.payload.get("agent_model_transport") if old_authorization else
+            wb.binding(task_id, payload.plan_id).payload.get("agent_model_transport"))
+        expected_transport_hash = content_hash(frozen_transport) if frozen_transport is not None else None
+        if payload.model_transport_hash != expected_transport_hash:
+            raise WorkbenchError("模型工具协议已变化，请重新核对精确预览。", code="agent_model_transport_stale")
         if any(e.idempotency_key == "authorize:" + key for e in wb.history(task_id)):
             return JobResponse.model_validate(authorize_execution(wb, task_id,
                 plan_id=payload.plan_id, plan_hash=payload.plan_hash, key=key, settings=settings))

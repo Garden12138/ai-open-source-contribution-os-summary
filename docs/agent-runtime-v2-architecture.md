@@ -198,3 +198,16 @@ preparation, entrypoint and baseline evidence before admission. Existing plans
 retain their original protocol. See [environment-engine-v1.md](environment-engine-v1.md)
 for exact activation, supported semantics, unresolved real regressions and the
 separate acceptance gates; this does not close M5/M6.
+
+New DeepSeek v2 plan bindings may freeze `agent-native-tools-v1`: the Provider
+registers the nine existing restricted tools plus two terminal Decision functions
+in the API. The native decoder accepts only registered names and strict JSON
+arguments, with one to four unique calls; it rejects mixed terminal/tool turns,
+unknown functions, unverified usage and scope changes. It discards private reasoning.
+Only the existing Sandbox tool worker executes validated calls. Terminal requests
+do not bypass finish verification or independent Review. The schema/instruction
+hash travels through plan binding, preflight, exact confirmation, authorization
+and TaskSpec; existing frozen sessions keep their original structured transport.
+See [migration](agent-runtime-v2-migration.md#forward-revision-0041-frozen-native-model-functions)
+and the [acceptance ledger](acceptance/universal-environment-v1/README.md) for
+controlled versus native evidence and unresolved gates.

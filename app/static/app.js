@@ -3020,6 +3020,7 @@ function modelProviderLabel(provider) {
                   start_execution: true,
                   max_repairs: 2,
                   model_binding_hash: wb?.model_binding_hash || null,
+                  ...(wb?.execution?.model_transport_hash ? {model_transport_hash:wb.execution.model_transport_hash} : {}),
                 }),
               },
             );

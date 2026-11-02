@@ -94,3 +94,27 @@ preflight hashes retain their parser. Restore matched pre-upgrade code/database/
 artifacts for rollback, preserving later usage and failures. Initialize fresh
 schemas serially before starting roles. Actual upgrade/backup/hash preservation
 and unresolved acceptance are documented in [environment-engine-v1.md](environment-engine-v1.md).
+
+## Forward revision 0041: frozen native model functions
+
+New Runtime v2 plans with a bound DeepSeek implementation profile pin
+`agent-native-tools-v1` and a hash of the restricted function schemas, trusted
+instruction and four-call limit. Exact execution preview/API confirmation includes
+`model_transport_hash`; authorization and TaskSpec retain the same contract.
+`0041_native_model_tools` guards new plan/authorization event JSON and rejects
+removing the transport from an authorization. It changes no historical rows.
+An absent field retains the exact legacy TaskSpec wire/hash and structured-result
+adapter, including existing DeepSeek sessions. Rebinding requires a child plan
+and fresh confirmation; existing approvals cannot switch transport in place.
+
+Native calls still become the existing typed Decision and restricted tool Jobs.
+Function registration adds no shell, network, command arguments or approval
+authority. Finish requests still require actual edit/check evidence and independent
+Review. Model profiles, limits and old unknown reservations are unchanged.
+
+Drain writers, take a matched SQLite/artifact/code backup, and initialize 0041
+serially before starting roles. Upgrade/restore tests preserve existing events,
+plans, approvals, attempts and reviews and check integrity/foreign keys. To recover,
+stop writers and restore the matched backup; preserve subsequent evidence and usage
+separately. Never remove a frozen transport or clear budgets for rollback. The
+isolated deployment does not update formal services or their data.
