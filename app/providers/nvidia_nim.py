@@ -1043,6 +1043,8 @@ def _completion(
 ) -> tuple[str, dict[str, int]]:
     raw_usage = value.get("usage")
     from app.providers.response_diagnostics import completion_response_facts
+    def response_facts(reason: str):
+        return completion_response_facts(value, reason, expected_tool_name=STRUCTURED_OUTPUT_TOOL_NAME)
     usage = raw_usage if isinstance(raw_usage, Mapping) else {}
     reported_usage = None
     input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
@@ -1057,7 +1059,7 @@ def _completion(
             f"{provider_label} completion response is invalid",
             retryable=False,
             usage=reported_usage,
-            diagnostic=completion_response_facts(value, "choices_invalid"),
+            diagnostic=response_facts("choices_invalid"),
         )
     choice = choices[0]
     if error_prefix == "deepseek" and (
@@ -1070,7 +1072,7 @@ def _completion(
             "DeepSeek completion has no verified final status or usage",
             retryable=False,
             usage=reported_usage,
-            diagnostic=completion_response_facts(value, "usage_unverified" if reported_usage is None else "finish_unverified"),
+            diagnostic=response_facts("usage_unverified" if reported_usage is None else "finish_unverified"),
         )
     message = choice.get("message") if isinstance(choice, Mapping) else None
     content = _tool_call_arguments(message)
@@ -1082,7 +1084,7 @@ def _completion(
             f"{provider_label} completion exhausted its output-token budget",
             retryable=False,
             usage=reported_usage,
-            diagnostic=completion_response_facts(value, "output_truncated"),
+            diagnostic=response_facts("output_truncated"),
         )
     if not isinstance(content, str) or not content.strip():
         raise ProviderRunError(
@@ -1090,7 +1092,7 @@ def _completion(
             f"{provider_label} completion response has no final content",
             retryable=False,
             usage=reported_usage,
-            diagnostic=completion_response_facts(value, "final_content_missing"),
+            diagnostic=response_facts("final_content_missing"),
         )
     content = normalize_completion_content(content)
     return content, {

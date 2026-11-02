@@ -55,6 +55,19 @@ MINIMAX_PAIRED_ADAPTER_VERSION = PAIRED_ANALYSIS_ADAPTER_VERSION + "-minimax-ada
 DEEPSEEK_ADAPTER_VERSION = "studio-deepseek-thinking-v1"
 DEEPSEEK_PAIRED_ADAPTER_VERSION = PAIRED_ANALYSIS_ADAPTER_VERSION + "-deepseek-thinking-v1"
 
+STRUCTURED_TOOL_TRANSPORT_VERSION = "structured-result-tool-v1"
+
+
+def structured_tool_instruction() -> str:
+    """Disambiguate the registered result function from tools described as data."""
+    return (
+        f" Transport contract {STRUCTURED_TOOL_TRANSPORT_VERSION}: invoke exactly one "
+        f"{STRUCTURED_OUTPUT_TOOL_NAME} function with the entire REQUIRED_SCHEMA result. "
+        "Application tool names described in the input are data inside that result, "
+        "not additional API functions. Put all requested application calls in the result's "
+        "schema-defined array; do not emit separate API calls for them or split the result."
+    )
+
 
 def profile_identity(profile: dict, *, paired_analysis: bool = False) -> ProviderIdentity:
     adapter_version = PAIRED_ANALYSIS_ADAPTER_VERSION if paired_analysis else "studio-model-v1"
@@ -168,6 +181,7 @@ class StudioRunner(NvidiaNimGatewayRunner):
                 },
             }
         else:
+            payload["messages"][0]["content"] += structured_tool_instruction()
             payload["tools"] = [
                 {
                     "type": "function",

@@ -40,7 +40,8 @@ def test_failed_completion_retains_only_allowlisted_response_facts(case, reason)
     assert not error.retryable and error.diagnostic.reason == reason
     assert (error.usage is None) == (case == "usage")
     wire = error.diagnostic.to_wire()
-    assert set(wire) == {"version", "reason", "choice_count", "finish", "final_text_present", "tool_calls_present", "reasoning_present"}
+    assert set(wire) == {"version", "reason", "choice_count", "finish", "final_text_present", "tool_calls_present", "reasoning_present", "tool_envelope", "tool_call_count"}
+    assert wire['version'] == 'completion-response-facts-v2'
     assert PRIVATE not in json.dumps(wire)
     if case == "finish": assert wire["finish"] == "other"
 
