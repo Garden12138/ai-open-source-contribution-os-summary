@@ -1,0 +1,103 @@
+{
+  "version": "upeve-native-plan7-final-audit-v1",
+  "recorded_at": "2026-11-02T15:38:09.440067+00:00",
+  "engine_revision": "eea293893d47badb4090968739058b5e1596ddb7",
+  "source_manifest_hash": "07c54420bde3fbaad51f66c1d75d3293557cd2db2b43b71f5aa6dee98af832a8",
+  "verified_source_files": 242,
+  "verified_original_history_files": 74,
+  "current_events": 856,
+  "preserved_pre_Plan7_events": 852,
+  "unchanged_tables_after_draft": 42,
+  "expected_append_only_draft_tables": [
+    "contribution_task_state_versions",
+    "plan_versions",
+    "workbench_events"
+  ],
+  "plan_count": 7,
+  "execution_approvals": 4,
+  "actual_Plan6_model_calls": 14,
+  "valid_decisions": 12,
+  "actual_tool_reads": 24,
+  "Docker_source_reads": 14,
+  "artifact_reads": 10,
+  "actual_protocol_rejected_counts": [
+    6,
+    7
+  ],
+  "protocol_corrections_real_used": 2,
+  "context_guard_prevented_request15": true,
+  "charged_usage": {
+    "model_calls": 14,
+    "input_tokens": 154016,
+    "output_tokens": 13145,
+    "reads": 24,
+    "output_bytes": 181115,
+    "protocol_repairs": 2
+  },
+  "reported_usage": {
+    "input_tokens": 115157,
+    "output_tokens": 6056
+  },
+  "old_failures_checkpoints_usage_and_unknown_holds_preserved": true,
+  "Plan6_Baseline": "passed_4_of_4",
+  "actual_entrypoint_probes": 8,
+  "source_patches": 0,
+  "Issue_regression": false,
+  "native_Verify": "not_run",
+  "independent_Review": "not_run",
+  "context_projection_replay": {
+    "before": 32174,
+    "after": 23406,
+    "cap": 32000,
+    "full_history_rows": 24,
+    "inline_rows": 8,
+    "all_evidence_preserved": true,
+    "real_model_calls": 0
+  },
+  "legacy_wire_exact": true,
+  "old_native_contract_readable_but_stale": true,
+  "new_context_index_scope_is_readonly_and_bounded": true,
+  "default_regression": {
+    "tests": 1966,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1904
+  },
+  "focused_passed": 68,
+  "new_cases": 6,
+  "model_calls_after_context_fix": 0,
+  "Plan7_operator_mechanical_child": true,
+  "Plan7_execution_approval": "pending_not_inferred",
+  "pending_exact_execution": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_U_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "active_jobs": 0,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_scan_JSON_count": 592,
+  "credential_scan_findings": [],
+  "raw_vault_inspected": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "phase_gate_promoted": false,
+  "current_task": "UPEVE-E04"
+}

@@ -1591,3 +1591,92 @@ UPEVE remains incomplete: native first0/4, U baselines0/15, H Node failed,
 Linux amd64 blocked/not_run, Coding delivery/Verify/Review unverified. No phase
 gate is checked; UPEVE-E04/E3 remains current. [Final audit](ci-native-plan6-final-audit.json)
 records current integrity and the pending approval boundary.
+
+### 2026-11-02 — Plan6 actual corrections, context guard, paged history candidate
+
+User's explicit “继续” to exactaabaffb8 authorizes
+[Plan6](ci-native-plan6-execution-approval.json). Its [execution](ci-native-plan6-execution.json)
+creates Attempt`c76a7f75-8fb0-4de4-8537-0ecd1b9c94e1`, native session
+`session-64c9a659532deef8a11c9356bfcb290a` and a
+[new actual Baseline](ci-native-plan6-baseline.json): **8 entrypoint probes and
+4 original checks pass** with new Plan6-bound receipts. No older Baseline is reused.
+
+The model makes **14 real calls /12 valid decisions /24 reads** (14 actual Docker
+source reads and10 artifact reads). The existing two protocol corrections work in
+this real run: batches of **6 and7** calls are wholly rejected, recorded with no
+executed calls, and followed by bounded correction. No provider-retry allowance or
+ceiling increase is used. Job15 then fails `agent_context_budget` **before issuing
+another model request or charging usage**. The failed prompt itself is not persisted.
+The last actual prompt has input reservation31930; growth of history/feedback crosses
+the unchanged32000 limit. There are **zero source writes, no Issue regression,
+no new Verify or independent Review**. This is a failed D reading run, not delivery.
+
+All charged **14 calls /154016 input /13145 output**,24 reads,181115 output bytes
+and2 protocol corrections remain. Reported usage totals **115157 input /6056
+output** separately; failed reservations are retained. The first638 event hashes
+remain and214 events append through852, including the real context failure and
+normal environment disposal. Planning64/1639419/166739 and three unknown holds,
+old Plan5 failure and all prior approvals are unchanged.
+
+[Controlled reconstruction](native-context-projection-replay.json) reads frozen
+receipts without model/network/business writes and measures the current terminal
+input. Its clock field reflects observation time; it does **not** reconstruct an
+unrecorded exact request or count as native success. The old bound is32174 bytes.
+Duplicated user-input tool schemas consume3626 bytes despite being registered in
+the native API; full inline history and recent feedback account for most growth.
+
+Generic **eea293893d47badb4090968739058b5e1596ddb7** keeps the complete API
+function schemas but references them from native user input. Every original history
+row, correlation ID and receipt reference is preserved in a content-addressed
+`agent-tool-history-index-v1` artifact bound to session/binding/source. Eight compact
+recent summaries stay inline. A model start issues the full index through existing
+read-only context-artifact scope; read_artifact pages it, and arbitrary IDs still
+deny. No source/plan/check/path/rule/feedback is removed. In the controlled replay,
+the candidate bound becomes **23406**, with all24 references preserved. The cap
+remains32000 and genuinely oversized input still stops before request/charge.
+
+The projection version/window enters the native transport digest. Old native
+contract`729aabce…` remains readable but stale for execution; new child plans bind
+`29fe3de6…`. Legacy structured prompts retain their original wire. No SQL/domain
+authority shape changes: existing0041 guards, content artifacts and issuance lists
+are reused, with versioned advisory index data. No second workflow store, broader
+artifact access, extra tool, retry allowance or network permission is introduced.
+
+[Tests](native-context-projection-checks.json): **1904 passed /62 skipped /0 failed**,
+68 focused/6 new cases, compileall/runtime import/diff checks. The new regression
+first fails on duplicated schemas. A later fixture incorrectly expects the JSON
+version in its first1024-byte page; canonical ordering places it after rows, so only
+that expectation is corrected. Final tests verify complete history/ref retention,
+paged issuance and arbitrary-ref denial, legacy wire, stale-native rejection and
+oversized admission without calls/charges. These are component tests, not a native
+patch or Review. [Deployment](native-context-projection-deployment.json) restarts
+five owned idle roles, keeps45 table hashes/four healthy endpoints/Publisher config,
+and does not resume old sessions or make a new model request.
+
+After deployment, existing stop/save APIs create marked mechanical
+[Plan7](ci-native-plan7-draft.json), UUID`7863d74a-83db-4b57-a767-8d8349a23948`,
+record`9cc740c6a2fac687ef6ff4aef3e6b6474dd12df72327c9713ded0d9bbea3d9af`.
+Its entire business content,8 write paths and4 exact commands equal Plan6. Only
+the child state/version/contract and new prompt transport bind change. This is
+an operator copy, not native Plan generation or a business patch. Four draft/
+maintenance records append to852, making856;7 Plans/4 execution approvals, with
+no stale stop successor. The [read-only head observation](ci-native-plan7-upstream-observation.json)
+matches the frozen base and must be checked again before execution.
+
+[Scope review](ci-native-plan7-source-review.json) is an operator check.
+[Exact Plan7 execution preview](ci-native-plan7-execution-proposal.json), hash
+**`1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6`**,
+is **unapproved/unrun**. It freezes the new source/transport/index policy and asks
+fresh unchanged24 calls/200K input/32K output/1800s plus existing independent
+Review bounds; it cannot reset or resume blocked Plan6. The
+[helper](native_plan7_execute.py) checks the exact proposal/source/state/head and
+submits one idempotent action only after new precise consent. New Plan7 Prepare,
+Baseline, actual Issue failure→fix, Verify and Review remain unverified; prior
+Baseline or controlled replay cannot replace them. Final human acceptance and
+any publication retain separate gates. No Push/PR/third-party write occurs.
+
+Native first0/4, U baselines0/15, H Node failure and Linux amd64 blocked/not_run
+remain. No phase gate is promoted; UPEVE-E04/E3 is current. Current integrity,
+old failures and pending consent are recorded in the [final audit](ci-native-plan7-final-audit.json).
+The [evidence seal](ci-native-plan7-evidence-seal.json) records the exact current
+documentation, receipts, preview and helper bytes before any Plan7 approval.
