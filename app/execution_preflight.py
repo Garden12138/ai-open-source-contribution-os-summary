@@ -145,7 +145,7 @@ def inspect_environment(selected: dict[str, Any], evidence: dict[str, Any], *, e
                 "readiness": {"static_admitted": False, "toolchain_prepared": "unverified", "baseline_verified": "unverified"}}
     if selected.get("preparation_version") == "node-workspace-preparation-v1":
         from app.node_environments import inspect_node_environment
-        return inspect_node_environment(selected, evidence)
+        return inspect_node_environment(selected, evidence, ci_versions=engine_version is not None)
     if selected.get("status") != "supported" or selected.get("mode") != "workspace-v2" or selected.get("ecosystem") != "python":
         return selected
     selected = {**selected, "preparation_version": MULTIPACKAGE_PREPARATION_VERSION

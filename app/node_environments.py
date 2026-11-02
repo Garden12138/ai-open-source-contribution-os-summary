@@ -152,7 +152,7 @@ def validate_node_recipe(value: object) -> dict:
     return value
 
 
-def inspect_node_environment(selected: dict, evidence: dict) -> dict:
+def inspect_node_environment(selected: dict, evidence: dict, *, ci_versions: bool = False) -> dict:
     entries = {e["path"]: e for e in evidence["entries"]}
     required = [p for p in selected["manifests"] if PurePosixPath(p).name not in LOCKS]
     missing = [p for p in required if p not in entries]
@@ -187,7 +187,7 @@ def inspect_node_environment(selected: dict, evidence: dict) -> dict:
                 directory = candidate.removesuffix("/package.json")
                 narrowed = {**selected,"project_directory":directory,
                     "manifests":[p for p in selected["manifests"] if p.startswith(directory+"/")]}
-                return inspect_node_environment(narrowed,evidence)
+                return inspect_node_environment(narrowed,evidence,ci_versions=ci_versions)
         locks = selected["lockfiles"]
         if declared:
             manager, version = package_manager_declaration(declared)
@@ -227,6 +227,14 @@ def inspect_node_environment(selected: dict, evidence: dict) -> dict:
                 ci_pins.update(re.findall(r"(?m)^\s*"+re.escape(manager)+r"-version:\s*['\"]?(\d+\.\d+\.\d+)['\"]?\s*(?:#.*)?$",entry["content"]))
         if len(ci_pins)==1:
             constraints.extend(ci_pins)
+        toolchain = None
+        if ci_versions:
+            from app.node_ci import ci_toolchains
+            toolchain = ci_toolchains(evidence, selected["project_directory"], manager, manager_from_manifest=bool(declared))
+            if (toolchain["manager"] and any("||" in item for item in constraints)
+                    or toolchain["runtime"] and "||" in engines.get("node", "")):
+                raise ValueError("node_ci_toolchain_ambiguous")
+            constraints.extend(toolchain["manager"])
         version=" ".join(dict.fromkeys(constraints))
         package_manager_declaration(manager+"@"+version)
         linker = "node-modules"
@@ -241,7 +249,8 @@ def inspect_node_environment(selected: dict, evidence: dict) -> dict:
                      for p in workspace_paths for meta in [parsed[p]] for name in ("preinstall", "install", "postinstall", "prepare")
                      if isinstance(meta.get("scripts"), dict) and name in meta["scripts"]]
         recipe = {"version": "node-environment-v1", "manager": manager,
-            "manager_version": version, "runtime_requirement": engines.get("node", ""), "runtime_pin": pin,
+            "manager_version": version, "runtime_requirement": " ".join(dict.fromkeys(filter(None,
+                [engines.get("node", ""), *((toolchain or {}).get("runtime", []))]))), "runtime_pin": pin,
             "project_directory": selected["project_directory"], "package_roots": packages,
             "linker": linker, "workspace_lifecycle": lifecycle, "registry": "https://registry.npmjs.org"}
         chosen_lock = next((p for p in locks if LOCKS[PurePosixPath(p).name] == manager), None)
@@ -256,7 +265,8 @@ def inspect_node_environment(selected: dict, evidence: dict) -> dict:
                     if code == "node_manager_capability_missing" else "项目的包管理器、运行时或工作区声明无法一致冻结；请检查具体配置，不会猜测版本或改写锁文件。")}
     # Only the selected manager's lock participates; unrelated lockfiles remain source data.
     return {**selected, "manifests": sorted([*required, *([chosen_lock] if chosen_lock else [])]), "manifest_hashes": hashes,
-            "node_environment": recipe, "capability_version": recipe["version"]}
+            "node_environment": recipe, "capability_version": recipe["version"],
+            **({"ci_toolchains": toolchain} if toolchain and toolchain["declarations"] else {})}
 
 
 def validate_node_receipt(value: object, recipe: dict | None = None) -> dict:

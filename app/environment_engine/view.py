@@ -24,6 +24,7 @@ def environment_view(wb, task_id: str, selected: dict, baseline, *, prepared: bo
         "gaps": contract.get("unresolved", []) or ([{"reason_code": selected["reason_code"],
             "paths": selected.get("required_paths", [])}] if selected.get("reason_code") else []),
         "commands": contract.get("commands", []),
+        "toolchain_declarations": contract.get("preparation", {}).get("toolchain_declarations", []),
         "data_cache_policy": contract.get("preparation", {}).get("cache_policy"),
         "executables": receipt["executables"] if receipt else [],
         "baseline_reason_codes": verdict.get("reason_codes", []) if verdict else [],

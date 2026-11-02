@@ -61,12 +61,16 @@ class PythonResolver:
 
 
 class NodeResolver:
-    version = "node-toolchain-v3"
+    version = "node-toolchain-v4"
 
     def resolve(self, source: FrozenSource, selected: dict, commands: list[dict]) -> tuple[list, list[CommandNode], dict]:
         from app.environment_engine.node import script_graph
         nodes = []
         units = set()
+        for ref in selected.get("ci_toolchains", {}).get("sources", []):
+            source.read(ref["path"], ref["parser"])
+            if source.refs[ref["path"]].sha256 != ref["sha256"]:
+                raise ResolutionError("source_hash_mismatch", (ref["path"],))
         for cmd in commands:
             graph = script_graph(source, tuple(cmd["argv"]), cmd["working_directory"])
             units.update(graph["package_directories"])
@@ -83,7 +87,8 @@ class NodeResolver:
             if len(locks) != 1:
                 raise ResolutionError("node_independent_lock_unresolved", (prefix + "package.json",))
             source.read(locks[0], self.version)
-        return [], nodes, {"independent_directories": independent}
+        return [], nodes, {"independent_directories": independent,
+            **({"toolchain_declarations": selected["ci_toolchains"]["declarations"]} if selected.get("ci_toolchains") else {})}
 
 
 REGISTRY: dict[str, ManifestResolver] = {"python": PythonResolver(), "node": NodeResolver()}

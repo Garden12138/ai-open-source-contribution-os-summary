@@ -766,8 +766,10 @@ export function mountContributionWorkbench(root, taskId, options) {
       const stages = Object.entries(engine.stages).map(([key,value]) => `${names[key] || key}：${labels[value] || value}`).join("\n");
       const gaps = engine.gaps.map(g => `${g.reason_code}${g.paths?.length ? " · " + g.paths.join(", ") : ""}`).join("\n");
       const tools = engine.executables.map(e => `${e.argv[0]}：${e.status === "available" ? "已核实" : e.reason_code || "缺少入口"}${e.distribution ? "（" + e.distribution + " " + e.distribution_version + "）" : ""}`).join("\n");
+      const declaredTools = (engine.toolchain_declarations || []).map(d => `${d.tool}：${d.range} · ${d.path}:${d.line}`).join("\n");
       items.push({id:"environment:" + JSON.stringify([engine.contract_hash, engine.stages, engine.evidence_refs]), sequence:(data.events?.at(-1)?.sequence || 0) + 0.15,
         text:"验证环境进度\n" + stages + (gaps ? "\n\n环境缺口\n" + gaps : "") + (tools ? "\n\n工具入口\n" + tools : "") +
+          (declaredTools ? "\n\nCI 工具约束\n" + declaredTools : "") +
           (engine.data_cache_policy ? `\n\n临时数据缓存：${engine.data_cache_policy.directory}，最多 ${engine.data_cache_policy.max_bytes / 1048576} MiB；不能执行程序，源文件和依赖保持只读。` : "") +
           (engine.stages.preparation === "unverified" ? (engine.stages.resolution === "static_admitted" ? "\n\n静态检查通过只代表可进入受限准备；真实工具和基线尚未验证。" : "\n\n真实工具和基线尚未验证。") : "")});
     }

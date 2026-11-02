@@ -107,6 +107,31 @@ class RequirementDeclaration(StrictModel):
     line: int | None = Field(default=None, ge=1)
 
 
+class CIToolchainDeclaration(StrictModel):
+    tool: Literal["pnpm", "node"]
+    range: str = Field(min_length=1, max_length=160, pattern=r"^[0-9vVxX.*<>=~^| +\-]+$")
+    action: str = Field(pattern=r"^(?:pnpm/action-setup|actions/setup-node)@(?:v[0-9]+(?:\.[0-9]+)*|[a-f0-9]{40})$")
+    input: Literal["version", "node-version", "node-version-file"]
+    path: str
+    line: int = Field(ge=1, le=1000000)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    value_source: SourceRef | None = None
+
+    @field_validator("path")
+    @classmethod
+    def path_safe(cls, value: str) -> str:
+        return safe_path(value)
+
+    @model_validator(mode="after")
+    def coherent(self) -> CIToolchainDeclaration:
+        if (not any(c in "0123456789xX*" for c in self.range)
+                or (self.tool == "pnpm") != self.action.startswith("pnpm/")
+                or (self.input == "version") != (self.tool == "pnpm")
+                or (self.input == "node-version-file") != (self.value_source is not None)):
+            raise ValueError("environment_ci_declaration_invalid")
+        return self
+
+
 class VerificationEnvironmentContract(StrictModel):
     version: Literal["verification-environment-contract-v1"] = "verification-environment-contract-v1"
     binding: EnvironmentBinding
@@ -133,10 +158,22 @@ class VerificationEnvironmentContract(StrictModel):
             raise ValueError("expected_reproduction_requires_exact_target_and_control")
         if self.admission == "static_admitted":
             adapter = self.resolver_versions.get("adapter")
-            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1", "node-toolchain-v2", "node-toolchain-v3"}:
+            if adapter not in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4", "node-toolchain-v1", "node-toolchain-v2", "node-toolchain-v3", "node-toolchain-v4"}:
                 raise ValueError("environment_adapter_version_unsupported")
             python = adapter in {"python-toolchain-v1", "python-toolchain-v2", "python-toolchain-v3", "python-toolchain-v4"}
             required = {"requirements", "constraints", "requirements_roots"} if python else {"independent_directories"}
+            if adapter == "node-toolchain-v4" and "toolchain_declarations" in self.preparation:
+                required.add("toolchain_declarations")
+                values = self.preparation["toolchain_declarations"]
+                if not isinstance(values, list) or not 1 <= len(values) <= 32:
+                    raise ValueError("environment_ci_declaration_invalid")
+                for value in values:
+                    declaration = CIToolchainDeclaration.model_validate(value)
+                    refs = [SourceRef(path=declaration.path, sha256=declaration.sha256, parser="node-ci-toolchains-v1")]
+                    if declaration.value_source:
+                        refs.append(declaration.value_source)
+                    if any(not any(ref.path == e.path and ref.sha256 == e.sha256 for e in self.evidence) for ref in refs):
+                        raise ValueError("environment_ci_source_missing")
             if adapter in {"python-toolchain-v3", "python-toolchain-v4"}:
                 from app.sandbox_worker.python_cache import MYPY_CACHE_CAPABILITY, MYPY_CACHE_CAPABILITY_V1
                 required.add("cache_policy")
@@ -145,7 +182,7 @@ class VerificationEnvironmentContract(StrictModel):
                     raise ValueError("environment_cache_policy_invalid")
             if set(self.preparation) != required:
                 raise ValueError("environment_recipe_schema_invalid")
-            if adapter in {"node-toolchain-v2", "node-toolchain-v3"} and any(c.leaf_commands is None for c in self.commands):
+            if adapter in {"node-toolchain-v2", "node-toolchain-v3", "node-toolchain-v4"} and any(c.leaf_commands is None for c in self.commands):
                 raise ValueError("environment_command_graph_incomplete")
             if python and (self.preparation["requirements"] != [d.requirement for d in self.declarations if not d.constraint]
                     or self.preparation["constraints"] != [d.requirement for d in self.declarations if d.constraint]):

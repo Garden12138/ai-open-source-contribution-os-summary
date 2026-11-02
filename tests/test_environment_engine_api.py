@@ -60,3 +60,15 @@ def test_configuration_requires_explicit_platform(monkeypatch):
     monkeypatch.delenv("UPEVE_TARGET_PLATFORM", raising=False)
     with pytest.raises(ValueError):
         environment_engine_configuration()
+
+
+def test_CI_toolchain_declarations_remain_static_evidence_in_API_projection():
+    from types import SimpleNamespace
+    from app.environment_engine.view import environment_view
+    declarations = [{"tool": "pnpm", "range": "10", "path": ".github/workflows/check.yml", "line": 8}]
+    wb = SimpleNamespace(latest=lambda *_: None)
+    selected = {"environment_engine": {"version": "upeve-v1"}, "verification_contract": {
+        "admission": "static_admitted", "preparation": {"toolchain_declarations": declarations}}}
+    view = environment_view(wb, "fixture", selected, None, prepared=False)
+    assert view["toolchain_declarations"] == declarations
+    assert view["stages"]["preparation"] == view["stages"]["baseline"] == "unverified"
