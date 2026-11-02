@@ -1378,3 +1378,65 @@ approvals, the one controlled probe's approval/result hashes, original expired
 checkpoint/budgets, SQLite integrity/foreign keys and551 sanitized JSON records
 without credential-pattern findings. Four endpoints remain healthy. New wire
 retest351ca44a is unapproved/unrun; no gate or denominator is promoted.
+
+### 2026-11-02 — consumed retest failure and frozen native API functions
+
+The preceding approval is historical: user approved exact preview351ca44a, and
+[approval](structured-transport-retest-approval.json) plus
+[result](structured-transport-retest.json) seal its single consumed request.
+Verified usage is **3482 input /155 output**. Safe v2 facts show **one tool call
+with `name_mismatch`** against the registered structured-result function.
+The prompt clarification did not solve this measured failure. No raw function
+name/arguments/private reasoning was retained, no tool executed, and this newer
+response cannot reconstruct the original native response. Old usage holds stay.
+
+Generic implementation **c07ad0fff69e6ea07415298d371a8e9d4de6b877** adds a
+separately frozen `agent-native-tools-v1` transport for **new DeepSeek v2 plans**.
+The API registers the existing nine restricted functions plus two terminal
+Decision functions. Registered names and strict arguments decode into the same
+Decision/tool-worker protocol. Unknown names, invalid/duplicate/mixed calls,
+scope changes, secret arguments and unverifiable usage reject. Finish still
+requires actual edit/check evidence and independent Review. No shell, arbitrary
+argv, network or approval capability is added. Profile and cumulative caps stay.
+This uses the documented [DeepSeek function interface](https://api-docs.deepseek.com/guides/tool_calls/);
+it does not infer or coerce the rejected foreign function into an allowed action.
+
+Plan binding, preflight, exact UI/API confirmation, authorization and TaskSpec
+carry the schema/instruction hash. Old absent-field wire/hashes and structured
+adapters remain exact; old Plan4 cannot acquire new transport in place. Forward
+**0041** guards new frozen JSON and rejects stripping its authorization field.
+See [migration/recovery](../../agent-runtime-v2-migration.md#forward-revision-0041-frozen-native-model-functions).
+Tests upgrade a real0040 fixture containing events/plans/approvals/attempts/reviews,
+restore its SQLite backup, re-upgrade and verify unchanged rows/integrity/FKs.
+
+[Checks](native-tools-checks.json): **1888 passed /62 skipped /0 failed**,34 new
+protocol cases and49 final focused checks. Earlier135 focused also pass; the final
+full suite includes the final SQL guards. Initial failures (test namespace,
+missing fixture commit and missing API import) are retained in the check record
+and corrected. Compileall, packaged import integrity, both JavaScript syntax and
+diff checks pass. Real Python/TypeScript OCI tool regressions pass **2/2** on
+macOS arm64/OrbStack with the pinned image; they cover patch conflict, actual
+assertion failure then repair/pass and diff, **not native Agent delivery**.
+Intercepted desktop/mobile browser checks prove stale transport disables old
+confirmation and only a fresh preview submits its exact hash; no real execution.
+
+[Deployment](native-tools-deployment.json) drains five owned idle host roles,
+takes an isolated pre0041 SQLite backup, migrates serially and restarts them.
+Four health endpoints pass; Publisher container/image/config remain unchanged.
+[Audit](native-tools-final-audit.json) verifies242 source files,74 original history
+files,448 native events,4 Plans/2 execution approvals, old TaskSpec wire and all
+model/budget/attempt/review/artifact row hashes. Native Baseline remains **4/4**,
+but the old Coding session is blocked and its1800s deadline expired. No reset,
+resume, new native model/tool call, formal-data change or third-party write occurs.
+
+New protocol live effectiveness is **not_run**. [Exact read-only wire preview](native-tools-probe-proposal.json)
+**`07a918eedd1aa529a870a7eb1a7f9d8b6d015dfe3df3780a3619d239912391e7`**
+awaits fresh approval: one DeepSeek high-effort request, original business prompt,
+new frozen native functions,14151 input reservation/4096 output/300s, one POST and
+no retry. [Helper](native_tools_probe.py) validates any returned Decision but
+executes **no proposed tools** and writes no native business/session/budget state.
+The diagnostic TaskSpec is an in-memory copy only. An ambiguous request is sealed
+before sending and cannot be repeated automatically. This approval is necessary
+because351ca44a's one-call grant is consumed and the API function contract changed.
+Native0/4, U0/15, historical Node failure and Linux amd64 blocked/not_run remain.
+Current task is still **UPEVE-E04 /E3**; no phase or acceptance gate is promoted.
