@@ -10,6 +10,7 @@ from typing import Any, Literal, Protocol, TypeAlias, runtime_checkable
 
 from app.provenance import content_hash
 from app.security import contains_sensitive_text, ensure_no_sensitive_data
+from app.providers.response_diagnostics import CompletionResponseFacts
 
 
 JSONScalar: TypeAlias = str | int | float | bool | None
@@ -35,6 +36,7 @@ class ProviderRunError(RuntimeError):
         *,
         retryable: bool,
         usage: ProviderUsage | None = None,
+        diagnostic: CompletionResponseFacts | None = None,
     ) -> None:
         _require_safe_text(code, "provider error code", maximum=80)
         _require_safe_text(safe_message, "provider safe message", maximum=500)
@@ -45,6 +47,9 @@ class ProviderRunError(RuntimeError):
         if usage is not None and not isinstance(usage, ProviderUsage):
             raise ProviderContractError("Provider error usage is invalid")
         self.usage = usage
+        if diagnostic is not None and not isinstance(diagnostic, CompletionResponseFacts):
+            raise ProviderContractError("Provider error diagnostic is invalid")
+        self.diagnostic = diagnostic
 
 
 class ProviderStage(StrEnum):
