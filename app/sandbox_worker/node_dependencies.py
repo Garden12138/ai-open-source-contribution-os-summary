@@ -4,6 +4,7 @@ from __future__ import annotations
 from app.node_environments import validate_node_recipe
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
 from app.sandbox_worker.node_cache import prepare_node_cache_files
+from app.sandbox_worker.node_manager_entrypoints import prepare_native_manager_entrypoint
 
 
 def restore_unchanged_json_manifest(source_path: str, target_path: str, expected_hash: str) -> None:
@@ -79,8 +80,12 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
         # leave this container; package output is never a business error body.
         path = "/tmp/node-environment.log"
         with open(path, "wb") as log:
-            child = subprocess.Popen(argv, cwd=cwd or "/tmp", env=env, stdin=subprocess.DEVNULL,
-                                     stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            try:
+                child = subprocess.Popen(argv, cwd=cwd or "/tmp", env=env, stdin=subprocess.DEVNULL,
+                                         stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            except OSError:
+                print(json.dumps(summarize_dependency_failure(phase, 1, "Tool entrypoint unavailable")))
+                raise SystemExit(111) from None
             started = time.monotonic()
             checked = started - 1
             while child.poll() is None:
@@ -174,6 +179,11 @@ def prepare_node_dependencies(plan: dict, environment: dict, offline: bool) -> N
             runtime_bin = str(output / "runtime/node_modules" / distribution / "bin")
         env["PATH"] = str(tools / "node_modules/.bin") + ":" + runtime_bin + ":/usr/local/bin:/usr/bin:/bin"
         env["npm_config_nodedir"] = str(Path(runtime_bin).parent)
+        try:
+            prepare_native_manager_entrypoint(str(tools), manager, version)
+        except (ValueError, OSError):
+            print(json.dumps(summarize_dependency_failure("node_tools", 1, "Tool entrypoint unavailable")))
+            raise SystemExit(111) from None
         if run(["node", "--version"], "node_runtime", capture=True).lstrip("v") != actual:
             raise SystemExit(110)
         if run([manager, "--version"], "node_tools", cwd=work, capture=True) != version:

@@ -697,6 +697,26 @@ class DependencyExecution:
     workspace: DependencyWorkspace
 
 
+def container_python_program(source: str) -> str:
+    """Keep a trusted supervisor below Linux's per-argument exec limit.
+
+    The decoded program is unchanged. This is only a transport for fixed worker
+    source, not a repository command or a permission to execute model output.
+    """
+    import base64
+    import zlib
+    raw = source.encode("utf-8")
+    if len(raw) > 512_000:
+        raise ValueError("Trusted supervisor source budget exceeded")
+    if len(raw) <= 96_000:
+        return source
+    encoded = base64.b64encode(zlib.compress(raw, 9)).decode("ascii")
+    program = "import base64,zlib;exec(compile(zlib.decompress(base64.b64decode(" + repr(encoded) + ")), '<contribos-preparation>', 'exec'))"
+    if len(program.encode()) > 96_000:
+        raise ValueError("Trusted supervisor argument budget exceeded")
+    return program
+
+
 class DockerDependencyRuntime:
     def __init__(
         self,
@@ -1128,7 +1148,7 @@ class DockerDependencyRuntime:
             dependency_workspace.runner_image_digest,
             "-I",
             "-c",
-            _PREPARE_SCRIPT,
+            container_python_program(_PREPARE_SCRIPT),
         )
 
     async def _run(
@@ -1692,10 +1712,11 @@ from inspect import getsource
 from app.node_environments import validate_node_recipe
 from app.sandbox_worker.node_dependencies import prepare_node_dependencies, restore_unchanged_json_manifest
 from app.sandbox_worker.node_cache import prepare_node_cache_files
+from app.sandbox_worker.node_manager_entrypoints import prepare_native_manager_entrypoint
 from app.sandbox_worker.dependency_diagnostics import summarize_dependency_failure
 from app.sandbox_worker.python_cache import validate_python_cache, record_python_cache
 _PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("__PYTHON_DATA_CACHE__", getsource(validate_python_cache) + getsource(record_python_cache))
-_node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(restore_unchanged_json_manifest) + getsource(prepare_node_cache_files) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
+_node_program = getsource(validate_node_recipe) + getsource(summarize_dependency_failure) + getsource(restore_unchanged_json_manifest) + getsource(prepare_node_cache_files) + getsource(prepare_native_manager_entrypoint) + getsource(prepare_node_dependencies) + "\nprepare_node_dependencies(plan, environment, node_offline)"
 _PREPARE_SCRIPT = _PREPARE_SCRIPT.replace("    __NODE_PREPARATION__", "\n".join("    " + line for line in _node_program.splitlines()))
 _workspace_program = "if plan.get('preparation_version') == 'python-workspace-preparation-v3':\n" + "\n".join(
     "    " + line for line in MULTIPACKAGE_PYTHON_SCRIPT.splitlines()) + "\nelse:\n" + "\n".join(
