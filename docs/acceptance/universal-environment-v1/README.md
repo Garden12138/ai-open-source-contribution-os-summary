@@ -10,9 +10,11 @@ dependency preparation failed before Baseline/Coding. Generic native CLI, CI
 version and replan binding fixes are deployed. A corrected pnpm10/Node22
 environment passes8 real entrypoint probes and4 original checks in a separate
 OCI component; this is not native Baseline/Coding/Review or an unseen success.
-Changed environment bindings reject the old approval. Read-only child-plan
-preview098f49b3 awaits consent for at most the1 remaining planning call, without
-new budget or released unknown holds. Native Linux amd64 remains blocked/not_run.
+Changed environment bindings reject the old approval. Approved child-plan
+preview098f49b3 uses exactly1 call to save native Plan4 with identical content
+and new state/environment binding; all8 paths/4 checks remain. Planning use64
+reaches its unchanged cap; unknown holds remain. Exact Plan4 execution preview
+fccdcdcc awaits consent. Native Linux amd64 remains blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -1198,3 +1200,56 @@ without a claim to retain its full bytes. Initial audit failure on an overly
 strong full-log assumption is recorded. No product guard changed and no new
 native request/model call followed this maintenance. Child-plan consent remains
 pending; the old exact execution approval is consumed and environment-stale.
+
+## Approved CI revision: native Plan4 saved, exact execution approval pending
+
+[Exact read-only approval99e2a399](ci-native-child-replan-approval.json) binds
+preview098f49b3. [Native result](ci-native-child-replan.json) records the normal
+workbench replan control, old workflow stop and Jobbca827b9 succeeded with
+**one real DeepSeek call,32,756 input/3,488 output**. Runtime v2 and explicit
+task low Profilef3687acf/hash5538d8a2 survive the native control. The actual
+94,242-byte prompt/checkpointadad9e1e/inputf2f21d67 hashes verify, including
+complete original Plan3 content. No read round, protocol repair, rejection,
+truncation, fallback model or extra native control occurs.
+
+Native child Plan4`057b1990-c3e0-4c18-9c46-6d7bd6bfb66b`, record hash
+`62c7952dfd2afa7de570c909719a0627c8ee589028a3931a78bef3851eda5148`,
+retains **exactly the same content hash7bcea4e1** as Plan3: goal, eight paths,
+steps, tests, four command IDs/argv/cwd and risks. Only immutable Plan/state
+binding is refreshed. [Operator scope review](ci-native-plan4-source-review.json)
+finds no gap; it is not an independent ReviewRun or real Issue reproduction.
+New stateb34c0150/binding31048814 and current v4 environment are verified.
+Whole-environment comparison finds only plan_version_hash and resulting
+contract hash changed: new contractc2dab4d9/preflight2ffb1130. The initial audit
+incorrectly expected the old Plan3-specific preflight hash; its failed assumption
+is recorded without changing product code or historical evidence. The previous
+controlled Plan3 component cannot replace Plan4-bound native receipts.
+
+The grant stops at saved Plan4. Lifetime known use **64 calls/1,639,419 input/
+166,739 output**, unchanged three-call holds1,350,000/40,960 and limits64/4M/250K.
+Remaining **0 calls/1,010,581 input/42,301 output** means the task's planning call
+cap is exhausted; provider balance is not inferred. No cap/Profile increase,
+unknown hold release, native preparation/Coding or new execution approval occurs.
+Existing v2 execution and independent Review use their separate unchanged bounds.
+
+[Fresh read-only upstream SHA](ci-native-child-upstream-observation.json)
+matches the frozen base through the existing product GitHubClient/narrow proxy.
+[Audit](ci-native-child-replan-audit.json) verifies423 chained events, four Plans,
+old failure/authorization,74 historical files,238 unchanged tested source files,
+SQLite integrity/foreign keys,536 sanitized JSON records without credential
+findings, five live owned roles and four healthy endpoints. Source remains71c8ced
+with1810 passed/62 skipped, so no redundant suite/redeploy is claimed or needed.
+
+[New exact execution preview](ci-native-plan4-execution-proposal.json), hash
+`fccdcdcc17e7f8d6915d49e54270d9f73d076a8c0faa3af534ada99856d0e713`, awaits
+human consent: Plan4-specific source/state/environment/models, eight paths/four
+checks, existing v2 limits24 calls/200K input/32K output/1800s and at most two
+code repairs, separate independent Review bounds. Sequence: new native prepare,
+entrypoint probes/all four Baseline checks, admitted Coding, actual regression
+failure/repair, four Verify checks and independent Review. Existing environment,
+stale/unknown or budget blockers stop it; final human acceptance remains required.
+The preceding consent only covered read-only planning; AGENTS exact Plan approval
+still gates execution. No planning budget increase, publication, Push/PR or formal
+data change is included. Native Baseline/Coding/Verify/Review remain not_run,
+native first deliveries0/4 and complete U baselines0/15 stay unchanged, historical
+Node remains failed, Linux amd64 remains blocked, UPEVE-E04 remains current.

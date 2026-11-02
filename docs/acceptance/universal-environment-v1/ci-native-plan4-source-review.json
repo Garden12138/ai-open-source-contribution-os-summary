@@ -1,0 +1,85 @@
+{
+  "version": "upeve-native-Plan4-operator-scope-review-v1",
+  "recorded_at": "2026-11-02T03:26:56.579895+00:00",
+  "classification": "operator_readonly_Plan_review_not_independent_ReviewRun",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "057b1990-c3e0-4c18-9c46-6d7bd6bfb66b",
+  "plan_record_hash": "62c7952dfd2afa7de570c909719a0627c8ee589028a3931a78bef3851eda5148",
+  "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "parent_plan_id": "c4983f55-0c00-4b2a-ad86-73a45b85b27e",
+  "parent_record_hash": "ea61d04c2a973a1aa9ff84a5984983a2d6cece904746829f8f0c3b47f9b0d00b",
+  "status": "complete_parent_content_preserved_with_new_state_and_environment_binding",
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands_preserved": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "all_business_goal_scope_steps_tests_and_risks_identical_to_Plan3": true,
+  "environment_change": {
+    "old_Plan3_contract_hash": "cf3aeef13ec6d8b04344822e011f294098054c3bc06ee582cfac9dd51001af83",
+    "new_Plan4_contract_hash": "c2dab4d9ea6964704fae5e84623102a815187a3dfa47031e5d6d6d2be6ccd221",
+    "only_environment_delta": "verification_contract.binding.plan_version_hash and its resulting contract hash; command graph, source evidence, versions and preparation recipe are identical"
+  },
+  "scope_observations": [
+    "Both extension producer paths retain explicit start/end/failure tool_use_id assertions and exact test write paths.",
+    "Web regression retains independent parallel calls/file attention, out-of-order completion and duplicate-ID assertions.",
+    "Existing node:test/assert layout and all four original command IDs/argv/cwd remain unchanged.",
+    "Only immutable Plan version/state binding changed; current v4 environment contract includes the original frozen CI pnpm10/Node22 facts."
+  ],
+  "blocking_findings": [],
+  "native_prepared": "unverified",
+  "native_baseline": "unverified",
+  "Issue_regression_reproduced": false,
+  "coding_patch_produced": false,
+  "independent_ReviewRun": "not_run",
+  "execution_approved": false,
+  "operator_Plan_or_business_patch": false
+}
