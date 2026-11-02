@@ -1511,3 +1511,83 @@ approvals, no native patch or new Verify/Review. Native first deliveries0/4 and 
 baselines0/15 remain. H Node failure and Linux amd64 blocked/not_run remain;
 **UPEVE-E04 /E3** is still current and no gate is promoted. The final audit is
 [recorded separately](ci-native-plan5-final-audit.json).
+
+### 2026-11-02 — approved Plan5 real reading, count rejection and bounded repair
+
+Two explicit “继续” replies to the exact7bf7a98b execution question authorize
+[Plan5](ci-native-plan5-execution-approval.json); the approval preserves that raw
+human response and exact scope. [Actual execution](ci-native-plan5-execution.json)
+creates Attempt`7fd01c38-f5de-498c-89d4-586e92649815`, authorization-bound native
+session`session-f70f65e95c116b9b26b24d9bc9e9d327`, real Explore/Prepare and
+[new Plan5 Baseline](ci-native-plan5-baseline.json). All **8 entrypoint probes and
+4 original checks pass** with Plan5-specific contract/receipt/spec hashes; this
+does not reuse historical Plan4 Baseline as new evidence.
+
+Native DeepSeek then makes **12 real calls,11 valid decisions and20 restricted
+reads** (12 actual Docker source reads and8 immutable artifact reads). Call12 returns verified9741 input/324 output, one tool_calls choice, but
+fails `agent_native_call_count_invalid` before any call from that batch executes.
+The v1 diagnostic proves a nonempty list; combined with the parser's1..4 guard it
+establishes **more than four calls**, while exact count/names/arguments remain
+unavailable. No reconstruction or guessed first-four execution occurs. There are
+**zero source writes, no Issue regression, no new Verify or independent Review**.
+Last Job `succeeded` means its rejection was handled; the session is blocked.
+Native source/snapshot remains unchanged. This is D maintenance reading evidence,
+not a completed native or unseen delivery.
+
+The session retains charged **12 calls /116726 input /6873 output**,20 reads and
+118179 output bytes. Known reported usage totals **95827 input /3101 output**;
+the difference includes the last failed call's retained30640/4096 reservation.
+No refund/reset occurs. Planning remains64 calls,1639419 input,166739 output and
+three unknown holds. The blocked checkpoint, all original454 events and appended
+180 Plan5 events remain immutable; dependencies are normally disposed afterward.
+
+The parser had classified this correctable schema overflow as a nonretryable
+provider failure, leaving both existing protocol slots unused. Generic
+**aa40cab2e096c208879e8a78f3bf1f805fa7da05** changes only future handling: a trusted
+`NativeCallCountProtocolError` rejects the **whole** batch, retains its reservation,
+and may spend the existing **two protocol corrections** if measured usage is
+verified within that turn's bound. Each correction is a separate durable charged
+Job within unchanged24-call/200K/32K/time caps; provider retry allowance is not used.
+Missing/excess usage, unknown functions, empty calls, spoofed upstream error codes
+and exhausted quota still block. A versioned advisory receipt records bounded
+count facts only. Four remains the maximum; no raw arguments/reasoning are stored,
+and historical responses/checkpoints receive no new facts or transitions.
+
+[Tests](native-protocol-repair-checks.json) first reproduce the blocked-versus-repair
+failure, then pass **1898 default /62 skipped /0 failed**,57 focused/9 new cases,
+compileall, runtime imports and diff. They prove whole-batch rejection, correction
+under original quota, terminal stop after two corrections, strict usage/security
+and inability to spoof trusted classification. These fixtures do **not** prove
+new live model success. No SQL/domain authority schema changes; optional versioned
+advisory metadata is compatible with existing event guards. Schema0041 stays.
+[Deployment](native-protocol-repair-deployment.json) restarts five owned idle roles,
+verifies four healthy endpoints and unchanged45 table hashes/Publisher config.
+No additional real model call or old-session resume follows the fix.
+
+Existing stop/save APIs prepare marked operator [Plan6](ci-native-plan6-draft.json),
+UUID`434f57ee-ff1f-4241-b53b-1d55fe38f6ac`, record
+`ed6b128e0c957f73c68e8e21734a9395ce4345069f8f79006860ed63973166f2`.
+Its complete business content,8 write paths and4 checks equal Plan5. It is a
+mechanical child, not native Plan generation or a business patch. The deployed
+stop fix prevents a stale successor in this actual stop operation. Four new
+draft/maintenance events append to634, making638;6 Plans/3 execution approvals
+and every old reservation/failure remain. No planning call or new execution is
+silently added. [Head observation](ci-native-plan6-upstream-observation.json)
+still matches the frozen base and must be checked again before execution.
+
+[Scope review](ci-native-plan6-source-review.json) is an operator check, not a
+ReviewRun. [Exact Plan6 preview](ci-native-plan6-execution-proposal.json), hash
+**`aabaffb86aff84889f1113c085a029f26eeb22bf5d651f7b0672672c7e3f38f8`**,
+is **unapproved/unrun**. It asks fresh unchanged bounded execution24 calls/200K
+input/32K output/1800s plus the unchanged independent Review limits, without
+resetting or resuming blocked Plan5. [Helper](native_plan6_execute.py) binds the
+new Plan/model/contract/source/helper/current state and submits at most one
+idempotent execute action only after fresh exact consent. New Plan6-bound
+Prepare/Baseline, actual Issue failure→fix, Verify and Review must still happen.
+Prior 4/4 Baseline and passing fixtures cannot substitute. Final acceptance and
+any publication remain separate human gates; no Push/PR/third-party write occurs.
+
+UPEVE remains incomplete: native first0/4, U baselines0/15, H Node failed,
+Linux amd64 blocked/not_run, Coding delivery/Verify/Review unverified. No phase
+gate is checked; UPEVE-E04/E3 remains current. [Final audit](ci-native-plan6-final-audit.json)
+records current integrity and the pending approval boundary.

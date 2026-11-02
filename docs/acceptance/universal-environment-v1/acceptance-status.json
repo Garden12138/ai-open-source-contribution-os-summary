@@ -143,7 +143,10 @@
         "deepseek-native-plan-revision-proposal.json",
         "ci-toolchain-controlled-environment.json",
         "deepseek-native-plan3-execution.json",
-        "ci-native-plan4-baseline.json"
+        "ci-native-plan4-baseline.json",
+        "ci-native-plan5-baseline.json",
+        "ci-native-plan5-execution.json",
+        "native-protocol-repair-checks.json"
       ],
       "limit": "Historical Python exact five pass; historical Node exact eight remain unsupported"
     },
@@ -249,7 +252,10 @@
         "structured-transport-deployment.json",
         "structured-transport-observation.json",
         "native-tools-checks.json",
-        "native-tools-final-audit.json"
+        "native-tools-final-audit.json",
+        "ci-native-plan5-baseline.json",
+        "ci-native-plan5-execution.json",
+        "native-protocol-repair-checks.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -302,7 +308,10 @@
         "structured-transport-observation.json",
         "workflow-stop-race-observation.json",
         "workflow-stop-race-checks.json",
-        "workflow-stop-race-deployment.json"
+        "workflow-stop-race-deployment.json",
+        "ci-native-plan5-baseline.json",
+        "ci-native-plan5-execution.json",
+        "native-protocol-repair-checks.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
     },
@@ -333,7 +342,10 @@
         "structured-transport-deployment.json",
         "structured-transport-observation.json",
         "native-tools-checks.json",
-        "native-tools-final-audit.json"
+        "native-tools-final-audit.json",
+        "ci-native-plan5-baseline.json",
+        "ci-native-plan5-execution.json",
+        "native-protocol-repair-checks.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -563,11 +575,11 @@
   "engine_revision": "0ac8b77a878d1f4ad3d87f821fa22fe362e58a22",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1951,
+    "tests": 1960,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1889
+    "passed": 1898
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -576,7 +588,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "workflow-stop-race-checks.json",
+  "latest_default_evidence": "native-protocol-repair-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -585,9 +597,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "ci-native-plan4-execution.json",
-  "latest_isolated_deployment": "workflow-stop-race-deployment.json",
-  "latest_history_and_security_audit": "ci-native-plan5-final-audit.json",
+  "latest_native_retest": "ci-native-plan5-execution.json",
+  "latest_isolated_deployment": "native-protocol-repair-deployment.json",
+  "latest_history_and_security_audit": "ci-native-plan6-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -624,7 +636,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-plan5-final-audit.json",
+  "latest_final_observation": "ci-native-plan6-final-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -1639,7 +1651,7 @@
     "result_evidence": "structured-transport-retest.json"
   },
   "native_model_tools_maintenance": {
-    "status": "controlled_live_wire_pass_native_execution_pending",
+    "status": "native_gateway_12_Docker_source_reads_8_artifact_reads_proven_but_no_patch_or_review",
     "engine_revision": "c07ad0fff69e6ea07415298d371a8e9d4de6b877",
     "source_manifest_hash": "a8885f8d3bbece3e821a9d0bcfe86d9626c207da9d59b35d68209488d336a4ae",
     "contract": {
@@ -1660,8 +1672,8 @@
     "real_OCI_tool_regressions": 2,
     "browser_contract": "passed_2_viewports_intercepted_not_native",
     "schema_revision": "0041_native_model_tools",
-    "actual_model_calls_with_new_protocol": 1,
-    "native_effectiveness": "controlled_wire_only_not_full_native",
+    "actual_model_calls_with_new_protocol": 13,
+    "native_effectiveness": "real_controlled_wire_and_native_reading_not_delivery",
     "native_delivery": false,
     "nine_existing_tool_capabilities_plus_two_terminal_Decisions_only": true,
     "unknown_functions_scope_changes_and_false_finish_rejected": true,
@@ -1672,7 +1684,9 @@
       "native-tools-final-audit.json",
       "native-tools-probe-approval.json",
       "native-tools-probe.json",
-      "native-tools-probe-observation.json"
+      "native-tools-probe-observation.json",
+      "ci-native-plan5-baseline.json",
+      "ci-native-plan5-execution.json"
     ],
     "controlled_usage": {
       "input_tokens": 4271,
@@ -1734,7 +1748,7 @@
     ]
   },
   "pending_native_Plan5_execution": {
-    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "status": "approved_consumed_native_reading_then_protocol_count_block",
     "proposal_hash": "7bf7a98b83aff02aa3e682640a9ad83f4fd6ef9f99e4f27a8ba40c73826763b2",
     "evidence": "ci-native-plan5-execution-proposal.json",
     "plan_id": "c5a6032c-a70f-4f8d-b127-4ddee0575e2a",
@@ -1814,10 +1828,82 @@
     },
     "planning_budget_limits_usage_and_unknown_holds_unchanged": true,
     "old_expired_checkpoint_usage_preserved": true,
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
     "new_Plan5_preparation": "unverified",
     "new_Plan5_baseline": "unverified",
+    "Coding_Verify_Review": "not_run",
+    "approval_evidence": "ci-native-plan5-execution-approval.json",
+    "result_evidence": "ci-native-plan5-execution.json",
+    "native_baseline_evidence": "ci-native-plan5-baseline.json",
+    "actual_model_calls": 12,
+    "valid_model_decisions": 11,
+    "actual_tool_reads": 20,
+    "source_writes": 0,
+    "native_Verify": "not_run",
+    "independent_Review": "not_run",
+    "failure": "agent_native_call_count_invalid",
+    "charged_usage": {
+      "model_calls": 12,
+      "input_tokens": 116726,
+      "output_tokens": 6873,
+      "reads": 20,
+      "output_bytes": 118179
+    },
+    "actual_Docker_source_reads": 12,
+    "actual_artifact_reads": 8
+  },
+  "native_protocol_repair_maintenance": {
+    "status": "tested_isolated_deployed_future_effect_unverified",
+    "engine_revision": "aa40cab2e096c208879e8a78f3bf1f805fa7da05",
+    "source_manifest_hash": "a0a1472b686e711362737443ce00793367adb1f7f40b0335edd04d7948dcccbd",
+    "default_regression": {
+      "tests": 1960,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1898
+    },
+    "focused_passed": 57,
+    "new_cases": 9,
+    "max_calls_per_turn_unchanged": 4,
+    "protocol_corrections_unchanged": 2,
+    "failed_reservations_retained": true,
+    "old_blocked_session_not_resumed": true,
+    "additional_real_calls_after_Plan5_failure": 0,
+    "live_effect_after_fix": "not_run",
+    "evidence": [
+      "native-protocol-repair-checks.json",
+      "native-protocol-repair-deployment.json"
+    ]
+  },
+  "pending_native_Plan6_execution": {
+    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "proposal_hash": "aabaffb86aff84889f1113c085a029f26eeb22bf5d651f7b0672672c7e3f38f8",
+    "evidence": "ci-native-plan6-execution-proposal.json",
+    "plan_id": "434f57ee-ff1f-4241-b53b-1d55fe38f6ac",
+    "plan_record_hash": "ed6b128e0c957f73c68e8e21734a9395ce4345069f8f79006860ed63973166f2",
+    "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "parent_plan_id": "c5a6032c-a70f-4f8d-b127-4ddee0575e2a",
+    "classification": "D_operator_mechanical_child_not_U_or_zero_maintenance",
+    "business_scope_paths_commands_unchanged": true,
+    "old_Plan5_failure_and_charged_usage_preserved": true,
+    "agent_limits": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "execution_approved": false,
+    "publication_approved": false,
+    "new_Plan6_Baseline": "unverified",
     "Coding_Verify_Review": "not_run"
   }
 }

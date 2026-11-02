@@ -1,0 +1,82 @@
+{
+  "version": "upeve-native-plan6-final-audit-v1",
+  "recorded_at": "2026-11-02T11:57:52.440653+00:00",
+  "engine_revision": "aa40cab2e096c208879e8a78f3bf1f805fa7da05",
+  "source_manifest_hash": "a0a1472b686e711362737443ce00793367adb1f7f40b0335edd04d7948dcccbd",
+  "verified_source_files": 242,
+  "verified_original_history_files": 74,
+  "current_events": 638,
+  "preserved_pre_Plan5_events": 454,
+  "verified_table_row_hashes": 45,
+  "plan_count": 6,
+  "execution_approvals": 3,
+  "actual_native_Plan5_model_calls": 12,
+  "valid_native_decisions": 11,
+  "actual_tool_reads": 20,
+  "actual_Docker_source_reads": 12,
+  "actual_artifact_reads": 8,
+  "charged_native_usage": {
+    "model_calls": 12,
+    "input_tokens": 116726,
+    "output_tokens": 6873,
+    "reads": 20,
+    "output_bytes": 118179
+  },
+  "reported_model_usage": {
+    "input_tokens": 95827,
+    "output_tokens": 3101
+  },
+  "failed_reservation_not_refunded": true,
+  "real_Plan5_Baseline": "passed_4_of_4",
+  "actual_entrypoint_probes": 8,
+  "native_code_patch": false,
+  "Issue_regression": false,
+  "native_Verify": "not_run",
+  "independent_Review": "not_run",
+  "rejected_batch": "more_than_four_calls_exact_count_unverified",
+  "partial_batch_execution": false,
+  "old_failure_and_checkpoint_not_rewritten_or_resumed": true,
+  "future_bounded_protocol_repair_tests": {
+    "tests": 1960,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1898
+  },
+  "focused_passed": 57,
+  "new_cases": 9,
+  "real_model_calls_after_fix": 0,
+  "Plan6_operator_mechanical_child": true,
+  "Plan6_execution_approval": "pending_not_inferred",
+  "pending_exact_execution": "aabaffb86aff84889f1113c085a029f26eeb22bf5d651f7b0672672c7e3f38f8",
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_U_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "active_jobs": 0,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_scan_JSON_count": 580,
+  "credential_scan_findings": [],
+  "raw_vault_inspected": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "phase_gate_promoted": false,
+  "current_task": "UPEVE-E04"
+}
