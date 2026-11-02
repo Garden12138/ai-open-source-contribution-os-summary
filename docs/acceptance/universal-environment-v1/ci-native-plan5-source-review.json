@@ -1,0 +1,78 @@
+{
+  "version": "upeve-plan5-mechanical-scope-review-v1",
+  "recorded_at": "2026-11-02T09:53:58.178795+00:00",
+  "classification": "operator_scope_review_not_independent_ReviewRun_or_native_Plan_generation",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "c5a6032c-a70f-4f8d-b127-4ddee0575e2a",
+  "plan_record_hash": "0588485f3011d8b277171c707ed182ac5a7be7a865c780c7a0e5a116330bd345",
+  "parent_record_hash": "62c7952dfd2afa7de570c909719a0627c8ee589028a3931a78bef3851eda5148",
+  "unchanged_business_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "all_business_goal_criteria_steps_tests_risks_write_paths_and_commands_identical": true,
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "model_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "729aabcee6d6104b435d334320f7f59fe25e3aa88b4c8977ba0427334c47fc39"
+  },
+  "model_transport_hash": "eb09a51fc827d473f169675dff16c07fc26ae71426c74942d192bd373f4050e1",
+  "environment_delta": "Only Plan version hash and resulting verification contract hash; graph, recipe, source, platform, image and policy unchanged.",
+  "actual_prior_Plan4_baseline": "passed_4_of_4_historical_only",
+  "new_Plan5_preparation": "unverified",
+  "new_Plan5_baseline": "unverified",
+  "required_native_regression": "Add approved tests, demonstrate actual failure, then fix and rerun; no operator business patch.",
+  "native_patch": false,
+  "independent_ReviewRun": "not_run",
+  "blocking_findings": [],
+  "execution_approved": false
+}

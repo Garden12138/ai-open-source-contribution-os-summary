@@ -1,0 +1,33 @@
+{
+  "version": "upeve-native-plan5-evidence-seal-v1",
+  "recorded_at": "2026-11-02T09:57:37.097095+00:00",
+  "engine_revision": "725087bf80fa594e3c9ca9eb5015d54a168b11f8",
+  "tested_source_manifest_hash": "4e21f87920f06b053d764f0c74d06bc6992c13abb9fbb8ee8a4c01d32113fc7d",
+  "files": {
+    "docs/acceptance/universal-environment-v1/native-tools-probe-approval.json": "22d0f6c0d951d9a20e25beb2b23a9794a0c682aee15d35089066699151ace3a5",
+    "docs/acceptance/universal-environment-v1/native-tools-probe.json": "d9cbcfa074c15aaa948ab4d44c72334876e8b2db6531baae97aec47b58d72828",
+    "docs/acceptance/universal-environment-v1/native-tools-probe-observation.json": "d862a4040038d367948b494972a81b4736189b979d8aafa9db7af318fbb2e235",
+    "docs/acceptance/universal-environment-v1/ci-native-plan5-draft.json": "3ce19760899902a273316cb84c469ae5dd424faedd555faefe1dc97fa831fc5d",
+    "docs/acceptance/universal-environment-v1/ci-native-plan5-upstream-observation.json": "97053bd92c26cfe7dd7d09902e8bd19f7a4f8ca1208f9ac7fcb463378e8c8115",
+    "docs/acceptance/universal-environment-v1/ci-native-plan5-source-review.json": "557c072d319cf37528330c16205849cc69b43850f1120506c3768b06da05bdb9",
+    "docs/acceptance/universal-environment-v1/ci-native-plan5-execution-proposal.json": "68e6d5081a52d330506ae8eaa8b9e244dcf83bc14367f5d09f354a6021251e62",
+    "docs/acceptance/universal-environment-v1/native_plan5_execute.py": "045a2efd6019be3108cc4bb45f8ecf9a4c15c89c38f835695c0bf4bb8941a210",
+    "docs/acceptance/universal-environment-v1/workflow-stop-race-observation.json": "9d7c19f4d24a8ebb6be8f35f907a9d0785dd8a3da0727387fa1d4755f426ac83",
+    "docs/acceptance/universal-environment-v1/workflow-stop-race-checks.json": "b7f8caba396b43152d0dd6f5b53685ef7e389f98e528ed14dd1a36e240313c60",
+    "docs/acceptance/universal-environment-v1/workflow-stop-race-deployment.json": "26d65d78811f8220bf804641f33741d826cb3a129e7d974aede0c98d53336a5b",
+    "docs/acceptance/universal-environment-v1/ci-native-plan5-final-audit.json": "4810c47babe2c2ffdfa9c4c5b6ac1e13d07f68edec0338ae556940b19b786f69",
+    "docs/acceptance/universal-environment-v1/README.md": "c2b5b395c2cb24a0879a88cb6ae035db3b7942501202eac0590fdbfc70dee557",
+    "docs/acceptance/universal-environment-v1/acceptance-status.json": "42b21bb13a16e559d6154fbf7bf3de5ba590edcb24a104b530a4a36b0eca0b08",
+    "docs/tasks.md": "2c5dae8c8af9e7b78b48f468f91d17ffc9fb49b9ee409ba3b8659684b546bbca"
+  },
+  "JSON_records_scanned": 570,
+  "credential_findings": [],
+  "pending_exact_execution": "7bf7a98b83aff02aa3e682640a9ad83f4fd6ef9f99e4f27a8ba40c73826763b2",
+  "execution_approved": false,
+  "actual_controlled_wire_requests": 1,
+  "native_new_executions": 0,
+  "native_delivery": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "seal_hash": "ae4caf81da0db04373fb4b121b6c5f37eb17f35025cb09d9c13462a0d4e1d9aa"
+}

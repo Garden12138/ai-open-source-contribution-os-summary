@@ -1,0 +1,75 @@
+{
+  "version": "upeve-native-plan5-preview-final-audit-v1",
+  "recorded_at": "2026-11-02T09:56:59.316132+00:00",
+  "engine_revision": "725087bf80fa594e3c9ca9eb5015d54a168b11f8",
+  "source_manifest_hash": "4e21f87920f06b053d764f0c74d06bc6992c13abb9fbb8ee8a4c01d32113fc7d",
+  "verified_source_files": 242,
+  "verified_original_history_files": 74,
+  "preserved_original_events": 448,
+  "current_chained_events": 454,
+  "plan_count": 5,
+  "execution_approvals": 2,
+  "verified_table_row_hashes": 45,
+  "legacy_taskspec_wire_exact": true,
+  "old_failed_expired_checkpoint_and_all_budget_holds_preserved": true,
+  "planning_budget_revision_change_is_state_bound_only": true,
+  "actual_approved_wire_requests": 1,
+  "reported_wire_usage": {
+    "input_tokens": 4271,
+    "output_tokens": 96,
+    "duration_ms": 1828
+  },
+  "validated_function": "read_artifact",
+  "tools_executed": 0,
+  "wire_proof_scope": "controlled_real_provider_protocol_under_c07ad0f_same_contract_on_725087b_not_native_execution",
+  "old_race_failure_preserved": true,
+  "stop_race_fix": "725087bf80fa594e3c9ca9eb5015d54a168b11f8",
+  "default_regression": {
+    "tests": 1951,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1889
+  },
+  "focused_passed": 58,
+  "native_model_or_tool_calls_after_probe": 0,
+  "native_Code_patch": "not_run",
+  "native_Verify": "not_run",
+  "native_independent_Review": "not_run",
+  "Plan5_preparation": "unverified",
+  "Plan5_Baseline": "unverified",
+  "Plan5_draft_is_operator_mechanical_copy": true,
+  "operator_business_patch": false,
+  "pending_exact_execution": "7bf7a98b83aff02aa3e682640a9ad83f4fd6ef9f99e4f27a8ba40c73826763b2",
+  "execution_approval": "pending_not_inferred_from_probe_consent",
+  "active_jobs": 0,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_scan_JSON_count": 569,
+  "credential_scan_findings": [],
+  "raw_vault_inspected": false,
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_U_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "current_task": "UPEVE-E04",
+  "phase_gate_promoted": false,
+  "formal_data_modified": false,
+  "third_party_writes": 0
+}

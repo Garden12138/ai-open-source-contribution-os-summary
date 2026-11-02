@@ -1440,3 +1440,74 @@ before sending and cannot be repeated automatically. This approval is necessary
 because351ca44a's one-call grant is consumed and the API function contract changed.
 Native0/4, U0/15, historical Node failure and Linux amd64 blocked/not_run remain.
 Current task is still **UPEVE-E04 /E3**; no phase or acceptance gate is promoted.
+
+### 2026-11-02 — real native-function wire pass, stop race, Plan5 preview
+
+User approved exact07a918ee. Its [approval](native-tools-probe-approval.json),
+[result](native-tools-probe.json) and [observation](native-tools-probe-observation.json)
+seal **one actual DeepSeek request**, verified **4271 input /96 output** and one
+valid registered **`read_artifact`** call. No proposed tool executed. All448 events,
+old TaskSpec/checkpoint/usage, database row hashes and4/4 historical Baseline were
+unchanged immediately after this probe. This proves the controlled function wire
+on c07ad0f, not native Coding, Issue regression, Verify, Review or delivery. The
+single-call grant is consumed; the old native response is not reconstructed.
+
+To prepare a concrete next execution without resetting planning or old session
+budgets, the existing local stop/save APIs created
+[Plan5](ci-native-plan5-draft.json), UUID`c5a6032c-a70f-4f8d-b127-4ddee0575e2a`,
+record`0588485f3011d8b277171c707ed182ac5a7be7a865c780c7a0e5a116330bd345`.
+It is a **mechanical operator child**, not a model-generated Plan. Its business
+content hash remains`7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed`:
+same goal/criteria/steps/tests/risks,8 write paths and4 exact commands. Only new
+state/version/environment binding and native model transport are frozen. The
+append-only maintenance marker excludes autonomous/U success. No business source
+patch or model call was made by this draft operation. A
+[read-only upstream observation](ci-native-plan5-upstream-observation.json) matches
+the frozen base; the execution helper must check it again before approval use.
+
+Draft preparation exposed a real [stop race](workflow-stop-race-observation.json):
+stop449 was followed by a stale coordinator's restore enqueue450; old Plan4 job
+`62dad8eb-863f-4fa6-b271-90b6429231e5` failed before workspace allocation and
+appended result454. No model invocation, dependency workspace or new baseline was
+created. Worker rejection stayed effective. The coordinator had read its decision
+before the append lock, so it could miss the concurrent stop. A deterministic
+two-session test first fails, then passes after **725087bf80fa594e3c9ca9eb5015d54a168b11f8**
+takes the existing SQLite write lock before reading the decision. Either the
+successor is included in the stop scope, or stop wins before advancement. The
+independent Worker guard remains. This platform test is not Issue red→green.
+
+[Checks](workflow-stop-race-checks.json): **1889 passed /62 skipped /0 failed**,
+58 focused; compileall, runtime imports and diff pass. Only coordinator source
+changes; native function schema/instruction and Sandbox/API/UI modules remain
+byte-identical. Prior actual OCI2/2 and browser evidence remain separately scoped;
+no new model request is needed to retest an unchanged wire. No persistent model
+or schema change occurs. [Isolated deployment](workflow-stop-race-deployment.json)
+restarts five idle roles, verifies four healthy endpoints, preserves all45 table
+row hashes and keeps Publisher image/config unchanged. The real rejected job,
+old approvals and new child draft are retained. Planning budget revision changes
+because it binds the task's new planning state; limits, usage, remaining allowance,
+unknown calls and reservations are exact. Old native checkpoint/usage/deadline stay.
+
+[Scope review](ci-native-plan5-source-review.json) is an operator check, not an
+independent ReviewRun. [Exact execution preview](ci-native-plan5-execution-proposal.json)
+**`7bf7a98b83aff02aa3e682640a9ad83f4fd6ef9f99e4f27a8ba40c73826763b2`**
+is saved and **unapproved/unrun**. It binds Plan5/model/transport/source/16 selected
+workspace paths/8 write paths/4 checks/graph/image/policy and the helper hash.
+Existing native limits are24 calls,200K input,32K output,1800s with at most two
+code repairs; independent Review retains its separate unchanged job limits.
+Planning cap64 remains exhausted. Fresh bounded Plan5 authorization is distinct
+from resetting the expired Plan4 session, which stays charged and immutable.
+
+After a fresh exact confirmation, the [execution helper](native_plan5_execute.py)
+may submit one idempotent native execute action, then the product must produce
+**new Plan5-bound** Explore/Prepare/entrypoint/Baseline evidence, actual regression
+failure→Sandbox fix→all four Verify checks→independent Review. Static ready and
+old Plan4 Baseline cannot substitute. Final human acceptance and publication keep
+their separate approvals. An ambiguous action is recorded before sending and
+cannot be repeated automatically. The probe approval grants none of this execution.
+
+Current facts:454 total chained events preserve the original448;5 Plans/2 execution
+approvals, no native patch or new Verify/Review. Native first deliveries0/4 and U
+baselines0/15 remain. H Node failure and Linux amd64 blocked/not_run remain;
+**UPEVE-E04 /E3** is still current and no gate is promoted. The final audit is
+[recorded separately](ci-native-plan5-final-audit.json).

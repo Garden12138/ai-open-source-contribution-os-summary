@@ -299,7 +299,10 @@
         "provider-failure-facts-deployment.json",
         "structured-transport-checks.json",
         "structured-transport-deployment.json",
-        "structured-transport-observation.json"
+        "structured-transport-observation.json",
+        "workflow-stop-race-observation.json",
+        "workflow-stop-race-checks.json",
+        "workflow-stop-race-deployment.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
     },
@@ -560,11 +563,11 @@
   "engine_revision": "0ac8b77a878d1f4ad3d87f821fa22fe362e58a22",
   "current_phase": "E3 / UPEVE-E04",
   "default_regression": {
-    "tests": 1950,
+    "tests": 1951,
     "failures": 0,
     "errors": 0,
     "skipped": 62,
-    "passed": 1888
+    "passed": 1889
   },
   "holdout_current": {
     "revision": "05c573e264da97d667308dc0e353f69141ad8e64",
@@ -573,7 +576,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "native-tools-checks.json",
+  "latest_default_evidence": "workflow-stop-race-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -583,8 +586,8 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "ci-native-plan4-execution.json",
-  "latest_isolated_deployment": "native-tools-deployment.json",
-  "latest_history_and_security_audit": "native-tools-final-audit.json",
+  "latest_isolated_deployment": "workflow-stop-race-deployment.json",
+  "latest_history_and_security_audit": "ci-native-plan5-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -621,7 +624,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "native-tools-final-audit.json",
+  "latest_final_observation": "ci-native-plan5-final-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -1636,7 +1639,7 @@
     "result_evidence": "structured-transport-retest.json"
   },
   "native_model_tools_maintenance": {
-    "status": "implemented_tested_isolated_deployed_live_effect_unverified",
+    "status": "controlled_live_wire_pass_native_execution_pending",
     "engine_revision": "c07ad0fff69e6ea07415298d371a8e9d4de6b877",
     "source_manifest_hash": "a8885f8d3bbece3e821a9d0bcfe86d9626c207da9d59b35d68209488d336a4ae",
     "contract": {
@@ -1657,8 +1660,8 @@
     "real_OCI_tool_regressions": 2,
     "browser_contract": "passed_2_viewports_intercepted_not_native",
     "schema_revision": "0041_native_model_tools",
-    "actual_model_calls_with_new_protocol": 0,
-    "native_effectiveness": "not_run",
+    "actual_model_calls_with_new_protocol": 1,
+    "native_effectiveness": "controlled_wire_only_not_full_native",
     "native_delivery": false,
     "nine_existing_tool_capabilities_plus_two_terminal_Decisions_only": true,
     "unknown_functions_scope_changes_and_false_finish_rejected": true,
@@ -1666,11 +1669,19 @@
     "evidence": [
       "native-tools-checks.json",
       "native-tools-deployment.json",
-      "native-tools-final-audit.json"
-    ]
+      "native-tools-final-audit.json",
+      "native-tools-probe-approval.json",
+      "native-tools-probe.json",
+      "native-tools-probe-observation.json"
+    ],
+    "controlled_usage": {
+      "input_tokens": 4271,
+      "output_tokens": 96,
+      "duration_ms": 1828
+    }
   },
   "pending_native_model_tools_probe": {
-    "status": "awaiting_exact_single_readonly_native_function_wire_probe_consent",
+    "status": "approved_consumed_valid_native_function_decision_NOT_executed",
     "proposal_hash": "07a918eedd1aa529a870a7eb1a7f9d8b6d015dfe3df3780a3619d239912391e7",
     "evidence": "native-tools-probe-proposal.json",
     "script": "docs/acceptance/universal-environment-v1/native_tools_probe.py",
@@ -1680,10 +1691,133 @@
     "max_output_tokens": 4096,
     "timeout_seconds": 300,
     "automatic_retries": 0,
-    "actual_requests": 0,
+    "actual_requests": 1,
     "execute_proposed_tools": false,
     "native_resume_approved": false,
     "native_budget_reset_or_extension_approved": false,
-    "native_success": false
+    "native_success": false,
+    "approval_evidence": "native-tools-probe-approval.json",
+    "result_evidence": "native-tools-probe.json",
+    "observation_evidence": "native-tools-probe-observation.json",
+    "reported_usage": {
+      "input_tokens": 4271,
+      "output_tokens": 96,
+      "duration_ms": 1828
+    },
+    "validated_tool_names": [
+      "read_artifact"
+    ],
+    "tools_executed": 0
+  },
+  "workflow_stop_serialization": {
+    "status": "actual_race_preserved_generic_fix_tested_and_isolated_deployed",
+    "engine_revision": "725087bf80fa594e3c9ca9eb5015d54a168b11f8",
+    "source_manifest_hash": "4e21f87920f06b053d764f0c74d06bc6992c13abb9fbb8ee8a4c01d32113fc7d",
+    "default_regression": {
+      "tests": 1951,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1889
+    },
+    "focused_passed": 58,
+    "before_fix_failures": 1,
+    "worker_guard_prevented_workspace_allocation": true,
+    "additional_model_calls": 0,
+    "schema_change": false,
+    "old_448_events_preserved": true,
+    "current_events": 454,
+    "evidence": [
+      "workflow-stop-race-observation.json",
+      "workflow-stop-race-checks.json",
+      "workflow-stop-race-deployment.json"
+    ]
+  },
+  "pending_native_Plan5_execution": {
+    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "proposal_hash": "7bf7a98b83aff02aa3e682640a9ad83f4fd6ef9f99e4f27a8ba40c73826763b2",
+    "evidence": "ci-native-plan5-execution-proposal.json",
+    "plan_id": "c5a6032c-a70f-4f8d-b127-4ddee0575e2a",
+    "plan_record_hash": "0588485f3011d8b277171c707ed182ac5a7be7a865c780c7a0e5a116330bd345",
+    "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "parent_plan_id": "057b1990-c3e0-4c18-9c46-6d7bd6bfb66b",
+    "mechanical_operator_child_draft": true,
+    "operator_business_patch": false,
+    "native_Plan_generation_claim": false,
+    "classification": "D_maintenance_not_U_or_zero_maintenance",
+    "write_paths": [
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts",
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts",
+      "web/hooks/simulation/handle-tool-events.test.ts",
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-server.test.ts"
+    ],
+    "commands": [
+      {
+        "command_id": "root_tests",
+        "argv": [
+          "pnpm",
+          "test"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "extension_tests",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "extension",
+          "test"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "extension_lint",
+        "argv": [
+          "pnpm",
+          "--filter",
+          "agent-flow",
+          "run",
+          "lint"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "web_typecheck",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "web",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": "."
+      }
+    ],
+    "model_transport_hash": "eb09a51fc827d473f169675dff16c07fc26ae71426c74942d192bd373f4050e1",
+    "agent_limits": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "planning_budget_limits_usage_and_unknown_holds_unchanged": true,
+    "old_expired_checkpoint_usage_preserved": true,
+    "execution_approved": false,
+    "publication_approved": false,
+    "new_Plan5_preparation": "unverified",
+    "new_Plan5_baseline": "unverified",
+    "Coding_Verify_Review": "not_run"
   }
 }

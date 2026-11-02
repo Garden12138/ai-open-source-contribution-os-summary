@@ -1,0 +1,33 @@
+{
+  "version": "upeve-native-tools-readonly-probe-v1",
+  "recorded_at": "2026-11-02T09:35:12.894160+00:00",
+  "classification": "controlled_live_wire_diagnostic_not_native_execution_or_delivery",
+  "proposal_hash": "07a918eedd1aa529a870a7eb1a7f9d8b6d015dfe3df3780a3619d239912391e7",
+  "approval_hash": "9db76e16dc4de19632a77810e41cba84d847e06797ff360fd7381e6df5c9935e",
+  "profile_id": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+  "profile_hash": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049",
+  "original_prompt_artifact": "7f4b97dd4dd88899f033017261f7a809c69f3d4d2299f378ea0522c3f9595275",
+  "original_task_spec_artifact": "327ef693b1dfb04169e2032ca96bb01ff816cdc331e69b01bb0e20c42fec63d0",
+  "diagnostic_model_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "729aabcee6d6104b435d334320f7f59fe25e3aa88b4c8977ba0427334c47fc39"
+  },
+  "native_runtime_state_changed": false,
+  "native_checkpoint_or_budget_changed": false,
+  "tool_calls_executed": 0,
+  "third_party_writes": 0,
+  "status": "valid_native_function_decision_NOT_executed",
+  "max_completion_tokens": 4096,
+  "max_model_requests": 1,
+  "reported_usage": {
+    "input_tokens": 4271,
+    "output_tokens": 96,
+    "duration_ms": 1828
+  },
+  "decision_outcome": "continue",
+  "proposed_tool_names": [
+    "read_artifact"
+  ],
+  "validated_call_count": 1,
+  "result_does_not_reconstruct_old_response": true
+}
