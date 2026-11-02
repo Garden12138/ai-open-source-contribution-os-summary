@@ -559,10 +559,19 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
             if any(e.idempotency_key == "request:change-plan:" + change.id for e in wb.history(task_id)):
                 return
             from app.planner import PlanningService
+            from app.model_settings import ModelSettingsService
             planner = PlanningService(wb.session, settings.artifact_root)
             latest = wb.latest_plan(task_id)
+            runtime_v2 = bool(latest_auth and latest_auth.payload.get("agent_runtime_version") == "agent-runtime-v2")
+            if runtime_v2 and not settings.agent_runtime_v2_enabled:
+                raise WorkbenchError("当前 v2 规划未启用，已保留原执行记录。", code="planning_runtime_version")
+            # Only an explicit task binding is inherited. New global defaults
+            # cannot silently rebind a historical task at this continuation seam.
+            models = ModelSettingsService(wb.session).latest("task:" + task_id)
             planner.request(task_id, text=change.payload["text"], parent_id=latest.id if latest else None,
-                expected_hash=latest.record_hash if latest else None, key="change-plan:" + change.id)
+                expected_hash=latest.record_hash if latest else None, key="change-plan:" + change.id,
+                model_profile_id=models.payload.get("planning") if models else None,
+                runtime_version="agent-runtime-v2" if runtime_v2 else None)
         return
     from app.agent_runtime import enabled, blocking_messages
     if enabled(wb, task_id) and blocking_messages(wb, task_id):
