@@ -53,7 +53,8 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
     assert functions["run_approved_checks"]["parameters"]["additionalProperties"] is False
     assert functions["run_approved_checks"]["parameters"]["properties"] == {}
     assert native_model_transport().tools_schema_hash == content_hash({"tools": definitions, "instruction": INSTRUCTION,
-        "max_calls": 4, "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW}})
+        "max_calls": 4, "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
+            "task_input": {"strategy": "complete_if_admitted", "max_input_bound": 32000}}})
 
 
 def test_known_calls_are_typed_namespaced_and_never_expose_private_reasoning():

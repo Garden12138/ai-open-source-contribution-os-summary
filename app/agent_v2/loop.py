@@ -173,7 +173,7 @@ def prompt_for(journal: AgentJournal) -> dict:
     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
         history_artifact = journal.wb.artifact({"version": "agent-tool-history-index-v1", "session_id": journal.session_id,
             "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": cp.source_hash, "rows": index})
-    return project_native_prompt(prompt, spec, history_artifact=history_artifact)
+    return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs)
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:

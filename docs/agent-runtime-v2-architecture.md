@@ -242,3 +242,17 @@ Nothing is dropped from the journal or full index. Approved inputs, checks, path
 feedback and the32,000-byte admission cap remain exact. Legacy structured prompts
 retain their original wire. Old native contract hashes remain readable but stale
 for execution; adoption needs a new child plan and precise approval.
+
+The native projection can promote the complete, hash-verified approved task input
+into the prompt when the resulting full native wire is at most32,000 bytes. This
+preserves every Plan/Issue field and avoids forcing another paged read when the
+complete contract already fits. A mismatched input reference fails closed; an
+oversized candidate retains the original honest partial descriptor and scoped
+artifact. The strategy and unchanged limit enter the transport digest. Legacy
+structured prompts retain their original wire.
+
+Maintenance records without a nonempty string source ID remain
+`legacy_unverified`. V1 observation and v2 metrics conservatively count each
+such record as operator intervention rather than failing the page or granting
+autonomous eligibility. The v2 measurement note discloses the incomplete evidence;
+no historical payload or provenance is repaired in place.

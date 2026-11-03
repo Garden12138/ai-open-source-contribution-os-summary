@@ -58,6 +58,22 @@ def verified_workbench_history(session: Session, task_id: str) -> list[Workbench
     return rows
 
 
+def maintenance_sources(events: list[WorkbenchEvent]) -> tuple[set[str], bool]:
+    """Count incomplete receipts conservatively without inventing a source."""
+    sources: set[str] = set()
+    legacy_unverified = False
+    for event in events:
+        if event.kind != "agent_maintenance_recorded":
+            continue
+        source_id = event.payload.get("source_id")
+        if isinstance(source_id, str) and source_id.strip():
+            sources.add(source_id)
+        else:
+            sources.add("legacy_unverified:" + event.record_hash)
+            legacy_unverified = True
+    return sources, legacy_unverified
+
+
 class Workbench:
     def __init__(self, session: Session, artifact_root: str) -> None:
         self.session = session

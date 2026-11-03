@@ -1,13 +1,13 @@
 """Journey evidence is separate from job, model, check and review success."""
 from __future__ import annotations
 
-from app.workbench import Workbench
+from app.workbench import Workbench, maintenance_sources
 
 
 def journey_metrics(wb: Workbench, task_id: str) -> dict:
     events = wb.history(task_id)
     origin = next((e for e in events if e.kind == "native_journey_started" and e.actor_id == "api"), None)
-    interventions = {e.payload["source_id"] for e in events if e.kind == "agent_maintenance_recorded"}
+    interventions, legacy_unverified = maintenance_sources(events)
     interventions.update(e.id for e in events if e.kind in {
         "proposal_corrected", "runtime_rebaseline_requested", "preparation_runtime_retry_requested"})
     starts = [e for e in events if e.kind == "agent_v2_model_started"]
@@ -36,4 +36,5 @@ def journey_metrics(wb: Workbench, task_id: str) -> dict:
         "actual_tests_executed": None,
         "verified_checks_passed": sum(r["data"].get("actual_checks_started", 0) for r in checks if r["data"].get("outcome") == "passed"),
         "false_success_count": None, "first_attempt_pass_rate": None, "median_token_cost": None,
-        "measurement_note": "Unknown test counts/costs and unmeasured rates remain null; check-process counts are not test counts."}
+        "measurement_note": "Unknown test counts/costs and unmeasured rates remain null; check-process counts are not test counts."
+            + (" Incomplete maintenance evidence remains legacy_unverified and counts as operator intervention." if legacy_unverified else "")}

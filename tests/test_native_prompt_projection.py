@@ -116,3 +116,53 @@ def test_missing_full_history_reference_cannot_silently_drop_older_rows():
     before=canonical_json(prompt)
     with pytest.raises(ValueError,match='history_reference_missing'):project_native_prompt(prompt,spec)
     assert canonical_json(prompt)==before
+
+
+def task_input_prompt(body):
+    from app.agent_v2.native_tools import native_model_transport
+    from tests.test_agent_v2_tools import tool_spec
+    inputs={'binding_hash':'a'*64,'approved_plan':{'goal':'Preserve every acceptance criterion',
+        'implementation_steps':['Read source','Write regression','Implement','Verify']},
+        'issue':{'title':'A real requirement','body':body}}
+    aid=content_hash(inputs)
+    prompt={'tools':{},'history_index':[], 'task_context_artifact':aid,
+        'approved_task_input':{'partial':True,'artifact_id':aid,'total_bytes':len(canonical_json(inputs).encode())},
+        'feedback':[{'evidence_page':{'artifact_id':'b'*64,'partial':True,'next_offset':4000}}]}
+    return prompt,tool_spec().model_copy(update={'model_transport':native_model_transport()}),inputs
+
+
+def test_complete_task_input_is_visible_when_native_wire_can_admit_it():
+    from app.agent_v2.native_tools import project_native_prompt
+    prompt,spec,inputs=task_input_prompt('full requirement '*400)
+    before=canonical_json(prompt)
+    projected=project_native_prompt(prompt,spec,task_input=inputs)
+    assert projected['approved_task_input']==inputs
+    assert content_hash(projected['approved_task_input'])==prompt['task_context_artifact']
+    assert projected['feedback']==prompt['feedback'] and native_input_bound(projected)<=32000
+    assert canonical_json(prompt)==before
+
+
+@pytest.mark.parametrize('excess',[0,1])
+def test_full_task_promotion_respects_exact_unchanged_input_boundary(excess):
+    from app.agent_v2.native_tools import project_native_prompt
+    prompt,spec,inputs=task_input_prompt('')
+    base=project_native_prompt(prompt,spec)
+    base['approved_task_input']=inputs
+    padding=32000-native_input_bound(base)
+    prompt,spec,inputs=task_input_prompt('x'*(padding+excess))
+    projected=project_native_prompt(prompt,spec,task_input=inputs)
+    if excess==0:
+        assert projected['approved_task_input']==inputs and native_input_bound(projected)==32000
+    else:
+        assert projected['approved_task_input']==prompt['approved_task_input']
+        assert projected['approved_task_input']['partial'] is True
+        assert content_hash(inputs)==projected['task_context_artifact']
+        assert native_input_bound(projected)<32000
+
+
+def test_task_input_promotion_rejects_a_different_immutable_input():
+    from app.agent_v2.native_tools import project_native_prompt
+    prompt,spec,inputs=task_input_prompt('frozen requirement '*400)
+    wrong={**inputs,'issue':{'body':'different acceptance criteria'}}
+    with pytest.raises(ValueError,match='task_input_reference_mismatch'):
+        project_native_prompt(prompt,spec,task_input=wrong)

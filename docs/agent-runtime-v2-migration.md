@@ -127,3 +127,24 @@ not a second workflow store or new execution authority. Older structured TaskSpe
 and prompt wire remain exact. Drain before rolling code back; preserve the newer
 artifacts, failures and usage, and let incompatible native hashes block instead
 of stripping their binding or clearing a checkpoint.
+
+The bounded complete-task-input promotion changes the native projection digest
+again. It uses the existing task artifact, context issuance and SQL0041 shape;
+no new migration is needed. Older native payloads remain readable and stale for
+new execution. Incomplete historical maintenance records are retained unchanged
+and counted conservatively as `legacy_unverified`; they cannot establish a
+zero-maintenance success.
+
+Keep every live business SQLite connection in one kernel/filesystem lock domain.
+The isolated macOS host-process/Linux Publisher bind-mount arrangement exposed
+different open WAL inodes and an invalid combined view. Recovery must quiesce
+writers, preserve raw DB/WAL/SHM evidence, independently verify any recovery
+candidate and every available hash chain, and retain missing/uncheckpointed tails
+as unknown. Never delete a live WAL or silently retry a submitted execution.
+The recovered isolated business roles share a Linux Docker named volume; the
+credential-only model Gateway stays separate. Only the trusted Sandbox Worker
+has the Docker socket, and only Publisher mounts its private credential volume.
+Recent connection events absent from a verified candidate are not fabricated;
+a preserved credential can be re-bound inside Publisher through the existing
+sealed API and a new real read-only account probe. See
+[SQLite's WAL requirements](https://sqlite.org/wal.html).

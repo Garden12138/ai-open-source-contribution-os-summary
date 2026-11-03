@@ -231,15 +231,15 @@ def observe(wb: Workbench, task_id: str) -> dict:
     revision = content_hash(source_binding(wb, task_id))
     # Older operator receipts remain distinguishable without changing their
     # payloads or fabricating a new provenance chain for historical work.
-    maintenance_sources = {e.payload["source_id"] for e in wb.history(task_id)
-                           if e.kind == "agent_maintenance_recorded"}
-    maintenance_sources.update(e.id for e in wb.history(task_id) if e.kind in {
+    from app.workbench import maintenance_sources
+    sources, _ = maintenance_sources(wb.history(task_id))
+    sources.update(e.id for e in wb.history(task_id) if e.kind in {
         "proposal_corrected", "runtime_rebaseline_requested", "preparation_runtime_retry_requested"})
     return TaskObservation(task_id=task_id, revision=revision, user_state=state,
         focus=focus(wb, task_id), foreground=foreground, background=background,
         blocking_message_ids=[e.id for e in blocking_messages(wb, task_id)],
-        maintenance_count=len(maintenance_sources),
-        autonomous_eligible=not maintenance_sources).model_dump()
+        maintenance_count=len(sources),
+        autonomous_eligible=not sources).model_dump()
 
 
 def mark_maintenance(wb: Workbench, task_id: str, receipt: Any, *, reason: str) -> None:
