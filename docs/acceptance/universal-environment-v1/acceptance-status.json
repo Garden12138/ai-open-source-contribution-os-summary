@@ -2682,5 +2682,19 @@
       "ci-native-plan11-read-observation.json",
       "ci-native-plan11-terminal-audit.json"
     ]
+  },
+  "development_status": "paused_by_user",
+  "paused_read_progress_checkpoint": {
+    "status": "paused_by_user_documentation_and_current_branch_push_only",
+    "evidence": "read-progress-paused-checkpoint.json",
+    "candidate": "local_uncommitted_not_deployed_or_accepted",
+    "focused_passed": 48,
+    "focused_failed": 0,
+    "pre_implementation_failed": 5,
+    "full_regression": "not_run_for_candidate",
+    "real_OCI": "not_run_for_candidate",
+    "native_effect": "not_run_for_candidate",
+    "additional_paid_requests": 0,
+    "documentation_commit_excludes_unfinished_code": true
   }
 }

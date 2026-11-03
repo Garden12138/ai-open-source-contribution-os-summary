@@ -18,6 +18,7 @@ paths are repeatedly read from offset0(33 repeats). No quota/credential failure 
 unique hidden model intent is inferred. Verify/Issue regression/independent Review
 remain not_run. No Plan12 or identical paid retry is created. Planning64 cap/three
 unknown holds and all historical failures remain. Linux amd64 is blocked/not_run.
+**Development paused by user.** The local read-progress v5 candidate is uncommitted and excluded from this documentation push. Its first focused report is48 passed/0 failed; five failures belong to the pre-implementation run. Candidate full regression/real OCI/deployment/native effect remain not_run. See [paused checkpoint](read-progress-paused-checkpoint.json) and the current [handoff](../../tasks.md#2026-11-03-暂停交接当前问题和剩余验收门禁).
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -2182,3 +2183,27 @@ Five isolated runtime roles/images/security settings remain unchanged; no redepl
 is needed for this evidence-only update, and Gateway is not cold-restarted. Formal
 data, third parties, Push and PR remain untouched. [Terminal evidence seal](ci-native-plan11-terminal-evidence-seal.json)
 binds the records and diagnostic source manifest; no stage gate is promoted.
+
+### 2026-11-03 Paused handoff and test-status correction
+
+Development and new acceptance calls are paused at the user's request. The
+[task handoff](../../tasks.md#2026-11-03-暂停交接当前问题和剩余验收门禁)
+records E3/E4 historical Node's forced CI installer failure, Plan11's repeated
+source reads/input admission stop with no patch, E5 unseen0/15/native0/4, missing
+Verify/independent Review/final acceptance and E6 native Linux amd64 blocked/not_run.
+No gate is promoted and no new Plan, model allowance or native execution is created.
+
+The local v5 read-progress candidate remains unfinished/uncommitted and is excluded
+from this documentation commit/push. First focused JUnit: **48 passed/0 failures**;
+the5 failures are from the pre-implementation run. The prior chat status mistakenly
+attributed that earlier log to the current candidate. The1940-pass/62-skip full
+regression belongs to deployed v4, not this candidate. Candidate broader tests,
+source/stale-hash/UTF-8/empty-page/forged-warning boundaries, real OCI, isolated
+redeployment and real model effects still require verification. [Paused checkpoint](read-progress-paused-checkpoint.json)
+records five local file hashes and both test report counts/hashes without copying
+logs or credentials. Resume by inspecting those edits, completing verification and
+freezing a new precise preview before seeking any new paid execution grant.
+
+The user's latest instruction explicitly authorizes a normal push of this repository's
+current development branch after documenting the issues. It grants no PR, main
+change, third-party repository write or reset/replay of failed native execution.

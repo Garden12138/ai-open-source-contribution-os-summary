@@ -6511,6 +6511,41 @@ H Node forced CI global installer remains unsupported, E3–E6 and native Linux 
 remain open. **UPEVE-E04** stays current; no gate promoted, business patch by Codex,
 formal-data change, third-party write, Push or PR. UPEVE acceptance remains incomplete.
 
+
+### 2026-11-03 暂停交接：当前问题和剩余验收门禁
+
+按用户要求暂停开发和新增验收调用。本次仅记录问题，随后按用户新授权提交文档并
+推送本仓库当前 `refactor/agent-runtime-v2` 分支；未授权创建 PR、修改 main 或
+写入第三方项目。当前专项仍为 **E3 / UPEVE-E04**，整体 **未完成**，不新增勾选。
+
+| 范围 | 已有证据 | 尚缺及恢复条件 |
+| --- | --- | --- |
+| E0–E2 | 已通过既有基线、契约和 Python 工具闭合门禁；历史 Python 5/5 | 保留已有证据，不将后续失败覆盖成通过 |
+| E3 / E4 | 部分通用 Node 能力和运行时衔接已实现；Plan11 的真实准备、8 项入口探针、4 条原始 Baseline 通过 | 历史 Node 仍为 `unsupported_dynamic_installer`：冻结脚本在 CI 分支强制全局安装；原完整 8 条检查的门禁未通过。须保持原命令、Verify 断网及只读边界，不能以安全拒绝冒充支持 |
+| 原生 Coding | Plan11 的两次拒绝收据/当前修复预算真实送达，随后有效回合恢复、过期反馈清除 | 原生交付失败：14 次模型调用、12 个有效 Decision、43 个工具结果（39 次文件读取、4 次目录查询），无补丁/测试回合；6 个文件全部从偏移 0 读取，33 次重复起始位置。最终 `agent_budget_exceeded`；下一请求未发送、未扣账。无额度或凭据失败证据 |
+| E5 泛化 | 冻结留出样本的首次结果和分母保留 | 完整首次 Baseline 仍为 0/15；须满足至少 2 个 Python + 2 个 Node 新结构项目的真实泛化矩阵。维护介入样本不能重新计为陌生成功 |
+| E5 原生端到端 | 首次原生交付仍为 0/4 | Python、TypeScript 均缺完整链路：真实回归失败 → 沙箱业务修复 → 全部原始 Verify → 独立 Review → 最终人工验收；计划保存、Fake 和组件通过均不替代 |
+| E6 交付 | 既有 macOS arm64/OrbStack OCI、安全及证据审计记录保留 | 真实 Linux amd64/Docker 验收仍 `blocked/not_run`；最新未完成候选还缺全量、安全/恢复边界回归、真实 OCI 和隔离部署核验 |
+
+Plan11 的账目与失败保持原样：累计保留输入171256/输出12756，实际报告输入128816/
+输出5408，两者分开；规划64次上限与3个未知预留未重置。1782条事件、1523个工件、
+全部旧记录和用量已审计。没有 Plan12、新执行授权或额外付费重跑。
+
+**重复读取进度门禁尚在本地开发中。** 工作区保留 `app/agent_v2/read_progress.py`、
+`app/agent_v2/loop.py`、`app/agent_v2/native_tools.py` 及两个测试文件的未提交改动。
+目标是绑定源码/文件哈希和精确字节请求，提供原收据及实际可见的续读位置，并在两份
+不同重复提醒已进入真实提示后阻断再次读取；不自动改写工具参数，不返还或追加预算。
+这些代码不包含在本次文档提交/推送中，未部署，未进行模型验收，不能宣称问题已修复。
+
+测试状态更正：修复前5个新增用例失败；当前首轮定向 JUnit 为 **48通过、0失败**。
+上一条聊天把修复前日志尾部误读为当前结果。此前已提交 v4 的 **1940通过/62跳过**
+仅适用于该已验证版本，不是本地 v5 候选的全量成绩。
+
+恢复时先核对 [暂停检查点](acceptance/universal-environment-v1/read-progress-paused-checkpoint.json)
+中的文件哈希，补充源码变化、过期哈希、UTF-8/零内联字节、伪造提醒及旧协议兼容边界，
+完成定向/全量检查、真实 OCI 和隔离部署后，再冻结新的精确预览并取得新执行批准。
+不得直接恢复 Plan11 的终态检查点或原样追加模型重跑。
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

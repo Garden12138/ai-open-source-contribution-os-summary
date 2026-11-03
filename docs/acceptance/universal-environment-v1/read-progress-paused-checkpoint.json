@@ -1,0 +1,56 @@
+{
+  "version": "upeve-read-progress-paused-checkpoint-v1",
+  "recorded_at": "2026-11-03T14:04:44.551770+00:00",
+  "status": "paused_by_user_documentation_and_current_branch_push_only",
+  "branch": "refactor/agent-runtime-v2",
+  "latest_committed_acceptance_revision": "15925f0",
+  "deployed_engine_revision": "cf051560b8aa64cd01dd2abd351b7d6710d4d74f",
+  "classification": "unfinished_local_runtime_candidate_not_native_acceptance",
+  "worktree_files_not_included_in_documentation_commit": {
+    "app/agent_v2/loop.py": "7086c92e5b4a7d2ab2d1095abf6e402404d913b1859f7da1852499f804758a7d",
+    "app/agent_v2/native_tools.py": "0b708c890ebde0eb0da9c02b72becec97a46441c089a2737e2c3e1f461d65b22",
+    "app/agent_v2/read_progress.py": "025af71910b7f89d2a732f9760c5c88187ea77d7b1a291dab5dc9446a77dd8d3",
+    "tests/test_agent_native_tools.py": "2b0759b744d701d214c5db1406b6c1250bb18ce59d3056954cd9c3ea7eb9910d",
+    "tests/test_native_read_progress.py": "b4faf5b0d6448ada0ad661bf67e53c6a953e8aa07ed0408dbb0101d93aeb6b5f"
+  },
+  "candidate": "source-read-progress-v1_native-source-read-progress-v5",
+  "implemented_intent": "Bind repeated read requests to workspace/file hashes/path/byte request; expose prior receipt and visible page continuation; stop before another gateway read after two distinct committed visible duplicate receipts. No argument rewrite or budget reset.",
+  "existing_test_reports": {
+    "before": {
+      "sha256": "0d5267b3365f8427bee5dbf1f2e534b57cfc0831d4210ab217f0ffa33259efd4",
+      "counts": {
+        "tests": 5,
+        "failures": 5,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 0
+      }
+    },
+    "focused-first": {
+      "sha256": "6e0329ca23aa9ec57679e45b629a8dfe94309f570a347406bf424e546183e5f4",
+      "counts": {
+        "tests": 48,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 48
+      }
+    }
+  },
+  "previous_status_correction": "The five failures were from the pre-implementation report. Current first focused run has48 passed/0 failures; the previous chat status accidentally attributed the before log to the current run.",
+  "broader_regression": "not_run_for_candidate",
+  "real_OCI": "not_run_for_candidate",
+  "candidate_deployment": "not_run",
+  "candidate_native_model_execution": "not_run",
+  "additional_model_calls_after_Plan11": 0,
+  "new_Plan_or_execution_authorization": "not_created",
+  "remaining_work": [
+    "review and complete source-change/stale-hash/partial UTF8/empty inline page/forged warning/legacy compatibility boundaries",
+    "focused tests then full regression, compileall, diff and canary checks on frozen candidate",
+    "actual sandbox proof and isolated redeployment with preserved data and budgets",
+    "new precise preview and human consent before any further paid native run"
+  ],
+  "publication_or_PR_authorized": false,
+  "main_or_third_party_repository_changes_authorized": false,
+  "record_hash": "c94e90f98f07b8f793e67e13f376ecca3658ef35743c47c784f9489cdfef4724"
+}
