@@ -1,0 +1,27 @@
+{
+  "version": "upeve-plan9-diagnostic-source-manifest-v1",
+  "recorded_at": "2026-11-03T08:41:18.913512+00:00",
+  "scripts": {
+    "plan9_network_observation.py": {
+      "sha256": "0dd899d0a22df15a68ed98430377f4772f143bf396966a17d158386dc0c67388",
+      "engine_revision_at_run": "35be8502bb86250aeae86b4b443711193ec0aee1",
+      "requires_private_matched_snapshot": "/tmp/upeve-plan9-terminal-20261103",
+      "model_calls": 0,
+      "classification": "D_independent_trusted_diagnostic_not_native_recovery"
+    },
+    "plan9_cache_controlled_environment.py": {
+      "sha256": "3ae0895b1d32b5a2d305beffce74262ab571ddef79ba72208b5865966748df6f",
+      "engine_revision_at_run": "d3517e30932f3fcdcb79cf1d4323d0a0db6b8966",
+      "requires_private_matched_snapshot": "/tmp/upeve-plan9-terminal-20261103",
+      "model_calls": 0,
+      "classification": "D_independent_trusted_diagnostic_not_native_recovery"
+    }
+  },
+  "original_native_failure": "ci-native-plan9-execution.json",
+  "untrusted_repository_code_execution": "only_credential_free_restricted_OCI",
+  "production_source_files_not_patched_by_observer": true,
+  "old_native_Job_not_retried": true,
+  "third_party_writes": 0,
+  "formal_data_modified": false,
+  "record_hash": "a9b1520efb7c9d26d9a0e292885ca21da6ae7408aa3c18f4ad1d6caeb4c29547"
+}

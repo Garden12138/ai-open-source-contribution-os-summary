@@ -1,0 +1,117 @@
+{
+  "version": "upeve-package-cache-isolated-deployment-v1",
+  "recorded_at": "2026-11-03T08:28:44.054528+00:00",
+  "engine_revision": "d3517e30932f3fcdcb79cf1d4323d0a0db6b8966",
+  "source_manifest_hash": "b6dfbdf8f63b1685d26c4e8f0c8052d4deb9c8573b5fc764091987552d66e4d7",
+  "source_files_verified": 242,
+  "images": {
+    "app": "sha256:79f24051ad6c4dcd2f3ddb16fe23079e4fae83529b9e41057b64d6ff7ddd8372",
+    "worker": "sha256:b8fe14cc495d9d925593467106c708a49f855c2f7c1e79b674f2842ecff9a879"
+  },
+  "old_roles_preserved_stopped": {
+    "serve": "482277b4dc2ccd89d28a1b2f03a63b1d881faaf11e1f26e57c24961ae92f6c77",
+    "worker": "54795f6a47923cec9f587753c9592729308eae58f49b8266e2ed65e5b759054e",
+    "sandbox-worker": "f8fda996d08604ef93202bd0faef481513699e75b8c24afd937451ee0fef7565",
+    "provider-worker": "36171861c71884c9c2f412033a3710b944d6d512ae44a1b67a410221e5cdf5ca",
+    "publisher": "355a961711b548217f7ebcfd90ad52eda5824aa3b2a9bb7be8b86d2e2fbb0c16"
+  },
+  "new_roles": {
+    "serve": {
+      "id": "96a614ce22ec980a38b65efb624d76040154f820db270bdd06b5500f4c384f54",
+      "name": "upeve-api-d3517e30932f"
+    },
+    "worker": {
+      "id": "5484d166d8c3158f630095dd4d2739ef8dcba1c2724c52dedff9bc8c8d9d2445",
+      "name": "upeve-worker-d3517e30932f"
+    },
+    "sandbox-worker": {
+      "id": "75b5ddb30b8473706fbc183b5199a97e83a1d4d4e2da019a557c45ecb814cdf4",
+      "name": "upeve-sandbox-worker-d3517e30932f"
+    },
+    "provider-worker": {
+      "id": "2cf9f1bf72148bad705378f1d8af1de12bc52ce3b3bb736800d9de714d661df2",
+      "name": "upeve-provider-worker-d3517e30932f"
+    },
+    "publisher": {
+      "id": "956da51095951cd9d9f5a161005e0f93f561828c10f0a31ad6ebf0835ce01739",
+      "name": "upeve-publisher-d3517e30932f"
+    }
+  },
+  "business_volume": "upeve-isolated-business-20261103",
+  "private_Publisher_volume": "upeve-isolated-publisher-private-20261103",
+  "all_business_connections_in_single_Linux_kernel": true,
+  "model_Gateway_not_restarted": true,
+  "original_security_resource_environment_and_mounts_preserved": true,
+  "all_table_hashes_unchanged": {
+    "_schema_migrations": "c99fe770dfb3099f65430f1ea676f1e32be68207cb397630bb047dc0177fb6d3",
+    "repositories": "901f2a0ce712f610b0993f28dc979051e5fa6e5028d633f6ad77c9b4b04d810e",
+    "scan_runs": "9d8187103763dc54a17cd32062ebd0ac2a80d796f504a0d2ed42e1119b4350eb",
+    "opportunities": "4d765a1f359f34021bde5c8feaa4926619335fe752a974a874688b4f8976bee8",
+    "daily_picks": "8ac71b84ca6707b49182fa441a305cb94027cdc8a08f9859558eb769ae46fe54",
+    "opportunity_snapshots": "1a60299f31cbbbc38488d46b194ce7f183a19acf62519b55144293ec75a94709",
+    "score_versions": "6555e74b0f03bce82c43e0ed149cf368cf4bc56dee0dec07d23b231a0ebe8173",
+    "jobs": "40bf68423c82d1764395d7081b695781d5ed2bf2e01220c64ed6a15ce53bc0ad",
+    "artifacts": "a620b5ba67e2e370d543155c41b9458f19d6469d8b4a42cb9c4605221cb9907e",
+    "job_artifacts": "9aa018e34d7ae700eeb53f96dc335b9bf488dfa98b9cbe2ec1891f61415f6d8d",
+    "audit_events": "772a5a2448092db97c0ca7044156d9c5107864e5dfc3f950943ae7b06ae0ccff",
+    "provider_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "final_score_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "contribution_tasks": "3ad4955fc0f779aae6a9af1b78f999bb15dd916a5b634461bf9369248fb60080",
+    "contribution_task_state_versions": "3e895364f4db02fdf5e868c051676b928e50716331f109ef10c7c903015de6f1",
+    "plan_locks": "65ed9b1c8f6ca31f1a203ab771ccb5ae890cda17a94a33e15a15f676fb7d1a27",
+    "plan_approvals": "97d6cbe2be0f39dbb635da258cb9661eb488392a115b5768ee51e1b112589555",
+    "plan_conversation_entries": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_attempts": "7fd0088a1ed386d71f724693e6e459002c8f57349452eedbabbb4215e6d9e282",
+    "execution_stage_versions": "b5a2ce489d84853153b7e809904178c9931b62c93a62fb471be5f5162869fbd3",
+    "execution_stage_runs": "c4072054ad48b2b0f026d485c3d8d6fe2791d6b23931ee74ee00459ffc048d16",
+    "execution_artifact_manifests": "0ae18628fa24bcaf33365988931e0b7e1655caf34f3d498be820ee936cf12e0d",
+    "execution_artifact_entries": "1ae3e2ccb94cdc3f75d9226fa98c6320e71dbc1f8d8d645dac4d9352f0f440e4",
+    "execution_workspace_disposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_workspace_disposal_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_intents": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_confirmations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "pull_request_events": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "task_lifecycle_marks": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "user_preference_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "opportunity_disposition_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "in_app_notifications": "5616551f3a36233f8a23902b91ae10e55bb7ca85644ec3fa0a32a91022605c3c",
+    "notification_reads": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "coding_sessions": "2ed4d0b2cefc695529dee0bf6f960ba58ebb08655b064662d67d3f56fd20bc10",
+    "coding_turns": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "agent_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "change_set_proposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "workbench_events": "bb83b4817950400c8844f1397c4c10c236bce6c7218e85849f29229f03c19c94",
+    "draft_pull_requests": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "plan_versions": "b9e19ca2e296a06b153bcb8df4aadb3a90aa3ada1003796460d06cacbd6613c6",
+    "model_config_versions": "90b70a06946117eee8b5294b73e56fdb3e43081b48d1d024b0e8e1578aaa6331",
+    "job_model_bindings": "5460ae25a01356ee6ef3c92e30d40db607585e8be52954c3278fd2a42dd784e8",
+    "task_visibility_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "analysis_versions": "1a538eadc25d7e3925b8ad54c4d40a24fc803c2129ef9b775e9dcb46c799067a",
+    "review_runs": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "native_events_unchanged": 1430,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "task_page_HTTP_status": 200,
+  "incomplete_maintenance_visible_as_legacy_unverified": true,
+  "operator_interventions": 6,
+  "prior_P8_blocked_checkpoint_and_usage_preserved": true,
+  "additional_model_calls": 0,
+  "backup_sha256": "6ca00011d542cd3d28ae163c82e7d61927886e2e953c85d22eae43f535d054a7",
+  "formal_data_modified": false,
+  "third_party_writes": 0
+}

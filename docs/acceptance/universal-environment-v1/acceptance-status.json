@@ -2375,7 +2375,81 @@
       "RemoteDisconnected": 1
     },
     "inference": "Only the proxy fixed DNS fetch uses TLS; controlled TLS closures locate that path. Native earlier underlying exception unrecorded and not reconstructed.",
-    "transport_candidate": "30_second_positive_public_address_cache_single_resolution_under_verification",
+    "transport_candidate": "implemented_verified_deployed_d3517e3_native_effect_not_run",
     "production_roles_unchanged_during_diagnostics": true
+  },
+  "package_DNS_cache_candidate": {
+    "status": "implemented_tested_deployed_not_native_verified",
+    "engine_revision": "d3517e30932f3fcdcb79cf1d4323d0a0db6b8966",
+    "source_manifest_hash": "b6dfbdf8f63b1685d26c4e8f0c8052d4deb9c8573b5fc764091987552d66e4d7",
+    "default_regression": {
+      "tests": 1993,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1931
+    },
+    "focused": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 35
+    },
+    "new_cases": 13,
+    "positive_cache_ttl_seconds": 30,
+    "max_host_port_entries": 6,
+    "failures_private_and_stale_destinations": "never_reused",
+    "TLS_allowlist_ports_and_resource_limits": "unchanged",
+    "controlled_Node_original_recipe": "passed8_entrypoints4_original_checks",
+    "actual_Python_proxy_OCI": "1_passed_empty_hash_lock_not_full_project_coverage",
+    "deployed_roles": 5,
+    "all45_tables1430_events_unchanged_during_deploy": true,
+    "native_actual_model_calls": 0,
+    "native_effect": "not_run",
+    "cold_or_expired_DNS_can_still_fail_closed": true,
+    "evidence": [
+      "package-dns-cache-checks.json",
+      "ci-native-plan9-cached-proxy-controlled-environment.json",
+      "package-dns-cache-deployment.json",
+      "ci-native-plan10-final-audit.json"
+    ]
+  },
+  "pending_native_Plan10_execution": {
+    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "proposal_hash": "c7b8ab6d6085e8c52cef61dd8bffd48b2010571b4381baaaf9115640b1501e00",
+    "evidence": "ci-native-plan10-execution-proposal.json",
+    "plan_id": "477315b4-5e98-48eb-b76e-b4371f13dfcc",
+    "plan_record_hash": "28ec18fa11d78a2209eb23c1080d2fc841204500346019deca322e4a99b8a28c",
+    "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "parent_plan_id": "39e7b8ed-f60e-439c-8ae2-4e0ce4c0859f",
+    "classification": "D_operator_mechanical_same_content_child_not_U_or_native_Plan_generation",
+    "all8_write_paths4_original_checks_unchanged": true,
+    "source_changed_requires_new_confirmation": true,
+    "model_transport_unchanged": true,
+    "old_Plan9_preparation1of1_and_models0_preserved": true,
+    "old_P8_charged_usage_and_planning64_three_holds_preserved": true,
+    "agent_limits": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "startup_attempt_limit": 3,
+    "new_native_preparation_attempt_limit": 1,
+    "execution_approved": false,
+    "publication_approved": false,
+    "new_Plan10_Prepare_Baseline_Coding_Verify_Review": "not_run",
+    "actual_environment_ready": false,
+    "native_events": 1434,
+    "execution_approvals_still": 7,
+    "evidence_seal": "ci-native-plan10-evidence-seal.json"
   }
 }

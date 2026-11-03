@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Plan9 consentsd3ef025e is consumed once after two pre-submit read-only guard failures. Root same Job recovers GitHubAPIError on attempt2/3; actual Explore passes, but preparation attempt1/1 fails node_resolve/network_unavailable. No new Baseline/session/model/Coding/Verify/Review; new model calls0. All1430 events/1431 artifacts, old P8 usage/approval and planning64/3 holds verify. Two-metadata proxy probe passes but original full-recipe independent OCI also fails network; observer indentation failure is retained; corrected observation measures pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures. Generic30s positive public-DNS cache/concurrency candidate is under verification; no native restart. Source35be850/tests/security unchanged; no cap reset or unsupported node_tools proof used for node_resolve. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
+| Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6376,6 +6376,48 @@ locates TLS closures in its fixed public DNS fetch, not the opaque package tunne
 This does not infer earlier native unrecorded exceptions. Native45 tables/1430
 events remain unchanged. Generic positive public-address caching/concurrent DNS
 serialization is in verification; no native retry or cap change is authorized.
+
+
+### 2026-11-03 Generic package DNS cache verified/deployed; exact Plan10 awaits consent
+
+Source **d3517e3** adds30-second successful public-address reuse and serialized
+lookups in each trusted proxy. Frozen hosts/ports bound it to6 entries; every
+endpoint stays public, family/TCP/port checked and independently copied. Expired
+entries are removed before refresh; denied/failed/stale results never become a
+fallback. TLS, resolver provider, package hashes, proxy allowlist, Verify network,
+scripts/image/resource limits stay unchanged. No SQL/API/UI shape migration.
+
+[Checks](acceptance/universal-environment-v1/package-dns-cache-checks.json) pass
+**1931 default/62 skipped/0 failed**,35 focused/1 opt-in skipped,13 new cases;
+compileall/proxy compilation/runtime integrity/diff/canary scans pass. Actual
+Python proxy boundary1 passes (empty hash lock, not complete Python coverage).
+[Original-recipe Node controlled OCI](acceptance/universal-environment-v1/ci-native-plan9-cached-proxy-controlled-environment.json)
+passes8 entrypoints/all4 original checks with identical source inventories. This
+is D evidence, not native recovery or success. Original failure/caps and45 native
+tables/1430 events stay intact. Cold/expired DNS can still fail safely; this does
+not prove the sole earlier cause or general network reliability. Diagnostic
+source hashes/revisions are saved without raw package logs or real credentials.
+
+[Deployment](acceptance/universal-environment-v1/package-dns-cache-deployment.json)
+verifies242 source files and actual worker proxy script; only five idle isolated
+roles are rebuilt,45 tables/1430 events and full safety/resource configuration
+preserved, page200/four health endpoints. Gateway is not cold-restarted. No
+native failed Job is reset or restored by a component result.
+
+Marked mechanical Plan10 retains the same entire business content/8 paths/4
+checks, appends4 records to1434 and leaves7 execution authorizations. New source
+and prior preparation1/1 consumption require fresh precise consent to
+[preview](acceptance/universal-environment-v1/ci-native-plan10-execution-proposal.json)
+**c7b8ab6d6085e8c52cef61dd8bffd48b2010571b4381baaaf9115640b1501e00** and the frozen one-execute helper. New proposed bounds:
+24 model calls/200K input/32K output/1800s,3 startup attempts,1 native preparation,
+unchanged Review limits/at most2 code repairs. Model transport/Profile stays the
+same; all old failures, P8 charges, planning64 cap/3 holds remain. No consent or
+new native readiness is inferred. Baseline/Coding/Verify/Review and model effects
+remain not_run. [Final audit](acceptance/universal-environment-v1/ci-native-plan10-final-audit.json)
+verifies1434 events/1431 artifacts,242 files/74 historical files,42 unchanged tables
+after child append, old counts/usage and credential scans. Native0/4, U0/15,
+H Node/E3–E6/Linux amd64 remain open; **UPEVE-E04** is current. No third-party or
+formal-data writes, Push, PR or publication.
 
 ---
 

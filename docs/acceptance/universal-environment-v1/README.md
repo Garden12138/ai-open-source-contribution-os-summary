@@ -2010,3 +2010,64 @@ unrecorded exceptions from the earlier native failure. Full45 native table hashe
 and1430 events remain unchanged. A generic, short-lived successful public-address
 cache/concurrent-DNS serialization candidate is now under verification; no new
 native preparation, model call, approval or deployment follows from diagnosis.
+
+### 2026-11-03 Bounded package DNS reuse passes real checks; Plan10 is unapproved
+
+Generic commit **`d3517e3`** adds proxy-local positive
+public-endpoint reuse for30 seconds and serializes concurrent DNS lookups.
+The frozen allowlist/ports bound the cache to at most6 entries; host mutation
+cannot widen it. Every endpoint, including hits, retains a global IP, matching
+address family/TCP port and independent copies. Expired entries are removed
+before refresh; failure/private/malformed/stale results cannot supply destinations.
+No resolver provider, TLS/hostname verification, package integrity check, host
+allowlist, Verify network, scripts policy, image or resource cap is weakened.
+Cache state disappears on proxy restart. No SQL/API/UI/policy wire shape changes.
+
+[Checks](package-dns-cache-checks.json) pass **1931 default/62 skipped/0 failed**,
+35 focused/1 opt-in skipped,13 new cache cases (all13 absent-feature failures
+before implementation), compileall/generated-proxy compilation/runtime integrity/
+diff/credential scans. The existing **1 actual Python proxy OCI** case passes;
+it uses an empty hash-locked requirements file plus real PyPI TLS, blocked direct
+egress and metadata403, not a full Python project/toolchain acceptance.
+[Independent same-original-recipe Node OCI](ci-native-plan9-cached-proxy-controlled-environment.json)
+now passes preparation,8 executable probes and all4 original checks with identical
+source inventories. All45 native tables/1430 events remain unchanged. It is D
+component evidence; it does not replace native Plan9's failure or establish the
+sole historical cause, global network reliability or native model effectiveness.
+Cold/expired DNS can still fail closed. The exact diagnostic scripts and revisions
+are preserved in [source manifest](ci-native-plan9-diagnostic-source-manifest.json);
+old observation requires the matched pre-cache source/private snapshot.
+
+[Deployment](package-dns-cache-deployment.json) rebuilds only five idle owned
+roles, verifies all242 files and actual worker proxy-script hash, preserves45
+tables/1430 events plus every security/resource/mount/environment setting, and
+confirms page200/four healthy endpoints. Gateway stays separate and is not
+cold-restarted; formal instances/data are untouched. No failed preparation cap,
+approval, charged usage or old unknown hold is reset. Plan9 new model calls0;
+its node_resolve network failure and original1/1 Job remain failed.
+
+Marked mechanical [Plan10](ci-native-plan10-draft.json), UUID`477315b4-5e98-48eb-b76e-b4371f13dfcc`,
+record`28ec18fa11d78a2209eb23c1080d2fc841204500346019deca322e4a99b8a28c`, retains the identical entire business content,
+8 write paths and4 exact checks. Four records append to1430, making1434;
+10 Plans/7 approvals, no new preparation or model. [Scope check](ci-native-plan10-source-review.json)
+is an operator review, not independent ReviewRun. [Exact preview](ci-native-plan10-execution-proposal.json)
+**`c7b8ab6d6085e8c52cef61dd8bffd48b2010571b4381baaaf9115640b1501e00`** freezes the new source/images/role fingerprints and
+[one-execute helper](native_plan10_execute.py). The model transport/Profile is
+unchanged. It is **unapproved/unrun**, and component receipts do not make its
+actual environment ready. A new exact human grant is required after the source
+change and prior preparation cap consumption. Proposed bounds remain24 model
+calls/200K input/32K output/1800s,3 startup attempts,1 native preparation attempt,
+unchanged independent Review limits and at most2 code repairs. Planning64 cap,
+3 unknown holds, old P8 charges and all prior failures remain; no publication or
+formal-data write is included. Final acceptance/publication stay separate.
+
+[Final audit](ci-native-plan10-final-audit.json) verifies1434 events/1431 artifact
+hashes,242 files/74 historical evidence files,42 tables unchanged after expected
+child append, live proxy script/source hashes, old Job counts/checkpoints/usage,
+credential-free role logs/JSON and healthy services. New policy model effects,
+Plan10 native Baseline/Coding/Verify/Review remain not_run. Native0/4, U0/15,
+H Node/E3–E6 and Linux amd64 gates remain open; UPEVE-E04 is current.
+
+[Plan10 sealed evidence manifest](ci-native-plan10-evidence-seal.json) binds the
+exact preview/helper, source/checks/deployment and retained native/controlled
+failures. It is integrity evidence, not a human execution grant or native success.
