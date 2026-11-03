@@ -2268,7 +2268,7 @@
     "final_audit": "ci-native-plan9-final-audit.json"
   },
   "pending_native_Plan9_execution": {
-    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "status": "consumed_once_native_preparation_failed_node_resolve_network",
     "proposal_hash": "e8bd3b98185cc7bc0fcd64d81b0ab8113076f15e5fe7dc173275b39b8221664e",
     "evidence": "ci-native-plan9-execution-proposal.json",
     "plan_id": "39e7b8ed-f60e-439c-8ae2-4e0ce4c0859f",
@@ -2297,12 +2297,85 @@
       "seconds": 1800
     },
     "new_policy_real_model_calls": 0,
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
-    "new_Plan9_Prepare_Baseline": "unverified",
+    "new_Plan9_Prepare_Baseline": "Prepare_failed_Baseline_not_run",
     "Coding_Verify_Review": "not_run",
     "native_events_after_child": 1415,
     "execution_approvals_still": 6,
-    "evidence_seal": "ci-native-plan9-evidence-seal.json"
+    "evidence_seal": "ci-native-plan9-evidence-seal.json",
+    "approval_hash": "d3ef025ea53a86c697cda5b30e06ad4b4c5c950832b65f2ec40eb42bc636d856",
+    "execution_evidence": "ci-native-plan9-execution.json",
+    "root_attempts": 2,
+    "root_attempt_limit": 3,
+    "preparation_attempts": 1,
+    "preparation_attempt_limit": 1
+  },
+  "Plan9_native_execution": {
+    "classification": "D_maintained_not_U",
+    "approval_hash": "d3ef025ea53a86c697cda5b30e06ad4b4c5c950832b65f2ec40eb42bc636d856",
+    "exact_execution_authorization_hash": "5a025c74b286e8e32c8e9175d0a574b49481359d3650aca77b376fcfb5ebaec6",
+    "root_job": "f619363b-ad79-4586-9ba9-c3661b81cb9d",
+    "root_first_failure": "GitHubAPIError_before_execution_attempt",
+    "root_final": "succeeded_attempt2_of3_same_job_authorization",
+    "attempt_id": "afdf1bfb-d330-4408-9a9e-a2af5ae5189b",
+    "native_explore": "passed_real_sandbox",
+    "native_preparation": "failed",
+    "native_preparation_diagnostic": {
+      "version": "dependency-failure-v1",
+      "phase": "node_resolve",
+      "reason_code": "network_unavailable",
+      "exit_code": 1,
+      "packages": []
+    },
+    "preparation_max_attempts_1_consumed": true,
+    "current_typed_recovery_node_tools_does_not_admit_node_resolve": true,
+    "native_Baseline": "not_run",
+    "native_Coding": "not_run",
+    "native_Verify": "not_run",
+    "independent_Review": "not_run",
+    "model_calls": 0,
+    "source_writes": 0,
+    "code_repairs": 0,
+    "old_Plan8_checkpoint_usage_preserved": true,
+    "planning64_cap_and3_unknown_holds_preserved": true,
+    "native_events": 1430,
+    "persisted_artifacts_hash_verified": 1431,
+    "active_jobs": 0,
+    "integrity_FK_audit_event_chain": "passed",
+    "credential_scan": "passed",
+    "evidence": [
+      "ci-native-plan9-execution-approval.json",
+      "ci-native-plan9-execution.json",
+      "ci-native-plan9-start-retry1.json",
+      "ci-native-plan9-preflight-recovery.json",
+      "ci-native-plan9-preflight-reconciliation.json"
+    ]
+  },
+  "Plan9_independent_network_diagnosis": {
+    "classification": "D_component_not_native_recovery_or_success",
+    "restricted_metadata_probe": "two_HTTP200_and_outside_allowlist_denied",
+    "original_full_frozen_recipe": "reproduced_node_resolve_network_unavailable",
+    "full_Baseline": "not_run",
+    "native_model_effect": "not_run",
+    "earlier_observer": "own_IndentationError_before_target_workload_retained_separately",
+    "corrected_fixed_error_observer": "finished_actual_pnpm10.34.9_ERR_PNPM_FETCH_502",
+    "original_native_job_not_retried": true,
+    "source_or_proxy_policy_changed": false,
+    "native45_tables1430_events_unchanged": true,
+    "evidence": [
+      "ci-native-plan9-package-proxy-probe.json",
+      "ci-native-plan9-controlled-environment.json",
+      "ci-native-plan9-controlled-network-observation.json",
+      "ci-native-plan9-controlled-network-observation-corrected.json"
+    ],
+    "proxy_exception_facts": {
+      "SSLZeroReturnError": 30,
+      "TimeoutError": 4,
+      "RemoteDisconnected": 1
+    },
+    "inference": "Only the proxy fixed DNS fetch uses TLS; controlled TLS closures locate that path. Native earlier underlying exception unrecorded and not reconstructed.",
+    "transport_candidate": "30_second_positive_public_address_cache_single_resolution_under_verification",
+    "production_roles_unchanged_during_diagnostics": true
   }
 }

@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Plan8 consenta1006288 is consumed once: new8 probes/4 Baseline checks pass,22 real model starts/21 valid Decisions/52 reads end in budget failure with no patch or Verify/Review. All1411 events/1427 artifacts verify. Generic complete-batch feedback commit35be850 fixes18 absent batch bodies and full-task priority under unchanged32000 cap;1918 default/62 skipped,75 focused,13 actual OCI +2 pure pass. Offline22-request replay has complete task22/22 and all batch receipts, max30901; native effect not_run. Five owned roles redeployed preserving45 tables/1411 events/security; initial page timeout and approval-service usage interruption reconcile without replay. Mechanical identical-content Plan9 adds4 events to1415,9 Plans/6 approvals. Exact previewe8bd3b98 is unapproved/unrun. Native0/4, U0/15, H Node and E3–E6/Linux gates stay open. |
+| Feature note | Plan9 consentsd3ef025e is consumed once after two pre-submit read-only guard failures. Root same Job recovers GitHubAPIError on attempt2/3; actual Explore passes, but preparation attempt1/1 fails node_resolve/network_unavailable. No new Baseline/session/model/Coding/Verify/Review; new model calls0. All1430 events/1431 artifacts, old P8 usage/approval and planning64/3 holds verify. Two-metadata proxy probe passes but original full-recipe independent OCI also fails network; observer indentation failure is retained; corrected observation measures pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures. Generic30s positive public-DNS cache/concurrency candidate is under verification; no native restart. Source35be850/tests/security unchanged; no cap reset or unsupported node_tools proof used for node_resolve. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6336,6 +6336,46 @@ old usage/approvals and42 tables unchanged after the child. Logs/JSON credential
 scans pass; four endpoints remain healthy and active jobs/new policy calls are0.
 The selected15-pass container suite includes13 actual OCI cases and2 pure
 boundaries; counts are separated and the intermediate overclassification corrected.
+
+
+### 2026-11-03 Exact Plan9 run: environment network failure before new model admission
+
+[Human consentd3ef025e](acceptance/universal-environment-v1/ci-native-plan9-execution-approval.json)
+consumes previewe8bd3b98 via one execute. Two earlier helper failures occur before
+submission at the GitHub read guard. Rootf619363b's initial GitHubAPIError is
+preserved; the [same Job retry](acceptance/universal-environment-v1/ci-native-plan9-start-retry1.json)
+succeeds at2/3 under existing authorization, without a new execute or cap. The
+Worker read-only diagnostic's two automatic-review timeouts execute nothing;
+existing approved API recovery/status provide a safe alternative.
+
+[Actual terminal run](acceptance/universal-environment-v1/ci-native-plan9-execution.json)
+records new Attemptafdf1bfb/real Explore pass, then preparation5eee31d5 fails
+**node_resolve/network_unavailable/exit1**,1/1 attempts. No new native entrypoints,
+Baseline, v2 session, Coding, Verify or Review; model calls/writes/code repairs0.
+Old P8 checkpoint/22 charged calls remain distinct. All1430 events/1431 artifact
+hashes, audit/event chains, integrity/FK and74 original historical files verify;
+planning64/three unknown holds remain. No Job cap or old failure is overwritten.
+Typed recovery supports node_tools and cannot accept a fabricated node_resolve
+proof. Only the actual resource-dependent gate is blocked.
+
+[Restricted proxy probe](acceptance/universal-environment-v1/ci-native-plan9-package-proxy-probe.json)
+passes two npm metadata calls and outside-allowlist rejection, with no credentials
+or repository. The [independent original full recipe](acceptance/universal-environment-v1/ci-native-plan9-controlled-environment.json)
+still reproduces node_resolve/network_unavailable and preserves45 tables/1430
+native events. It is D component diagnosis, not native success. A separate observer
+fails its own generated-script indentation before target execution; that failure
+is retained, and corrected generated scripts compile before bounded re-observation.
+Source35be850/default1918-pass/62-skipped/75 focused/13 real OCI+2 pure boundaries
+are unchanged. Native0/4, U0/15, H Node, E3–E6/Linux remain open; **UPEVE-E04** is
+current. No source patch, publication, third-party or formal-data write occurs.
+
+[Corrected controlled observation](acceptance/universal-environment-v1/ci-native-plan9-controlled-network-observation-corrected.json)
+measures actual pnpm10.34.9/ERR_PNPM_FETCH_502 with matching proxies and30 proxy
+SSLZeroReturnError/4 TimeoutError/1 RemoteDisconnected. Static proxy call chain
+locates TLS closures in its fixed public DNS fetch, not the opaque package tunnel.
+This does not infer earlier native unrecorded exceptions. Native45 tables/1430
+events remain unchanged. Generic positive public-address caching/concurrent DNS
+serialization is in verification; no native retry or cap change is authorized.
 
 ---
 

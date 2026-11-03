@@ -1944,3 +1944,69 @@ promoted.
 [Sealed Plan9 evidence manifest](ci-native-plan9-evidence-seal.json) binds the
 exact source/checks/replay/deployment/preview/helper and retained Plan8 terminal
 records. It is a local audit seal, not a human approval or native success.
+
+### 2026-11-03 Plan9 consent consumed: startup recovers, dependency acquisition fails
+
+[Human consentsd3ef025e](ci-native-plan9-execution-approval.json) binds exact
+previewe8bd3b98. Two frozen helper invocations fail at the read-only upstream guard,
+before any execute receipt/POST. [Reconciliation](ci-native-plan9-preflight-reconciliation.json)
+retains these failures and one later successful submission, with the frozen SHA
+unchanged and no credential/configuration change. Direct/public authenticated
+observations intermittently pass; exact initial network cause remains unverified.
+The same product client also measures an internal proxy502; this is not evidence
+of model balance exhaustion or a bad GitHub token.
+
+[Native run](ci-native-plan9-execution.json) records one execution authorization
+and root Jobf619363b. Its first attempt fails `GitHubAPIError` before creating an
+ExecutionAttempt. [Existing Job retry](ci-native-plan9-start-retry1.json) preserves
+that failure and succeeds on attempt2 under the unchanged3-attempt limit; it
+submits no new execute, authorization or model request. Two Worker-domain
+read-only diagnostic submissions are not executed because automatic approval
+review times out; approved existing API retry/status provide a safe alternative.
+No approval check is bypassed.
+
+Actual new Attemptafdf1bfb completes real sandbox Explore. Preparation Job5eee31d5
+then fails with exact typed **node_resolve / network_unavailable / exit1**. Its
+original1-attempt limit is consumed; dependency/source workspaces are disposed
+normally. The actual failure artifact4786b24f and environment spec remain hashed
+and match the complete frozen Plan9 contract45ea2bdd. No native dependency receipt,
+entrypoint probe, Baseline, v2 session, Coding, Verify or independent Review exists
+for Plan9. **New model calls0, source writes0, code repairs0**. The UI's older P8
+blocked checkpoint belongs to P8 and retains all22 charged calls; it is never
+reported as22 new Plan9 calls or reused as a new Baseline.
+
+Terminal verification preserves all1415 pre-run events plus15 new records to1430;
+all1431 artifact hashes, SQLite integrity/FK/audit/event chains and74 original
+historical files verify. Planning64 cap and three unknown holds remain intact.
+The preparation Job is not directly retryable; the existing typed maintenance
+recovery accepts node_tools evidence and does not admit this node_resolve failure.
+No dummy proof, cap increase, job reset or replacement native preparation occurs.
+
+Independent [restricted proxy probe](ci-native-plan9-package-proxy-probe.json)
+measures two npm metadata200s and outside-allowlist rejection with the original
+policy/Runner, no credentials or repository. This does not prove full readiness.
+[Unmodified full-recipe OCI recheck](ci-native-plan9-controlled-environment.json)
+reproduces the same node_resolve/network failure; all45 native tables/1430 events
+stay unchanged, and no component result replaces the actual native failure.
+A separate [observer attempt](ci-native-plan9-controlled-network-observation.json)
+fails because its generated trusted script has an operator-introduced indentation
+error before the target workload; it is recorded separately as a diagnostic
+failure. Corrected generated prepare/proxy scripts compile before the next
+independent bounded observation. These are D diagnostics, not native recovery,
+zero-maintenance success, new U samples or completed delivery.
+
+Engine source35be850 and default1918-pass/62-skipped,75 focused and13 actual OCI
+plus2 pure boundaries remain unchanged; no broad suite or redeploy is repeated
+for evidence-only work. Native0/4, U0/15, H Node and E3–E6/Linux amd64 gates remain
+open; UPEVE-E04 is current. No third-party/formal-data writes or publication.
+
+The [corrected bounded observer](ci-native-plan9-controlled-network-observation-corrected.json)
+actually executes the original target: pnpm10.34.9 reports ERR_PNPM_FETCH_502,
+with both proxy variables matching. Proxy facts count30 SSLZeroReturnError,
+4 TimeoutError and1 RemoteDisconnected. Only the trusted proxy's fixed public
+DNS fetch uses TLS; its raw package tunnel does not. This controlled call-chain
+observation locates the TLS closures in DNS acquisition. It does not reconstruct
+unrecorded exceptions from the earlier native failure. Full45 native table hashes
+and1430 events remain unchanged. A generic, short-lived successful public-address
+cache/concurrent-DNS serialization candidate is now under verification; no new
+native preparation, model call, approval or deployment follows from diagnosis.
