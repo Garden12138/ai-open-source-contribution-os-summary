@@ -1,0 +1,87 @@
+{
+  "version": "upeve-recovered-supervisor-doctor-v1",
+  "recorded_at": "2026-11-03T02:14:19.832047+00:00",
+  "worker_container_id": "e41d03402d9efef7c9055d2b7e693e5a0884d7e5d7ac7fef656251923b786531",
+  "worker_image_source_manifest": "d9841bfa7975029dac11498b2d4b36bb8050ba5e762b4d78954362bab51276e2",
+  "actual_runtime": "macOS_arm64_OrbStack_with_Linux_arm64_supervisor_and_Runner",
+  "exit_code": 1,
+  "doctor": {
+    "checks": [
+      {
+        "code": "host_platform_unsupported",
+        "detail": "Unsupported host platform Linux/aarch64",
+        "name": "host_platform",
+        "ok": false
+      },
+      {
+        "code": "python_version_supported",
+        "detail": "Python 3.11.16",
+        "name": "python_version",
+        "ok": true
+      },
+      {
+        "code": "disk_capacity_sufficient",
+        "detail": "Workspace has 106 GiB free",
+        "name": "disk_capacity",
+        "ok": true
+      },
+      {
+        "code": "docker_available",
+        "detail": "Docker client and engine are reachable",
+        "name": "docker_runtime",
+        "ok": true
+      },
+      {
+        "code": "docker_version_supported",
+        "detail": "Docker client 29.8.0, engine 29.8.2, API 1.56",
+        "name": "required_versions",
+        "ok": true
+      },
+      {
+        "code": "engine_platform_unsupported",
+        "detail": "Engine must provide Docker Engine linux/amd64",
+        "name": "engine_platform",
+        "ok": false
+      },
+      {
+        "code": "policy_primitives_supported",
+        "detail": "Memory, CPU, PID, seccomp, and runc controls are available",
+        "name": "policy_primitives",
+        "ok": true
+      },
+      {
+        "code": "network_none_supported",
+        "detail": "Docker null network driver is available",
+        "name": "network_none",
+        "ok": true
+      },
+      {
+        "code": "buildx_unavailable",
+        "detail": "Docker buildx is unavailable",
+        "name": "buildx_version",
+        "ok": false
+      },
+      {
+        "code": "runner_image_verified",
+        "detail": "Runner image is verified for linux/arm64",
+        "name": "runner_image",
+        "ok": true
+      },
+      {
+        "code": "policy_probe_passed",
+        "detail": "Restricted SandboxPolicy runtime probe passed",
+        "name": "policy_probe",
+        "ok": true
+      }
+    ],
+    "host": {
+      "architecture": "aarch64",
+      "system": "Linux"
+    },
+    "ok": false,
+    "version": "sandbox-doctor-v1"
+  },
+  "real_model_calls": 0,
+  "third_party_writes": 0,
+  "not_native_Agent_or_Linux_amd64_acceptance": true
+}

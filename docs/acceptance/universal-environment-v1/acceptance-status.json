@@ -149,7 +149,10 @@
         "native-protocol-repair-checks.json",
         "ci-native-plan6-baseline.json",
         "ci-native-plan6-execution.json",
-        "native-context-projection-checks.json"
+        "native-context-projection-checks.json",
+        "ci-native-plan7-baseline.json",
+        "ci-native-plan7-execution.json",
+        "ci-native-plan7-storage-incident.json"
       ],
       "limit": "Historical Python exact five pass; historical Node exact eight remain unsupported"
     },
@@ -263,7 +266,10 @@
         "ci-native-plan6-execution.json",
         "native-context-projection-checks.json",
         "ci-native-plan7-execution-approval.json",
-        "ci-native-plan7-preflight-blocked.json"
+        "ci-native-plan7-preflight-blocked.json",
+        "ci-native-plan7-baseline.json",
+        "ci-native-plan7-execution.json",
+        "ci-native-plan7-storage-incident.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -325,9 +331,12 @@
         "native-context-projection-checks.json",
         "ci-native-plan7-execution-approval.json",
         "ci-native-plan7-preflight-blocked.json",
-        "ci-native-plan7-publisher-recovery.json"
+        "ci-native-plan7-publisher-recovery.json",
+        "ci-native-plan7-baseline.json",
+        "ci-native-plan7-execution.json",
+        "ci-native-plan7-storage-incident.json"
       ],
-      "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
+      "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey Actual Plan7 storage recovery preserves1005 verified main events but cannot recover an uncheckpointed tail; the unknown read step is blocked without replay. Full crash safety remains unproven."
     },
     {
       "id": "UE-T16",
@@ -364,7 +373,10 @@
         "ci-native-plan6-execution.json",
         "native-context-projection-checks.json",
         "ci-native-plan7-execution-approval.json",
-        "ci-native-plan7-preflight-blocked.json"
+        "ci-native-plan7-preflight-blocked.json",
+        "ci-native-plan7-baseline.json",
+        "ci-native-plan7-execution.json",
+        "ci-native-plan7-storage-incident.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -607,7 +619,7 @@
     "cumulative_complete_baselines": 0,
     "cumulative_selected": 15
   },
-  "latest_default_evidence": "native-context-projection-checks.json",
+  "latest_default_evidence": "native-task-input-checks.json",
   "native_first_attempts": {
     "selected": 4,
     "deliveries": 0,
@@ -616,9 +628,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "ci-native-plan6-execution.json",
-  "latest_isolated_deployment": "ci-native-plan7-publisher-recovery.json",
-  "latest_history_and_security_audit": "ci-native-plan7-preflight-blocked.json",
+  "latest_native_retest": "ci-native-plan7-execution.json",
+  "latest_isolated_deployment": "native-task-input-deployment.json",
+  "latest_history_and_security_audit": "ci-native-plan8-final-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -655,7 +667,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-plan7-preflight-blocked.json",
+  "latest_final_observation": "ci-native-plan8-final-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -1974,8 +1986,8 @@
     "legacy_prompt_wire_exact": true,
     "new_native_contract_requires_new_child_approval": true,
     "old_blocked_session_not_resumed": true,
-    "model_calls_after_Plan6_failure": 0,
-    "live_effect": "not_run",
+    "model_calls_after_Plan6_failure": 12,
+    "live_effect": "12_actual_Plan7_requests_admitted_under32K_before_storage_failure_not_delivery",
     "evidence": [
       "native-context-projection-replay.json",
       "native-context-projection-checks.json",
@@ -1983,7 +1995,7 @@
     ]
   },
   "pending_native_Plan7_execution": {
-    "status": "exact_approved_not_dispatched_missing_isolated_GitHub_credential",
+    "status": "approved_consumed_real_Baseline_pass_storage_incident_unknown_step_failed",
     "proposal_hash": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
     "evidence": "ci-native-plan7-execution-proposal.json",
     "plan_id": "7863d74a-83db-4b57-a767-8d8349a23948",
@@ -2012,16 +2024,30 @@
     },
     "execution_approved": true,
     "publication_approved": false,
-    "new_Plan7_Baseline": "not_run",
-    "Coding_Verify_Review": "not_run",
+    "new_Plan7_Baseline": "passed_4_of_4",
+    "Coding_Verify_Review": "Coding_interrupted_before_patch_Verify_Review_not_run",
     "approval_hash": "ce871e87e22f271bfa9480d6b386aa6302229150635b86fa6a702de0a5d54703",
     "approval_evidence": "ci-native-plan7-execution-approval.json",
-    "approval_retained_for_same_exact_inputs": true,
-    "native_execute_POSTs": 0,
-    "new_model_calls": 0,
+    "approval_retained_for_same_exact_inputs": false,
+    "native_execute_POSTs": 1,
+    "new_model_calls": 12,
     "preflight_blocker_evidence": "ci-native-plan7-preflight-blocked.json",
-    "required_prerequisite": "User enters a GitHub token in secure settings on isolated18090; exact frozen source/state/upstream HEAD must still match.",
-    "upstream_HEAD": "not_verified"
+    "required_prerequisite": "Resolve and verify recovery/candidate source, then prepare a fresh exact bounded child; never resume/reset blocked Plan7.",
+    "upstream_HEAD": "matched_at_actual_single_execute",
+    "result_evidence": "ci-native-plan7-execution.json",
+    "Baseline_evidence": "ci-native-plan7-baseline.json",
+    "storage_incident_evidence": "ci-native-plan7-storage-incident.json",
+    "old_approval_consumed_not_reusable": true,
+    "actual_tool_results": 14,
+    "actual_Docker_reads": 4,
+    "actual_artifact_reads": 10,
+    "charged_reads": 15,
+    "reported_usage": {
+      "input_tokens": 76385,
+      "output_tokens": 2541
+    },
+    "checkpoint_blocker": "agent_step_outcome_unknown",
+    "workflow_blocker": "lease_expired"
   },
   "Plan7_private_storage_recovery": {
     "status": "secure_browser_entry_ready_empty_store_user_credential_required",
@@ -2041,5 +2067,100 @@
     "actual_OCI_component_passed": 4,
     "OCI_component_not_native_Agent_success": true,
     "formal_data_modified": false
+  },
+  "Plan7_storage_recovery": {
+    "status": "verified_main_recovered_single_Linux_volume_unknown_step_not_replayed",
+    "evidence": "ci-native-plan7-storage-incident.json",
+    "main_verified_events": 1005,
+    "original856_preserved": true,
+    "raw_replacement_WAL_view_malformed": true,
+    "unknown_uncheckpointed_tail_not_invented": true,
+    "current_events": 1013,
+    "no_model_or_tool_replay": true,
+    "old_usage_and_unknown_holds_retained": true,
+    "private_user_credential_preserved_and_rebound_inside_Publisher": true,
+    "operator_recovery_not_autonomous_success": true,
+    "formal_data_modified": false
+  },
+  "task_input_and_maintenance_candidate": {
+    "status": "full1911_passed_isolated_deployed_native_effect_not_run",
+    "task_input_strategy": "hash_verified_complete_input_only_if_full_native_wire_admitted_at32000",
+    "legacy_wire_unchanged": true,
+    "old_native_contract_requires_fresh_child_approval": true,
+    "maintenance_missing_source_id": "legacy_unverified_counted_as_intervention_no_history_rewrite",
+    "new_negative_cases": 7,
+    "controlled_actual_prompt_replays": 12,
+    "candidate_actual_model_calls": 0,
+    "engine_revision": "6e0fdc8f33e2d4580021400228a377f86f3703c4",
+    "source_manifest_hash": "d9841bfa7975029dac11498b2d4b36bb8050ba5e762b4d78954362bab51276e2",
+    "default_regression": {
+      "tests": 1973,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1911
+    },
+    "focused_passed": 116,
+    "evidence": [
+      "native-task-input-checks.json",
+      "native-task-input-replay.json",
+      "native-task-input-deployment.json",
+      "native-task-input-contract-comparison.json"
+    ],
+    "actual_API_functions_and_instruction_unchanged": true,
+    "task_page_recovered_HTTP200": true,
+    "all45_business_tables_unchanged_during_deploy": true,
+    "native_events_after_child": 1017
+  },
+  "pending_native_Plan8_execution": {
+    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "proposal_hash": "91ab427ee6c7097a7ddc53aeed9518219e521d56900a87a2e4cc2cffd241587e",
+    "evidence": "ci-native-plan8-execution-proposal.json",
+    "plan_id": "a9046e96-35e4-4437-aa64-fc387f45fa03",
+    "plan_record_hash": "2fbc7092fa180f47a90866f47d6b187c08f704c2318bed1aa831f915185515d8",
+    "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "parent_plan_id": "7863d74a-83db-4b57-a767-8d8349a23948",
+    "classification": "D_operator_mechanical_child_not_U_or_zero_maintenance",
+    "business_scope_paths_commands_unchanged": true,
+    "model_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "b892407473c481106e38cb8593ac091dd1fc12552fbbcc74fb29aa56ac37d843"
+    },
+    "runtime": "single_Linux_kernel_named_business_volume_and_separate_private_Publisher",
+    "old_Plan7_unknown_outcome_failure_usage_preserved": true,
+    "agent_limits": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "execution_approved": false,
+    "publication_approved": false,
+    "new_Plan8_Prepare_Baseline": "unverified",
+    "Coding_Verify_Review": "not_run"
+  },
+  "recovered_runtime_doctor": {
+    "physical_macOS_arm64_OrbStack": "passed",
+    "physical_host_evidence": "native-task-input-host-doctor.json",
+    "inside_supervisor_total": "failed_host_classifier_and_buildx",
+    "inside_supervisor_policy_probe": "passed",
+    "inside_supervisor_evidence": "native-task-input-supervisor-doctor.json",
+    "Linux_amd64": "blocked_not_run",
+    "no_check_weakened_or_failed_total_relabelled": true
+  },
+  "Plan8_historical_artifact_recovery": {
+    "status": "387_original_hash_blobs_restored_from_owned_backup_45_tables_unchanged",
+    "evidence": "ci-native-plan8-artifact-recovery.json",
+    "live_integrity_evidence": "native-task-input-live-artifact-check.json",
+    "live_registered_artifacts_verified": 1323,
+    "metadata_or_historical_outcomes_rewritten": false,
+    "unknown_uncheckpointed_tail_not_invented": true
   }
 }

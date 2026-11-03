@@ -1729,3 +1729,121 @@ for restoring this prerequisite. Current upstream head is unverified; new Plan7
 Prepare/Baseline/Coding/Verify/independent Review and the prompt fix's live effect
 are not_run. Native first0/4, U baselines0/15, H Node failure, Linux amd64 blocker
 and all E3–E6 gates remain. Current task is UPEVE-E04.
+
+## 2026-11-03 — Actual Plan7 Baseline passes; storage recovery stops Coding
+
+After secure user entry, the account probe succeeds for Garden12138 and the
+unchanged helper verifies the frozen upstream head. It submits exactly one
+execute action under the existing consent. [Actual Plan7 evidence](ci-native-plan7-execution.json)
+records root Jobd1e57de6, Attempt81ed28c7 and sessiondcf70b2f. The
+[new bound Baseline](ci-native-plan7-baseline.json) proves8 real entrypoint probes
+and all4 unchanged checks pass. It is not reused Plan6 evidence or a U result.
+
+Plan7 makes **12 real native model calls /12 valid Decisions**, with14 committed
+tool results:4 Docker source reads and10 task-artifact reads. A fifteenth
+read_artifact step is charged and started without a committed receipt. Charged
+and reported use is76,385 input /2,541 output;15 read charges remain. All12 native
+inputs are admitted at10,714–22,702 bytes under the unchanged32K cap. No patch,
+Issue regression, post-change Verify or independent Review is produced.
+
+The [storage incident](ci-native-plan7-storage-incident.json) preserves the
+unexpected API disk-I/O failure and two different open WAL/SHM inode pairs for
+the same paths. A raw DB+replacement-WAL snapshot is malformed; its independently
+copied main file passes integrity/foreign keys, all32 audit hashes and1005 native
+event hashes, including the entire frozen856-event prefix and149 new Plan7
+events. The exact file-unlink cause remains unknown. The old topology directly
+shares business WAL between macOS processes and a Linux Publisher bind mount;
+[SQLite requires one shared host/lock domain](https://sqlite.org/wal.html).
+This unsafe topology is a demonstrated risk, not proof of who replaced a file.
+
+The operator suspends writers, preserves private raw DB/WAL/SHM backups and keeps
+the old open descriptors. OS access to the unlinked old inode is denied; no
+privilege bypass or invented tail follows. Recovery uses only the independently
+verified main candidate and951 hash-verified immutable artifacts. Any additional
+uncheckpointed tail stays unknown. Recent Publisher connection events present
+only in the quarantined WAL are not inserted into recovered history.
+
+All five business roles now use one Linux Docker named volume, with separate
+Publisher-private storage; the credential-only model Gateway stays running on
+the host without a business DB. Only the trusted Sandbox Worker has the Docker
+socket and network none; untrusted Runner policy/image/network are unchanged.
+The existing JobService expires the one-attempt read lease, and existing v2
+reconciliation blocks `agent_step_outcome_unknown`; workflow reports
+`lease_expired`. No tool/model request is replayed or budget/time reset. A real
+new sealed-API account probe rebinds the preserved credential inside Publisher;
+the plaintext never leaves that trust domain. User re-entry is unnecessary.
+
+The operator subsequently appends a maintenance record with a missing
+`source_id`, bypassing the existing mark_maintenance helper. This causes a
+separate metrics KeyError/page500; event1013/hash0b86f1ac remains immutable.
+The candidate reader counts incomplete records as intervention and labels them
+`legacy_unverified`, preserving autonomous exclusion and all old payloads.
+Three negative regressions first fail; focused regression passes after the fix.
+
+Actual requests also repeatedly read the same9431-byte task artifact at offset0.
+Large complete ToolResults are cropped again by prompt feedback. A controlled
+replay shows the entire approved Plan/Issue would fit all12 actual requests
+(maximum31,873 bytes). The generic candidate promotes the complete hash-bound
+input only when the full native wire fits32K, otherwise preserves honest paging.
+Four boundary/reference regressions first fail; the transport version/hash
+changes, so the old authorization cannot silently adopt the candidate. Legacy
+wire, all API functions, evidence scope, checks and budgets remain exact.
+
+[Candidate checks](native-task-input-checks.json) on commit
+`6e0fdc8f33e2d4580021400228a377f86f3703c4`: **1911 passed /62 skipped /0 failed**,
+116 focused/7 new cases, compileall/import/diff checks. One expected-hash fixture
+is updated for the newly frozen delivery policy; no guard is relaxed. The
+[controlled replay](native-task-input-replay.json) uses the actual projector and
+preserves every Plan/Issue field and other prompt/evidence field, maximum31,868
+under32000. [Old-image comparison](native-task-input-contract-comparison.json)
+proves API function schemas and trusted instruction are identical; only the
+projection digest changes to`b8924074…`.
+
+[Deployment](native-task-input-deployment.json) replaces all five idle business
+containers with verified242-file images, retaining their full security/resource/
+internal environment configuration and preserving45 tables/1013 events. The
+model Gateway stays separate and is not cold-restarted. Task page200 now reports
+the incomplete maintenance record as legacy_unverified and counts intervention.
+The [physical macOS/OrbStack Doctor](native-task-input-host-doctor.json) passes.
+The [container Doctor](native-task-input-supervisor-doctor.json) total remains
+**failed** for Linux-arm64 host classification/engine expectation and missing
+buildx; its actual fixed-image policy probe passes. These are distinct results,
+not a relabelled total pass or Linux amd64 evidence.
+
+After deployment, existing stop/save APIs create the marked mechanical
+[Plan8](ci-native-plan8-draft.json), UUID`a9046e96-35e4-4437-aa64-fc387f45fa03`,
+record`2fbc7092fa180f47a90866f47d6b187c08f704c2318bed1aa831f915185515d8`.
+Its entire approved business content/hash,8 write paths and4 exact commands equal
+Plan7. The standard mark_maintenance helper records the copy correctly; the bad
+old receipt is untouched. Four records append to1013, making1017;8 Plans/5
+execution authorizations, no stale successor job or new model call.
+
+[Scope review](ci-native-plan8-source-review.json) is an operator check, not an
+independent ReviewRun. [Exact Plan8 execution preview](ci-native-plan8-execution-proposal.json),
+hash **`91ab427ee6c7097a7ddc53aeed9518219e521d56900a87a2e4cc2cffd241587e`**,
+is **unapproved/unrun**. It binds current source, transport, all five current
+container identities/security fingerprints, the single-kernel volume and an
+[approval-gated helper](native_plan8_execute.py). The helper observes authoritative
+SQLite state only inside Linux, checks source/state/head and creates a receipt
+before one idempotent execute POST; it never queries the quarantined host DB.
+Fresh unchanged limits are24 calls/200K input/32K output/1800s plus original
+independent Review bounds and at most2 code repairs. Old Plan7's12 calls/15 read
+charges, all older failures, planning64 cap and three unknown holds remain.
+
+New Plan8 Prepare/Baseline/Coding/Verify/Review and candidate model effectiveness
+remain not_run; old Baseline or replay cannot replace them. New exact approval
+is required after a consumed failed action and changed frozen policy. Final
+human acceptance/publication stay separate. Native first0/4, U0/15, H Node failure,
+Linux amd64 blocker and E3–E6 gates remain; UPEVE-E04 is current. The
+[final audit](ci-native-plan8-final-audit.json) records the current boundary.
+
+The full audit additionally finds387 early registered artifact files absent from
+the active store. [Exact backup recovery](ci-native-plan8-artifact-recovery.json)
+locates every original blob in the owned pre0040 backup, verifies its recorded
+hash/size and credential scan, and exclusively recreates missing files with the
+same bytes (5,825,655 bytes total). No existing file, metadata row or provenance
+event is overwritten or generated; all45 table hashes stay unchanged. The loss
+cause/time is unknown. [Live Linux-store verification](native-task-input-live-artifact-check.json)
+then confirms all**1323** registered blobs, with zero missing/mismatched IDs.
+This restores old evidence availability; it does not change any failed outcome
+or reconstruct the unknown uncheckpointed native tail.

@@ -1,0 +1,113 @@
+{
+  "version": "upeve-bounded-complete-task-replay-v1",
+  "recorded_at": "2026-11-03T02:08:53.196902+00:00",
+  "classification": "controlled_readonly_actual_prompt_replay_not_model_or_native_success",
+  "source_manifest_hash": "d9841bfa7975029dac11498b2d4b36bb8050ba5e762b4d78954362bab51276e2",
+  "original_TaskSpec_hash": "d7f9a26a547e76b6fa796757571f0736effc18a09789541e168ea2d76d529fee",
+  "original_native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "29fe3de65e671b1e363f8012ff5a8a887d0f110b94589018650ca134bab290aa"
+  },
+  "candidate_native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "b892407473c481106e38cb8593ac091dd1fc12552fbbcc74fb29aa56ac37d843"
+  },
+  "candidate_TaskSpec_only_in_memory_no_authority": true,
+  "task_input_hash": "955ff0ca39b9185661a816d53eacd6072d680fcb50d97ce35143dc92bfb962ba",
+  "task_input_bytes": 9431,
+  "all_task_fields_and_evidence_refs_exact": true,
+  "API_functions_unchanged": true,
+  "all_other_prompt_fields_exact": true,
+  "hard_input_cap": 32000,
+  "actual_prompt_replays": [
+    {
+      "sequence": 874,
+      "prompt_artifact": "3e68a71e69dd9b650f6a4580b0195383c69b52a34fba773e083fc227bf5348bb",
+      "actual_input_bound": 10714,
+      "candidate_input_bound": 19880,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 884,
+      "prompt_artifact": "8914cbb6ce09b9b26ccdd225e69e862d73b7ce1fb0b5dfc44364553b7ab57175",
+      "actual_input_bound": 15727,
+      "candidate_input_bound": 24893,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 894,
+      "prompt_artifact": "4b36029467d775ea4700e8590d26421c3845be6b5bba0430c048da95155a961f",
+      "actual_input_bound": 20677,
+      "candidate_input_bound": 29843,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 904,
+      "prompt_artifact": "12903e0b4ee07d8be1f21b0ebc5485b069ccf762612a21eec6bf7030f2e11e70",
+      "actual_input_bound": 20819,
+      "candidate_input_bound": 29985,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 914,
+      "prompt_artifact": "7b40d0b11321516291dfa518974c44c0c50b82a18776d785b2cd06c6639dd383",
+      "actual_input_bound": 21027,
+      "candidate_input_bound": 30193,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 924,
+      "prompt_artifact": "749cb9639c921beff67741f7d0288cd4d7cad6aebfc1d6acd10c1bf8fe22a7a3",
+      "actual_input_bound": 21154,
+      "candidate_input_bound": 30320,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 934,
+      "prompt_artifact": "a8110482b7b547fc1a9902c5777a6e8ef7ad22954ef2bc48ff74739ba6b93a2f",
+      "actual_input_bound": 21281,
+      "candidate_input_bound": 30447,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 959,
+      "prompt_artifact": "9cda8a714372842caca66a941f675cdb5bddadc5b671a5c29d17cc5d26031283",
+      "actual_input_bound": 22702,
+      "candidate_input_bound": 31868,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 969,
+      "prompt_artifact": "1c559e36d6e87d49f7de805643a8b0f47dc23cefd554d5a0c8697e6ea1ae8a08",
+      "actual_input_bound": 22693,
+      "candidate_input_bound": 31859,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 979,
+      "prompt_artifact": "a16cb402567898dcc8852433351dfb6ac55a73c167d99c9e444dc64d4fd2cefd",
+      "actual_input_bound": 22619,
+      "candidate_input_bound": 31785,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 989,
+      "prompt_artifact": "8578fde83a9efc983079faa9fff4a65dce075cd2ca72b35b020a83dd7dba77f9",
+      "actual_input_bound": 22553,
+      "candidate_input_bound": 31719,
+      "candidate_complete_approved_Plan_and_Issue": true
+    },
+    {
+      "sequence": 999,
+      "prompt_artifact": "dbc1578a578aaaa422c887bd01a0425a0e833338d72acd36039647bab8e6850b",
+      "actual_input_bound": 22333,
+      "candidate_input_bound": 31499,
+      "candidate_complete_approved_Plan_and_Issue": true
+    }
+  ],
+  "candidate_input_bound_max": 31868,
+  "model_calls": 0,
+  "business_writes": 0,
+  "old_checkpoints_and_usage_not_reset": true,
+  "native_effect": "not_run"
+}

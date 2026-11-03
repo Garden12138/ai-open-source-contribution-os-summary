@@ -1,0 +1,228 @@
+{
+  "version": "upeve-plan8-mechanical-scope-review-v1",
+  "recorded_at": "2026-11-03T02:27:09.869878+00:00",
+  "classification": "operator_scope_check_not_independent_Review_or_native_Plan_generation",
+  "plan_id": "a9046e96-35e4-4437-aa64-fc387f45fa03",
+  "plan_record_hash": "2fbc7092fa180f47a90866f47d6b187c08f704c2318bed1aa831f915185515d8",
+  "parent_record_hash": "9cc740c6a2fac687ef6ff4aef3e6b6474dd12df72327c9713ded0d9bbea3d9af",
+  "unchanged_business_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "goal_criteria_steps_tests_risks_paths_and_checks_unchanged": true,
+  "model_profiles_unchanged": true,
+  "native_transport_changed_requires_new_exact_approval": true,
+  "platform_change": "All business SQLite readers/writers share a Linux named volume. Bounded complete task input projection and conservative legacy_unverified maintenance preserve scopes, caps and historical data.",
+  "new_Plan8_Prepare_Baseline": "unverified",
+  "operator_business_patch": false,
+  "execution_approved": false,
+  "runtime_scope": {
+    "serve": {
+      "id": "e588136a1379aaf84960d0835d98a3497dca00bda3ff6d5edacd3dc910e5f126",
+      "image": "sha256:e2a9b06ac34fdfb0aeb673cb48a3e174f9b99a8dbe8897fb2be3218466644601",
+      "user": "501:20",
+      "read_only_root": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_options": [
+        "no-new-privileges:true"
+      ],
+      "network": "upeve-business-recovery-20261103",
+      "memory_bytes": 536870912,
+      "nanocpus": 1000000000,
+      "pids": 128,
+      "ports": {
+        "8000/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "18090"
+          }
+        ]
+      },
+      "mounts": [
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-business-20261103",
+          "Destination": "/data",
+          "RW": true
+        }
+      ],
+      "configuration_fingerprint": "61cf9d4fe2812583482c6555abb4034f67686f5aaf6ddec596bff60f14c86ec6"
+    },
+    "worker": {
+      "id": "bd362384440fdf8ac60dd0c620343b64512a3e240d224a3618f97625e2ab5ad0",
+      "image": "sha256:e2a9b06ac34fdfb0aeb673cb48a3e174f9b99a8dbe8897fb2be3218466644601",
+      "user": "501:20",
+      "read_only_root": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_options": [
+        "no-new-privileges:true"
+      ],
+      "network": "upeve-business-recovery-20261103",
+      "memory_bytes": 536870912,
+      "nanocpus": 1000000000,
+      "pids": 128,
+      "ports": {},
+      "mounts": [
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-business-20261103",
+          "Destination": "/data",
+          "RW": true
+        }
+      ],
+      "configuration_fingerprint": "b96d9c464b4787e7b8258e7d5502228faa67005cd4f41d999ade3c7857f4849c"
+    },
+    "sandbox-worker": {
+      "id": "e41d03402d9efef7c9055d2b7e693e5a0884d7e5d7ac7fef656251923b786531",
+      "image": "sha256:880afdbb54cb52fa8d3eed3427a97c8edc06201ac503fa1419dbe13f171d8aec",
+      "user": "501:20",
+      "read_only_root": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_options": [
+        "no-new-privileges:true"
+      ],
+      "network": "none",
+      "memory_bytes": 2147483648,
+      "nanocpus": 1000000000,
+      "pids": 128,
+      "ports": {},
+      "mounts": [
+        {
+          "Type": "bind",
+          "Name": null,
+          "Destination": "/var/run/docker.sock",
+          "RW": true
+        },
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-business-20261103",
+          "Destination": "/var/lib/docker/volumes/upeve-isolated-business-20261103/_data",
+          "RW": true
+        }
+      ],
+      "configuration_fingerprint": "9a9c577f696695a444d87f8156bf3ff6a8228340d8444ce23c7a8c503407c783"
+    },
+    "provider-worker": {
+      "id": "43f4e28b98ff56e21d546669ef9930a48573d892bd9183f379941ce6503fcddc",
+      "image": "sha256:e2a9b06ac34fdfb0aeb673cb48a3e174f9b99a8dbe8897fb2be3218466644601",
+      "user": "501:20",
+      "read_only_root": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_options": [
+        "no-new-privileges:true"
+      ],
+      "network": "upeve-business-recovery-20261103",
+      "memory_bytes": 536870912,
+      "nanocpus": 1000000000,
+      "pids": 128,
+      "ports": {},
+      "mounts": [
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-business-20261103",
+          "Destination": "/data",
+          "RW": true
+        }
+      ],
+      "configuration_fingerprint": "912c37b7cbb964efbba2b9d06f94836dc7687e215f2ad17c62720195b89ea8f0"
+    },
+    "publisher": {
+      "id": "c7f46ad1e04b0eb44e21073b345e040734d70cb5d62f78750eed277cb109071a",
+      "image": "sha256:e2a9b06ac34fdfb0aeb673cb48a3e174f9b99a8dbe8897fb2be3218466644601",
+      "user": "501:20",
+      "read_only_root": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_options": [
+        "no-new-privileges:true"
+      ],
+      "network": "upeve-business-recovery-20261103",
+      "memory_bytes": 536870912,
+      "nanocpus": 1000000000,
+      "pids": 128,
+      "ports": {
+        "8002/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "18092"
+          }
+        ]
+      },
+      "mounts": [
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-business-20261103",
+          "Destination": "/data",
+          "RW": true
+        },
+        {
+          "Type": "volume",
+          "Name": "upeve-isolated-publisher-private-20261103",
+          "Destination": "/publisher-private",
+          "RW": true
+        }
+      ],
+      "configuration_fingerprint": "390b617bf50189991aba6062b9150996cb57f4fcc86607fa1595e7cf5bb6fc3b"
+    }
+  },
+  "blocking_findings": []
+}

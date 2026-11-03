@@ -1,0 +1,169 @@
+{
+  "version": "upeve-Plan7-storage-incident-v1",
+  "recorded_at": "2026-11-03T01:53:28.963460+00:00",
+  "classification": "D_operator_storage_recovery_not_autonomous_native_success",
+  "approved_preview": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
+  "single_execute_POST_receipt": "ci-native-plan7-execution.json",
+  "symptom": "API_SQLite_IO_error_then_task_absent_from_replaced_WAL_view",
+  "observed_old_open_WAL_inode": 255613202,
+  "observed_old_open_SHM_inode": 255613203,
+  "observed_replacement_WAL_inode": 273969373,
+  "observed_replacement_SHM_inode": 273969374,
+  "main_file_inode": 255613123,
+  "exact_unlink_cause": "unknown",
+  "unsupported_previous_topology": "macOS_business_processes_and_Linux_Publisher_directly_open_shared_WAL_over_bind_mount",
+  "SQLite_same_host_requirement": "https://sqlite.org/wal.html",
+  "topology_is_risk_and_not_proof_of_exact_unlink_origin": true,
+  "current_WAL_overlay_snapshot": "database_disk_image_malformed",
+  "main_only_snapshot": "integrity_ok_foreign_keys_empty_audit_chain_valid32_workbench_chain_valid1005",
+  "frozen_original856_events_preserved": true,
+  "new_Plan7_native_events_recovered": 149,
+  "actual_model_starts_recovered": 12,
+  "actual_Baseline": "4_of_4_passed",
+  "entrypoint_probes": 8,
+  "source_patches": 0,
+  "possible_uncheckpointed_tail": "unknown_not_invented",
+  "old_unlinked_WAL_read_only_recovery": "OS_permission_denied_no_bypass",
+  "quiescence": {
+    "version": "upeve-plan7-wal-quiescence-v1",
+    "recorded_at": "2026-11-03T01:24:00.792354+00:00",
+    "reason": "API_SQLite_IO_error_and_simultaneous_distinct_WAL_inodes",
+    "host_business_roles_suspended": [
+      {
+        "role": "serve",
+        "wrapper": 74980,
+        "child": 74990
+      },
+      {
+        "role": "worker",
+        "wrapper": 74982,
+        "child": 74989
+      },
+      {
+        "role": "sandbox-worker",
+        "wrapper": 74983,
+        "child": 74988
+      },
+      {
+        "role": "provider-worker",
+        "wrapper": 74985,
+        "child": 74992
+      }
+    ],
+    "isolated_Publisher_paused": "f813dce8ad1723f97cc2a99812421c381b844256baa0c5935ce4be1384792e3c",
+    "model_gateway_left_running_no_business_DB": true,
+    "original_database_files_preserved": {
+      "state.db": {
+        "inode": 255613123,
+        "size": 5939200,
+        "sha256": "6728bd4290f9703e6e5f5597432253d45d169ec68cbe50457c7a111efa6a07e1"
+      },
+      "state.db-shm": {
+        "inode": 273969374,
+        "size": 32768,
+        "sha256": "f49723f30ee4fb4df93ea0c4296af358e5da2a95136a543bfb66e37f5679cbe9"
+      },
+      "state.db-wal": {
+        "inode": 273969373,
+        "size": 461472,
+        "sha256": "cbc527a6dbccde23f793b1bda99f76f02becba7c9a635568450bacac5022b176"
+      }
+    },
+    "backup_private_mode": "0700_directory_0600_files",
+    "no_execute_replay": true,
+    "original_open_WAL_not_closed": true,
+    "formal_data_modified": false
+  },
+  "verified_main_file_sha256": "6728bd4290f9703e6e5f5597432253d45d169ec68cbe50457c7a111efa6a07e1",
+  "raw_incident_backups_private_not_committed": true,
+  "immutable_artifacts_copied_and_hash_verified": 951,
+  "original_helper_not_reexecuted": true,
+  "replayed_model_requests": 0,
+  "existing_recovery_policy": "expired_one_attempt_tool_job_times_out_then_agent_step_outcome_unknown_blocks",
+  "unknown_step": "read_artifact_started_and_charged_but_no_committed_receipt",
+  "old_usage_and_lease_state_not_reset": true,
+  "first_recovery_helper_failed_missing_copied_UPEVE_platform_field": true,
+  "platform_field_restored_from_same_owned_process_configuration": true,
+  "recovery": {
+    "version": "upeve-single-kernel-container-recovery-v1",
+    "recorded_at": "2026-11-03T01:41:21.871333+00:00",
+    "roles": {
+      "serve": {
+        "id": "75a53993d91fc07ea3889c41b62486829bbfa47c3b15418ae551f5c21d236768",
+        "name": "upeve-recovery-api-20261103"
+      },
+      "worker": {
+        "id": "b2e8b1347681085414d104faedb90f977401502ae6f38c7ecf5d75ffab315937",
+        "name": "upeve-recovery-worker-20261103"
+      },
+      "sandbox-worker": {
+        "id": "fa868bfc641119ec3b124602bb65132996e8c5595bfc4b645f4e3cd7ec2e2982",
+        "name": "upeve-recovery-sandbox-worker-20261103"
+      },
+      "provider-worker": {
+        "id": "43960ad8d7bfeec2ee86165a62296669ea4129bee24a8346462f1a5f8cd90bfa",
+        "name": "upeve-recovery-provider-worker-20261103"
+      },
+      "publisher": {
+        "id": "5d5770df77afd2087bc05de737043b2632ad835399b45a19771f12124ddf64f1",
+        "name": "upeve-recovery-publisher-20261103"
+      }
+    },
+    "recovery_helper_id": "071583e061437e67a486847d68e6cde5b8b443e3b858e62ebd6bd5f34b8a726e",
+    "recovery_result": {
+      "expired_jobs": [],
+      "checkpoint_state": "blocked",
+      "usage": {
+        "model_calls": 12,
+        "input_tokens": 76385,
+        "output_tokens": 2541,
+        "reads": 15,
+        "output_bytes": 111219
+      },
+      "events": 1007
+    },
+    "business_volume": "upeve-isolated-business-20261103",
+    "publisher_private_volume": "upeve-isolated-publisher-private-20261103",
+    "daemon_data_root": "/var/lib/docker/volumes/upeve-isolated-business-20261103/_data",
+    "network": "upeve-business-recovery-20261103",
+    "host_model_gateway_kept_running": true,
+    "old_host_roles_retired_without_SQLite_close": true,
+    "old_Publisher_preserved_stopped": true,
+    "internal_HMAC_configuration_reused_without_values_in_receipt": true,
+    "new_model_calls_by_recovery": 0,
+    "formal_data_modified": false,
+    "third_party_writes": 0
+  },
+  "recent_Publisher_connection_events_not_retained_in_verified_main_snapshot": true,
+  "recent_Publisher_events_preserved_only_in_quarantined_WAL_not_reinserted_as_history": true,
+  "preserved_encrypted_user_credential_rebound_by_existing_secure_API": {
+    "version": "upeve-Plan7-preserved-private-credential-rebind-v1",
+    "recorded_at": "2026-11-03T01:44:23.076417+00:00",
+    "recovery_of_user_saved_credential": true,
+    "credential_previously_confirmed_for_login": "Garden12138",
+    "quarantined_original_connected_account_hash": "ef6b2ad5b79ba8e95cd66bae42c8da02a2c0ad1433d55c35f52edb70ee14e8aa",
+    "recovered_prior_account_hash": "04e4692d56eedae62429fcd407217be8ab4aa5f522552f9d50c8c840f0a16fa8",
+    "existing_secure_same_origin_CSRF_endpoint": true,
+    "processing_inside_isolated_Publisher_only": true,
+    "plaintext_credential_did_not_leave_Publisher": true,
+    "no_operator_host_decryption": true,
+    "no_credential_or_envelope_in_receipt": true,
+    "no_new_user_credential_required": true,
+    "account_probe_job_id": "5be39d4e-81c1-4e75-bfeb-85461c0b5c95",
+    "status": "connected_after_read_only_probe",
+    "native_model_calls": 0,
+    "publication_authorized": false,
+    "third_party_writes": 0,
+    "formal_data_modified": false,
+    "recovered_account_hash": "ce443c22f1fd3e3a36a3544596f2d8092b2af4d03d2a4184d1525af29984853c",
+    "login": "Garden12138",
+    "probe_succeeded": true
+  },
+  "recovery_added_real_new_account_probe_not_fabricated_old_event": true,
+  "model_Gateway_not_restarted": true,
+  "real_model_credentials_not_read": true,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "phase_gate_promoted": false,
+  "record_hash": "9aa0a0bd55d29c828eed836eca7f9b486c54148e8d5618686beca5054f13c01e"
+}
