@@ -47,6 +47,19 @@ connections and transferred bytes, and carries no application credentials.
 The Worker waits for a local proxy readiness probe before preparation begins
 and destroys the proxy container and internal network afterward.
 
+The proxy reuses only successfully validated public DNS endpoints in a private
+30-second cache. A lock serializes concurrent lookups so package-manager fan-out
+does not create concurrent identical public-DNS TLS requests. The captured
+allowlist permits at most six host/port entries; it cannot be expanded after
+creation. Every returned endpoint retains the exact TCP port/address family and
+passes public-IP validation, including cache hits. Callers receive independent
+copies. Expired entries are removed before refresh, and denied/failed lookups are
+never cached or used as a stale fallback. The fixed resolver, TLS hostname checks,
+package integrity checks, proxy allowlist and resource limits stay in force.
+Cache state is ephemeral and disappears with the proxy container. This transport
+change requires a newly frozen source/approval before another native execution;
+it does not make an earlier failed preparation ready or extend its attempt limit.
+
 Every package-manager child also receives the exact
 [`sandbox-git-safety-v1`](sandbox-git-safety.md) environment. VCS dependencies,
 submodules, hooks, credential helpers, LFS filters, SSH, and every Git transport

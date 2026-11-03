@@ -1733,6 +1733,7 @@ import time
 from urllib.parse import urlsplit
 
 allowed = set(sys.argv[1].split(","))
+package_addresses = create_cached_package_resolver(allowed)
 denied_headers = {
     "authorization", "cookie", "proxy-authorization",
     "x-api-key", "x-auth-token",
@@ -1742,7 +1743,7 @@ def connect_allowed(host, port):
     host = host.lower().rstrip(".")
     if host not in allowed or port not in {80, 443}:
         raise ValueError("denied")
-    candidates = resolve_package_addresses(host, port, allowed)
+    candidates = package_addresses(host, port)
     for family, socktype, proto, _, address in candidates:
         ip = ipaddress.ip_address(address[0])
         if not ip.is_global:
@@ -1851,8 +1852,9 @@ with Server(("0.0.0.0", 8080), Handler) as server:
 """
 
 from inspect import getsource
-from app.sandbox_worker.package_dns import fetch_public_package_dns, resolve_package_addresses
-_PROXY_SCRIPT = getsource(fetch_public_package_dns) + "\n" + getsource(resolve_package_addresses) + "\n" + _PROXY_SCRIPT
+from app.sandbox_worker.package_dns import fetch_public_package_dns, resolve_package_addresses, create_cached_package_resolver
+_PROXY_SCRIPT = ("from collections.abc import Callable\n" + getsource(fetch_public_package_dns) + "\n"
+    + getsource(resolve_package_addresses) + "\n" + getsource(create_cached_package_resolver) + "\n" + _PROXY_SCRIPT)
 
 
 def _relative_path(value: str, *, name: str) -> str:

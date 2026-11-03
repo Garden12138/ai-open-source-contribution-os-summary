@@ -147,6 +147,17 @@ its displayed continuation points to the first undelivered UTF-8 byte. Preserve
 new artifacts, failures and cumulative usage before draining or rolling back;
 never replay the old failed session or remove its frozen transport.
 
+The package proxy's successful public-address cache changes only ephemeral
+transport state. No SQL shape, existing serialized policy/recipe, API or stored
+receipt changes; no migration is needed. The bounded 30-second cache is empty on
+restart, removes expired entries before refresh and never supplies failed/private
+or stale destinations. Source freezes and exact execution approvals must be
+reissued for the updated implementation; an old preparation with its single
+attempt consumed cannot be reset or resumed through an unrelated node_tools
+proof. Drain work before deployment/rollback and retain all failed native and
+independent diagnostic artifacts. A controlled same-recipe pass does not restore
+the native job, replace its failure or establish a successful native journey.
+
 Keep every live business SQLite connection in one kernel/filesystem lock domain.
 The isolated macOS host-process/Linux Publisher bind-mount arrangement exposed
 different open WAL inodes and an invalid combined view. Recovery must quiesce
