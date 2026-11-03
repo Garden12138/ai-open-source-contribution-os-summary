@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Plan7 exact consentce871e87 is consumed by one actual native execute. New8 entrypoint probes/4 Baseline checks pass;12 valid real model calls/14 committed reads (4 Docker/10 artifact), plus one charged read without a receipt. All76385 input/2541 output/15 read charges remain. Storage incident exposes distinct WAL inodes across host/Linux shared DB; verified main1005 events preserves frozen856 plus149 native events, but replacement-WAL overlay is malformed and uncheckpointed tail stays unknown. Operator recovery moves five business roles to one Linux named volume, preserves encrypted credential via real secure rebind, and blocks unknown step without replay/reset. A malformed operator maintenance record1013 causes metrics500; generic conservative legacy_unverified counting and hash-bound complete-task promotion commit6e0fdc8 pass1911 default/62 skipped and116 focused cases, with7 new regressions. Five Linux business roles are redeployed with45 tables/1013 events unchanged, page200 and health. Host macOS/OrbStack Doctor passes; inside-supervisor total fails host classification/buildx while actual Policy probe passes, both preserved. Mechanical unchanged-content Plan8 adds4 records to1017,8 Plans/5 execution approvals; exact preview91ab427e is unapproved/unrun. Full audit restores387 early missing blobs from exact pre0040 backups without metadata changes and verifies all1323 live artifact hashes; loss origin remains unknown. Native0/4, U0/15, H Node and E3–E6/Linux gates stay open. |
+| Feature note | Exact Plan8 approvala1006288 is consumed once. New8 entrypoint probes/4 actual Baseline checks pass;22 real DeepSeek calls yield21 valid Decisions, one rejected six-call batch (zero executed),52 reads and no patch. Coding stops at agent_budget_exceeded; Verify/Review not_run. All1411 events and1427 artifact hashes verify, no repeated storage incident. Audit exposes18 batch bodies absent from model feedback and full task inline only3/22 turns. Generic complete-batch/UTF-8 feedback repair is in verification, with no new model request or business patch. Planning64 cap/three unknown holds and old usage remain. Native0/4, U0/15, H Node and E3–E6/Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6268,6 +6268,30 @@ consent/result hashes, old expired checkpoint and all budgets, SQLite integrity/
 foreign keys and551 sanitized JSON records with no credential-pattern findings.
 All four local endpoints are healthy. Post-hardening live requests remain0;
 retest351ca44a consent is pending. No gate or native/U denominator changes.
+
+
+### 2026-11-03 Plan8 real execution fails after passing native environment checks
+
+[Exact consenta1006288](acceptance/universal-environment-v1/ci-native-plan8-execution-approval.json)
+consumes preview91ab427e once. [New Baseline](acceptance/universal-environment-v1/ci-native-plan8-baseline.json)
+passes8 actual entrypoint probes/all4 unchanged approved checks and source inventory.
+[Terminal run](acceptance/universal-environment-v1/ci-native-plan8-execution.json)
+records22 real DeepSeek starts,21 valid Decisions, one rejected six-call batch
+(zero executed),52 successful reads (31 Docker source/21 artifact), zero patches
+and `agent_budget_exceeded`. Verify and independent Review remain not_run.
+Charged178462 input/11920 output retains the failed call's23090/4096 reservation;
+reported162484/8621 is distinct. No cap, hold or failed usage is reset. No jobs
+remain active. All1017 pre-run events plus394 new records to1411, audit chain,
+SQLite integrity/FK and1427 registered artifact hashes verify; no storage failure
+recurs. Planning64 cap and three unknown holds remain unchanged.
+
+Audit shows18 completed tool-result bodies absent from the next observation
+because a four-call batch was reduced to the last two feedback bodies. Full task
+input is inline only3/22 turns. Raw receipts remain immutable. Generic feedback
+repair is being verified separately; no new native success or exclusive causal
+claim follows. This is maintained D evidence, not U/zero-maintenance success.
+Native0/4, full U baselines0/15, H Node failure, all E3–E6/Linux gates remain;
+current specialty task remains **UPEVE-E04**. No third-party/formal-data write.
 
 ---
 

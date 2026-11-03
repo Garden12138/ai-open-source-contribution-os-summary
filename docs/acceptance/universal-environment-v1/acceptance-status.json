@@ -2113,7 +2113,7 @@
     "native_events_after_child": 1017
   },
   "pending_native_Plan8_execution": {
-    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "status": "consumed_once_actual_native_Baseline_passed_Coding_budget_failed",
     "proposal_hash": "91ab427ee6c7097a7ddc53aeed9518219e521d56900a87a2e4cc2cffd241587e",
     "evidence": "ci-native-plan8-execution-proposal.json",
     "plan_id": "a9046e96-35e4-4437-aa64-fc387f45fa03",
@@ -2141,10 +2141,13 @@
       "output_bytes": 500000,
       "seconds": 1800
     },
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
-    "new_Plan8_Prepare_Baseline": "unverified",
-    "Coding_Verify_Review": "not_run"
+    "new_Plan8_Prepare_Baseline": "passed8_entrypoints4_checks",
+    "Coding_Verify_Review": "Coding_failed_without_patch_Verify_Review_not_run",
+    "approval_hash": "a10062880aaaf96f7b67fa7fb998e48e07f60c5a0773440c61872b823ad518bf",
+    "execution_evidence": "ci-native-plan8-execution.json",
+    "baseline_evidence": "ci-native-plan8-baseline.json"
   },
   "recovered_runtime_doctor": {
     "physical_macOS_arm64_OrbStack": "passed",
@@ -2162,5 +2165,48 @@
     "live_registered_artifacts_verified": 1323,
     "metadata_or_historical_outcomes_rewritten": false,
     "unknown_uncheckpointed_tail_not_invented": true
+  },
+  "Plan8_native_execution": {
+    "classification": "D_maintained_not_U",
+    "native_calls": 22,
+    "validated_decisions": 21,
+    "protocol_rejected_batches": 1,
+    "executed_calls_in_rejected_batch": 0,
+    "tool_results": 52,
+    "Docker_source_reads": 31,
+    "artifact_reads": 21,
+    "charged_usage": {
+      "model_calls": 22,
+      "input_tokens": 178462,
+      "output_tokens": 11920,
+      "reads": 52,
+      "output_bytes": 294515,
+      "protocol_repairs": 1
+    },
+    "verified_reported_usage_including_rejected": {
+      "input_tokens": 162484,
+      "output_tokens": 8621
+    },
+    "retained_failed_call_reservation": {
+      "input_tokens": 23090,
+      "output_tokens": 4096
+    },
+    "blocked_code": "agent_budget_exceeded",
+    "missing_batch_bodies": 18,
+    "complete_task_input_visible_turns": 3,
+    "source_writes": 0,
+    "Issue_regression": "not_run",
+    "Verify": "not_run",
+    "independent_Review": "not_run",
+    "active_jobs": 0,
+    "old1411_events_preserved": true,
+    "artifact_hashes_verified": 1427,
+    "third_party_writes": 0,
+    "formal_data_modified": false,
+    "evidence": [
+      "ci-native-plan8-execution-approval.json",
+      "ci-native-plan8-baseline.json",
+      "ci-native-plan8-execution.json"
+    ]
   }
 }

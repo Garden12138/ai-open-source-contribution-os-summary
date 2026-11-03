@@ -1847,3 +1847,30 @@ cause/time is unknown. [Live Linux-store verification](native-task-input-live-ar
 then confirms all**1323** registered blobs, with zero missing/mismatched IDs.
 This restores old evidence availability; it does not change any failed outcome
 or reconstruct the unknown uncheckpointed native tail.
+
+### 2026-11-03 Plan8 exact consent consumed: real Baseline passes, Coding fails
+
+[Human approvala1006288](ci-native-plan8-execution-approval.json) binds preview
+91ab427e and is consumed by one execute. [Native receipts](ci-native-plan8-baseline.json)
+prove new8 entrypoint probes and all4 original checks pass with identical source
+inventories. New session29490018 then makes22 real DeepSeek requests:21 validated
+Decisions, one six-call batch rejected whole (zero tools executed),52 successful
+reads (31 Docker source/21 artifact). No patch, Issue regression, post-change
+Verify or independent Review occurs. [Terminal evidence](ci-native-plan8-execution.json)
+records `agent_budget_exceeded`; no jobs remain active. Charged178462 input/
+11920 output includes the rejected call's retained23090/4096 reservation; actual
+reported total162484/8621 is recorded separately. No cap, hold or usage is reset.
+
+The journal preserves all1017 pre-run records plus394 new records to1411. SQLite
+integrity/FK/audit/event chains and all1427 registered artifact hashes verify;
+credential scans pass. The previous storage incident does not recur in this run.
+Planning remains64 consumed calls and three unchanged unknown holds. The native
+metric61 model starts is cumulative across earlier failed sessions, not61 new
+Plan8 calls. Native first deliveries0/4 and U baselines0/15 remain unchanged.
+
+Actual prompt audit identifies18 completed batch receipt bodies omitted by the
+last-two feedback selection. The full immutable receipts remain available, so
+this is a delivery gap, not fabricated or missing execution. Complete task facts
+appear inline only in the first3 of22 requests. These facts support a generic
+batch-observation repair; they do not establish the model's sole failure cause
+or guarantee success after repair. No external business patch is supplied.
