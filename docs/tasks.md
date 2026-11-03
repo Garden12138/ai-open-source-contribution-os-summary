@@ -31,7 +31,7 @@ Update rules:
 | Goal scope | Phase 2–10 |
 | First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
 | Last roadmap audit | 2026-09-02 |
-| Feature note | Exact Plan8 approvala1006288 is consumed once. New8 entrypoint probes/4 actual Baseline checks pass;22 real DeepSeek calls yield21 valid Decisions, one rejected six-call batch (zero executed),52 reads and no patch. Coding stops at agent_budget_exceeded; Verify/Review not_run. All1411 events and1427 artifact hashes verify, no repeated storage incident. Audit exposes18 batch bodies absent from model feedback and full task inline only3/22 turns. Generic complete-batch/UTF-8 feedback repair is in verification, with no new model request or business patch. Planning64 cap/three unknown holds and old usage remain. Native0/4, U0/15, H Node and E3–E6/Linux gates stay open. |
+| Feature note | Plan8 consenta1006288 is consumed once: new8 probes/4 Baseline checks pass,22 real model starts/21 valid Decisions/52 reads end in budget failure with no patch or Verify/Review. All1411 events/1427 artifacts verify. Generic complete-batch feedback commit35be850 fixes18 absent batch bodies and full-task priority under unchanged32000 cap;1918 default/62 skipped,75 focused,13 actual OCI +2 pure pass. Offline22-request replay has complete task22/22 and all batch receipts, max30901; native effect not_run. Five owned roles redeployed preserving45 tables/1411 events/security; initial page timeout and approval-service usage interruption reconcile without replay. Mechanical identical-content Plan9 adds4 events to1415,9 Plans/6 approvals. Exact previewe8bd3b98 is unapproved/unrun. Native0/4, U0/15, H Node and E3–E6/Linux gates stay open. |
 
 Conversation/incident archive (2026-10-27):
 [项目对话全记录与问题复盘](conversations-and-incidents-2026-10-27.md)
@@ -6292,6 +6292,50 @@ repair is being verified separately; no new native success or exclusive causal
 claim follows. This is maintained D evidence, not U/zero-maintenance success.
 Native0/4, full U baselines0/15, H Node failure, all E3–E6/Linux gates remain;
 current specialty task remains **UPEVE-E04**. No third-party/formal-data write.
+
+
+### 2026-11-03 Complete-batch feedback repair verified; exact Plan9 awaits consent
+
+Generic commit **35be850** delivers every result in the latest native tool batch,
+including after protocol rejection/restart. Hash-verified receipt refs, statuses,
+failures, actual read ranges/target artifacts and source revisions remain visible.
+Full task facts and receipt metadata get capacity before new inline bodies;
+bounded UTF-8 prefixes carry explicit partial/continuation fields. Original
+receipts, old prompts, commands/paths,32000 cap and accumulated budgets remain.
+Legacy structured wire stays exact; no SQL migration or dependency is added.
+
+[Checks](acceptance/universal-environment-v1/native-feedback-checks.json) pass
+**1918 default/62 skipped/0 failed**,75 focused,7 new cases (first4 reproduce),
+**13 real OCI plus2 pure boundary** checks; compileall/runtime integrity/diff/canary scans pass.
+[Unissued replay](acceptance/universal-environment-v1/native-feedback-replay.json)
+retains complete task22/22 and all prior batch receipts, max30901. It makes zero
+model/tool calls and does not establish native success. Actual old/new images
+verify identical11 API schemas and trusted instruction; only projection digest
+changes. [Deployment](acceptance/universal-environment-v1/native-feedback-deployment.json)
+verifies242 files and preserves45 tables/1411 events, old checkpoint/usage and all
+security/resource settings. Initial4-second page timeout and an approval-service
+usage interruption reconcile safely, with page200/four health endpoints and no
+replayed deployment/task action. Credential Gateway is not cold-restarted.
+
+Marked mechanical Plan9 is saved with identical business content/8 paths/4 checks,
+no model call, execution or new approval. Four append-only records bring1415 events,
+9 Plans/6 authorizations. [Exact preview](acceptance/universal-environment-v1/ci-native-plan9-execution-proposal.json)
+**e8bd3b98185cc7bc0fcd64d81b0ab8113076f15e5fe7dc173275b39b8221664e** binds current source/protocol/roles/environment/models and
+[one-execute helper](acceptance/universal-environment-v1/native_plan9_execute.py).
+Fresh human consent is required for its new bounded24-call/200K-input/32K-output/
+1800s authorization, unchanged Review bounds and at most2 code repairs. No old
+failure, used/reserved budget or planning64 cap/three unknown holds is reset.
+New native Prepare/Baseline/Coding/Verify/Review remain not_run. Final acceptance
+and publication require their own confirmation. This is D maintenance, not U
+or zero-maintenance evidence. Native0/4, U0/15, H Node failure, E3–E6 and Linux
+amd64 remain open; **UPEVE-E04** stays current. No formal or third-party writes.
+
+[Plan9 final audit](acceptance/universal-environment-v1/ci-native-plan9-final-audit.json)
+verifies1415 events/1427 artifact hashes,242 source files/74 historical files,
+old usage/approvals and42 tables unchanged after the child. Logs/JSON credential
+scans pass; four endpoints remain healthy and active jobs/new policy calls are0.
+The selected15-pass container suite includes13 actual OCI cases and2 pure
+boundaries; counts are separated and the intermediate overclassification corrected.
 
 ---
 

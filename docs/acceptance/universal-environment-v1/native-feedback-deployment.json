@@ -1,0 +1,120 @@
+{
+  "version": "upeve-native-feedback-isolated-deployment-v1",
+  "recorded_at": "2026-11-03T06:32:34.060411+00:00",
+  "engine_revision": "35be8502bb86250aeae86b4b443711193ec0aee1",
+  "source_manifest_hash": "081ff61f1c1b7058f51b22b9df77bbc3c9669a7c4c199e026091b4b1f3440b23",
+  "source_files_verified": 242,
+  "images": {
+    "app": "sha256:4c60f450caadf5fdd7657f450adc773f37d46b3f1ca7169765fc5ad17f038b10",
+    "worker": "sha256:f176d4423f7fb3f1fb14a92d04e44ba8baeba0126b11cebca5652e5a1f8dcf7c"
+  },
+  "old_roles_preserved_stopped": {
+    "serve": "e588136a1379aaf84960d0835d98a3497dca00bda3ff6d5edacd3dc910e5f126",
+    "worker": "bd362384440fdf8ac60dd0c620343b64512a3e240d224a3618f97625e2ab5ad0",
+    "sandbox-worker": "e41d03402d9efef7c9055d2b7e693e5a0884d7e5d7ac7fef656251923b786531",
+    "provider-worker": "43f4e28b98ff56e21d546669ef9930a48573d892bd9183f379941ce6503fcddc",
+    "publisher": "c7f46ad1e04b0eb44e21073b345e040734d70cb5d62f78750eed277cb109071a"
+  },
+  "new_roles": {
+    "serve": {
+      "id": "482277b4dc2ccd89d28a1b2f03a63b1d881faaf11e1f26e57c24961ae92f6c77",
+      "name": "upeve-api-35be8502bb86"
+    },
+    "worker": {
+      "id": "54795f6a47923cec9f587753c9592729308eae58f49b8266e2ed65e5b759054e",
+      "name": "upeve-worker-35be8502bb86"
+    },
+    "sandbox-worker": {
+      "id": "f8fda996d08604ef93202bd0faef481513699e75b8c24afd937451ee0fef7565",
+      "name": "upeve-sandbox-worker-35be8502bb86"
+    },
+    "provider-worker": {
+      "id": "36171861c71884c9c2f412033a3710b944d6d512ae44a1b67a410221e5cdf5ca",
+      "name": "upeve-provider-worker-35be8502bb86"
+    },
+    "publisher": {
+      "id": "355a961711b548217f7ebcfd90ad52eda5824aa3b2a9bb7be8b86d2e2fbb0c16",
+      "name": "upeve-publisher-35be8502bb86"
+    }
+  },
+  "business_volume": "upeve-isolated-business-20261103",
+  "private_Publisher_volume": "upeve-isolated-publisher-private-20261103",
+  "all_business_connections_in_single_Linux_kernel": true,
+  "model_Gateway_not_restarted": true,
+  "original_security_resource_environment_and_mounts_preserved": true,
+  "all_table_hashes_unchanged": {
+    "_schema_migrations": "c99fe770dfb3099f65430f1ea676f1e32be68207cb397630bb047dc0177fb6d3",
+    "repositories": "901f2a0ce712f610b0993f28dc979051e5fa6e5028d633f6ad77c9b4b04d810e",
+    "scan_runs": "9d8187103763dc54a17cd32062ebd0ac2a80d796f504a0d2ed42e1119b4350eb",
+    "opportunities": "4d765a1f359f34021bde5c8feaa4926619335fe752a974a874688b4f8976bee8",
+    "daily_picks": "8ac71b84ca6707b49182fa441a305cb94027cdc8a08f9859558eb769ae46fe54",
+    "opportunity_snapshots": "1a60299f31cbbbc38488d46b194ce7f183a19acf62519b55144293ec75a94709",
+    "score_versions": "6555e74b0f03bce82c43e0ed149cf368cf4bc56dee0dec07d23b231a0ebe8173",
+    "jobs": "e2c24c428377f9fcc1a5767cb4c24393ffc9e7649fa782e6209654e10d5d9fc7",
+    "artifacts": "e4734b9fbe16b8f694bdaf45795b61efafbf89b6d685fe85bf51be9778445cec",
+    "job_artifacts": "35390f2da1c0bd3a505d7edfe350162912a93daded74306e09835a3cd6fd57ac",
+    "audit_events": "0b06223f828b8805c3f8f65a0bf1f4ff307866ac3c642d71f0cdbe7992724b3e",
+    "provider_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "final_score_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "contribution_tasks": "3ad4955fc0f779aae6a9af1b78f999bb15dd916a5b634461bf9369248fb60080",
+    "contribution_task_state_versions": "015a02389282e8981121cec8374e86195910e332384512bd710239dc78dacf6a",
+    "plan_locks": "afec9587fd217b7bc1fe22e2a0da13bf4b5aaade91779f74572198430d952bd7",
+    "plan_approvals": "b6082e3372306ed99f7217c5e1cd1b7993c15922b509b240159eff5bb95bccfb",
+    "plan_conversation_entries": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_attempts": "a0d01940f6234f2df7ac34f4e090a08b20523028b25f46e86b585b67fb53a8cd",
+    "execution_stage_versions": "6b4db98ddb520162830a5c8ea6125f0225cc6704ed92977957bd72acefcd91fb",
+    "execution_stage_runs": "f3bf33985828cb58d835bffbe8479830ff51ba950a63bacc76d198a64038075c",
+    "execution_artifact_manifests": "dd8e5a7c4e155b200d7e03c630954202a4ce59fb522bf8d7ec0a1fc9f3e1e260",
+    "execution_artifact_entries": "45e32eb9d0af4f0deac62d22a5e35315db9b013565663c6cf99e703a4d8a2baf",
+    "execution_workspace_disposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_workspace_disposal_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_intents": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_confirmations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "pull_request_events": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "task_lifecycle_marks": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "user_preference_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "opportunity_disposition_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "in_app_notifications": "5616551f3a36233f8a23902b91ae10e55bb7ca85644ec3fa0a32a91022605c3c",
+    "notification_reads": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "coding_sessions": "2ed4d0b2cefc695529dee0bf6f960ba58ebb08655b064662d67d3f56fd20bc10",
+    "coding_turns": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "agent_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "change_set_proposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "workbench_events": "639368f498dcbd4232bf77c95d3840b01081f7d02f74a1b2e59efeb70d1e547a",
+    "draft_pull_requests": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "plan_versions": "fd6a138dbfe66c3ad311ba962aaae4dafd850ff40d8afc6b992f446a1e2a2f0a",
+    "model_config_versions": "90b70a06946117eee8b5294b73e56fdb3e43081b48d1d024b0e8e1578aaa6331",
+    "job_model_bindings": "5460ae25a01356ee6ef3c92e30d40db607585e8be52954c3278fd2a42dd784e8",
+    "task_visibility_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "analysis_versions": "1a538eadc25d7e3925b8ad54c4d40a24fc803c2129ef9b775e9dcb46c799067a",
+    "review_runs": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "native_events_unchanged": 1411,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "task_page_HTTP_status": 200,
+  "initial_page_probe": "4_second_read_timeout_after_all_roles_started",
+  "reconciliation": "read_only_30_second_probe_passed_no_container_or_task_action_replayed",
+  "interrupted_reconciliation": "prior_automatic_approval_review_usage_limit_action_not_executed_not_security_rejection",
+  "incomplete_maintenance_visible_as_legacy_unverified": true,
+  "operator_interventions": 5,
+  "old_Plan8_blocked_checkpoint_and_usage_preserved": true,
+  "additional_model_calls": 0,
+  "backup_sha256": "5ea620465b009e1179a53c1d706fe26417f6690dcd0c58cb9d4e45b4907a54cb",
+  "formal_data_modified": false,
+  "third_party_writes": 0
+}

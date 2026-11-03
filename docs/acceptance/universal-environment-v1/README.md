@@ -1874,3 +1874,73 @@ this is a delivery gap, not fabricated or missing execution. Complete task facts
 appear inline only in the first3 of22 requests. These facts support a generic
 batch-observation repair; they do not establish the model's sole failure cause
 or guarantee success after repair. No external business patch is supplied.
+
+### 2026-11-03 Complete native batch observation; bounded Plan9 preview
+
+Generic engine commit **`35be850`** fixes actual feedback
+selection: all completed results from the latest native batch (at most4) reach
+the next observation, including after protocol rejection/restart. Every result
+retains a hash-verified original receipt, status/failure and source revisions.
+History indexes retain actual byte ranges/target artifact. Complete task facts
+and batch metadata receive capacity before new inline bodies; constrained bodies
+use exact UTF-8 prefixes and explicit continuation/partial markers. Non-page
+JSON retains a paged receipt reference. Raw receipts and old prompts are unchanged;
+mandatory facts over32000 still block before dispatch/charge. No path, command,
+network, tool authority, repair allowance or token/call cap expands.
+
+[Verification](native-feedback-checks.json): **1918 passed/62 skipped/0 failed**,
+75 focused,7 new cases (the first4 reproduce failures before the fix), and
+**13 actual OCI checks plus2 pure boundary cases** on the same pinned Runner. Tests cover four-result
+worker/restart delivery without tool replay, UTF-8 offsets, evidence hash mismatch,
+check failure preservation, scope/conflicts, actual Python/TypeScript edits and
+baseline negative boundaries. Fixture/OCI results are not a native contribution.
+Compileall, runtime-integrity, diff and credential scans pass. One initial focused
+failure is the old expected transport preimage; only that frozen expectation is
+updated. Legacy structured wire remains exact; no SQL schema/migration changes.
+
+[Offline replay](native-feedback-replay.json) reconstructs22 preserved actual
+Plan8 requests: complete task visible22/22, every prior batch receipt represented,
+maximum30901 under32000. No model/tool runs and no historical failure changes.
+[Actual image comparison](native-feedback-contract-comparison.json) verifies all11
+API function definitions and trusted instruction are identical; only the frozen
+projection digest changes (`378db033…`, canonical transport`fd480f60…`). Native
+effectiveness is **not_run**, not established by replay or component passes.
+
+[Deployment](native-feedback-deployment.json) replaces only five idle owned
+containers, verifies all242 source files and preserves45 tables/1411 events,
+old blocked checkpoint/usage and every security/resource/mount setting. Model
+Gateway stays separate and is not restarted. Initial4-second page probe times
+out after all roles start; read-only30-second reconciliation passes with page200
+and four healthy endpoints, without replaying deployment or task actions. A first
+reconciliation submission is not executed because automatic approval review hits
+its service usage limit; a later normally reviewed attempt succeeds. This is not
+a security refusal and no approval check is bypassed. Formal data is untouched.
+
+After a fresh read-only upstream check, a marked mechanical
+[Plan9](ci-native-plan9-draft.json) is saved with the identical entire business
+content hash,8 paths/4 exact checks. Four events append to1411, making1415;
+9 Plans/6 execution approvals, no new model or execution. The
+[scope check](ci-native-plan9-source-review.json) is an operator review, not an
+independent ReviewRun. [Exact preview](ci-native-plan9-execution-proposal.json)
+**`e8bd3b98185cc7bc0fcd64d81b0ab8113076f15e5fe7dc173275b39b8221664e`** freezes source, child Plan, current model/environment,
+all five container IDs/security fingerprints and the
+[approval-gated single-execute helper](native_plan9_execute.py). It is unapproved
+and unrun. Proposed new authorization is bounded24 calls/200K input/32K output/
+1800s plus original Review bounds/at most2 code repairs. Every old failure, charged
+usage, planning64 cap and three unknown holds stays intact; it cannot resume or
+reset Plan8. AGENTS and the frozen-input contract require new exact consent.
+Final human acceptance/publication remain separate. Native0/4, U0/15, H Node,
+E3–E6 and native Linux amd64 gates remain open; UPEVE-E04 is current.
+
+[Plan9 final audit](ci-native-plan9-final-audit.json) verifies1415 events,1427
+artifact hashes,242 source files,74 original evidence files,42 tables unchanged
+after the expected child append and all old checkpoints/usage. Role logs and
+JSON artifacts pass credential scans; all four endpoints are healthy. Zero new
+policy model calls or jobs are active. The selected15-pass OCI suite is explicitly
+split into13 actual container cases and2 pure policy/page cases; the initial
+intermediate classification is corrected before sealing. No acceptance gate is
+promoted.
+
+[Sealed Plan9 evidence manifest](ci-native-plan9-evidence-seal.json) binds the
+exact source/checks/replay/deployment/preview/helper and retained Plan8 terminal
+records. It is a local audit seal, not a human approval or native success.

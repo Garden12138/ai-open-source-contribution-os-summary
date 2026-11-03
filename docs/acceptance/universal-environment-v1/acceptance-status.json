@@ -2208,5 +2208,101 @@
       "ci-native-plan8-baseline.json",
       "ci-native-plan8-execution.json"
     ]
+  },
+  "native_feedback_candidate": {
+    "status": "implemented_tested_deployed_not_native_verified",
+    "engine_revision": "35be8502bb86250aeae86b4b443711193ec0aee1",
+    "projection_version": "native-batch-feedback-v3",
+    "source_manifest_hash": "081ff61f1c1b7058f51b22b9df77bbc3c9669a7c4c199e026091b4b1f3440b23",
+    "default_regression": {
+      "tests": 1980,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 62,
+      "passed": 1918
+    },
+    "focused": {
+      "tests": 75,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 75
+    },
+    "real_OCI": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 13
+    },
+    "new_cases": 7,
+    "original_batch_bodies_missing": 18,
+    "offline_replay_prompts": 22,
+    "offline_complete_task_visible": 22,
+    "offline_batch_receipts_unrepresented": 0,
+    "offline_input_bound_max": 30901,
+    "input_bound_limit": 32000,
+    "actual_function_schemas_and_instruction_unchanged": true,
+    "deployed_roles": 5,
+    "all45_business_tables_unchanged_during_deploy": true,
+    "old_Plan8_events_unchanged": 1411,
+    "new_policy_model_calls": 0,
+    "native_effect": "not_run",
+    "old_native_payloads": "readable_but_stale_for_execution",
+    "SQL_migration": "not_required_existing_shape",
+    "legacy_structured_wire": "unchanged",
+    "evidence": [
+      "native-feedback-checks.json",
+      "native-feedback-replay.json",
+      "native-feedback-contract-comparison.json",
+      "native-feedback-deployment.json"
+    ],
+    "selected_OCI_suite": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 15
+    },
+    "selected_pure_boundary_cases": 2,
+    "final_audit": "ci-native-plan9-final-audit.json"
+  },
+  "pending_native_Plan9_execution": {
+    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "proposal_hash": "e8bd3b98185cc7bc0fcd64d81b0ab8113076f15e5fe7dc173275b39b8221664e",
+    "evidence": "ci-native-plan9-execution-proposal.json",
+    "plan_id": "39e7b8ed-f60e-439c-8ae2-4e0ce4c0859f",
+    "plan_record_hash": "8e1c8989e603131485e4fc3fce0f8df35bc08b4b6429a9679a0b7482ea03dff1",
+    "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "parent_plan_id": "a9046e96-35e4-4437-aa64-fc387f45fa03",
+    "classification": "D_operator_mechanical_child_not_U_or_zero_maintenance",
+    "business_scope_paths_commands_unchanged": true,
+    "model_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "378db033622672c5a68031f8f7b67a2db3793f17924952d49aa6db6e891bd932"
+    },
+    "runtime": "single_Linux_kernel_named_business_volume_and_separate_private_Publisher",
+    "old_Plan8_failure_usage_preserved": true,
+    "agent_limits": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "new_policy_real_model_calls": 0,
+    "execution_approved": false,
+    "publication_approved": false,
+    "new_Plan9_Prepare_Baseline": "unverified",
+    "Coding_Verify_Review": "not_run",
+    "native_events_after_child": 1415,
+    "execution_approvals_still": 6,
+    "evidence_seal": "ci-native-plan9-evidence-seal.json"
   }
 }
