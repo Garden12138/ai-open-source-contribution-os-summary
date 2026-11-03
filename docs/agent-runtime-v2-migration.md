@@ -135,6 +135,18 @@ new execution. Incomplete historical maintenance records are retained unchanged
 and counted conservatively as `legacy_unverified`; they cannot establish a
 zero-maintenance success.
 
+The `native-batch-feedback-v3` projection freezes a new transport digest for
+complete latest-batch observation and bounded receipt pages. It uses existing
+ToolResult artifacts, journal sequences and context issuance; no SQL shape or
+migration changes. Existing native hashes remain readable but stale for execution;
+rebinding requires a child Plan and fresh exact confirmation. Legacy structured
+prompt wire is unchanged. Projection changes only newly delivered inline bytes;
+stored receipts and their pagination remain exact. A smaller inline source page
+explicitly retains the original receipt reference and original next offset, while
+its displayed continuation points to the first undelivered UTF-8 byte. Preserve
+new artifacts, failures and cumulative usage before draining or rolling back;
+never replay the old failed session or remove its frozen transport.
+
 Keep every live business SQLite connection in one kernel/filesystem lock domain.
 The isolated macOS host-process/Linux Publisher bind-mount arrangement exposed
 different open WAL inodes and an invalid combined view. Recovery must quiesce

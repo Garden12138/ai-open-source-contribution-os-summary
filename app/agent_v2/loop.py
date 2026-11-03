@@ -118,6 +118,13 @@ def prompt_for(journal: AgentJournal) -> dict:
         "content_hash": r["data"].get("content_hash"), "outcome": r["data"].get("outcome"),
         "reason_code": r["failure"]["safe_reason_code"] if r.get("failure") else None,
         "artifact_id": e.payload["artifact_id"]} for e, r in receipts]
+    native = spec.model_transport is not None
+    if native:
+        for row, (_, receipt) in zip(index, receipts, strict=True):
+            row.update({k: receipt["data"][k] for k in ("offset", "next_offset", "total_bytes") if k in receipt["data"]})
+            row.update(source_hash=receipt["source_hash"], output_source_hash=receipt["output_source_hash"])
+            if "artifact_id" in receipt["data"]:
+                row["target_artifact"] = receipt["data"]["artifact_id"]
     def model_feedback(event):
         value = journal.wb.read(event.payload["artifact_id"])
         encoded = canonical_json(value).encode()
@@ -133,6 +140,13 @@ def prompt_for(journal: AgentJournal) -> dict:
     from app.models import ReviewRun, ExecutionAttempt
     prior_ids = list(journal.wb.session.scalars(select(ExecutionAttempt.id).where(ExecutionAttempt.task_id == journal.task_id)))
     reviews = list(journal.wb.session.scalars(select(ReviewRun).where(ReviewRun.execution_attempt_id.in_(prior_ids)).order_by(ReviewRun.created_at)))
+    feedback_events = results[-2:]
+    if native and results:
+        # A model batch is at most four calls. Observe every completed result,
+        # including its first call, even after a later rejected model response.
+        turn = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_turn"
+            and e.sequence < results[-1].sequence), None)
+        feedback_events = [e for e in results if e.sequence > turn.sequence] if turn else results[-4:]
     prompt = {
         "version": "agent-runtime-v2", "goal": spec.goal,
         "binding": spec.binding.model_dump(), "write_paths": spec.write_paths,
@@ -163,7 +177,8 @@ def prompt_for(journal: AgentJournal) -> dict:
             "outcome": e.payload["decision"]["outcome"],
             "tools": [{"name": c["name"], "path": c["arguments"].get("path")} for c in e.payload["decision"]["calls"]]}
             for e in journal.events() if e.kind == "agent_v2_turn"][-4:],
-        "feedback": [model_feedback(e) for e in results[-2:]],
+        "feedback": [{**journal.wb.read(e.payload["artifact_id"]), "receipt_artifact": e.payload["artifact_id"]}
+            if native else model_feedback(e) for e in feedback_events],
         "independent_review_findings": reviews[-1].findings if reviews else [],
         "protocol_feedback": next((e.payload["failure"] for e in reversed(journal.events())
             if e.kind == "agent_v2_model_rejected"), None),

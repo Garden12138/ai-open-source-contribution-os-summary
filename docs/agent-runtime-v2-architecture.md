@@ -83,8 +83,19 @@ Pause drains an in-flight step to its checkpoint before stopping dispatch.
 Vendor call IDs are namespaced by the persisted model Job ID, because providers
 may reuse an ID in a later response. Raw decisions remain separate evidence.
 Context is rebuilt from the journal: named receipt index, current changed-file
-hashes, current check outcome, required next step and recent decisions. Only two
-bounded feedback bodies are inlined; larger bodies retain paged artifact refs.
+hashes, current check outcome, required next step and recent decisions. Legacy
+structured sessions retain two bounded feedback bodies. Newly approved native
+sessions observe every result from the latest completed batch (at most four),
+including after a protocol rejection or worker restart. Each result retains its
+verified immutable receipt reference, status, source revisions and failure.
+The 32 KB request cap allocates complete task facts before page bodies. When
+necessary, all batch bodies receive bounded UTF-8 prefixes with explicit partial
+markers and exact continuation offsets. Non-page evidence retains a paged JSON
+receipt reference. History indexes preserve actual read offsets, total bytes,
+target artifact and source revisions; a read index is not proof that its body
+was delivered. Raw receipts, scopes, commands and accumulated budgets are never
+rewritten or discarded to fit a request. Mandatory facts that cannot fit block
+before model dispatch or charge.
 The complete frozen Plan and Issue are verified and issued as a task-context artifact, with an explicit bounded inline preview. `read_artifact` is restricted to that task's platform-issued context and tool receipts. This fixes measured context/replay failures without increasing limits.
 After a successful source receipt the derived next step advances to
 `continue_implementation`; it must not instruct endless source reads until a
