@@ -171,3 +171,12 @@ Recent connection events absent from a verified candidate are not fabricated;
 a preserved credential can be re-bound inside Publisher through the existing
 sealed API and a new real read-only account probe. See
 [SQLite's WAL requirements](https://sqlite.org/wal.html).
+
+Native projection `native-rejection-feedback-v4` changes the frozen transport
+digest for strict rejection evidence delivery, current-budget projection and
+stale feedback clearing. No SQL/API/UI or existing event shape changes; no forward
+migration is needed. Historical v3 TaskSpecs remain readable and stale for new
+execution. A new child Plan and fresh exact human confirmation bind new source/
+transport; consumed repairs and failed reservations cannot be reset or inherited
+as a new allowance. Drain before rollback and preserve matched artifacts, failures
+and usage; never rewrite the old failure budget or resume its terminal checkpoint.

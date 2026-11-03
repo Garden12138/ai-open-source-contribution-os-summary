@@ -1,0 +1,32 @@
+{
+  "version": "upeve-native-feedback-actual-image-contract-comparison-v1",
+  "recorded_at": "2026-11-03T09:11:26.942284+00:00",
+  "old_image": "sha256:79f24051ad6c4dcd2f3ddb16fe23079e4fae83529b9e41057b64d6ff7ddd8372",
+  "new_image": "sha256:dc077908630ea565e1125709ff165a8a2001d37e7a26e02934ca4b86c9524313",
+  "old_contract": {
+    "functions_hash": "eea914fb1599893ab9993658e02e73470b6e7ac705020ee44a17e6ab37f4c29d",
+    "functions": 11,
+    "instruction_hash": "811b15813a08bff7d585388d48ddfbfa1e60d2f570a4516cd6a7a06b4c8a8155",
+    "model_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "378db033622672c5a68031f8f7b67a2db3793f17924952d49aa6db6e891bd932"
+    }
+  },
+  "new_contract": {
+    "functions_hash": "eea914fb1599893ab9993658e02e73470b6e7ac705020ee44a17e6ab37f4c29d",
+    "functions": 11,
+    "instruction_hash": "811b15813a08bff7d585388d48ddfbfa1e60d2f570a4516cd6a7a06b4c8a8155",
+    "model_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "89de27e52708a36a8488fb6313287a155aad30c95dfc19fc0290dc8a44645759"
+    }
+  },
+  "API_function_schemas_identical": true,
+  "trusted_instruction_identical": true,
+  "projection_digest_changed": true,
+  "application_call_cap": 4,
+  "per_call_input_bound": 32000,
+  "additional_models": 0,
+  "third_party_writes": 0,
+  "formal_data_modified": false
+}

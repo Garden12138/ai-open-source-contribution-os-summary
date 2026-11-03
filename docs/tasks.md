@@ -6419,6 +6419,49 @@ after child append, old counts/usage and credential scans. Native0/4, U0/15,
 H Node/E3–E6/Linux amd64 remain open; **UPEVE-E04** is current. No third-party or
 formal-data writes, Push, PR or publication.
 
+
+### 2026-11-03 Plan10 native Baseline passes; bounded protocol failure retained; v4 deployed
+
+The exact [Plan10 grant](acceptance/universal-environment-v1/ci-native-plan10-execution-approval.json)
+is consumed once. [Native execution](acceptance/universal-environment-v1/ci-native-plan10-execution.json)
+root passes1/3, preparation1/1,8 entrypoints/all4 original Baseline commands pass
+with fresh exact bindings and unchanged inventories. Then3 real DeepSeek replies
+request5 calls each: every whole batch is rejected under the unchanged4-call
+limit,2 protocol repairs consumed, zero valid Decisions/tools/patch/code repairs.
+Terminal checkpoint blocked `agent_native_call_count_invalid`; post-change Verify,
+Issue regression and independent Review remain not_run. Charged60399 input/12288
+output remains separate from actual reported17314/816; no reservations refunded,
+old jobs/caps reset or quota failure inferred. This is maintained D evidence,
+not U/zero-maintenance/native delivery. Planning64 cap/3 unknown holds remain.
+
+Source **cf05156** repairs generic native feedback: validate/
+project committed cardinality receipt +event hash/job ID +current checkpoint
+repair budget; clear stale protocol feedback after next valid native turn.
+Malformed receipts fail closed; stored failures stay immutable. Four-call whole-
+batch rejection,2 repair budget,11 API functions/trusted instruction, model,
+legacy structured wire, Sandbox/Verify/independent Review/approval boundaries
+stay intact. New transport v4 changes the frozen digest; no SQL/API/UI migration.
+[Checks](acceptance/universal-environment-v1/native-rejection-feedback-checks.json)
+pass1940 default/62 skipped/0 failed and84 focused/9 new cases; compileall/runtime
+integrity/diff/credential scans pass. Three-prompt offline replay max20999/32000
+bytes sends0 requests and is not live effect. [Deployment](acceptance/universal-environment-v1/native-rejection-feedback-deployment.json)
+verifies242 files/five isolated roles,45 tables/1469 events unchanged, all safety/
+resource settings preserved, page200/four healthy endpoints, Gateway not restarted.
+
+Marked identical-content Plan11 saves8 paths/4 original checks, appending4 records
+to1473,11 Plans/8 prior approvals. New exact [preview](acceptance/universal-environment-v1/ci-native-plan11-execution-proposal.json)
+**6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92** is unapproved/unrun. Fresh human consent is required
+for changed frozen source/transport after Plan10 protocol2/2 consumed; same DeepSeek
+Profile/24 calls/200K input/32K output/1800s, startup3/preparation1,2 code repairs and
+original independent Review bounds. New Plan11 environment remains not_prepared;
+visible Baseline is explicitly old Plan10 provenance, not reused readiness.
+[Final audit](acceptance/universal-environment-v1/ci-native-plan11-final-audit.json)
+verifies1473 events/1446 artifacts/74 history files/242 sources,42 unchanged tables
+after child append, integrity/FK/chains/credential scan, all prior usage/failures.
+Native starts64 differ from planning lifetime64. Native0/4, U0/15, H Node failure,
+E3–E6 and Linux amd64 blocked/not_run remain. **UPEVE-E04** stays current; no gate
+checked, external business patch, formal-data change, third-party write, Push or PR.
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

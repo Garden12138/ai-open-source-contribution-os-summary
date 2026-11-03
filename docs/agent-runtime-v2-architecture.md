@@ -267,3 +267,13 @@ Maintenance records without a nonempty string source ID remain
 such record as operator intervention rather than failing the page or granting
 autonomous eligibility. The v2 measurement note discloses the incomplete evidence;
 no historical payload or provenance is repaired in place.
+
+Native projection `native-rejection-feedback-v4` projects the latest committed
+cardinality rejection only while no later valid native turn exists. The strict
+receipt carries the bounded count, unchanged four-call cap, whole-batch rejection
+and zero executed calls; its correction binds the orchestrator event hash/job ID
+and current committed remaining repair budget. Stored failure snapshots remain
+immutable. Malformed receipt/source fails closed before dispatch; provider error
+codes alone cannot fabricate trusted parser evidence. Valid turns clear the
+obsolete feedback. The digest includes this strategy; API function schemas,
+trusted instruction, tool authority, budgets and legacy structured wire stay exact.

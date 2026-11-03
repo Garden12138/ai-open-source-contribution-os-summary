@@ -1,0 +1,102 @@
+{
+  "version": "upeve-native-rejection-fact-delivery-offline-replay-v1",
+  "recorded_at": "2026-11-03T09:07:14.524563+00:00",
+  "classification": "D_unissued_projection_of_three_real_Plan10_prompts_not_native_retry_or_success",
+  "old_execution": "ci-native-plan10-execution.json",
+  "old_model_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "378db033622672c5a68031f8f7b67a2db3793f17924952d49aa6db6e891bd932"
+  },
+  "candidate_model_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "89de27e52708a36a8488fb6313287a155aad30c95dfc19fc0290dc8a44645759"
+  },
+  "candidate_model_transport_hash": "5679f77d6e93c369635183905b6fe0e85cacca71051335752c06d85180a6aad0",
+  "actual_old_model_calls": 3,
+  "actual_old_batch_sizes": [
+    5,
+    5,
+    5
+  ],
+  "actual_old_tools_executed": 0,
+  "candidate_prompts": [
+    {
+      "sequence": 1452,
+      "original_prompt_artifact": "158d03d4aa977f3c5fc13db5378bf4446c57b4dcf851cdd1c3b5e3203375b096",
+      "original_input_bound": 19875,
+      "candidate_input_bound": 19879,
+      "complete_task_preserved": true,
+      "original_nested_repairs": null,
+      "actual_top_level_repairs": 2,
+      "candidate_nested_repairs": null,
+      "candidate_correction": null,
+      "candidate_prompt_hash": "ca6371ea6b21bb960317feb12c64d8397b1221919996ef3500051e0638ece12c"
+    },
+    {
+      "sequence": 1457,
+      "original_prompt_artifact": "7bab4a4e98d8505d127bfcf008138d4ccea3e4b14a1539111fd1e81ece34643c",
+      "original_input_bound": 20262,
+      "candidate_input_bound": 20999,
+      "complete_task_preserved": true,
+      "original_nested_repairs": 2,
+      "actual_top_level_repairs": 1,
+      "candidate_nested_repairs": 1,
+      "candidate_correction": {
+        "version": "native-protocol-correction-v1",
+        "rejection": {
+          "version": "native-function-protocol-rejection-v1",
+          "reason": "too_many_calls",
+          "max_allowed_calls": 4,
+          "received_call_count": 5,
+          "count_exceeds_diagnostic_bound": false,
+          "whole_batch_rejected": true,
+          "executed_calls": 0
+        },
+        "rejection_event_hash": "fdfe05f8d8cbb2a6caa9df29051743eec65d97b331c3719d4ba5d573262d8326",
+        "model_job_id": "43d1a5f1-fed9-41ef-be6b-b1a7e224879d",
+        "remaining_protocol_repairs": 1,
+        "next_step": "retry_with_at_most_four_calls",
+        "instruction": "The prior entire batch was rejected; none of its calls ran. This is a permitted correction turn. Return one to four calls now and perform further reads in later turns. No new scope or budget is granted."
+      },
+      "candidate_prompt_hash": "c64f29e4141b7f653b6064b1d0084373b4780a243de31620d8b453419e77df87"
+    },
+    {
+      "sequence": 1462,
+      "original_prompt_artifact": "34bdee1ee489e57ec1de664c7f215baf2acf3cf39aa320bc01fabee99fea4924",
+      "original_input_bound": 20262,
+      "candidate_input_bound": 20999,
+      "complete_task_preserved": true,
+      "original_nested_repairs": 1,
+      "actual_top_level_repairs": 0,
+      "candidate_nested_repairs": 0,
+      "candidate_correction": {
+        "version": "native-protocol-correction-v1",
+        "rejection": {
+          "version": "native-function-protocol-rejection-v1",
+          "reason": "too_many_calls",
+          "max_allowed_calls": 4,
+          "received_call_count": 5,
+          "count_exceeds_diagnostic_bound": false,
+          "whole_batch_rejected": true,
+          "executed_calls": 0
+        },
+        "rejection_event_hash": "72eafcf98fad22e1eb75550441e86ccdf3c3db94fbfd707d1f91eb5827939ef8",
+        "model_job_id": "7e398784-4281-4917-8cc2-0df050bdb69a",
+        "remaining_protocol_repairs": 0,
+        "next_step": "retry_with_at_most_four_calls",
+        "instruction": "The prior entire batch was rejected; none of its calls ran. This is a permitted correction turn. Return one to four calls now and perform further reads in later turns. No new scope or budget is granted."
+      },
+      "candidate_prompt_hash": "a060b02c7e97960c8f3b6404122f6c46043b1b821ba3f504471622c59386ba9d"
+    }
+  ],
+  "candidate_max_input_bound": 20999,
+  "per_call_cap_unchanged": 32000,
+  "whole_batch_call_limit_unchanged": 4,
+  "protocol_repair_limit_unchanged": 2,
+  "old_reservations_preserved": true,
+  "new_model_requests": 0,
+  "old_failed_steps_replayed": false,
+  "candidate_native_effect": "not_run",
+  "third_party_writes": 0,
+  "formal_data_modified": false
+}

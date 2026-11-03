@@ -1,0 +1,124 @@
+{
+  "version": "upeve-native-Plan11-final-audit-v1",
+  "recorded_at": "2026-11-03T09:15:40.546677+00:00",
+  "source_revision": "cf051560b8aa64cd01dd2abd351b7d6710d4d74f",
+  "source_manifest_hash": "7bc2e2e48201979ee1ea95a54f228f99a32a32ff7bba32146d4b3e2cdd053e82",
+  "source_files_verified": 242,
+  "original_history_files_verified": 74,
+  "registered_artifacts_hash_verified": 1446,
+  "credential_scan": "passed",
+  "JSON_ledger_records_scanned": 660,
+  "current_events": 1473,
+  "all1469_old_native_events_preserved": true,
+  "Plans": 11,
+  "execution_authorizations": 8,
+  "new_Plan11_approved": false,
+  "exact_preview": "6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92",
+  "new_model_calls_after_protocol_fix": 0,
+  "prior_native_model_starts_total": 64,
+  "old_Plan10_models": 3,
+  "old_Plan10_Baseline": "passed8_entrypoints4_checks",
+  "old_Plan10_rejections": [
+    5,
+    5,
+    5
+  ],
+  "old_Plan10_tools_executed": 0,
+  "old_Plan10_checkpoint_usage": {
+    "model_calls": 3,
+    "input_tokens": 60399,
+    "output_tokens": 12288,
+    "protocol_repairs": 2
+  },
+  "old_Plan10_actual_reported_usage": {
+    "input_tokens": 17314,
+    "output_tokens": 816
+  },
+  "old_Plan10_repair_2of2_and_all_jobs_preserved": true,
+  "old_Plan9_network_failure_1of1_and_root2of3_preserved": true,
+  "planning64_three_unknown_holds_preserved": true,
+  "current_model_transport_changed_requires_new_exact_approval": true,
+  "current_worker_proxy_script_hash": "62d98c24d33852a4ff75c6ab48e9f996b7e9c93cac5dc5211cbd89564da04053",
+  "default_regression": {
+    "tests": 2002,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 62,
+    "passed": 1940
+  },
+  "focused": {
+    "tests": 84,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 84
+  },
+  "new_protocol_cases": 9,
+  "unissued_replay": "3_original_prompts_max_bound20999_not_model_effect",
+  "new_native_Prepare_entrypoints_Baseline_Coding_Verify_Review": "not_run",
+  "actual_environment_ready": false,
+  "historical_Baseline_still_visible": {
+    "attempt_id": "e637b013-71b8-48f9-bad8-6d945fdf511a",
+    "result_hash": "e3b58e7395e38589c3f1d53ff6ffb67610415afecbab1d17cad56f362936a60b",
+    "belongs_to": "Plan10_not_new_Plan11"
+  },
+  "audit_first_assumption_corrected": "Initial read-only audit expected no historical Baseline; actual API retains Plan10 attempt/result. Corrected assertion verifies exact prior provenance without treating it as new Plan11 readiness. No model or business mutation occurred.",
+  "operator_mechanical_child": true,
+  "native_metrics": {
+    "native_journey_started": 1,
+    "native_journey_completed": 0,
+    "operator_interventions": 8,
+    "model_call_count": 64,
+    "tool_schema_rejection_count": 0,
+    "repair_rounds": 0,
+    "environment_blocks": 0,
+    "baseline_blocks": 0,
+    "actual_tests_executed": null,
+    "verified_checks_passed": 0,
+    "false_success_count": null,
+    "first_attempt_pass_rate": null,
+    "median_token_cost": null,
+    "measurement_note": "Unknown test counts/costs and unmeasured rates remain null; check-process counts are not test counts. Incomplete maintenance evidence remains legacy_unverified and counts as operator intervention."
+  },
+  "single_Linux_kernel_for5_business_roles": true,
+  "kernel_domain_hash": "76e648f769033fff51ad7322cd201495b495ce5c32c37699f2babec116af7645",
+  "all45_tables_unchanged_during_deploy": true,
+  "tables_unchanged_after_child": 42,
+  "expected_changed_tables": [
+    "contribution_task_state_versions",
+    "workbench_events",
+    "plan_versions"
+  ],
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "task_page_HTTP200": true,
+  "GitHub_connection": "Garden12138_connected",
+  "model_Gateway_not_restarted": true,
+  "model_Gateway_cold_restart": "not_run",
+  "Linux_amd64": "blocked_not_run",
+  "active_jobs": 0,
+  "integrity": "ok",
+  "foreign_keys": [],
+  "native_first_deliveries": "0/4_unchanged",
+  "full_U_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "current_task": "UPEVE-E04",
+  "phase_gate_promoted": false,
+  "operator_business_patch": false,
+  "third_party_writes": 0,
+  "formal_data_modified": false
+}

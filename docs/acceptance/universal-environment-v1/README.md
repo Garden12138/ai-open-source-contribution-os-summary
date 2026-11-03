@@ -1,26 +1,20 @@
 # UPEVE v1 acceptance ledger
 
 Native first-attempt freeze: `4d72db55cd56ea14edc7c70eae7187ef64175054`.
-Deployed maintenance revision: `0ac8b77a878d1f4ad3d87f821fa22fe362e58a22`.
-**Acceptance incomplete.** E0–E2 pass; current task is E3 / UPEVE-E04. Historical
-Python passes 5/5; historical Node remains unsupported. Latest default suite is
-1854 passed / 62 skipped / 0 failed. Prior unseen cohorts retain 0/15 complete
-first baselines. Exact Plan3 execution was approved: native Explore passed,
-dependency preparation failed before Baseline/Coding. Generic native CLI, CI
-version and replan binding fixes are deployed. A corrected pnpm10/Node22
-environment passes8 real entrypoint probes and4 original checks in a separate
-OCI component; this is not native Baseline/Coding/Review or an unseen success.
-Approved Plan4 execution now passes actual native preparation/8 probes/4 Baseline
-checks and reaches v2 Coding admission. Its first model request stops at
-deepseek_completion_invalid before any tools/writes; post-change Verify/Review
-remain not_run. Original response facts/actual usage are unavailable; retained
-budget reservations are not claimed spend. One approved controlled diagnostic
-returns tool_calls/3409 input/277 output but no extractable structured result;
-it executes no tools and cannot reconstruct the old response. Generic single-
-result transport clarification and v2 envelope/count diagnostics are deployed,
-with strict rejection/limits retained. Live effect awaits one exact read-only
-retest351ca44a. Planning use64 reaches its unchanged cap; unknown holds
-remain. Native Linux amd64 remains blocked/not_run.
+Deployed maintenance revision: `cf051560b8aa64cd01dd2abd351b7d6710d4d74f`.
+**Acceptance incomplete.** E0–E2 pass; E3 / UPEVE-E04 stays current. Historical
+Python passes5/5; historical Node remains unsupported. Latest default suite:
+**1940 passed /62 skipped /0 failed**. Unseen full first baselines stay0/15 and
+native first deliveries0/4. Exact Plan10 consent was consumed once: real native
+preparation,8 entrypoints and4 original Baseline checks pass, then three actual
+DeepSeek replies request5 calls each and all are rejected whole. No tools/patch,
+post-change Verify, Issue regression or independent Review. Both protocol repairs
+are consumed; charged60399 input/12288 output is retained separately from reported
+17314/816. Generic rejection-feedback v4 is tested/deployed, with no post-fix
+model requests; offline replay cannot prove its native effect. Mechanical identical
+Plan11 is saved but unapproved/unrun; [precise preview](ci-native-plan11-execution-proposal.json)
+`6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92` binds changed source/transport, unchanged model/scope/budgets.
+Planning64 cap/3 unknown holds remain. Native Linux amd64 is blocked/not_run.
 [All 28 cases](acceptance-status.json) distinguish
 passed, partial, failed and blocked evidence.
 
@@ -2071,3 +2065,61 @@ H Node/E3–E6 and Linux amd64 gates remain open; UPEVE-E04 is current.
 [Plan10 sealed evidence manifest](ci-native-plan10-evidence-seal.json) binds the
 exact preview/helper, source/checks/deployment and retained native/controlled
 failures. It is integrity evidence, not a human execution grant or native success.
+
+### 2026-11-03 Plan10 native environment passes; Coding protocol fails; Plan11 unapproved
+
+The [human grant](ci-native-plan10-execution-approval.json) consumed exact preview
+c7b8ab6d once. [Actual execution](ci-native-plan10-execution.json) root succeeds on
+attempt1/3, native preparation on1/1. [Fresh bound Baseline](ci-native-plan10-baseline.json)
+passes8 entrypoint probes/all4 original commands with unchanged source inventory.
+It is actual native D evidence, not an unseen success or post-change Verify.
+Three real DeepSeek replies each contain5 calls; the hard4-call parser rejects
+every entire batch before arguments/tools. Two protocol repairs are consumed:
+zero valid Decisions, tools, patches or code repairs. Terminal checkpoint stays
+blocked; Verify/independent Review/Issue regression remain not_run. Charged input
+60399/output12288 and reported input17314/output816 are recorded separately, with
+all failed reservations retained. Successful model Job handlers do not mean valid
+Decisions or native delivery. No quota failure is inferred from these replies.
+
+The actual retry prompts omit the stored typed5/4/0 rejection receipt and retain
+pre-charge nested repair budgets(2 then1 while current1 then0). Generic source
+**`cf05156`** now validates and projects the latest committed
+receipt, event hash/job ID and current checkpoint budget, and clears stale error
+feedback after the next valid native turn. Malformed/untrusted receipts fail
+closed. It changes the frozen transport to v4, retains11 identical API functions/
+trusted instruction(actual image comparison),4-call whole-batch rejection,
+2 protocol repairs, all budgets, complete task/batch feedback, legacy structured
+wire and Sandbox/Review/approval boundaries. No SQL/API/UI shape migration.
+
+[Checks](native-rejection-feedback-checks.json):1940 default/62 skipped/0 failed,
+84 focused,9 new boundary cases; initial8 cases before fix show7 failed/1 passed,
+with the bounded1025-call case added later. Compileall/runtime integrity/diff and
+credential scans pass. [Unissued replay](native-rejection-feedback-replay.json)
+projects3 real old prompts at at most20999/32000 bytes, preserving full task and
+old reservations; it sends **zero** new requests and cannot establish live model
+behavior. [Deployment](native-rejection-feedback-deployment.json) verifies242
+source files,5 idle owned roles,45 unchanged tables/1469 events, original security/
+resource/environment settings, four health endpoints and page200. Gateway is not
+cold-restarted; formal instances/data remain untouched.
+
+Mechanical [Plan11](ci-native-plan11-draft.json) retains identical entire business
+content/8 paths/4 exact checks, appends4 records to1473, with11 Plans/8 previous
+authorizations. [Scope check](ci-native-plan11-source-review.json) is operator
+maintenance, not independent Review. [Preview](ci-native-plan11-execution-proposal.json)
+**`6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92`** freezes new source/transport/actual roles and
+[one-execute helper](native_plan11_execute.py). It requires fresh precise human
+consent after the frozen-input change and Plan10's2/2 repairs. Same DeepSeek
+Profile,24 model calls/200K input/32K output/1800s,3 startup attempts,1 preparation,
+2 code repairs and original separate Review limits. No old cap or call is reset;
+planning64/3 holds remain. Plan11 is unapproved/unrun/not_prepared. API still
+shows Plan10's historical Baseline with exact old attempt/result; it is not a new
+Plan11 receipt. The audit's initial contrary assumption was corrected without
+business mutation and is disclosed in [final audit](ci-native-plan11-final-audit.json).
+
+Final audit verifies1473 events(all1469 prior hashes),1446 artifacts,74 historical
+files,242 source files,42 unchanged tables after expected child append, SQLite
+integrity/FK/audit/event chains and credential scans. Native model starts total64
+are distinct from planning lifetime64; zero new calls after the v4 fix. Native0/4,
+U0/15, H Node/E3–E6 and native Linux amd64 gates stay open. Current task remains
+**UPEVE-E04**. No external business patch, third-party/formal-data write, Push or PR.
+[Evidence seal](ci-native-plan11-evidence-seal.json) binds current records and sources.
