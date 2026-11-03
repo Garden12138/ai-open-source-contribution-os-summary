@@ -6462,6 +6462,55 @@ Native starts64 differ from planning lifetime64. Native0/4, U0/15, H Node failur
 E3–E6 and Linux amd64 blocked/not_run remain. **UPEVE-E04** stays current; no gate
 checked, external business patch, formal-data change, third-party write, Push or PR.
 
+
+### 2026-11-03 Plan11 exact consent consumed; real Baseline passed; native Coding running
+
+Human explicitly approved preview6af1cc92. [Approval](acceptance/universal-environment-v1/ci-native-plan11-execution-approval.json)
+binds unchanged DeepSeek/eight paths/four commands and24 calls/200K input/32K
+output/1800s; single execute queues root a742ed6b, succeeds1/3. [Fresh native
+Baseline](acceptance/universal-environment-v1/ci-native-plan11-baseline.json) verifies
+8 entrypoints/4 commands under Plan11 attempt b47d6c12/session2dd44f18; preparation
+passes1/1, immutable source inventory unchanged. First model request is running;
+no valid Decision/tool/patch/Verify/Review or delivery is inferred. Source cf05156
+stays frozen, all older Plan10 failure/usage and planning64/three holds retained.
+Current UPEVE-E04 and all stage/platform gates remain unchanged. No publication,
+third-party/formal-data write, Push or PR is authorized.
+
+### 2026-11-03 Plan11 terminal budget failure; actual v4 feedback pass; no patch
+
+[Actual Plan11 result](acceptance/universal-environment-v1/ci-native-plan11-execution.json):
+14 real DeepSeek starts/12 valid Decisions/43 Docker source observations(39 file
+reads/4 path queries),zero patches/checks/code repairs. Native preparation1/1,
+8 entrypoints/all4 original Baseline commands pass under fresh Plan11 bindings.
+Two5-call batches reject whole; both typed5/4/0 receipts reach the next actual
+prompt with correct remaining1 then0, followed by valid turns and stale-feedback
+clearing. Complete task facts remain in all14 prompts. This passes actual v4
+feedback delivery, not native Issue implementation or an inferred causal model fix.
+
+[Read evidence](acceptance/universal-environment-v1/ci-native-plan11-read-observation.json)
+shows6 paths, all offsets0,33 repeated starts among39 reads. No search_code,
+read_artifact or inspect_failure use; four final read receipts have no later model
+prompt. Charged171256 input/12756 output stays separate from reported128816/5408;
+failed reservations are retained. Remaining28744 input cannot reserve the next
+complete request; the15th model Job fails agent_budget_exceeded1/1 before dispatch
+or charge, terminal checkpoint blocked. No quota/credential failure is observed.
+No old cap/usage is reset, no extra allowance, Plan12 or paid identical retry created.
+Post-change Verify/Issue regression/independent Review/final acceptance are not_run
+or unavailable. Further paid execution needs a concrete frozen strategy/preview and
+fresh precise human consent, not inferred permission from unused call count.
+
+[Terminal audit](acceptance/universal-environment-v1/ci-native-plan11-terminal-audit.json)
+verifies1782 events(all1473 old hashes),1523 artifacts(all1446 old registrations),
+74 history files/242 source files, all old rows unchanged,9 authorizations/11 Plans,
+45-table comparison, integrity/FK/audit/event chains, page200/four healthy endpoints,
+credential scans. Source/role/image/safety settings remain frozen; evidence-only
+updates need no redeploy. Planning64/three unknown holds stay unchanged: only its
+state-bound view revision changes with task state, all budget fields/record hash
+remain exact. Native starts total78 are a different counter. Native0/4, U0/15,
+H Node forced CI global installer remains unsupported, E3–E6 and native Linux amd64
+remain open. **UPEVE-E04** stays current; no gate promoted, business patch by Codex,
+formal-data change, third-party write, Push or PR. UPEVE acceptance remains incomplete.
+
 ---
 
 ## Phase 6 — Independent review and bounded repair

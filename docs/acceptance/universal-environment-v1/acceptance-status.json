@@ -272,7 +272,10 @@
         "ci-native-plan7-storage-incident.json",
         "ci-native-plan10-execution.json",
         "native-rejection-feedback-checks.json",
-        "ci-native-plan11-final-audit.json"
+        "ci-native-plan11-final-audit.json",
+        "ci-native-plan11-execution.json",
+        "ci-native-plan11-read-observation.json",
+        "ci-native-plan11-terminal-audit.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -340,7 +343,10 @@
         "ci-native-plan7-storage-incident.json",
         "ci-native-plan10-execution.json",
         "native-rejection-feedback-checks.json",
-        "ci-native-plan11-final-audit.json"
+        "ci-native-plan11-final-audit.json",
+        "ci-native-plan11-execution.json",
+        "ci-native-plan11-read-observation.json",
+        "ci-native-plan11-terminal-audit.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey Actual Plan7 storage recovery preserves1005 verified main events but cannot recover an uncheckpointed tail; the unknown read step is blocked without replay. Full crash safety remains unproven."
     },
@@ -385,7 +391,10 @@
         "ci-native-plan7-storage-incident.json",
         "ci-native-plan10-execution.json",
         "native-rejection-feedback-checks.json",
-        "ci-native-plan11-final-audit.json"
+        "ci-native-plan11-final-audit.json",
+        "ci-native-plan11-execution.json",
+        "ci-native-plan11-read-observation.json",
+        "ci-native-plan11-terminal-audit.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -557,7 +566,10 @@
         "deepseek-native-readonly-extension-64-proposal.json",
         "ci-native-plan10-execution.json",
         "native-rejection-feedback-checks.json",
-        "ci-native-plan11-final-audit.json"
+        "ci-native-plan11-final-audit.json",
+        "ci-native-plan11-execution.json",
+        "ci-native-plan11-read-observation.json",
+        "ci-native-plan11-terminal-audit.json"
       ],
       "limit": "Original N5 metadata exclusion retained. Authenticated D scan/source now pass and real MiniMax returns an unverified no-change narrative/clarification after 11 lifetime calls, no Plan or actual baseline. N6/N7 metadata-only TypeScript candidate sets are empty under frozen bounds; no substituted sample or native success. Exact execution/final approval and Coding/Verify/Review are not_run. Fresh N8 frozen 61b559b TypeScript first measurement reads exact source via native product flow and makes 7 actual MiniMax calls, but exhausts 4 read rounds without a Plan. Original first events retained; later maintenance demotes it to D. Native first deliveries now 0/4, no baseline or code delivery. Same-target foundation and provider-native adaptive D retests remain unsuccessful. Last adaptive attempt makes five actual calls (17 lifetime), then hits minimax_completion_truncated at the frozen 8192 cap; last-call tokens are unknown in the old reader, not zero. No Plan or execution approval. User-approved task-only 16K retest makes one call, then stops at 96 KB context admission with no Plan (18 lifetime calls). Source-hash sharing fixes that exact input in a clone (96,836 to 94,361 bytes) without changing full manifests/current pages/limits. Native effectiveness after this maintenance is unverified; first outcomes are unchanged. User-approved bounded follow-up request 1 makes five calls (23 lifetime), all within context admission, then fails too_long/response with no Plan. The exact raw rejected field/count is unavailable. Context-field diagnostics and bounded oversized-read repair are component-tested, not native success; request 2 is pending. Request 2 makes three calls and then context admission fails before call 4, no Plan (26 lifetime). Generic preview/partial-delivery control is proven only in tests/clone (99,905 to 94,544 bytes). Latest explicit continue may resume the same round-3 lineage after deployment, without resetting any limit or starting a third fresh request. Same second-request lineage resumes at frozen round 3, actual limited delivery admits at 94,544 bytes. It later rejects invalid references/read-round overreach and ends with model_gateway_transport_failure (HTTP200 upstream then local Gateway502; exact read/parse/guard cause unknown). Two follow-ups total 11 actual calls, no Plan; lifetime29, two unknown usage allowances retained. No ambiguous POST replay. All native first outcomes remain unchanged. A later explicit same-frozen-step retry makes one actual call and fails upstream HTTP402 (exact balance versus plan limit unknown), no Plan. Lifetime30; three unknown usage allowances exhaust local input. No further model call or budget change occurs; native first outcomes remain unchanged. Exact user-approved DeepSeek D request makes three HTTP200 calls, then fails conversation_tool_budget before planning; five reads, no Plan or native delivery. Generic remaining-read prompt/schema/parser maintenance passes offline checks; native effectiveness after it is not_run. One request is closed without automatic retry; lifetime33 and old unknown reserves are retained. After an explicit user continuation, four real calls respect six reads with remaining allowances 6/3/1/0, but classify the investigation as observe/respond and do not dispatch planning. A separately recorded native read/plan control uses the last allowed call and requests four context pages; its follow-up is blocked before invocation at lifetime38. No Plan or native delivery; old unknown reserves retained. Read-quota enforcement passes, natural-language planning routing fails, full acceptance incomplete. Exact call-only 38-to-50 consent applies without changing input/output caps or history. One direct planning call returns HTTP200 but exhausts its 16,384 output cap and terminates deepseek_completion_truncated, no Plan. Known 49,660 input/16,384 output retained, exact reasoning/final split unknown; lifetime39 and 11 calls remain. An unbound planning-only low-effort trial is prepared with unchanged caps, not run pending exact profile-change confirmation. No native delivery. User explicitly permits the frozen planning-only low-effort trial. Five calls return complete outputs without truncation, but the draft remains deferred because automatic environment closure needs the absent pnpm-lock.yaml after four read rounds. No saved Plan; Job success is not planning success. repair_round is zero, exposing an inaccurate repair-limit message. A separate network-free OCI read obtains the exact lock hash and closes this draft graph in memory only; native context is unchanged. Lifetime44 and six calls remain; no execution consent or native delivery. The approved post-preload native retest uses five complete calls and saves actual PlanVersion cb2aa72a-58a6-45e2-a26f-0daf9c3ba354, retaining four exact CI checks. The lock is captured before the first model call. Initial preflight is blocked by exact pnpm --filter parsing; generic versioned adapter v3 passes controlled/real OCI checks and closes the same static graph without rewriting the Plan. Operator source review finds emitted upstream payloads omit stable IDs and the web-only write scope cannot meet out-of-order identity matching; native child Plan required, no execution consent. This operator source review is not an independent ReviewRun. Lifetime49, one call remains. Native full journey remains not_run. The exact one-call revision first fails context admission before any model call. Generic graph projection reduces a controlled frozen-input replay111740→93821 bytes without changing request/Plan/rules. Existing native recovery uses the same payload hash and no fresh planning request; a real93414-byte prompt reaches one HTTP200 completion. The response requests max_lines beyond160 and fails validation before any invalid read; original value not retained, no child Plan. Known33563 input/1453 output retained. Local planning cap50 is exhausted, not evidence of provider credit balance. Generic range correction/recovery is tested within the original two repair/four read slots, but live recovery remains not_run. A call-only50→64 preview is pending; no actual budget increase or execution occurs."
     },
@@ -613,7 +625,10 @@
         "native-tools-final-audit.json",
         "ci-native-plan10-execution.json",
         "native-rejection-feedback-checks.json",
-        "ci-native-plan11-final-audit.json"
+        "ci-native-plan11-final-audit.json",
+        "ci-native-plan11-execution.json",
+        "ci-native-plan11-read-observation.json",
+        "ci-native-plan11-terminal-audit.json"
       ],
       "limit": "0038 backup/0039 upgrade/restore tested; old task/approval/event/artifact hashes preserved"
     }
@@ -643,9 +658,9 @@
     "N8": 1,
     "environment_holdout_denominator_separate": true
   },
-  "latest_native_retest": "ci-native-plan7-execution.json",
+  "latest_native_retest": "ci-native-plan11-execution.json",
   "latest_isolated_deployment": "native-rejection-feedback-deployment.json",
-  "latest_history_and_security_audit": "ci-native-plan11-final-audit.json",
+  "latest_history_and_security_audit": "ci-native-plan11-terminal-audit.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -682,7 +697,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-plan8-final-audit.json",
+  "latest_final_observation": "ci-native-plan11-terminal-audit.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -2517,7 +2532,7 @@
     ]
   },
   "native_rejection_feedback_maintenance": {
-    "status": "implemented_tested_deployed_native_effect_unverified",
+    "status": "native_receipt_delivery_and_stale_clear_verified_Coding_delivery_failed",
     "engine_revision": "cf051560b8aa64cd01dd2abd351b7d6710d4d74f",
     "source_manifest_hash": "7bc2e2e48201979ee1ea95a54f228f99a32a32ff7bba32146d4b3e2cdd053e82",
     "default_regression": {
@@ -2545,17 +2560,19 @@
     "API_tool_schemas_and_instruction": "identical_actual_image_comparison",
     "legacy_structured_wire": "unchanged",
     "offline_replay": "three_original_Plan10_prompts_unissued_max20999_of32000",
-    "new_model_requests_after_fix": 0,
+    "new_model_requests_after_fix": 14,
     "all45_tables1469_events_unchanged_during_deploy": true,
     "evidence": [
       "native-rejection-feedback-checks.json",
       "native-rejection-feedback-replay.json",
       "native-rejection-feedback-contract-comparison.json",
       "native-rejection-feedback-deployment.json"
-    ]
+    ],
+    "actual_protocol_corrections": "two_receipts_current_budget1_then0_both_followed_by_valid_turn_feedback_cleared",
+    "native_effect_evidence": "ci-native-plan11-read-observation.json"
   },
   "pending_native_Plan11_execution": {
-    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "status": "exact_consent_consumed_terminal_budget_failure_without_patch",
     "proposal_hash": "6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92",
     "evidence": "ci-native-plan11-execution-proposal.json",
     "plan_id": "2026fb2d-29f5-4b1d-81b9-a0ba125505bb",
@@ -2583,13 +2600,87 @@
     },
     "startup_attempt_limit": 3,
     "new_native_preparation_attempt_limit": 1,
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
-    "new_Plan11_Prepare_Baseline_Coding_Verify_Review": "not_run",
-    "actual_environment_ready": false,
+    "new_Plan11_Prepare_Baseline_Coding_Verify_Review": "preparation8_entrypoints4_Baseline_passed_Coding_failed_no_patch_Verify_Review_not_run",
+    "actual_environment_ready": "historical_native_Baseline_passed_disposed_not_a_new_retry",
     "historical_visible_baseline_belongs_to": "Plan10_e637b013_not_new_Plan11",
-    "native_events": 1473,
-    "execution_approvals_still": 8,
-    "evidence_seal": "ci-native-plan11-evidence-seal.json"
+    "native_events": 1782,
+    "execution_approvals_still": 9,
+    "evidence_seal": "ci-native-plan11-evidence-seal.json",
+    "approval_evidence": "ci-native-plan11-execution-approval.json",
+    "execution_evidence": "ci-native-plan11-execution.json",
+    "baseline_evidence": "ci-native-plan11-baseline.json",
+    "terminal_evidence": "ci-native-plan11-execution.json",
+    "terminal_audit": "ci-native-plan11-terminal-audit.json",
+    "terminal_evidence_seal": "ci-native-plan11-terminal-evidence-seal.json"
+  },
+  "Plan11_native_execution": {
+    "status": "native_terminal_blocked_agent_budget_exceeded",
+    "proposal_hash": "6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92",
+    "approval_hash": "d9622bd80eca3d28a7f9a40eae7bda0fb53b237388acb254e8256af0652fa1d5",
+    "plan_id": "2026fb2d-29f5-4b1d-81b9-a0ba125505bb",
+    "root_job": "a742ed6b-9546-46dd-b3b4-41ca8135fee3",
+    "root_final": "succeeded_attempt1of3",
+    "attempt_id": "b47d6c12-fefc-4af1-b1e3-7e89fdfc277a",
+    "session_id": "session-2dd44f18b8adba684806de67cc01a327",
+    "native_preparation": "passed_attempt1of1",
+    "native_entrypoints": 8,
+    "native_Baseline_checks": 4,
+    "model_starts": 14,
+    "valid_Decisions": 12,
+    "rejected_batch_sizes": [
+      5,
+      5
+    ],
+    "actual_tools": 43,
+    "file_reads": 39,
+    "path_queries": 4,
+    "unique_source_paths": 6,
+    "unique_start_offsets_per_path": 1,
+    "repeated_start_offset_reads": 33,
+    "raw_read_receipts_not_in_later_prompt": 4,
+    "protocol_repairs_consumed": 2,
+    "protocol_feedback_verified": "typed_receipt_current_budget_and_clear_after_valid_turn",
+    "complete_task_inline_prompts": 14,
+    "source_patches": 0,
+    "native_tests_after_change": 0,
+    "code_repairs": 0,
+    "Issue_regression": "not_run",
+    "native_Verify": "not_run",
+    "independent_Review": "not_run",
+    "final_human_acceptance": "unavailable_no_patch",
+    "charged_usage": {
+      "model_calls": 14,
+      "input_tokens": 171256,
+      "output_tokens": 12756,
+      "reads": 43,
+      "output_bytes": 216162,
+      "protocol_repairs": 2
+    },
+    "reported_usage": {
+      "input_tokens": 128816,
+      "output_tokens": 5408
+    },
+    "failed_reservations_preserved_not_claimed_spend": true,
+    "terminal_reason": "agent_budget_exceeded",
+    "remaining_input": 28744,
+    "fifteenth_request_not_started_or_charged": true,
+    "quota_or_credential_failure": "not_observed",
+    "native_models_all_sessions": 78,
+    "planning_lifetime_calls_separate": 64,
+    "planning_three_unknown_holds_retained": true,
+    "source_frozen_during_run": true,
+    "new_Plan_or_paid_retry": "not_created",
+    "all_old1473_events_and1446_artifacts_retained": true,
+    "total_events": 1782,
+    "total_artifacts": 1523,
+    "evidence": [
+      "ci-native-plan11-execution-approval.json",
+      "ci-native-plan11-execution.json",
+      "ci-native-plan11-baseline.json",
+      "ci-native-plan11-read-observation.json",
+      "ci-native-plan11-terminal-audit.json"
+    ]
   }
 }
