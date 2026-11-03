@@ -1,0 +1,86 @@
+{
+  "version": "upeve-plan7-approved-preflight-blocked-v1",
+  "recorded_at": "2026-11-03T01:10:21.718363+00:00",
+  "status": "approved_not_dispatched_missing_isolated_GitHub_credential",
+  "approved_proposal_hash": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
+  "approval_hash": "ce871e87e22f271bfa9480d6b386aa6302229150635b86fa6a702de0a5d54703",
+  "approval_retained_for_same_exact_inputs": true,
+  "source_revision": "eea293893d47badb4090968739058b5e1596ddb7",
+  "source_manifest_hash": "07c54420bde3fbaad51f66c1d75d3293557cd2db2b43b71f5aa6dee98af832a8",
+  "source_files_verified": 242,
+  "original_history_files_verified": 74,
+  "unchanged_native_journal_events": 856,
+  "native_execution_authorizations": 4,
+  "Plan_count": 7,
+  "helper_pre_action_failures": [
+    "missing_local_read_HMAC_file",
+    "publisher_relay_502_missing_real_private_credential"
+  ],
+  "execution_receipt_absent": true,
+  "native_execute_POSTs": 0,
+  "new_model_calls": 0,
+  "actual_Plan7_Prepare": "not_run",
+  "actual_Plan7_Baseline": "not_run",
+  "Coding_Verify_independent_Review": "not_run",
+  "upstream_HEAD_current": "not_verified_credential_blocked",
+  "prior_context_projection_live_effect": "not_run",
+  "old_Plan6_checkpoint_and_reservations_preserved": true,
+  "planning_cap64_usage64_unknown3_unchanged": true,
+  "missing_private_material_cause": "unknown_not_inferred",
+  "encrypted_GitHub_credential_rows": 0,
+  "real_credential_value_not_read_or_logged": true,
+  "persisted_connected_status_not_proof_of_available_private_credential": true,
+  "read_HMAC_restored_from_existing_owned_service": true,
+  "publisher_recovery_receipt": "ci-native-plan7-publisher-recovery.json",
+  "same_frozen_source_new_migration_compatible_Publisher": true,
+  "business_tables_preserved": 45,
+  "secure_browser_envelope_grant_entrypoint": "passed",
+  "grant_entries_only": 1,
+  "independent_OCI_regression": {
+    "classification": "real_OCI_component_not_native_Agent_or_issue_success",
+    "platform": "macOS_arm64_OrbStack_Linux_arm64_OCI",
+    "image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+    "report_path": "/tmp/upeve-plan7-preflight-oci.xml",
+    "report_sha256": "9d16ae8fb4da0b310246470e8f09e1965d1451e87df365a8044b8106462fbb36",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": [
+      "Python_and_TypeScript_patch_hash_conflicts_assertion_failure_fix_diff",
+      "help_only_and_zero_tests_exit0_rejected"
+    ],
+    "network": "none",
+    "real_model_calls": 0,
+    "current_native_task_modified": false
+  },
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "active_jobs": 0,
+  "integrity_check": "ok",
+  "foreign_key_check": [],
+  "credential_findings": [],
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "native_first_deliveries": "0/4_unchanged",
+  "complete_U_baselines": "0/15_unchanged",
+  "historical_Node": "failed",
+  "native_Linux_amd64": "blocked_not_run",
+  "current_task": "UPEVE-E04",
+  "phase_gate_promoted": false,
+  "next_required_action": "User securely saves GitHub token in isolated18090 settings; recheck same frozen source/state/upstream HEAD, then use existing precise approval and unchanged helper once."
+}

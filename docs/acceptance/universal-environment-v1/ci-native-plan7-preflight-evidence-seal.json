@@ -1,0 +1,32 @@
+{
+  "version": "upeve-plan7-approved-preflight-evidence-seal-v1",
+  "recorded_at": "2026-11-03T01:11:40.232061+00:00",
+  "files": {
+    "docs/acceptance/universal-environment-v1/ci-native-plan7-execution-approval.json": "d58bc8177590c04ac1984ebf8e0f30bcd42d97cfb3b2f307a26f008e6a0efed7",
+    "docs/acceptance/universal-environment-v1/ci-native-plan7-preflight-recovery.json": "7a5e7fb39228bd50d911d5419c80e9002074760c2ec58d5c9714371304ff7702",
+    "docs/acceptance/universal-environment-v1/ci-native-plan7-publisher-recovery.json": "03c2a1adc8e07bebf83da8628ac3b08e08069206ba76a8af6ae010b954dc48f0",
+    "docs/acceptance/universal-environment-v1/ci-native-plan7-preflight-blocked.json": "061f01a6abf33f21035670c3cd98ff6bf24b4120c3d20d92223a41893c9808f0",
+    "docs/acceptance/universal-environment-v1/ci-native-plan7-execution-proposal.json": "150c084a7f576cd8df5ea61fc46149e1f681f17c8bcb61aca3e2b4fa2f927388",
+    "docs/acceptance/universal-environment-v1/native_plan7_execute.py": "90fdbb369b6e8e5269ce82b90b72ef753cf65cce7084a8558bc2415cee0d7468",
+    "docs/acceptance/universal-environment-v1/README.md": "18441d3060a1d5d77a82309c34f7941b61bf592cd2baa9e63165d3c7bf5493f9",
+    "docs/acceptance/universal-environment-v1/acceptance-status.json": "df999ac66a5a016c484483d8ac826315b82b475a32b087b312bf49c300b0831b",
+    "docs/tasks.md": "cbd8bfdbfc5aacde7cf384b73579e18603fb91f8cd9dcb4327de638045391502"
+  },
+  "JSON_records_scanned": 598,
+  "credential_findings": [],
+  "source_revision": "eea293893d47badb4090968739058b5e1596ddb7",
+  "source_manifest_hash": "07c54420bde3fbaad51f66c1d75d3293557cd2db2b43b71f5aa6dee98af832a8",
+  "source_files_verified": 242,
+  "approved_exact_preview": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
+  "approval_hash": "ce871e87e22f271bfa9480d6b386aa6302229150635b86fa6a702de0a5d54703",
+  "approval_retained": true,
+  "status": "approved_not_dispatched_missing_isolated_GitHub_credential",
+  "native_execute_POSTs": 0,
+  "new_model_calls": 0,
+  "native_journal_unchanged_events": 856,
+  "real_OCI_component_passed": 4,
+  "OCI_components_not_native_delivery": true,
+  "formal_data_modified": false,
+  "third_party_writes": 0,
+  "seal_hash": "1b8d48e2f950fe1a61046a756183598851466fb7af6054f17bc38d0c4862af9d"
+}

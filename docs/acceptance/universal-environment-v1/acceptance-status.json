@@ -261,7 +261,9 @@
         "native-protocol-repair-checks.json",
         "ci-native-plan6-baseline.json",
         "ci-native-plan6-execution.json",
-        "native-context-projection-checks.json"
+        "native-context-projection-checks.json",
+        "ci-native-plan7-execution-approval.json",
+        "ci-native-plan7-preflight-blocked.json"
       ],
       "limit": "Contract/CAS/stale-input checks and actual preserved source/history"
     },
@@ -320,7 +322,10 @@
         "native-protocol-repair-checks.json",
         "ci-native-plan6-baseline.json",
         "ci-native-plan6-execution.json",
-        "native-context-projection-checks.json"
+        "native-context-projection-checks.json",
+        "ci-native-plan7-execution-approval.json",
+        "ci-native-plan7-preflight-blocked.json",
+        "ci-native-plan7-publisher-recovery.json"
       ],
       "limit": "State/recovery contracts and fresh-cache OCI pass; no complete new native crash/restart journey"
     },
@@ -357,7 +362,9 @@
         "native-protocol-repair-checks.json",
         "ci-native-plan6-baseline.json",
         "ci-native-plan6-execution.json",
-        "native-context-projection-checks.json"
+        "native-context-projection-checks.json",
+        "ci-native-plan7-execution-approval.json",
+        "ci-native-plan7-preflight-blocked.json"
       ],
       "limit": "Default security contracts + actual credential/network/resource boundary checks"
     },
@@ -610,8 +617,8 @@
     "environment_holdout_denominator_separate": true
   },
   "latest_native_retest": "ci-native-plan6-execution.json",
-  "latest_isolated_deployment": "native-context-projection-deployment.json",
-  "latest_history_and_security_audit": "ci-native-plan7-final-audit.json",
+  "latest_isolated_deployment": "ci-native-plan7-publisher-recovery.json",
+  "latest_history_and_security_audit": "ci-native-plan7-preflight-blocked.json",
   "diagnosis_correction": "baseline-schema-replay.json",
   "latest_context_component": "active-read-limits-controlled-replay.json",
   "model_resource_exception": {
@@ -648,7 +655,7 @@
     "output_tokens": 40960
   },
   "native_current_unknown_calls": 3,
-  "latest_final_observation": "ci-native-plan7-final-audit.json",
+  "latest_final_observation": "ci-native-plan7-preflight-blocked.json",
   "latest_targeted_evidence": "write-scope-guidance-checks.json",
   "native_current_remaining": {
     "calls": 0,
@@ -1976,7 +1983,7 @@
     ]
   },
   "pending_native_Plan7_execution": {
-    "status": "awaiting_fresh_exact_bounded_execution_consent",
+    "status": "exact_approved_not_dispatched_missing_isolated_GitHub_credential",
     "proposal_hash": "1304fc01d3b622cead59bc7555097495a8b491823bcebbaed184277c85c32ab6",
     "evidence": "ci-native-plan7-execution-proposal.json",
     "plan_id": "7863d74a-83db-4b57-a767-8d8349a23948",
@@ -2003,9 +2010,36 @@
       "output_bytes": 500000,
       "seconds": 1800
     },
-    "execution_approved": false,
+    "execution_approved": true,
     "publication_approved": false,
-    "new_Plan7_Baseline": "unverified",
-    "Coding_Verify_Review": "not_run"
+    "new_Plan7_Baseline": "not_run",
+    "Coding_Verify_Review": "not_run",
+    "approval_hash": "ce871e87e22f271bfa9480d6b386aa6302229150635b86fa6a702de0a5d54703",
+    "approval_evidence": "ci-native-plan7-execution-approval.json",
+    "approval_retained_for_same_exact_inputs": true,
+    "native_execute_POSTs": 0,
+    "new_model_calls": 0,
+    "preflight_blocker_evidence": "ci-native-plan7-preflight-blocked.json",
+    "required_prerequisite": "User enters a GitHub token in secure settings on isolated18090; exact frozen source/state/upstream HEAD must still match.",
+    "upstream_HEAD": "not_verified"
+  },
+  "Plan7_private_storage_recovery": {
+    "status": "secure_browser_entry_ready_empty_store_user_credential_required",
+    "evidence": [
+      "ci-native-plan7-preflight-recovery.json",
+      "ci-native-plan7-publisher-recovery.json",
+      "ci-native-plan7-preflight-blocked.json"
+    ],
+    "old_Publisher_restart_failed_unknown0041": true,
+    "recovery_container_id": "f813dce8ad1723f97cc2a99812421c381b844256baa0c5935ce4be1384792e3c",
+    "recovery_image": "sha256:b04fc368ee6129d651f9df646d86d90fc6d7e312c647dc8814182bf1d1293a10",
+    "frozen_source_files_verified": 242,
+    "original_security_configuration_preserved": true,
+    "business_table_hashes_unchanged": 45,
+    "old_native_journal_events_unchanged": 856,
+    "new_model_calls": 0,
+    "actual_OCI_component_passed": 4,
+    "OCI_component_not_native_Agent_success": true,
+    "formal_data_modified": false
   }
 }

@@ -1680,3 +1680,52 @@ remain. No phase gate is promoted; UPEVE-E04/E3 is current. Current integrity,
 old failures and pending consent are recorded in the [final audit](ci-native-plan7-final-audit.json).
 The [evidence seal](ci-native-plan7-evidence-seal.json) records the exact current
 documentation, receipts, preview and helper bytes before any Plan7 approval.
+
+## 2026-11-03 — Plan7 approved; missing isolated GitHub credential stops preflight
+
+The user's explicit **允许** is preserved in the [exact Plan7 approval](ci-native-plan7-execution-approval.json),
+hash `ce871e87e22f271bfa9480d6b386aa6302229150635b86fa6a702de0a5d54703`,
+bound to unchanged preview `1304fc01…`. The helper stops before any execute POST:
+first its temporary read-proxy HMAC file is absent, then the original Publisher
+returns502 because its private credential database/key files are also missing.
+The cause of the missing files is unknown. The old persisted connected-account
+record does not prove a usable credential. No native execution receipt is created,
+no model call is made, and all856 native events/four execution authorizations,
+old Plan6 checkpoint, charged usage and planning holds remain intact.
+
+[Local capability recovery](ci-native-plan7-preflight-recovery.json) restores only
+the same internal read HMAC from the verified owned Publisher configuration to
+a0600 temporary file. It never reads a real GitHub token. Restarting the old
+Publisher to initialize its empty private store exposes a separate deployment
+failure: its old image rejects the already-applied0041 migration. The old
+container is preserved stopped; the database and migration guards are unchanged.
+
+[Publisher recovery](ci-native-plan7-publisher-recovery.json) builds an offline
+source overlay from the same trusted base, with all242 frozen production files
+verified. The initial overlay compile check cannot write bytecode beside
+root-owned source under its non-root user; the corrected build writes only
+build-time bytecode to/tmp. Runtime imports and compileall pass. The new owned
+container `upeve-publisher-20261103-recovery`, image
+`sha256:b04fc368ee6129d651f9df646d86d90fc6d7e312c647dc8814182bf1d1293a10`,
+retains the original UID, read-only root, dropped capabilities, no-new-privileges,
+resource limits, narrow private/business mounts and127.0.0.1:18092 binding.
+All45 business-table hashes are unchanged. Existing product startup creates an
+empty private store and new private crypto files; it cannot recover the old
+credential. A real same-origin/CSRF browser-envelope grant succeeds, proving the
+secure settings entrypoint is ready. No real credential is added by the operator.
+
+The [blocked preflight audit](ci-native-plan7-preflight-blocked.json) also records
+**four actual OCI component passes**, using the same fixed Linux arm64 sandbox
+image on macOS/OrbStack: Python/TypeScript patch conflicts, real assertion failure
+then repair/diff, and help-only/zero-test exit0 rejection. They use separate
+temporary fixtures, no model/credentials/network, and do not modify the native
+task or count as an Issue fix. All four local health endpoints pass.
+
+Plan7 remains **approved, not dispatched, credential-blocked**. The user must
+securely save a GitHub token in the isolated18090 settings page, not chat or the
+formal instance. If the exact source/state/upstream head still match, the existing
+approval and unchanged helper can proceed once; no repeat approval is required
+for restoring this prerequisite. Current upstream head is unverified; new Plan7
+Prepare/Baseline/Coding/Verify/independent Review and the prompt fix's live effect
+are not_run. Native first0/4, U baselines0/15, H Node failure, Linux amd64 blocker
+and all E3–E6 gates remain. Current task is UPEVE-E04.
