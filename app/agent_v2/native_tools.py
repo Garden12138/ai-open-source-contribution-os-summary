@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Literal, Self
 
-from pydantic import Field
-from app.agent_v2.contracts import Decision, ModelTransport, StrictModel, TaskSpec, ToolCall
+from pydantic import Field, model_validator
+from app.agent_v2.contracts import Decision, Hash, Identifier, ModelTransport, StrictModel, TaskSpec, ToolCall
 from app.agent_v2.tools import RestrictedToolRegistry
 from app.providers.codex_cli import CodexExecInvocation
 from app.providers.contracts import ProviderIdentity, ProviderRunError, ProviderStage, ProviderUsage
@@ -16,7 +16,7 @@ from app.security import SensitiveDataError, ensure_no_sensitive_data
 
 FINISH = "contribos_agent_finish"
 BLOCKED = "contribos_agent_blocked"
-NATIVE_PROMPT_VERSION = "native-batch-feedback-v3"
+NATIVE_PROMPT_VERSION = "native-rejection-feedback-v4"
 NATIVE_HISTORY_WINDOW = 8
 NATIVE_INPUT_LIMIT = 32000
 NATIVE_FEEDBACK_PAGE_LIMITS = (4096, 2048, 1024, 512, 256, 128, 64, 0)
@@ -48,6 +48,36 @@ class TerminalReply(StrictModel):
     reply: str = Field(default="", max_length=4000)
 
 
+class NativeCountRejection(StrictModel):
+    version: Literal["native-function-protocol-rejection-v1"]
+    reason: Literal["too_many_calls"]
+    max_allowed_calls: int = Field(ge=4, le=4)
+    received_call_count: int | None = Field(ge=5, le=1024)
+    count_exceeds_diagnostic_bound: bool
+    whole_batch_rejected: bool
+    executed_calls: int = Field(ge=0, le=0)
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if (not self.whole_batch_rejected
+                or self.count_exceeds_diagnostic_bound != (self.received_call_count is None)):
+            raise ValueError("native_rejection_receipt_invalid")
+        return self
+
+
+class NativeProtocolCorrection(StrictModel):
+    version: Literal["native-protocol-correction-v1"] = "native-protocol-correction-v1"
+    rejection: NativeCountRejection
+    rejection_event_hash: Hash
+    model_job_id: Identifier
+    remaining_protocol_repairs: int = Field(ge=0, le=4)
+    next_step: Literal["retry_with_at_most_four_calls"] = "retry_with_at_most_four_calls"
+    instruction: str = (
+        "The prior entire batch was rejected; none of its calls ran. This is a permitted correction turn. "
+        "Return one to four calls now and perform further reads in later turns. No new scope or budget is granted."
+    )
+
+
 def native_tool_definitions() -> list[dict[str, Any]]:
     definitions = [{"type": "function", "function": {"name": name,
         "description": "Platform tool; existing task scope, evidence and budget checks apply.", "parameters": schema}}
@@ -64,7 +94,8 @@ def native_model_transport() -> ModelTransport:
         "max_calls": 4, "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
             "task_input": {"strategy": "complete_if_admitted", "max_input_bound": NATIVE_INPUT_LIMIT},
             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
-                "task_before_page_bodies": True, "read_ranges": "source_bound"}}}))
+                "task_before_page_bodies": True, "read_ranges": "source_bound"},
+            "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn"}}))
 
 
 def require_native_transport(value: ModelTransport | dict) -> ModelTransport:

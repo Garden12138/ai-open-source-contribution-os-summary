@@ -56,7 +56,8 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
         "max_calls": 4, "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
             "task_input": {"strategy": "complete_if_admitted", "max_input_bound": 32000},
             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
-                "task_before_page_bodies": True, "read_ranges": "source_bound"}}})
+                "task_before_page_bodies": True, "read_ranges": "source_bound"},
+            "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn"}})
 
 
 def test_known_calls_are_typed_namespaced_and_never_expose_private_reasoning():

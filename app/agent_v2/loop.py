@@ -147,6 +147,29 @@ def prompt_for(journal: AgentJournal) -> dict:
         turn = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_turn"
             and e.sequence < results[-1].sequence), None)
         feedback_events = [e for e in results if e.sequence > turn.sequence] if turn else results[-4:]
+    rejected = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_model_rejected"), None)
+    protocol_feedback = rejected.payload["failure"] if rejected else None
+    correction = None
+    if native and rejected:
+        valid_turn = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_turn"), None)
+        if valid_turn and valid_turn.sequence > rejected.sequence:
+            protocol_feedback = None
+        else:
+            # Stored failure snapshots precede repair charging. Current prompt
+            # budgets are derived from the committed checkpoint, never rewritten.
+            protocol_feedback = {**protocol_feedback, "remaining_budget": journal.remaining()}
+            receipt = rejected.payload.get("protocol_rejection_receipt")
+            if receipt is not None:
+                from app.agent_v2.native_tools import NativeProtocolCorrection
+                try:
+                    if (rejected.actor_id != "orchestrator"
+                            or rejected.payload.get("exception_type") != "NativeCallCountProtocolError"):
+                        raise ValueError("native_rejection_source_invalid")
+                    correction = NativeProtocolCorrection(rejection=receipt,
+                        rejection_event_hash=rejected.record_hash, model_job_id=rejected.job_id,
+                        remaining_protocol_repairs=journal.remaining()["protocol_repairs"]).model_dump()
+                except (ValueError, TypeError):
+                    raise WorkbenchError("平台协议拒绝证据无效。", code="agent_native_rejection_evidence_invalid") from None
     prompt = {
         "version": "agent-runtime-v2", "goal": spec.goal,
         "binding": spec.binding.model_dump(), "write_paths": spec.write_paths,
@@ -180,9 +203,10 @@ def prompt_for(journal: AgentJournal) -> dict:
         "feedback": [{**journal.wb.read(e.payload["artifact_id"]), "receipt_artifact": e.payload["artifact_id"]}
             if native else model_feedback(e) for e in feedback_events],
         "independent_review_findings": reviews[-1].findings if reviews else [],
-        "protocol_feedback": next((e.payload["failure"] for e in reversed(journal.events())
-            if e.kind == "agent_v2_model_rejected"), None),
+        "protocol_feedback": protocol_feedback,
     }
+    if correction is not None:
+        prompt["native_protocol_correction"] = correction
     from app.agent_v2.native_tools import NATIVE_HISTORY_WINDOW, project_native_prompt
     history_artifact = None
     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
