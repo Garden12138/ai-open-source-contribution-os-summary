@@ -84,8 +84,10 @@ class TaskOrchestrator:
                     previous = candidate.checkpoint()
                     budget_started_at = candidate.root().payload.get("budget_started_at", candidate.root().created_at.replace(tzinfo=timezone.utc).isoformat())
                     break
+        from app.agent_v2.progress import POLICY, initialize
         journal.append("session", {"spec_artifact": artifact, "attempt_id": attempt_id,
-            "budget_started_at": budget_started_at}, key="session:" + session_id)
+            "budget_started_at": budget_started_at,
+            **({"harness_policy": POLICY} if spec.model_transport is not None else {})}, key="session:" + session_id)
         usage = dict(previous.usage) if previous else {}
         if previous:
             usage["code_repairs"] = usage.get("code_repairs", 0) + 1
@@ -95,6 +97,7 @@ class TaskOrchestrator:
             source_hash=previous.source_hash if previous else spec.binding.archive_hash,
             snapshot_artifact=previous.snapshot_artifact if previous else None, usage=usage)
         journal.append("checkpoint", {"checkpoint": cp.model_dump()}, key="initial:" + session_id)
+        initialize(journal, journal.checkpoint())
         return journal
 
     def require_current(self, journal: AgentJournal) -> TaskSpec:
@@ -117,7 +120,10 @@ def runtime_view(wb: Workbench, task_id: str) -> dict | None:
                 for e in journal.events() if e.kind != "agent_v2_checkpoint"]
     # The API projects references, never worker-private volume identities.
     from app.agent_v2.metrics import journey_metrics
+    from app.agent_v2.progress import current_progress
+    progress = current_progress(journal)
     metrics = journey_metrics(wb, task_id)
     return {"version": "agent-runtime-v2", "session_id": journal.session_id,
             "checkpoint": cp.model_dump(), "remaining_budget": journal.remaining(), "timeline": timeline,
+            "implementation_progress": progress.model_dump() if progress else None,
             "metrics": metrics, "native_journey_completed": bool(metrics["native_journey_completed"])}

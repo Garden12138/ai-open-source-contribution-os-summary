@@ -1,0 +1,112 @@
+{
+  "version": "harness-deployment-v1",
+  "recorded_at": "2026-11-04T07:43:22.698844+00:00",
+  "source_manifest_file": "docs/agent-harness-reset-v1/source-manifest-r2.json",
+  "build_report_file": "docs/agent-harness-reset-v1/build-report-r2.json",
+  "source_hash": "59862614eb46caf2b8cdb495220ee92b1fe638db75e2ab0fc3bf8e57f7be8bf8",
+  "images": {
+    "app": "sha256:62c2233f6770117171fd53550ecd77ae65883e9dcf3245397966a88f45d3236c",
+    "worker": "sha256:f96609fb97dcace1a4d8d577b2dfd51686652ed0cb88b0a8a174dde31067317b"
+  },
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "old_roles_preserved_stopped": {
+    "serve": "bc9ff4720280f3ec7086a4b00db306fcdbe63bb19257b5086f4ac74709f328ae",
+    "worker": "d0be4c7052da1ab302cd53ada22c6db5fa4970c4605802dbc91c7a1ee5317502",
+    "sandbox-worker": "34d8ca2871cc0272b2aa67636aa2652db8711ab86f23101f668841440c0b2be8",
+    "provider-worker": "aeae91ee1d0df030c4026359334480fdee1ceb7fd31e991537b9b2a73cf5ad70",
+    "publisher": "b787fc56bcb7e5518f7bbf6618b5cf2651fc5439d2e2fe85adea6334b7eea772"
+  },
+  "new_roles": {
+    "serve": {
+      "id": "9b818981a5001e453b0fcf9cb7ed6d7b14c00d5fe85bc46b1914793312f8c4c9",
+      "name": "harness-api-59862614eb46"
+    },
+    "worker": {
+      "id": "61dcb161e2b7ca68cb85337ab2e1db5218c0285bdaad764afd5adf38cfa2b736",
+      "name": "harness-worker-59862614eb46"
+    },
+    "sandbox-worker": {
+      "id": "a491398ac3ce0955d7b92402af3de3bd762d9690aa1718c55d74577e8b2f8357",
+      "name": "harness-sandbox-worker-59862614eb46"
+    },
+    "provider-worker": {
+      "id": "cd443610fa1fdbda9f4a5762f8bce95ddf8e8c5df2ee7151ceb106d5f2f2e246",
+      "name": "harness-provider-worker-59862614eb46"
+    },
+    "publisher": {
+      "id": "784fa8bf31de454b0691dada8e66229d86f4a6b0666318001e6a28c1d29099e4",
+      "name": "harness-publisher-59862614eb46"
+    }
+  },
+  "business_volume": "upeve-isolated-business-20261103",
+  "old_business_table_hashes_preserved": {
+    "_schema_migrations": "c99fe770dfb3099f65430f1ea676f1e32be68207cb397630bb047dc0177fb6d3",
+    "repositories": "901f2a0ce712f610b0993f28dc979051e5fa6e5028d633f6ad77c9b4b04d810e",
+    "scan_runs": "9d8187103763dc54a17cd32062ebd0ac2a80d796f504a0d2ed42e1119b4350eb",
+    "opportunities": "4d765a1f359f34021bde5c8feaa4926619335fe752a974a874688b4f8976bee8",
+    "daily_picks": "8ac71b84ca6707b49182fa441a305cb94027cdc8a08f9859558eb769ae46fe54",
+    "opportunity_snapshots": "1a60299f31cbbbc38488d46b194ce7f183a19acf62519b55144293ec75a94709",
+    "score_versions": "6555e74b0f03bce82c43e0ed149cf368cf4bc56dee0dec07d23b231a0ebe8173",
+    "jobs": "5916096fa05eb52145b08a15b64cfea8fb46b2d1406a667ae395b21c5e8229a8",
+    "artifacts": "940467cdb7f17a1ae802a0d0393e5f83436b298aa5beca20e43268a3c354d4db",
+    "job_artifacts": "a2708423eadea2681d76f0ddbb9eda98f15865a83135684b5e3e47300ffb25f6",
+    "audit_events": "cc1312ac5b66bd59e415a2c7fcd71cb79a8f47b54323674ed9b74902ff99c9a3",
+    "provider_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "final_score_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "contribution_tasks": "3ad4955fc0f779aae6a9af1b78f999bb15dd916a5b634461bf9369248fb60080",
+    "contribution_task_state_versions": "ddeb3b20a8fd96512f7216b8c89acced00bdbafd64ecbd5c63dc5c4d38103b99",
+    "plan_locks": "1873b1e1573236f6875ed050d5c5070017d48b2ce04b93ef2057e7536cfd3a83",
+    "plan_approvals": "17892306a8b131a81af85ca15f75ef05e28e770199541048edc1be177d4d7b62",
+    "plan_conversation_entries": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_attempts": "b7d53f1ac31ec8f636a2f1bd1869161e532c6b1741f21e2187dec0a4765fd370",
+    "execution_stage_versions": "b121e65e03e56c606e94ad5a16ad3f9af10558a34f8cb2a624a32bb69f1d9c18",
+    "execution_stage_runs": "a192d61cfbaabfa23f960823a3aa8578438bd4c3c721fd0c1ef95ddaa0fafc88",
+    "execution_artifact_manifests": "eed4ebbc4f89f3cea7d11c14fc97450b64bfd8daf857f09655f86d45ccae4fcc",
+    "execution_artifact_entries": "d40703075288ae0e409828692efdce0e5acd7d4ec6321b1cf50da70dfc3fb1a6",
+    "execution_workspace_disposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "execution_workspace_disposal_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_intents": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "publish_confirmations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "pull_request_events": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "task_lifecycle_marks": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "user_preference_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "opportunity_disposition_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "in_app_notifications": "5616551f3a36233f8a23902b91ae10e55bb7ca85644ec3fa0a32a91022605c3c",
+    "notification_reads": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "coding_sessions": "633956afce278f712583630f5354de74c9e1c61918b7ea84dc2402d6f75d5bed",
+    "coding_turns": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "agent_invocations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "change_set_proposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "workbench_events": "4cf72a29e3817264e96b567998262fe74c2b5dba33cac3f5ee3c9020e10618ff",
+    "draft_pull_requests": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "plan_versions": "a05476a76a75f4d88131643ec1330d3c7281b75be801c0e267f092e8fc109072",
+    "model_config_versions": "90b70a06946117eee8b5294b73e56fdb3e43081b48d1d024b0e8e1578aaa6331",
+    "job_model_bindings": "06c96d159aa70c2294a89addadee8b6edfd7c5eadc7949161935a8b0ac4572b6",
+    "task_visibility_versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "analysis_versions": "1a538eadc25d7e3925b8ad54c4d40a24fc803c2129ef9b775e9dcb46c799067a",
+    "review_runs": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "migration_records_appended": 2,
+  "old_migrations_preserved": true,
+  "active_jobs": 0,
+  "security_resources_mounts_and_environment_unchanged": true,
+  "Gateway_not_restarted": true,
+  "backup_sha256": "9767fd8df00f7669ffad7f72a0a322e179f96f2bb7e16ffc5066dd49020281d0",
+  "model_calls": 0,
+  "third_party_writes": 0
+}

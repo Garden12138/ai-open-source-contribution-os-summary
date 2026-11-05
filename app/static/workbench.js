@@ -486,15 +486,20 @@ export function mountContributionWorkbench(root, taskId, options) {
     const generation = openDrawer("工具、测试与恢复记录");
     const runtime = data.execution?.agent_runtime_v2;
     if (!runtime) { drawerBody.append(node("p", "尚无工具执行记录。")); return; }
+    const progress = runtime.implementation_progress;
     const states = {ready:"等待下一回合",model:"正在推理",tools:"正在执行工具",paused:"已暂停",blocked:"已阻断",finished:"编码检查已完成，等待独立审查",cancelled:"已停止"};
-    drawerBody.append(node("p", states[runtime.checkpoint.state] || runtime.checkpoint.state));
+    drawerBody.append(node("p", progress?.phase === "ready_for_human" ? "验证和独立审查已通过，等待人工验收" : states[runtime.checkpoint.state] || runtime.checkpoint.state));
     const remaining = runtime.remaining_budget;
     drawerBody.append(node("p", `剩余模型调用 ${remaining.model_calls} · 读取 ${remaining.reads} · 修改 ${remaining.writes} · 测试 ${remaining.checks}`));
+    if (progress) {
+      const phases = {investigating:"调查中",implementing:"实现中",verifying:"验证中",repairing:"修复中",reviewing:"等待独立审查",ready_for_human:"等待人工验收",blocked:"进度已阻塞"};
+      drawerBody.append(node("p", `实施进度：${phases[progress.phase] || progress.phase} · 连续无进展回合 ${progress.no_progress_streak}`));
+    }
     const timeline = node("ol"); timeline.setAttribute("aria-label", "工具时间线");
     for (const event of runtime.timeline || []) {
       if (event.kind === "agent_v2_tool_started") timeline.append(node("li", `开始 ${event.payload.name} · ${new Date(event.created_at).toLocaleTimeString("zh-CN")}`));
-      if (event.kind === "agent_v2_tool_result") {
-        const row = node("li", event.payload.status === "rejected" ? "工具请求已拒绝，诊断保留 " : event.payload.status === "unknown" ? "工具结果尚未确定 " : "工具已返回真实证据 ");
+      if (["agent_v2_tool_result", "agent_v2_model_response"].includes(event.kind)) {
+        const row = node("li", event.kind === "agent_v2_model_response" ? "模型调用原始记录已保存 " : event.payload.status === "rejected" ? "工具请求已拒绝，诊断保留 " : event.payload.status === "unknown" ? "工具结果尚未确定 " : "工具已返回真实证据 ");
         row.append(button("查看结果", async () => {
           try {
             const page = await requestJSON(`${endpoint}/runtime/artifacts/${encodeURIComponent(event.payload.artifact_id)}`);

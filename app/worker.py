@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+import sqlite3
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager, suppress
 from datetime import datetime, timezone
@@ -8,6 +10,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
 
 from app.archives import RepositoryArchiveJobWorker, RepositoryArchiveStore
 from app.changesets import ChangeSetStore
@@ -298,9 +301,20 @@ class ContribOSWorker:
         erased = await self.task_erasure.run_once(now=now)
         if erased is not None:
             return erased
-        self._sync_product_experience(now=now)
         from app.agent_runtime import advance_tasks
-        advance_tasks(self.database, self.settings)
+        try:
+            self._sync_product_experience(now=now)
+            advance_tasks(self.database, self.settings)
+        except OperationalError as exc:
+            code = getattr(exc.orig, "sqlite_errorcode", None)
+            if (not isinstance(exc.orig, sqlite3.OperationalError) or type(code) is not int
+                    or code & 0xFF != sqlite3.SQLITE_BUSY):
+                raise
+            # Coordination uses short, idempotent database transactions. The
+            # session has unwound; defer to the existing bounded polling tick.
+            # Effect dispatch below is deliberately outside this handler.
+            logging.getLogger(__name__).warning("Coordinator tick deferred: code=sqlite_busy")
+            return None
         for worker in (self.planning_archive, self.contribution_start):
             completed = await worker.run_once(now=now)
             if completed is not None:

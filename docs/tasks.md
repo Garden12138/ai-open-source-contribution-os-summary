@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | P5-G06 — native Linux amd64/Docker Engine acceptance |
+| First current task | User-directed HR4-G04 — Harness real Issue Patch/Verify; P5-G06 native Linux gate remains open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6545,6 +6545,93 @@ Plan11 的账目与失败保持原样：累计保留输入171256/输出12756，�
 中的文件哈希，补充源码变化、过期哈希、UTF-8/零内联字节、伪造提醒及旧协议兼容边界，
 完成定向/全量检查、真实 OCI 和隔离部署后，再冻结新的精确预览并取得新执行批准。
 不得直接恢复 Plan11 的终态检查点或原样追加模型重跑。
+
+---
+
+## User-directed Agent Harness Reset v1 (2026-11-04)
+
+Current专项：**Harness Phase 4 — Plan12真实验收已终态阻断，Gate4未通过**。
+原路线图Phase 5/P5-G06与UPEVE-E04及全部跨平台/真实交付门禁保持原状态。
+设计依据为 [专项文档](agent-harness-reset-v1/README.md)。
+
+- [x] **HR0-G00** 可恢复轨迹、39次读取关联、代码链路与根因置信度已完成。
+  2026-11-04用户明确接受两次原始调用信息`unavailable`，解除该历史缺口的Phase0阻塞。
+  [诊断](agent-harness-reset-v1/diagnosis.md) 和
+  [衍生索引](agent-harness-reset-v1/phase0-evidence.json) 已记录可恢复部分；
+  历史响应仍缺失，不冒充恢复；新准入结论见诊断页首及ADR-008。
+- [x] **HR1-G01** Gate0后先复现并覆盖重复/分页/hash变化、无进展纠偏与阻塞、
+  调用身份、超量纯读/混合写批次、Checkpoint恢复和Verify hash。
+  [Phase1报告](agent-harness-reset-v1/phase1-report.json)：原始调用留存10项旧实现失败；
+  进度用例修正后5失败/1通过，证明旧行为；响应留存/迁移/现有原生回归107通过。
+  未来安全工具信封在解析前独立提交，接受/拒绝/回执均可溯源，未启用自动分批。
+  Progress的预期失败由Phase2处理；部署与真实平台验收仍待集成阶段完成，不充作通过。
+- [x] **HR2-G02** 持久化Progress Ledger及无进展守卫，复用Journal/Checkpoint。
+  Plan12真实验收重新开启：终态协议阻断未同步Ledger。新回归3失败/1旧兼容通过；
+  修复后r3专项227通过/8跳过、工作流63通过，r4 Worker增量92通过，门禁恢复。
+  终态与Ledger同事务阻塞，保留原因、原始响应及事件hash，回滚/重放/旧会话兼容均覆盖。
+  SQLite BUSY仅延后本地协调tick，未知DB错误和模型/工具效果执行不隐式重试。
+  [Phase2报告](agent-harness-reset-v1/phase2-report.json)：30项边界与30项补充检查通过，
+  原生Worker独立进程重启用例通过；首次全量1963通过/9失败/62跳过，9项均为迁移
+  夹具/版本预期，修正后定向9通过。原始全量失败保留，部署/真实OCI仍待集成验证。
+  发布前重新开启：不同max_bytes返回完全相同字节时，原指纹仍把它算作新进展。
+  新回归已先失败；r2按实际字节范围/内容及Verify outcome判断新证据，合法读取仍执行。
+  原r1全量1982通过/62跳过及248文件镜像记录保留；r2仅改变progress.py，91项受影响
+  原生/恢复/验证/独立Review回归通过，门禁恢复。未把r1完整成绩冒充r2全量重跑。
+- [x] **HR3-G03** 选择整批拒绝与有限纠偏；不放宽4-call，不部分执行混合写。
+  [Phase3报告](agent-harness-reset-v1/phase3-report.json)：36项安全/纠偏/响应留存检查通过。
+  五调用含只读、Patch、Verify、终止或未知工具均先留证再零执行拒绝；两次修复上限保留，
+  四调用合法纠正回合保留原始ID/顺序/一调用一结果，不启用自动分批。
+- [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
+  原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
+  [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、
+  [验证汇总](agent-harness-reset-v1/verification-report.json)与
+  [部署审计](agent-harness-reset-v1/postdeploy-audit.json)记录范围与未通过项。
+  逐工具用途、证据、字节续页与下一步约束已补充。当时r2源码248文件重部署到原五角色，
+  健康检查通过，44张业务表hash保留，仅追加0042/0043迁移；环境/挂载/安全和资源原样。
+  真实Python/TypeScript OCI工具边界7通过。r1全量1982通过/62跳过，r2增量91通过及
+  安全/协议补充38通过；r1来源与r2单模块差异均保留，不冒充r2全量或真实模型验收。
+  GitHub公开GET确认#107仍open、正文hash与冻结快照相同、main仍3489e17c。
+  已保存同内容Plan12草稿和[精确预览](agent-harness-reset-v1/real-acceptance-preview.json)，
+  原8路径/4命令、DeepSeek绑定及原每轮上限不变；旧Plan11检查点/用量与规划64次预算保留。
+  用户随后明确回复“批准”，绑定预览81e1d70a及额外一轮原上限预算。
+  [批准记录](agent-harness-reset-v1/real-acceptance-approval.json)和
+  [执行回执](agent-harness-reset-v1/real-acceptance-execution.json)持久化；单次提交Job d4bbb222。
+  [真实验收结果](agent-harness-reset-v1/real-acceptance-result.json)：新准备和Baseline4/4通过；
+  8次真实模型调用、13个工具结果，6次精确复用，三次超量批次6/5/5均先留证后零执行拒绝。
+  原两次协议纠偏额度耗尽，终态agent_native_call_count_invalid。实际报告输入72200/输出5029，
+  计入失败预留的用量输入137303/输出15038，不能混算。1579个Artifact和1937条任务事件通过审计。
+  **Gate4未通过**：真实Patch0、修改后Verify/独立Review未运行；不进入Phase5。
+  不重复分配预算或恢复终态；旧Plan11终态、已用量及规划64次上限/三个未知预留原样保留。
+  终态Ledger同步与协调Worker写锁退出问题已完成回归、部署和审计。当前r4源码718ed712的
+  五角色248文件逐一校验、四端健康、44张业务表hash保留；没有新迁移或依赖变化。
+  [最终审计](agent-harness-reset-v1/real-acceptance-final-audit.json)校验1942条任务事件、
+  1581个Artifact；只追加一条Ledger阻塞修订，旧Checkpoint和Usage未变，仍为8次真实调用。
+  [部署审计](agent-harness-reset-v1/postdeploy-audit-r4.json)：无活动Job，授权仍10次，累计模型启动86次。
+  r3两模块227通过/8跳过及63工作流通过、r4只增worker.py的92回归通过；不冒充r4全量重跑。
+  下一当前事项仍是HR4真实Patch/当前Verify；原两次协议纠偏已经耗尽，未获另一轮预算/恢复授权。
+- [ ] **HR5-G05** 现有真实模型绑定、真实Patch、当前源码批准Verify、独立Review。
+- [ ] **HR6-G06** 最终架构/迁移/恢复/事件版本/验收与交接文档。
+
+以下为Phase0首次取证归档（早于本轮实现与Plan12批准）：
+
+2026-11-04只读取证：分支refactor/agent-runtime-v2、HEAD5d0edde；五个既有未提交
+候选文件与暂停记录哈希相同，全部保留，未修改或部署。原终态快照用SQLite mode=ro
+读取，数据库字节哈希不变；1523个Artifact哈希、1782条事件链和1473条旧前缀通过，
+另核对242个冻结生产文件及74个历史证据文件。39个read_file全部省略offset，默认0；
+10个精确请求指纹、29次精确重复，区别于33次重复起点。35份回执有后续Prompt引用，
+43条反馈正文中42条被缩短；1条完整送达4096字节回执，但0条完整文件送达。
+
+两拒绝事件seq1618/1698仅保留计数5/4/0、Usage和响应布尔诊断；采集器递归扫描
+全部1523个注册JSON Artifact及17个未注册内容寻址文件，未找到原始choices/tool_calls响应数组。
+Job2c5d65ad/c345eb8e的十个调用ID/名称/参数/顺序不可恢复，是否全只读无法证明。
+首次诊断按原门禁停止；随后用户明确调整：历史调用记unavailable，Gate0通过并继续。
+保留整批拒绝，禁止自动分批；未来原始调用先持久化再校验/拒绝为本轮必需能力。
+原deepseek-v4-pro绑定、200000输入/32000输出/24次调用等执行预算、原Usage和终态
+均保留；未创建新Plan/授权或执行第三方写入。
+
+验证：离线采集器通过全部哈希/调用来源/Prompt前缀关联与凭据扫描；独立重放一致，
+Python编译与git diff --check通过（详情见诊断）。本轮不计作新增回归或真实模型验收。
+仅文档及离线取证工具变更，遵守Phase0只读边界，不重部署用户既有未验证运行候选。
 
 ---
 

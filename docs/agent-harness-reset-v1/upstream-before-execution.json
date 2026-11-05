@@ -1,0 +1,19 @@
+{
+  "version": "harness-upstream-observation-v1",
+  "recorded_at": "2026-11-04T08:19:05.814402+00:00",
+  "repository": "patoles/agent-flow",
+  "issue": 107,
+  "issue_url": "https://github.com/patoles/agent-flow/issues/107",
+  "state": "open",
+  "updated_at": "2026-10-29T22:23:57Z",
+  "issue_title": "Parallel tool calls are incorrectly deduplicated and completed by tool name instead of call identity",
+  "issue_body_hash": "5512d263e7d8ab8c10262d9ac2f92b014c05117b070934507fe4b1673680897a",
+  "HEAD": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "baseline_exists": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "HEAD_matches_Plan11": true,
+  "HTTP_Date": "Wed, 04 Nov 2026 08:19:05 GMT",
+  "ETag": "W/\"b0c02389a8df6923cf996594baf95229b67c11dbdedffa197b464f78bba0591d\"",
+  "model_calls": 0,
+  "third_party_writes": 0,
+  "record_hash": "9c7e3c59d9a48164ff3cae073073a62bce9dad7ba38298135509b7af2583b4cf"
+}

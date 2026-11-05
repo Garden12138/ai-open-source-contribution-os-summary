@@ -207,6 +207,10 @@ def prompt_for(journal: AgentJournal) -> dict:
     }
     if correction is not None:
         prompt["native_protocol_correction"] = correction
+    from app.agent_v2.progress import prompt_progress
+    progress = prompt_progress(journal)
+    if progress is not None:
+        prompt["implementation_progress"] = progress
     from app.agent_v2.native_tools import NATIVE_HISTORY_WINDOW, project_native_prompt
     history_artifact = None
     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
@@ -216,7 +220,7 @@ def prompt_for(journal: AgentJournal) -> dict:
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:
-    refs = {e.payload["artifact_id"] for e in journal.events() if e.kind == "agent_v2_tool_result"}
+    refs = {e.payload["artifact_id"] for e in journal.events() if e.kind in {"agent_v2_tool_result", "agent_v2_progress"}}
     for event in journal.events():
         if event.kind == "agent_v2_model_started":
             refs.update(event.payload.get("context_artifacts", []))
@@ -260,6 +264,8 @@ class AgentModelWorker(WorkbenchJobWorker):
             from app.providers.nvidia_nim import NvidiaNimGatewayRunner
             real_transport = isinstance(getattr(adapter, "runner", None), NvidiaNimGatewayRunner)
             context_artifacts = [prompt["task_context_artifact"]]
+            if prompt.get("implementation_progress"):
+                context_artifacts.append(prompt["implementation_progress"]["artifact_id"])
             if spec.model_transport is not None and prompt.get("history_evidence"):
                 context_artifacts.append(prompt["history_evidence"]["artifact_id"])
             journal.append("model_started", {"prompt_artifact": journal.wb.artifact(prompt),
@@ -268,8 +274,44 @@ class AgentModelWorker(WorkbenchJobWorker):
                 "input_bound": bound, "output_reservation": output_limit}, key="model-start:" + job.id, job_id=job.id)
             running = journal.transition(cp, state="model", usage=usage, key="model-cp:" + job.id, job_id=job.id)
             s.commit()
+        response_artifact = None
+        def record_response(evidence: dict) -> None:
+            nonlocal running, response_artifact
+            with self.database.session() as session:
+                self.check(session, job)
+                j = AgentJournal(Workbench(session, self.settings.artifact_root), job.payload["task_id"], job.payload["session_id"])
+                j.lock()
+                TaskOrchestrator(j.wb, self.settings).require_current(j)
+                current = j.checkpoint()
+                if current.revision != running.revision or current.state != "model":
+                    raise WorkbenchError("响应对应的模型回合已过期。", code="agent_checkpoint_stale")
+                size = len(canonical_json(evidence).encode())
+                if size > j.remaining(current)["output_bytes"]:
+                    # Bounded audit metadata explains the missing body; never
+                    # expand output budget or persist an unaffordable envelope.
+                    j.append("model_response_unavailable", {"reason": "response_evidence_output_budget",
+                        "response_hash": content_hash(evidence), "observed_bytes": size,
+                        "received_call_count": sum(len(c.get("tool_calls") or []) for c in evidence["choices"])},
+                        key="response-unavailable:" + job.id, job_id=job.id)
+                    info = failure(j, "budget", "agent_budget_exceeded", "inspect_response_evidence_budget")
+                    j.append("blocked", {"failure": info.model_dump()}, key="response-budget-block:" + job.id, job_id=job.id)
+                    running = j.transition(current, state="blocked", key="response-budget-cp:" + job.id, job_id=job.id)
+                    session.commit()
+                    raise WorkbenchError("响应证据超出剩余输出预算，未执行工具。", code="agent_budget_exceeded")
+                receipt_usage = j.charge(current, {"output_bytes": size})
+                response_artifact = j.wb.artifact(evidence)
+                j.append("model_response", {"artifact_id": response_artifact,
+                    "prompt_artifact": content_hash(prompt), "binding_hash": content_hash(spec.binding.model_dump())},
+                    key="model-response:" + job.id, job_id=job.id)
+                running = j.transition(current, state="model", usage=receipt_usage,
+                    key="model-response-charge:" + job.id, job_id=job.id)
+                session.commit()
         try:
-            decision, actual = await adapter.decide(prompt, request_id=job.id, max_output_tokens=output_limit)
+            if hasattr(adapter, "decide_observed"):
+                decision, actual = await adapter.decide_observed(prompt, request_id=job.id,
+                    max_output_tokens=output_limit, record_response=record_response)
+            else:
+                decision, actual = await adapter.decide(prompt, request_id=job.id, max_output_tokens=output_limit)
             if actual["output_tokens"] > output_limit or actual["input_tokens"] > bound:
                 raise WorkbenchError("模型用量超出冻结上限。", code="agent_provider_usage_exceeded")
         except (ValidationError, ValueError, json.JSONDecodeError, ProviderRunError) as exc:
@@ -291,6 +333,8 @@ class AgentModelWorker(WorkbenchJobWorker):
                     "agent_sensitive_output" if secret else exc.code if provider else "agent_model_output_invalid",
                     "inspect_diagnostic" if secret or not retry else "retry_provider" if provider and not protocol else "correct_schema", retryable=retry)
                 diagnostic = {"failure": info.model_dump(), "exception_type": type(exc).__name__}
+                if response_artifact is not None:
+                    diagnostic["response_artifact"] = response_artifact
                 if provider:
                     # Reservations stay charged after failure. Report measured
                     # usage separately, without refunding or inventing a zero.
@@ -316,7 +360,8 @@ class AgentModelWorker(WorkbenchJobWorker):
             cp = journal.checkpoint()
             if cp.revision != running.revision:
                 raise WorkbenchError("回合期间状态变化，结果保留原始预算。", code="agent_checkpoint_stale")
-            journal.append("turn", {"decision": decision.model_dump(), "usage": actual}, key="turn:" + job.id, job_id=job.id)
+            journal.append("turn", {"decision": decision.model_dump(), "usage": actual,
+                **({"response_artifact": response_artifact} if response_artifact else {})}, key="turn:" + job.id, job_id=job.id)
             # Reservations remain charged after a crash. A known completion may
             # settle its unused reservation, while retaining exact actual usage.
             usage = dict(cp.usage)
@@ -405,6 +450,29 @@ class AgentToolWorker(WorkbenchJobWorker):
                 result = ToolResult(call_id=call.call_id, input_hash=input_hash, source_hash=cp.source_hash,
                     output_source_hash=cp.source_hash, status="rejected", failure=info)
                 return self._complete(s, job, journal, cp, result)
+            from app.agent_v2.progress import enabled as progress_enabled
+            from app.agent_v2.read_reuse import reuse_read
+            reused = reuse_read(journal, cp, call, arguments, input_hash)
+            if reused is not None:
+                journal.append("tool_reused", {"call_id": call.call_id,
+                    "receipt_artifact": reused.data["reused_receipt"], "source_hash": cp.source_hash},
+                    key="tool-reuse:" + job.id, job_id=job.id)
+                charged = journal.transition(cp, state="tools", usage=usage,
+                    key="tool-reuse-charge:" + job.id, job_id=job.id)
+                return self._complete(s, job, journal, charged, reused)
+            if call.name == "read_file" and spec.model_transport is not None and not progress_enabled(journal):
+                from app.agent_v2.read_progress import source_read_progress
+                progress = source_read_progress(journal, arguments)
+                if progress is not None and progress.blocked:
+                    charged = journal.transition(cp, state="tools", usage=usage,
+                        key="read-progress-charge:" + job.id, job_id=job.id)
+                    info = failure(journal, "budget", "agent_source_read_no_progress", "inspect_read_progress")
+                    result = ToolResult(call_id=call.call_id, input_hash=input_hash,
+                        source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="rejected",
+                        data={"tool": call.name, "path": arguments.path, "content_hash": progress.file_hash,
+                            "execution_backend": "platform_progress_guard",
+                            "source_read_progress": progress.note.model_dump()}, failure=info)
+                    return self._complete(s, job, journal, charged, result)
             journal.append("tool_started", {"call_id": call.call_id, "name": call.name,
                 "input_hash": input_hash, "source_hash": cp.source_hash}, key="tool-start:" + job.id, job_id=job.id)
             charged = journal.transition(cp, state="tools", usage=usage, key="tool-charge:" + job.id, job_id=job.id)
@@ -446,18 +514,41 @@ class AgentToolWorker(WorkbenchJobWorker):
             return self._complete(s, job, journal, cp, result, snapshot_artifact=snapshot_artifact)
 
     def _complete(self, s, job, journal, cp, result, *, snapshot_artifact=None):
+        call = cp.pending_calls[0]
+        registry = RestrictedToolRegistry()
+        try:
+            args = registry.validate(call, journal.spec())
+        except (ValueError, WorkbenchError):
+            args = None  # Preserve rejection receipts for invalid/unapproved requests.
+        if args is not None and call.name == "read_file" and journal.spec().model_transport is not None:
+            from app.agent_v2.read_progress import source_read_progress
+            progress = source_read_progress(journal, args, current=result)
+            if progress is not None:
+                result = result.model_copy(update={"data": {**result.data,
+                    "source_read_progress": progress.note.model_dump()}})
         usage = journal.charge(cp, {"output_bytes": len(canonical_json(result.model_dump()).encode())})
         if result.failure:
             result = result.model_copy(update={"failure": result.failure.model_copy(update={
                 "remaining_budget": journal.remaining(cp.model_copy(update={"usage": usage}))})})
         artifact = journal.wb.artifact(result.model_dump())
+        from app.agent_v2.model_receipts import original_call
+        from app.agent_v2.progress import current_progress, record_tool
+        progress = current_progress(journal)
         journal.append("tool_result", {"call_id": result.call_id, "artifact_id": artifact,
             "name": cp.pending_calls[0].name, "status": result.status,
             "failure": result.failure.model_dump() if result.failure else None,
-            "source_hash": result.source_hash, "output_source_hash": result.output_source_hash},
+            "source_hash": result.source_hash, "output_source_hash": result.output_source_hash,
+            **({"request_arguments": args.model_dump()} if args is not None else {}),
+            "progress_phase": progress.phase if progress else None,
+            **original_call(journal, result.call_id)},
             key="tool-result:" + job.id, job_id=job.id)
         blocking = result.status == "unknown" or (result.failure and result.failure.category in {"security", "environment", "baseline", "budget", "platform"})
         pending = cp.pending_calls[1:]
+        progress = record_tool(journal, cp, call, artifact, batch_complete=not pending, job_id=job.id)
+        if progress is not None and progress.blocker == "agent_no_progress":
+            info = failure(journal, "budget", "agent_no_progress", "inspect_progress_and_replan")
+            journal.append("blocked", {"failure": info.model_dump()}, key="progress-block:" + job.id, job_id=job.id)
+            blocking = True
         journal.transition(cp, state="blocked" if blocking else "tools" if pending else "ready",
             usage=usage,
             source_hash=result.output_source_hash, snapshot_artifact=snapshot_artifact or cp.snapshot_artifact,

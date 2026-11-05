@@ -1,0 +1,18 @@
+{
+  "version": "harness-build-v1",
+  "source_hash": "59862614eb46caf2b8cdb495220ee92b1fe638db75e2ab0fc3bf8e57f7be8bf8",
+  "source_manifest_file": "docs/agent-harness-reset-v1/source-manifest-r2.json",
+  "files_verified": 248,
+  "images": {
+    "app": "sha256:62c2233f6770117171fd53550ecd77ae65883e9dcf3245397966a88f45d3236c",
+    "worker": "sha256:f96609fb97dcace1a4d8d577b2dfd51686652ed0cb88b0a8a174dde31067317b"
+  },
+  "base_images": {
+    "app": "sha256:dc077908630ea565e1125709ff165a8a2001d37e7a26e02934ca4b86c9524313",
+    "worker": "sha256:8c90879c3a3724bf35f570fcf5858db9bae957e22adf19c30820d2d0f65558e2"
+  },
+  "build_network": "none",
+  "dependencies_changed": false,
+  "model_calls": 0,
+  "third_party_writes": 0
+}

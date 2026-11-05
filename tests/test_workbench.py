@@ -867,6 +867,7 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
         "0038_agent_runtime_v2",
         "0039_environment_contracts",
         "0040_deepseek_reviews", "0041_native_model_tools",
+            "0042_agent_response_evidence", "0043_implementation_progress",
     )
     with db.session() as session:
         assert session.get(DraftPullRequest, draft_id).record_hash == draft_hash

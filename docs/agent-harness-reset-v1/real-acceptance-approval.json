@@ -1,0 +1,111 @@
+{
+  "version": "harness-exact-human-consent-v1",
+  "recorded_at": "2026-11-04T08:20:51.260152+00:00",
+  "approved_proposal_hash": "81e1d70a6cc7433461cc5cee1ea8ba7abb93c859236d6392e2870beea772420f",
+  "actor": "human",
+  "decision": "approved",
+  "user_message": "批准",
+  "consent_context": "Direct reply to request to approve preview 81e1d70a and additional bounded acceptance budget",
+  "execution_approved": true,
+  "additional_bounded_run_approved": true,
+  "execution_request_body": {
+    "plan_id": "5c6df081-f469-44be-a2de-81fec47b2289",
+    "plan_hash": "c91a11677f13080efba7b36136bcf2eccffb71d0bf86b0fee421e2bf6d256f1b",
+    "approve_plan": true,
+    "start_execution": true,
+    "max_repairs": 2,
+    "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+    "model_transport_hash": "1e225de65377375b00b28f85f913e05b16027fae2cc0fba0602d73ab1bf9fd14",
+    "conversation": true
+  },
+  "execution_idempotency_key": "harness-v1-plan12-execute-once",
+  "new_run_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "review_bounds": {
+    "max_input_bytes": 1800000,
+    "max_job_attempts": 3,
+    "job_timeout_seconds": 300,
+    "per_call_output_tokens": 16384,
+    "note": "Independent Review retains its separate evidence-bound job/Profile. At most two code repairs under this exact authorization; original per-stage limits remain."
+  },
+  "allowed_actions": [
+    "fresh preparation and original four Baseline commands",
+    "native Investigation and same-scope Patch",
+    "all four approved checks on latest source",
+    "at most two code repairs",
+    "independent evidence-bound Review",
+    "stop for Human Acceptance"
+  ],
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "source_manifest_hash": "59862614eb46caf2b8cdb495220ee92b1fe638db75e2ab0fc3bf8e57f7be8bf8",
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "model_transport_hash": "1e225de65377375b00b28f85f913e05b16027fae2cc0fba0602d73ab1bf9fd14",
+  "third_party_writes_approved": false,
+  "publication_approved": false,
+  "automatic_batch_splitting": false,
+  "old_usage_preserved": true,
+  "approval_hash": "6d0df288ea408265e383fecaed7376b2b07d9867c5b92b0ea6785c0e77d7710e"
+}

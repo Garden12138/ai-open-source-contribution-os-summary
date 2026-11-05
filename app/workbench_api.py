@@ -272,7 +272,7 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         page = Page(offset=offset, max_bytes=max_bytes)
         wb = Workbench(session, request.app.state.settings.artifact_root)
         refs = {e.payload["artifact_id"] for e in wb.history(task_id)
-                if e.kind == "agent_v2_tool_result"}
+                if e.kind in {"agent_v2_tool_result", "agent_v2_model_response", "agent_v2_progress"}}
         if artifact_id not in refs:
             raise WorkbenchError("证据不属于本任务。", code="agent_artifact_scope_denied")
         from app.agent_v2.tools import artifact_page

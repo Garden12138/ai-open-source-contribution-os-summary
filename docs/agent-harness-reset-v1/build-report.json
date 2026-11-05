@@ -1,0 +1,17 @@
+{
+  "version": "harness-build-v1",
+  "source_hash": "e4f33c8481be2d605649b52685345a84bc18d093c81de451f69ca68875b32024",
+  "files_verified": 248,
+  "images": {
+    "app": "sha256:6e009d8414e9f606d65578971e3de6d6212c074fa9fd3eaf472a44ef03193f6e",
+    "worker": "sha256:4f6f7a63e179806f4bd0e0ecae7cc8c96bf98b73876a3fdff084aff88b3bb0a5"
+  },
+  "base_images": {
+    "app": "sha256:dc077908630ea565e1125709ff165a8a2001d37e7a26e02934ca4b86c9524313",
+    "worker": "sha256:8c90879c3a3724bf35f570fcf5858db9bae957e22adf19c30820d2d0f65558e2"
+  },
+  "build_network": "none",
+  "dependencies_changed": false,
+  "model_calls": 0,
+  "third_party_writes": 0
+}

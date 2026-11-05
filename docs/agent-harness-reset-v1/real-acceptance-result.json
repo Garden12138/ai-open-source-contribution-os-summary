@@ -1,0 +1,85 @@
+{
+  "version": "harness-plan12-real-acceptance-result-v1",
+  "proposal_hash": "81e1d70a6cc7433461cc5cee1ea8ba7abb93c859236d6392e2870beea772420f",
+  "approval_file": "real-acceptance-approval.json",
+  "execution_file": "real-acceptance-execution.json",
+  "source_manifest_hash": "59862614eb46caf2b8cdb495220ee92b1fe638db75e2ab0fc3bf8e57f7be8bf8",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "5c6df081-f469-44be-a2de-81fec47b2289",
+  "session_id": "session-345b2c24d307d9e35767d4f34f34d672",
+  "status": "blocked_protocol_repairs_exhausted",
+  "Gate4": "not_passed",
+  "Gate5": "not_entered_Gate4_not_passed",
+  "preparation": "passed",
+  "baseline": {
+    "attempt_id": "b5c505fd-00b2-42a9-932a-9f50d5c14cef",
+    "result_hash": "15d45a74b3489df24b5918bcdaf8f4228ef024610c850e06756f82287e6883ff",
+    "outcome": {
+      "status": "passed",
+      "baseline_verdict": "passed",
+      "passed": 4,
+      "total": 4,
+      "missing_dependencies": [],
+      "failures": []
+    }
+  },
+  "model_requests_started": 8,
+  "reported_usage": {
+    "prompt_tokens": 72200,
+    "completion_tokens": 5029,
+    "total_tokens": 77229
+  },
+  "charged_usage_and_retained_reservations": {
+    "model_calls": 8,
+    "input_tokens": 137303,
+    "output_tokens": 15038,
+    "output_bytes": 87173,
+    "reads": 13,
+    "protocol_repairs": 2
+  },
+  "rejected_batch_counts": [
+    6,
+    5,
+    5
+  ],
+  "whole_batch_execution_count": 0,
+  "tool_counts": {
+    "read_file": 10,
+    "read_artifact": 3
+  },
+  "successful_exact_reuses": 6,
+  "patches": 0,
+  "post_patch_Verify": "not_run",
+  "independent_Review": "not_run",
+  "original_event_prefix_preserved": 1786,
+  "task_events_verified": 1937,
+  "artifacts_verified": 1579,
+  "audit_file": "real-acceptance-audit.json",
+  "audit_hash": "b257fc9b69f27489b8fcccb1e905fe26f3d5b005b5a076a28b3d438f98b5d899",
+  "known_defect": "resolved_without_model_calls: terminal checkpoint now atomically mirrors the blocked ledger; coordinator defers local SQLite BUSY without retrying effects",
+  "old_Plan11_unchanged": true,
+  "planning_lifetime_64_call_cap_and_3_unknown_holds_unchanged": true,
+  "automatic_batch_splitting": false,
+  "third_party_writes": 0,
+  "Linux_amd64": "not_run",
+  "per_run_budget_caps_increased": false,
+  "additional_bounded_allocation_approved_and_consumed": true,
+  "native_delivery_claim": false,
+  "operator_business_patch": false,
+  "post_run_fixes": {
+    "source_hash": "718ed71258d21c7003aeea419938366e5ccb349af9d4eea130c834aef5eaf03d",
+    "terminal_progress_receipt": "terminal-progress-reconciliation.json",
+    "coordinator_lock_recovery": "worker-lock-recovery.json",
+    "deployment": "deployment-report-r4.json",
+    "deployment_audit": "postdeploy-audit-r4.json",
+    "new_model_calls": 0,
+    "new_authorizations": 0
+  },
+  "final_audit_file": "real-acceptance-final-audit.json",
+  "final_audit_hash": "11fbac27ef4751b908477fc932d14649149608a09393058195eaa7682910a63c",
+  "final_task_events_verified": 1942,
+  "final_artifacts_verified": 1581,
+  "Ledger_phase": "blocked",
+  "Ledger_revision": 15,
+  "new_budget_or_terminal_resume_approved": false
+}

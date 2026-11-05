@@ -1,0 +1,39 @@
+{
+  "version": "harness-phase3-report-v1",
+  "goal": "Reject whole oversized batches and bound correction without automatic splitting",
+  "files": [
+    "tests/test_harness_batch_strategy.py",
+    "app/agent_v2/native_tools.py",
+    "app/agent_v2/model_receipts.py",
+    "app/agent_v2/loop.py"
+  ],
+  "strategy": "B: every batch over four calls is captured, then wholly rejected; no calls partially scheduled, including writes/checks/terminal/unknown tools. Two original protocol repairs only.",
+  "checks": {
+    "report": "harness-phase3.xml",
+    "sha256": "a9e4d5f822ea09e3930bdcdf444c068e7f81d32c85c16578184e2dd7df3e272a",
+    "tests": 36,
+    "failures": 0
+  },
+  "not_passed": [
+    "Real delivery Gate4/5: Patch0/current Verify and Review not_run"
+  ],
+  "risks": [
+    "Historical Plan11 raw calls remain unavailable; no assumption of read-only composition"
+  ],
+  "next_gate": "Gate3 passed deterministic security checks; proceed Phase4 implementation and real execution preparation",
+  "budget_or_permission_increased": false,
+  "automatic_splitting_enabled": false,
+  "real_model_observation": {
+    "responses": 8,
+    "rejected_counts": [
+      6,
+      5,
+      5
+    ],
+    "original_calls_saved_before_rejection": true,
+    "calls_executed_from_rejected_batches": 0,
+    "protocol_repairs_used": 2,
+    "final_state": "blocked",
+    "audit": "real-acceptance-final-audit.json"
+  }
+}

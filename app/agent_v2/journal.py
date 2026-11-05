@@ -11,7 +11,7 @@ PREFIX = "agent_v2_"
 TERMINAL = {"blocked", "finished", "cancelled"}
 EDGES = {
     "ready": {"model", "paused", "blocked", "cancelled"},
-    "model": {"ready", "tools", "finished", "blocked", "paused", "cancelled"},
+    "model": {"model", "ready", "tools", "finished", "blocked", "paused", "cancelled"},
     "tools": {"tools", "ready", "paused", "blocked", "cancelled"},
     "paused": {"ready", "tools", "blocked", "cancelled"},
     "blocked": set(), "finished": set(), "cancelled": set(),
@@ -63,7 +63,11 @@ class AgentJournal:
         values = {**current.model_dump(), **updates, "state": state}
         next_checkpoint = AgentCheckpoint.model_validate(values)
         self.append("checkpoint", {"checkpoint": next_checkpoint.model_dump()}, key=key, job_id=job_id)
-        return self.checkpoint()
+        result = self.checkpoint()
+        if state == "blocked":
+            from app.agent_v2.progress import record_checkpoint_blocked
+            record_checkpoint_blocked(self, result)
+        return result
 
     def remaining(self, checkpoint: AgentCheckpoint | None = None) -> dict[str, int]:
         cp = checkpoint or self.checkpoint()

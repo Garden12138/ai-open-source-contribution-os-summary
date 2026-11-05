@@ -36,7 +36,16 @@ def test_native_prompt_uses_registered_schema_without_dropping_issued_receipts(t
         assert all('call_id' not in row and None not in row.values() for row in prompt['history_index'])
         assert all(wb.read(row['artifact_id'])['data']['content_hash']==row['content_hash'] for row in prompt['history_index'])
         assert prompt['approved_checks']==spec.commands and prompt['write_paths']==spec.write_paths
-        assert prompt['source_hash']==spec.binding.archive_hash and prompt['feedback'][-1]['data']['text']=='source page '*300
+        assert prompt['source_hash']==spec.binding.archive_hash
+        latest = prompt['feedback'][-1]
+        # Mandatory progress metadata can move a synthetic, unpaged receipt
+        # over the existing input bound. Its full issued artifact stays exact.
+        assert wb.read(latest['receipt_artifact'])['data']['text'] == 'source page '*300
+        if 'text' in latest['data']:
+            assert latest['data']['text'] == 'source page '*300
+        else:
+            assert latest['evidence_page']['artifact_id'] == latest['receipt_artifact']
+            assert latest['evidence_page']['partial']
         assert set(t['function']['name'] for t in native_tool_definitions()) >= {'read_artifact','read_file','apply_patch','run_approved_checks'}
         assert native_input_bound(prompt)<32000
 

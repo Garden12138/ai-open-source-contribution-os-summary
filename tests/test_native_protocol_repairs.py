@@ -28,10 +28,12 @@ def overflow(count=5):
     return value
 
 
-def fixture(tmp_path, *responses):
+def fixture(tmp_path, *responses, capture_workers=None):
     def models(db, settings, task):
         with db.session() as session:configure(session,provider='deepseek',model=DEEPSEEK_MODELS[0])
     db,settings,task,workers,_,_=automatic_fixture(tmp_path,configure_models=models,runtime_v2=True,native_transport=True)
+    if capture_workers is not None:
+        capture_workers.extend(workers)
     for worker in (workers[0],workers[4]):
         assert asyncio.run(worker.run_once()).state=='succeeded'
         advance_workflows(db,settings)
@@ -106,7 +108,8 @@ def test_upstream_error_code_cannot_spoof_trusted_protocol_classification(tmp_pa
     with db.session() as session:
         j=AgentJournal(Workbench(session,s.artifact_root),task,sid)
         assert j.checkpoint().state=='blocked' and j.checkpoint().usage.get('protocol_repairs',0)==0
-        assert j.events()[-2].payload['failure']['category']=='model'
+        rejected = next(e for e in reversed(j.events()) if e.kind == 'agent_v2_model_rejected')
+        assert rejected.payload['failure']['category']=='model'
 
 
 @pytest.mark.parametrize('count,expected',[(5,5),(1025,None)])

@@ -845,7 +845,15 @@ def _advance(wb: Workbench, task_id: str, settings: Settings) -> None:
                     "review_hash": review.record_hash,
                 },
                 key="acceptance:" + review.id,
+                commit=False,
             )
+            if authorization.payload.get("agent_runtime_version") == "agent-runtime-v2":
+                from app.agent_v2.journal import AgentJournal
+                from app.agent_v2.progress import record_review_ready
+                root = wb.latest(task_id, "agent_v2_session")
+                if root is not None:
+                    record_review_ready(AgentJournal(wb, task_id, root.payload["session_id"]), review)
+            wb.session.commit()
             return
         if review.reason_code in {"insufficient_evidence", "environment_blocked"}:
             raise WorkbenchError("独立审查缺少验证证据或遇到环境阻塞；不会消耗代码修复次数。",

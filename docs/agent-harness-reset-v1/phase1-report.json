@@ -1,0 +1,52 @@
+{
+  "version": "harness-phase1-report-v1",
+  "goal": "Regression-first and durable provider call observability",
+  "files": [
+    "tests/test_harness_response_receipts.py",
+    "tests/test_harness_progress.py",
+    "tests/test_harness_migration.py",
+    "app/agent_v2/model_receipts.py",
+    "app/agent_v2/native_tools.py",
+    "app/agent_v2/loop.py",
+    "app/agent_v2/journal.py",
+    "app/migrations/versions/v0042_agent_response_evidence.py",
+    "app/workbench_api.py",
+    "app/static/workbench.js"
+  ],
+  "implementation": "Commit safe raw call envelopes before parsing; keep IDs/order/arguments/finish/usage; correlate rejected and accepted turns to response hashes. Whole batches remain rejected at four-call limit. Redact credential fields and exclude private reasoning.",
+  "checks": [
+    {
+      "report": "harness-response-before.xml",
+      "sha256": "2d562a0635d0c569f2fae25be7c57677d7da7a7c8a32e2b6af50b861870c1432",
+      "tests": 10,
+      "failed": 10,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "harness-progress-corrected-before.xml",
+      "sha256": "d39d71a8db7c9213bccfdcd5860c3fa008d89a45403edac07e80481e1f11db50",
+      "tests": 6,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "report": "harness-phase1-regression.xml",
+      "sha256": "4c1c1c526dadd20712795c2db6fa1bd957c4c2733b7dd7402d3759bee5677ac0",
+      "tests": 107,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "not_passed": [
+    "Progress Ledger/guard/reuse regressions intentionally red for Phase2",
+    "Deployment and real OCI/platform acceptance pending"
+  ],
+  "risks": [
+    "No real native acceptance claim",
+    "Response bytes charged against existing output budget"
+  ],
+  "next_gate": "Phase2 regression-first admission satisfied; no batch splitting or budget change"
+}
