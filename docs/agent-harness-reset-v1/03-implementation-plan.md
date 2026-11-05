@@ -1,5 +1,10 @@
 # 03. Implementation Plan
 
+2026-11-05当前专项仅修复Plan12的读取批次契约，按
+[Scheduler v1](read-batch-scheduler-v1/design-and-recovery.md)执行。
+旧Phase3的整批拒绝仍适用于混合/其他/未知工具；完整验证的纯`read_file`可在原4-call
+执行上限内拆为持久化子批次，原始批次至多8个。本轮不开展付费验收或生成Plan13。
+
 采用“先诊断、再最小改造、最后真实验收”。按下述经用户调整的Gate0保留历史缺口，
 复用已完成诊断继续实现，不伪造或推测缺失的Provider调用。
 

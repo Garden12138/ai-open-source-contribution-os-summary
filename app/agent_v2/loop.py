@@ -9,6 +9,7 @@ from app.agent_v2.contracts import Decision, Failure, ToolCall, ToolResult
 from app.agent_v2.journal import AgentJournal
 from app.agent_v2.orchestrator import TaskOrchestrator
 from app.agent_v2.tools import RestrictedToolRegistry, artifact_page
+from app.agent_v2 import read_batches
 from app.jobs import JobService
 from app.provenance import canonical_json, content_hash
 from app.workbench import Workbench, WorkbenchError
@@ -29,9 +30,11 @@ def schedule(journal: AgentJournal) -> Job | None:
     journal.lock()
     cp = journal.checkpoint()
     if cp.state in {"model", "tools"}:
-        starts = [e for e in journal.events() if e.kind in {"agent_v2_model_started", "agent_v2_tool_started"}]
+        starts = [e for e in journal.events() if e.kind in {"agent_v2_model_started", "agent_v2_tool_started",
+            "agent_v2_read_batch_preflight_started"}]
         completed_jobs = {e.job_id for e in journal.events() if e.kind in {
-            "agent_v2_turn", "agent_v2_model_rejected", "agent_v2_tool_result"}}
+            "agent_v2_turn", "agent_v2_model_rejected", "agent_v2_tool_result", "agent_v2_read_batch",
+            "agent_v2_read_batch_preflight"}}
         pending = [e for e in starts if e.job_id not in completed_jobs]
         if pending:
             from app.models import Job
@@ -53,9 +56,14 @@ def schedule(journal: AgentJournal) -> Job | None:
         return None
     spec = journal.spec()
     kind = MODEL_JOB if cp.state == "ready" else TOOL_JOB
+    batch = read_batches.active(journal)
+    if batch and cp.state == "ready":
+        raise WorkbenchError("原始读取批次尚未完成。", code="agent_read_batch_incomplete")
     job = journal.wb.enqueue(journal.task_id, kind, {
         "session_id": journal.session_id, "checkpoint_hash": cp.revision,
         "execution_attempt_id": spec.binding.attempt_id,
+        **({"read_batch_preflight": batch.payload["artifact_id"]}
+            if batch and read_batches.preflight(journal, batch) is None else {}),
     }, key="arv2-job:" + cp.revision, max_attempts=1,
         timeout_seconds=300, commit=False)
     if job.state in {"failed", "cancelled", "timed_out"}:
@@ -144,7 +152,7 @@ def prompt_for(journal: AgentJournal) -> dict:
     if native and results:
         # A model batch is at most four calls. Observe every completed result,
         # including its first call, even after a later rejected model response.
-        turn = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_turn"
+        turn = next((e for e in reversed(journal.events()) if e.kind in {"agent_v2_turn", "agent_v2_read_batch"}
             and e.sequence < results[-1].sequence), None)
         feedback_events = [e for e in results if e.sequence > turn.sequence] if turn else results[-4:]
     rejected = next((e for e in reversed(journal.events()) if e.kind == "agent_v2_model_rejected"), None)
@@ -196,10 +204,10 @@ def prompt_for(journal: AgentJournal) -> dict:
             "Offsets are bytes. A page with next_offset is incomplete; read later pages if necessary."],
         "tools": RestrictedToolRegistry().descriptions(),
         "history_index": index,
-        "recent_decisions": [{"reply": e.payload["decision"]["reply"],
-            "outcome": e.payload["decision"]["outcome"],
-            "tools": [{"name": c["name"], "path": c["arguments"].get("path")} for c in e.payload["decision"]["calls"]]}
-            for e in journal.events() if e.kind == "agent_v2_turn"][-4:],
+        "recent_decisions": [{"reply": value.get("reply", ""), "outcome": value.get("outcome", "continue"),
+            "tools": [{"name": c["name"], "path": c["arguments"].get("path")} for c in value["calls"]]}
+            for e in journal.events() if e.kind in {"agent_v2_turn", "agent_v2_read_batch"}
+            for value in [e.payload["decision"] if e.kind == "agent_v2_turn" else read_batches.record(journal, e)["proposal"]]][-4:],
         "feedback": [{**journal.wb.read(e.payload["artifact_id"]), "receipt_artifact": e.payload["artifact_id"]}
             if native else model_feedback(e) for e in feedback_events],
         "independent_review_findings": reviews[-1].findings if reviews else [],
@@ -211,6 +219,12 @@ def prompt_for(journal: AgentJournal) -> dict:
     progress = prompt_progress(journal)
     if progress is not None:
         prompt["implementation_progress"] = progress
+    batch_result = next((e for e in reversed(journal.events()) if e.kind in {
+        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped"}), None)
+    if batch_result:
+        prompt["read_batch_observation"] = {"artifact_id": batch_result.payload["artifact_id"],
+            "batch_artifact": batch_result.payload["batch_artifact"], "status": batch_result.kind.removeprefix("agent_v2_read_batch_"),
+            "instruction": "All completed calls are observed in original order. A read batch does not complete Coding or Verify."}
     from app.agent_v2.native_tools import NATIVE_HISTORY_WINDOW, project_native_prompt
     history_artifact = None
     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
@@ -220,7 +234,9 @@ def prompt_for(journal: AgentJournal) -> dict:
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:
-    refs = {e.payload["artifact_id"] for e in journal.events() if e.kind in {"agent_v2_tool_result", "agent_v2_progress"}}
+    refs = {e.payload["artifact_id"] for e in journal.events() if e.kind in {"agent_v2_tool_result", "agent_v2_progress",
+        "agent_v2_read_batch", "agent_v2_read_batch_preflight", "agent_v2_read_sub_batch_completed",
+        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped"}}
     for event in journal.events():
         if event.kind == "agent_v2_model_started":
             refs.update(event.payload.get("context_artifacts", []))
@@ -360,6 +376,24 @@ class AgentModelWorker(WorkbenchJobWorker):
             cp = journal.checkpoint()
             if cp.revision != running.revision:
                 raise WorkbenchError("回合期间状态变化，结果保留原始预算。", code="agent_checkpoint_stale")
+            if isinstance(decision, read_batches.NativeReadBatch):
+                usage = dict(cp.usage)
+                usage["input_tokens"] -= bound - actual["input_tokens"]
+                usage["output_tokens"] -= output_limit - actual["output_tokens"]
+                try:
+                    if response_artifact is None:
+                        raise WorkbenchError("读取批次缺少原始响应。", code="agent_read_batch_invalid")
+                    read_batches.admit(journal, cp, decision, response_artifact=response_artifact,
+                        model_job_id=job.id, usage=usage)
+                except (ValueError, WorkbenchError) as exc:
+                    code = exc.code if isinstance(exc, WorkbenchError) else "agent_read_batch_invalid"
+                    info = failure(journal, "budget" if "budget" in code else "security", code, "inspect_diagnostic")
+                    journal.append("model_rejected", {"failure": info.model_dump(), "response_artifact": response_artifact},
+                        key="read-batch-rejected:" + job.id, job_id=job.id)
+                    journal.transition(cp, state="blocked", key="read-batch-reject-cp:" + job.id, job_id=job.id)
+                    return self.finish(s, job, {"session_id": journal.session_id, "state": "blocked"})
+                schedule(journal)
+                return self.finish(s, job, {"session_id": journal.session_id, "state": "tools"})
             journal.append("turn", {"decision": decision.model_dump(), "usage": actual,
                 **({"response_artifact": response_artifact} if response_artifact else {})}, key="turn:" + job.id, job_id=job.id)
             # Reservations remain charged after a crash. A known completion may
@@ -406,7 +440,83 @@ class AgentToolWorker(WorkbenchJobWorker):
         super().__init__(database, worker_id=worker_id)
         self.settings, self.gateway = settings, gateway
 
+    async def _preflight_read_batch(self, job: Job) -> dict:
+        with self.database.session() as s:
+            self.check(s, job)
+            journal = AgentJournal(Workbench(s, self.settings.artifact_root), job.payload["task_id"], job.payload["session_id"])
+            journal.lock()
+            spec = TaskOrchestrator(journal.wb, self.settings).require_current(journal)
+            cp = journal.checkpoint()
+            root = read_batches.active(journal)
+            if (root is None or cp.state != "tools" or cp.revision != job.payload["checkpoint_hash"]
+                    or root.payload["artifact_id"] != job.payload["read_batch_preflight"]
+                    or read_batches.preflight(journal, root) is not None):
+                raise WorkbenchError("读取预检已过期。", code="agent_checkpoint_stale")
+            journal.charge(cp, {})  # Wall-time allowance also applies to preflight.
+            batch = read_batches.record(journal, root)
+            calls = [ToolCall.model_validate(c) for c in batch["calls"]]
+            requests = [RestrictedToolRegistry().validate(c, spec).model_dump() for c in calls]
+            input_hash = content_hash({"batch_artifact": root.payload["artifact_id"],
+                "source_hash": cp.source_hash, "snapshot_artifact": cp.snapshot_artifact})
+            journal.append("read_batch_preflight_started", {"batch_artifact": root.payload["artifact_id"],
+                "input_hash": input_hash}, key="read-preflight-start:" + job.id, job_id=job.id)
+            running = journal.transition(cp, state="tools", key="read-preflight-cp:" + job.id, job_id=job.id)
+            snapshot = journal.wb.read(cp.snapshot_artifact) if cp.snapshot_artifact else None
+            s.commit()
+        try:
+            proof = await self.gateway.preflight_read_batch(spec, calls, source_hash=cp.source_hash,
+                snapshot=snapshot, input_hash=input_hash)
+            proof = read_batches.ReadBatchPreflight.model_validate(proof).model_dump()
+            if (proof["version"] != "native-read-batch-preflight-v1" or proof["input_hash"] != input_hash
+                    or proof["binding_hash"] != content_hash(spec.binding.model_dump())
+                    or proof["requests_hash"] != content_hash(requests)
+                    or proof["source_hash"] != proof["after_hash"]
+                    or cp.source_hash not in {spec.binding.archive_hash, proof["source_hash"]}
+                    or proof["status"] not in {"succeeded", "rejected"}):
+                raise ValueError("read_preflight_binding_invalid")
+            if proof["status"] == "succeeded":
+                if len(proof["checked"]) != len(requests):
+                    raise ValueError("read_preflight_incomplete")
+                for check, args in zip(proof["checked"], requests, strict=True):
+                    if (any(check[k] != args[k] for k in ("path", "offset", "max_bytes"))
+                            or not 0 <= args["offset"] <= check["total_bytes"] <= 1000000
+                            or args["expected_hash"] not in {None, check["content_hash"]}):
+                        raise ValueError("read_preflight_path_invalid")
+        except Exception:
+            # No application call was dispatched. Preserve this distinction from
+            # a later failed read with a real, partially executed prefix.
+            proof = {"version": "native-read-batch-preflight-unavailable-v1", "input_hash": input_hash,
+                "status": "rejected", "failure_code": "agent_read_batch_preflight_invalid",
+                "source_hash": cp.source_hash, "checked": []}
+        with self.database.session() as s:
+            self.check(s, job)
+            journal = AgentJournal(Workbench(s, self.settings.artifact_root), job.payload["task_id"], job.payload["session_id"])
+            journal.lock()
+            TaskOrchestrator(journal.wb, self.settings).require_current(journal)
+            current = journal.checkpoint()
+            if current.revision != running.revision:
+                raise WorkbenchError("读取预检回执已过期。", code="agent_checkpoint_stale")
+            aid = journal.wb.artifact(proof)
+            journal.append("read_batch_preflight", {"batch_artifact": root.payload["artifact_id"],
+                "artifact_id": aid, "source_hash": proof["source_hash"], "status": proof["status"]},
+                key="read-preflight-result:" + job.id, job_id=job.id)
+            if proof["status"] == "succeeded":
+                current = journal.transition(current, state="tools", source_hash=proof["source_hash"],
+                    key="read-preflight-ready:" + job.id, job_id=job.id)
+                read_batches.child_started(journal, root, current, 0, job_id=job.id)
+                schedule(journal)
+            else:
+                code = proof["failure_code"]
+                info = failure(journal, "security", code, "inspect_diagnostic")
+                journal.append("blocked", {"failure": info.model_dump()}, key="read-preflight-block:" + job.id, job_id=job.id)
+                read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid)
+                journal.transition(current, state="blocked", pending_calls=[],
+                    key="read-preflight-block-cp:" + job.id, job_id=job.id)
+            return self.finish(s, job, {"artifact_id": aid, "preflight": proof["status"]})
+
     async def execute(self, job: Job) -> dict:
+        if job.payload.get("read_batch_preflight"):
+            return await self._preflight_read_batch(job)
         with self.database.session() as s:
             self.check(s, job)
             journal = AgentJournal(Workbench(s, self.settings.artifact_root), job.payload["task_id"], job.payload["session_id"])
@@ -430,7 +540,11 @@ class AgentToolWorker(WorkbenchJobWorker):
                     raise WorkbenchError("只能读取本会话签发的证据。", code="agent_artifact_scope_denied")
                 prepared_page = (artifact_page(journal.wb.artifacts.read_bytes(arguments.artifact_id),
                     arguments.offset, arguments.max_bytes) if call.name in {"inspect_failure", "read_artifact"} else None)
-                charges = registry.cost(call)
+                batch = read_batches.active(journal)
+                if batch and (read_batches.source_hash(journal, batch) != cp.source_hash
+                        or call.name != "read_file"):
+                    raise WorkbenchError("读取批次源码或类型已变化。", code="agent_read_batch_invalid")
+                charges = {} if batch else registry.cost(call)  # Whole-batch reads were already reserved.
                 usage = journal.charge(cp, charges)
                 if call.name == "apply_patch":
                     checks = [e for e in journal.events() if e.kind == "agent_v2_tool_result"
@@ -515,6 +629,15 @@ class AgentToolWorker(WorkbenchJobWorker):
 
     def _complete(self, s, job, journal, cp, result, *, snapshot_artifact=None):
         call = cp.pending_calls[0]
+        batch = read_batches.active(journal)
+        if batch and (result.output_source_hash != read_batches.source_hash(journal, batch)
+                or snapshot_artifact not in {None, cp.snapshot_artifact}):
+            observed = journal.wb.artifact(result.model_dump())
+            info = failure(journal, "security", "agent_read_batch_source_changed", "inspect_diagnostic")
+            result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
+                source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
+                data={"observed_result_artifact": observed}, failure=info)
+            snapshot_artifact = cp.snapshot_artifact
         registry = RestrictedToolRegistry()
         try:
             args = registry.validate(call, journal.spec())
@@ -544,14 +667,32 @@ class AgentToolWorker(WorkbenchJobWorker):
             key="tool-result:" + job.id, job_id=job.id)
         blocking = result.status == "unknown" or (result.failure and result.failure.category in {"security", "environment", "baseline", "budget", "platform"})
         pending = cp.pending_calls[1:]
-        progress = record_tool(journal, cp, call, artifact, batch_complete=not pending, job_id=job.id)
+        index = read_batches.child_index(journal, batch, call.call_id) if batch else None
+        if batch and (result.status != "succeeded" or result.failure is not None):
+            blocking = True
+        original_complete = not pending and (not batch or index + 1 == len(read_batches.record(journal, batch)["sub_batches"]))
+        progress = record_tool(journal, cp, call, artifact, batch_complete=original_complete or bool(batch and blocking), job_id=job.id)
         if progress is not None and progress.blocker == "agent_no_progress":
             info = failure(journal, "budget", "agent_no_progress", "inspect_progress_and_replan")
             journal.append("blocked", {"failure": info.model_dump()}, key="progress-block:" + job.id, job_id=job.id)
             blocking = True
-        journal.transition(cp, state="blocked" if blocking else "tools" if pending else "ready",
+        next_child = False
+        if batch and (not pending or blocking):
+            pending = read_batches.complete_child(journal, batch, cp, index, job_id=job.id, stopped=blocking)
+            next_child = bool(pending)
+        if batch and blocking:
+            info = (failure(journal, "budget", "agent_no_progress", "inspect_progress_and_replan")
+                if progress and progress.blocker == "agent_no_progress" else result.failure
+                or failure(journal, "platform", "agent_read_batch_stopped", "inspect_diagnostic"))
+            info = info.model_copy(update={"retryable": False, "blocking_scope": "session"})
+            journal.append("blocked", {"failure": info.model_dump()}, key="read-tool-block:" + job.id, job_id=job.id)
+            read_batches.stop(journal, batch, code=info.safe_reason_code, job_id=job.id, evidence=artifact)
+            pending = []
+        updated = journal.transition(cp, state="blocked" if blocking else "tools" if pending else "ready",
             usage=usage,
             source_hash=result.output_source_hash, snapshot_artifact=snapshot_artifact or cp.snapshot_artifact,
             pending_calls=pending, last_result_hash=artifact, key="tool-cp:" + job.id, job_id=job.id)
+        if next_child:
+            read_batches.child_started(journal, batch, updated, index + 1, job_id=job.id)
         schedule(journal)
         return self.finish(s, job, {"artifact_id": artifact})

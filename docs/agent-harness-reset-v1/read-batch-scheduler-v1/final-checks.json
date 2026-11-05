@@ -1,0 +1,44 @@
+{
+  "version": "native-read-batch-final-checks-v1",
+  "recorded_at": "2026-11-05T03:34:15.011501+00:00",
+  "source_hash": "9601fd8b2ca3c1e7b605633ba7a5e67491591d5a61ff05bf1de3590cca85860d",
+  "counts_after_preview_creation": {
+    "active_jobs": 0,
+    "model_starts": 86,
+    "authorizations": 10,
+    "plans": 12,
+    "maximum_plan_version": 12,
+    "task_events": 1942
+  },
+  "integrity_and_FK": "passed",
+  "new_provider_calls": 0,
+  "new_plan_created": false,
+  "Push_or_PR": false,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "compileall_app_and_evidence_helpers": "passed",
+  "runtime_internal_imports": "passed",
+  "git_diff_check": "passed",
+  "frozen_250_source_files": "passed",
+  "saved_evidence_JSON_XML_credential_scan": "passed",
+  "deployed_role_log_credential_scan": "passed",
+  "legacy_1581_artifact_hash_and_canary_scan": "passed_in_legacy_plan12_audit_after_upgrade",
+  "preview_file_only": true,
+  "Linux_amd64": "not_run",
+  "original_HR4_HR5": "not_passed",
+  "report_hash": "b913b8acc972f6091d19dfd3692687584502997148972fba1ac46772e89f0401"
+}

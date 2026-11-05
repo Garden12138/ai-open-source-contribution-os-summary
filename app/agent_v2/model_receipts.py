@@ -63,9 +63,14 @@ def response_evidence(value: Mapping[str, Any], *, request_id: str, binding_hash
 def original_call(journal: Any, call_id: str) -> dict:
     """Derive the unique vendor call from a committed, accepted native turn."""
     for turn in reversed(journal.events()):
-        if turn.kind != "agent_v2_turn" or not turn.payload.get("response_artifact"):
+        if turn.kind not in {"agent_v2_turn", "agent_v2_read_batch"} or not turn.payload.get("response_artifact"):
             continue
-        for index, call in enumerate(turn.payload["decision"]["calls"]):
+        if turn.kind == "agent_v2_read_batch":
+            from app.agent_v2.read_batches import record
+            calls = record(journal, turn)["proposal"]["calls"]
+        else:
+            calls = turn.payload["decision"]["calls"]
+        for index, call in enumerate(calls):
             if "tool-" + content_hash([turn.job_id, call["call_id"]])[:40] != call_id:
                 continue
             aid = turn.payload["response_artifact"]
@@ -80,5 +85,6 @@ def original_call(journal: Any, call_id: str) -> dict:
                     raise ValueError()
             except (KeyError, IndexError, TypeError, ValueError):
                 raise WorkbenchError("模型调用来源无效。", code="agent_model_response_binding_invalid") from None
-            return {"response_artifact": aid, "provider_call_id": vendor["id"], "provider_call_index": index}
+            return {"response_artifact": aid, "provider_call_id": vendor["id"], "provider_call_index": index,
+                **({"read_batch_artifact": turn.payload["artifact_id"]} if turn.kind == "agent_v2_read_batch" else {})}
     return {}  # Legacy turns never acquire invented vendor provenance.

@@ -37,6 +37,46 @@ class DockerAgentToolGateway:
         self.repository_for_attempt = repository_for_attempt
         self.dependency_for_attempt = dependency_for_attempt
 
+    async def preflight_read_batch(self, spec: TaskSpec, calls: list[ToolCall], *, source_hash: str,
+                                   snapshot: dict | None, input_hash: str) -> dict:
+        """Inspect all paths/ranges/hashes in one credential-free read-only OCI view."""
+        from app.agent_v2.read_batches import NativeReadBatch
+        from app.agent_v2.tools import RestrictedToolRegistry
+        NativeReadBatch(calls=calls)
+        requests = [RestrictedToolRegistry().validate(c, spec).model_dump() for c in calls]
+        policy = SandboxPolicy()
+        if spec.binding.policy_hash != policy.policy_hash or snapshot and snapshot["source_hash"] != source_hash:
+            raise ValueError("agent_batch_view_mismatch")
+        archive = self.archives.lookup(repository_full_name=self.repository_for_attempt(spec.binding.attempt_id),
+            base_commit_sha=spec.binding.base_sha, archive_hash=spec.binding.archive_hash)
+        workspace = await self.materializer.create_workspace(image_digest=spec.binding.image, policy=policy)
+        try:
+            await self.materializer.materialize(workspace=workspace, archive=archive, policy=policy)
+            files = dict(snapshot["files"]) if snapshot else {}
+            if files:
+                operations = tuple(ChangeOperation(path=p, kind=ChangeOperationKind.WRITE,
+                    expected_prior_hash=v["original_hash"], content=v["content"], executable=v["executable"])
+                    for p, v in sorted(files.items()))
+                changes = ImplementationChangeSet(change_set_id="preflight-" + input_hash[:32],
+                    plan_version_id=spec.binding.plan_id, plan_content_hash=spec.binding.plan_content_hash,
+                    plan_record_hash=spec.binding.plan_hash, operations=operations)
+                view = await self.materializer.apply(workspace=workspace, change_set=changes,
+                    allowed_change_paths=tuple(spec.write_paths), policy=policy)
+                if view.result_inventory_hash != source_hash:
+                    raise ValueError("agent_batch_view_mismatch")
+            raw = await self._source(workspace, policy, {"name": "read_batch_preflight",
+                "arguments": {"requests": requests}, "write_paths": spec.write_paths, "originals": {}})
+            if (raw["before_hash"] != raw["after_hash"] or source_hash not in {
+                    spec.binding.archive_hash, raw["before_hash"]}):
+                raise ValueError("agent_batch_source_mismatch")
+            return {"version": "native-read-batch-preflight-v1", "input_hash": input_hash,
+                "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": raw["before_hash"],
+                "after_hash": raw["after_hash"], "requests_hash": content_hash(requests),
+                "status": "rejected" if raw.get("error") else "succeeded", "failure_code": raw.get("error"),
+                "checked": raw.get("data", {}).get("checked", []), "execution_backend": "docker"}
+        finally:
+            await self.materializer.destroy(workspace)
+
     async def execute(self, spec: TaskSpec, call: ToolCall, arguments: BaseModel, *,
                       source_hash: str, snapshot: dict | None, input_hash: str) -> dict:
         from app.agent_v2.tools import RestrictedToolRegistry
@@ -170,8 +210,9 @@ def scan():
     entries.sort(key=lambda e:e['path'])
     return entries,digest(json.dumps(entries,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())
 
-def page(data):
-    offset=args.get('offset',0); size=args.get('max_bytes',4096)
+def page(data, arguments=None):
+    a=args if arguments is None else arguments
+    offset=a.get('offset',0); size=a.get('max_bytes',4096)
     if offset>len(data): raise ValueError('page_offset_invalid')
     chunk=data[offset:offset+size]
     while chunk:
@@ -200,6 +241,16 @@ try:
                         'file_content_hash':e['sha256'],'text':line.rstrip('\r\n')[:1000]},ensure_ascii=False,sort_keys=True))
                 byte_offset+=len(line.encode())
         output['data']=page(('\n'.join(rows)).encode())
+    elif name=='read_batch_preflight':
+        checked=[]
+        for item in args['requests']:
+            p=path_for(item['path']); data=open(p,'rb').read(1000001)
+            if len(data)>1000000: raise ValueError('source_file_limit')
+            if item.get('expected_hash') and digest(data)!=item['expected_hash']: raise ValueError('source_hash_conflict')
+            observation=page(data,item)
+            checked.append({'path':item['path'],'content_hash':digest(data),'total_bytes':len(data),
+                'offset':observation['offset'],'max_bytes':item['max_bytes']})
+        output['data']={'checked':checked}
     elif name=='read_file':
         p=path_for(args['path']); data=open(p,'rb').read(1000001)
         if len(data)>1000000: raise ValueError('source_file_limit')
@@ -238,12 +289,12 @@ try:
         output['data']=page(''.join(pieces).encode())
     elif name=='run_approved_checks': output['data']={}
     else: raise ValueError('tool_unavailable')
-except (ValueError, FileNotFoundError, UnicodeDecodeError) as error:
+except (ValueError, OSError, UnicodeDecodeError) as error:
     code=str(error) if isinstance(error,ValueError) and str(error) in {
         'path_denied','symlink_denied','source_limit','source_file_limit','source_hash_conflict',
         'page_offset_invalid','patch_hash_conflict','patch_anchor_conflict','patch_no_change','tool_unavailable'} else 'source_unavailable'
     output['error']=code
-    if code in {'source_hash_conflict','patch_hash_conflict','patch_anchor_conflict'}:
+    if name!='read_batch_preflight' and code in {'source_hash_conflict','patch_hash_conflict','patch_anchor_conflict'}:
         p=path_for(args['path']); current=open(p,'rb').read(1000001)
         if len(current)<=1000000:
             output['data']={'path':args['path'],'current_content_hash':digest(current),

@@ -1,0 +1,15 @@
+{
+  "version": "read-batch-upstream-observation-v1",
+  "recorded_at": "2026-11-05T02:56:21.997789+00:00",
+  "transport": "existing_allowlisted_read_only_search_and_head_proxy",
+  "public_unauthenticated_GET": "403_rate_limit_exceeded",
+  "issue_url": "https://github.com/patoles/agent-flow/issues/107",
+  "state": "open",
+  "updated_at": "2026-10-29T22:23:57Z",
+  "issue_body_hash": "5512d263e7d8ab8c10262d9ac2f92b014c05117b070934507fe4b1673680897a",
+  "HEAD": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "branch": "main",
+  "model_calls": 0,
+  "third_party_writes": 0,
+  "record_hash": "dd678fedecece71ec09c273a69ce0ea4672942716df79f7f8d8edb0fd387dcfe"
+}

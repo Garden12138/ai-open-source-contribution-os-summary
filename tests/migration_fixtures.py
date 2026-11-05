@@ -6,6 +6,9 @@ from sqlalchemy import Connection
 
 def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -> None:
     execute = getattr(connection, "exec_driver_sql", connection.execute)
+    execute("DROP TRIGGER IF EXISTS agent_v2_read_batch_lifecycle")
+    execute("DROP TRIGGER IF EXISTS agent_v2_read_batch_admission")
+    execute("DELETE FROM _schema_migrations WHERE revision='0044_native_read_batches'")
     execute("DROP TRIGGER IF EXISTS agent_v2_progress_cas")
     execute("DELETE FROM _schema_migrations WHERE revision='0043_implementation_progress'")
     execute("DROP TRIGGER IF EXISTS agent_v2_response_evidence")

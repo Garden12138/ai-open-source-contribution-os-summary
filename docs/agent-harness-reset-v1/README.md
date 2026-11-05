@@ -4,9 +4,13 @@
 目标仓库：`Garden12138/ai-open-source-contribution-os-summary`\
 目标分支：`refactor/agent-runtime-v2`
 
-当前状态：Gate0–3通过；Plan12真实验收因三次超量调用批次耗尽两次协议纠偏而终止，
-Gate4未通过，Phase5未进入。新增终态Ledger/SQLite协调写锁修复已验证并部署。
-当前源码718ed712与真实执行源码59862614分别保留，不冒充同一次验收。
+当前状态（2026-11-05）：[Native Read-Only Batch Scheduler专项](read-batch-scheduler-v1/README.md)
+完成实现、真实保存信封离线重放、全量回归2015通过/69跳过及真实OCI16通过。
+只对完整验证的5–8个read_file持久化分批，执行子批次仍最多4-call。
+当前源码9601fd8b已部署并审计；未产生新模型费用、Plan13或Push/PR。
+[独立真实验收预览](read-batch-scheduler-v1/real-model-acceptance-preview.md)等待新授权。
+Plan12仍因三次超量批次耗尽纠偏而终态阻断，Gate4/5未通过；原718ed712修复版本与
+真实执行源码59862614均保留，不把新的离线结果冒充真实模型验收。
 详见[当前交接](handoff.md)、[真实结果](real-acceptance-result.json)及
 [验证汇总](verification-report.json)。路线图状态以`docs/tasks.md`为准。
 

@@ -1,4 +1,5 @@
 from app.migrations.core import Migration
+from app.migrations.versions.v0044_native_read_batches import MIGRATION as NATIVE_READ_BATCHES
 from app.migrations.versions.v0043_implementation_progress import MIGRATION as IMPLEMENTATION_PROGRESS
 from app.migrations.versions.v0042_agent_response_evidence import MIGRATION as AGENT_RESPONSE_EVIDENCE
 from app.migrations.versions.v0041_native_model_tools import MIGRATION as NATIVE_MODEL_TOOLS
@@ -139,6 +140,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     NATIVE_MODEL_TOOLS,
     AGENT_RESPONSE_EVIDENCE,
     IMPLEMENTATION_PROGRESS,
+    NATIVE_READ_BATCHES,
 )
 
 __all__ = ["MIGRATIONS"]

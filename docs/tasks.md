@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | User-directed HR4-G04 — Harness real Issue Patch/Verify; P5-G06 native Linux gate remains open |
+| First current task | HR3-RB offline scheduler acceptance passed; fresh exact model-acceptance binding awaits new consent. HR4/5 and P5-G06 remain open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6550,7 +6550,8 @@ Plan11 的账目与失败保持原样：累计保留输入171256/输出12756，�
 
 ## User-directed Agent Harness Reset v1 (2026-11-04)
 
-Current专项：**Harness Phase 4 — Plan12真实验收已终态阻断，Gate4未通过**。
+Current专项：**2026-11-05 Native Read-Only Batch Scheduler v1离线验收通过；
+Plan12仍为终态，HR4/5未通过，新的真实验收待新授权**。
 原路线图Phase 5/P5-G06与UPEVE-E04及全部跨平台/真实交付门禁保持原状态。
 设计依据为 [专项文档](agent-harness-reset-v1/README.md)。
 
@@ -6577,10 +6578,29 @@ Current专项：**Harness Phase 4 — Plan12真实验收已终态阻断，Gate4�
   新回归已先失败；r2按实际字节范围/内容及Verify outcome判断新证据，合法读取仍执行。
   原r1全量1982通过/62跳过及248文件镜像记录保留；r2仅改变progress.py，91项受影响
   原生/恢复/验证/独立Review回归通过，门禁恢复。未把r1完整成绩冒充r2全量重跑。
-- [x] **HR3-G03** 选择整批拒绝与有限纠偏；不放宽4-call，不部分执行混合写。
+- [x] **HR3-G03** 2026-11-04策略：整批拒绝与有限纠偏；不放宽4-call，不部分执行混合写。
   [Phase3报告](agent-harness-reset-v1/phase3-report.json)：36项安全/纠偏/响应留存检查通过。
   五调用含只读、Patch、Verify、终止或未知工具均先留证再零执行拒绝；两次修复上限保留，
   四调用合法纠正回合保留原始ID/顺序/一调用一结果，不启用自动分批。
+- [x] **HR3-RB** 2026-11-05用户授权的只读调度契约修复，离线及当前平台OCI验收通过。
+  [事实校验](agent-harness-reset-v1/read-batch-scheduler-v1/facts-and-baseline.json)确认Plan12三份真实
+  原始信封为6/5/5个read_file，16个原始ID/参数/顺序可核验；未重新调用Provider。
+  仅5–8个全部合法read_file可进入整批准入与OCI预检，再持久化为最多4个调用的子批次。
+  原Decision/Checkpoint仍最多4-call；混合写、未知/终止工具、越权路径、无效参数及>8整批预拒绝。
+  原批次不可变Artifact、子批次Checkpoint/幂等标识/回执、原序聚合与原始Provider响应贯通；
+  子批次之间不请求Decision。读取预算整批预留不退还；失败保留实际回执，已启动未知与未执行分列。
+  精确复用、分页、源码变化、可见字节/next_offset、无进展与Coding未完成均有回归。
+  [保存信封离线重放](agent-harness-reset-v1/read-batch-scheduler-v1/offline-replay.json)：4+2、4+1、4+1；
+  模型请求0、历史审批未复用。迁移0044仅添加Journal约束，旧数据/Checkpoint读取及进程崩溃恢复通过。
+  最终源码9601fd8b的全量回归2015通过/69跳过，真实macOS arm64/OrbStack OCI16通过/0跳过；
+  [验收报告](agent-harness-reset-v1/read-batch-scheduler-v1/validation-report.json)保留初次失败、修复与最终JUnit。
+  原五角色250文件逐一校验、四端健康，44张业务表Hash不变、仅追加0044；
+  [部署后审计](agent-harness-reset-v1/read-batch-scheduler-v1/postdeploy-audit.json)：授权10、模型启动86、
+  Plan12/1942条任务事件/1581个Artifact及旧预算/三个未知占用均不变，无活动Job。
+  [独立预览](agent-harness-reset-v1/read-batch-scheduler-v1/real-model-acceptance-preview.md)仅为文件，
+  冻结同一目标/源码/模型/8路径/4命令/原上限；新协议Hash使旧绑定过期。
+  未创建Plan13、审批或付费Job，未Push/PR；需人类先授权同内容新绑定，再核对实际ID后的精确执行确认。
+  原HR4/5与原生Linux amd64平台门禁仍未通过；不扩大Runtime或UPEVE范围。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
   [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、
@@ -6608,7 +6628,8 @@ Current专项：**Harness Phase 4 — Plan12真实验收已终态阻断，Gate4�
   1581个Artifact；只追加一条Ledger阻塞修订，旧Checkpoint和Usage未变，仍为8次真实调用。
   [部署审计](agent-harness-reset-v1/postdeploy-audit-r4.json)：无活动Job，授权仍10次，累计模型启动86次。
   r3两模块227通过/8跳过及63工作流通过、r4只增worker.py的92回归通过；不冒充r4全量重跑。
-  下一当前事项仍是HR4真实Patch/当前Verify；原两次协议纠偏已经耗尽，未获另一轮预算/恢复授权。
+  以上为2026-11-04真实验收归档。2026-11-05只读调度离线修复见HR3-RB；
+  HR4真实Patch/当前Verify仍待新的精确授权，不恢复终态、不重置耗尽的两次协议纠偏额度。
 - [ ] **HR5-G05** 现有真实模型绑定、真实Patch、当前源码批准Verify、独立Review。
 - [ ] **HR6-G06** 最终架构/迁移/恢复/事件版本/验收与交接文档。
 

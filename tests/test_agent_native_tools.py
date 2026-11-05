@@ -53,7 +53,8 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
     assert functions["run_approved_checks"]["parameters"]["additionalProperties"] is False
     assert functions["run_approved_checks"]["parameters"]["properties"] == {}
     assert native_model_transport().tools_schema_hash == content_hash({"tools": definitions, "instruction": INSTRUCTION,
-        "max_calls": 4, "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
+        "max_calls": 4, "read_batch_scheduler": __import__("app.agent_v2.read_batches", fromlist=["POLICY"]).POLICY,
+        "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
             "task_input": {"strategy": "complete_if_admitted", "max_input_bound": 32000},
             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
                 "task_before_page_bodies": True, "read_ranges": "source_bound"},
@@ -293,7 +294,7 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
         old = {t: list(raw.execute("SELECT * FROM " + t)) for t in tables}
         assert all(old.values())
         with sqlite3.connect(backup) as target: raw.backup(target)
-    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress")
+    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches")
     with db.engine.connect() as conn:
         for table in tables: assert list(conn.connection.driver_connection.execute("SELECT * FROM " + table)) == old[table]
         assert conn.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
@@ -308,7 +309,7 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
     db.close()
     restored_db = Database("sqlite:///" + str(backup))
     assert restored_db.current_revision() == "0040_deepseek_reviews"
-    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress")
+    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches")
     with restored_db.engine.connect() as conn:
         for table in tables: assert list(conn.connection.driver_connection.execute("SELECT * FROM " + table)) == old[table]
         assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []

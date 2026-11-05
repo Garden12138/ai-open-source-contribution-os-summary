@@ -11,7 +11,7 @@ from app.workbench import WorkbenchError
 VERSION = "implementation-progress-v1"
 POLICY = {"version": VERSION, "no_progress_turns_before_correction": 2,
     "no_progress_turns_after_correction": 1, "exact_read_reuse": True,
-    "oversized_batches": "reject_whole_no_split", "evidence_novelty": "returned_byte_range_and_outcome"}
+    "oversized_batches": "validated_read_file_8_in_sub_batches_4", "evidence_novelty": "returned_byte_range_and_outcome"}
 
 
 class ProgressStep(StrictModel):

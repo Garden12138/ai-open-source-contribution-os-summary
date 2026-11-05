@@ -1,5 +1,10 @@
 # Codex `/goal` 主任务提示词：Agent Harness Reset v1
 
+2026-11-05新增用户指令：仅修复Plan12已证明的超量只读调用不匹配，按
+`read-batch-scheduler-v1/design-and-recovery.md`允许完整验证的5–8个read_file持久化分批，
+每个子批次仍至多4-call。后文“禁止自动分批”适用于旧策略及其他/混合工具。
+本轮只离线与OCI验收，不能付费重放、复用Plan12审批、自动生成Plan13或Push/PR。
+
 你负责在当前仓库实施 Agent Harness Reset v1。
 
 仓库：`Garden12138/ai-open-source-contribution-os-summary`\

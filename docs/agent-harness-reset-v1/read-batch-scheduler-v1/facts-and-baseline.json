@@ -1,0 +1,58 @@
+{
+  "version": "plan12-native-read-batch-fact-check-v1",
+  "baseline_commit": "36fd877743da80cd10425a15baf213ac3f9a385e",
+  "baseline_parser_sha256": "126157f5cb16f3299445e12c19eebeb9c524271a6b87de5195c1eb8c95c453ba",
+  "source_audit_hash": "11fbac27ef4751b908477fc932d14649149608a09393058195eaa7682910a63c",
+  "fixture_hash": "7e2c24e5345de31fac953ef73e1d77077bdd3f65959b62d92f6f4a37902fd334",
+  "observations": [
+    {
+      "original_response_artifact": "9b1f7715a63c288cc5dbb49cbe98fff6d7945ff96ab6cff93ae3fe63fef3d9ac",
+      "original_job_id": "7de05416-eb49-4ca1-9fa9-38e47b5a8594",
+      "call_count": 6,
+      "names": [
+        "read_file"
+      ],
+      "old_behavior": "whole_batch_rejected",
+      "new_parsed_proposal": "bounded_read_file_batch_requires_whole_sandbox_preflight",
+      "child_sizes": [
+        4,
+        2
+      ],
+      "original_ids_and_arguments_verified": true
+    },
+    {
+      "original_response_artifact": "3d12bc08ce29a9086dada7cdb5e76ad361c5333360434c96c85719c03bb4bcbf",
+      "original_job_id": "2c0d3357-1601-45e6-93f8-33c2b9aab086",
+      "call_count": 5,
+      "names": [
+        "read_file"
+      ],
+      "old_behavior": "whole_batch_rejected",
+      "new_parsed_proposal": "bounded_read_file_batch_requires_whole_sandbox_preflight",
+      "child_sizes": [
+        4,
+        1
+      ],
+      "original_ids_and_arguments_verified": true
+    },
+    {
+      "original_response_artifact": "e71d7e73adb64a9fb2cac45e2f94fb5059e5d06139bf5fbb6af27bf40957e930",
+      "original_job_id": "c3af5c59-1e49-4432-911a-2b92edb2fbf9",
+      "call_count": 5,
+      "names": [
+        "read_file"
+      ],
+      "old_behavior": "whole_batch_rejected",
+      "new_parsed_proposal": "bounded_read_file_batch_requires_whole_sandbox_preflight",
+      "child_sizes": [
+        4,
+        1
+      ],
+      "original_ids_and_arguments_verified": true
+    }
+  ],
+  "new_provider_requests": 0,
+  "new_model_fees": 0,
+  "Plan13_created": false,
+  "record_hash": "70d276f25dbd1f30c9fcf2a2c1995a46b043d4985933224d0f423a0d105d62d6"
+}

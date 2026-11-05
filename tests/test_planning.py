@@ -4680,7 +4680,7 @@ def test_task_state_migration_backfills_existing_task_root(
             "0038_agent_runtime_v2",
             "0039_environment_contracts",
             "0040_deepseek_reviews", "0041_native_model_tools",
-            "0042_agent_response_evidence", "0043_implementation_progress",
+            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches",
         )
         with database.session() as session:
             current = ContributionTaskStateService(session).current(task_id)

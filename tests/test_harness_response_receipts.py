@@ -23,7 +23,7 @@ def journal(db, settings, task, sid):
 
 @pytest.mark.parametrize('mixed', [False, True])
 def test_overflow_is_durably_captured_before_whole_batch_rejection(tmp_path, monkeypatch, mixed):
-    value = overflow()
+    value = overflow(5 if mixed else 9)
     for index, call in enumerate(value['choices'][0]['message']['tool_calls']):
         call['id'] = f'original-vendor-{index}'
         call['function'] = {'name': 'read_file', 'arguments': json.dumps({'path': 'calc.py', 'offset': index * 128})}

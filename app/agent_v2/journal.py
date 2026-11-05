@@ -64,6 +64,13 @@ class AgentJournal:
         next_checkpoint = AgentCheckpoint.model_validate(values)
         self.append("checkpoint", {"checkpoint": next_checkpoint.model_dump()}, key=key, job_id=job_id)
         result = self.checkpoint()
+        if state in {"blocked", "cancelled"}:
+            from app.agent_v2 import read_batches
+            batch = read_batches.active(self)
+            if batch:
+                reason = next((e.payload["failure"]["safe_reason_code"] for e in reversed(self.events())
+                    if e.payload.get("failure")), "agent_read_batch_" + state)
+                read_batches.stop(self, batch, code=reason, job_id=job_id)
         if state == "blocked":
             from app.agent_v2.progress import record_checkpoint_blocked
             record_checkpoint_blocked(self, result)

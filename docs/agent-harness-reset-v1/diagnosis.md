@@ -1,5 +1,15 @@
 # Agent Harness Reset v1 — Phase 0 诊断
 
+2026-11-05专项补充：用户明确授权Native Read-Only Batch Scheduler v1。
+Plan12三份已保存信封逐一校验为6/5/5个纯`read_file`，共16个原始调用；
+见[事实校验与旧解析器重放](read-batch-scheduler-v1/facts-and-baseline.json)。
+新策略仅对完整验证的5–8个读取调用进行最多4-call的持久化分批，混合/未知/终止调用
+仍整批预拒绝。原Decision/Checkpoint上限与预算/权限不变；新协议需新授权。
+实现与验收已完成：真实信封离线重放为4+2、4+1、4+1；最终源码9601fd8b全量
+2015通过/69跳过，真实OCI16通过；见[验收报告](read-batch-scheduler-v1/validation-report.json)。
+部署保留44张业务表Hash和旧预算，只追加0044约束；Plan12终态不恢复，无新增模型费用。
+以下保留历史诊断和当时策略，Plan11 unavailable与Plan12终态均不改写。
+
 状态：**Gate 0 passed（按2026-11-04用户调整）；历史调用信息 unavailable**。
 
 用户接受两次被拒绝批次的原始调用信息无法恢复，不再以此阻塞Phase 0。
@@ -8,7 +18,7 @@
 零执行事实可核验。无法据此判断历史批次是否全只读，不推测或伪造缺失字段。
 历史缺口状态为 **unavailable**，不是已补齐，也不影响其他能力继续开发。
 
-后续准入：进入Phase 1回归与可观测性；保留4-call整批拒绝和有限纠偏，禁止自动分批。
+2026-11-04当时准入：进入Phase 1回归与可观测性；保留4-call整批拒绝和有限纠偏，禁止自动分批。
 必须实现未来响应的安全工具信封持久化：原始ID、名称、参数、顺序、finish reason、
 Usage及拒绝原因。响应先持久化再校验/拒绝；凭据不得入库，私有推理不保存。
 
