@@ -31,7 +31,7 @@ def seed_reserved_usage(values, charges):
         schedule(j);session.commit()
 
 
-@pytest.mark.parametrize('charges',[{'reads':60},{'output_bytes':450000}])
+@pytest.mark.parametrize('charges',[{'reads':60},{'output_bytes':490000}])
 def test_whole_batch_capacity_rejects_before_preflight_and_preserves_old_usage(tmp_path,charges):
     values=setup(tmp_path,reads(5));seed_reserved_usage(values,charges)
     assert asyncio.run(values[4].run_once()).state=='succeeded'
@@ -134,6 +134,13 @@ os._exit(23)
     ids=counter.read_text().splitlines();assert len(ids)==len(set(ids))==8
     cp,events,_=inspect(values);assert cp.state=='ready' and cp.usage['reads']==8
     assert len([e for e in events if e.kind=='agent_v2_read_sub_batch_completed'])==2
+    with db.session() as session:
+        j=AgentJournal(Workbench(session,s.artifact_root),task,sid)
+        charges=[e for e in j.events() if e.kind=='agent_v2_output_charge']
+        model_bytes=sum(len(j.wb.artifacts.read_bytes(e.payload['artifact_id'])) for e in j.events() if e.kind=='agent_v2_model_response')
+        assert cp.usage['output_bytes']==model_bytes+sum(e.payload['bytes'] for e in charges)
+        pages=[e.payload['artifact_id'] for e in charges if e.payload['role']=='source_page']
+        assert len(pages)==len(set(pages))
 
 
 def test_migration_upgrade_and_lifecycle_guard_preserve_existing_rows(tmp_path,monkeypatch):
@@ -144,7 +151,7 @@ def test_migration_upgrade_and_lifecycle_guard_preserve_existing_rows(tmp_path,m
     db,s,task,sid=values[:4]
     with db.session() as session:
         before=[e.record_hash for e in AgentJournal(Workbench(session,s.artifact_root),task,sid).events()]
-    assert db.create_schema().applied==('0044_native_read_batches', '0045_source_file_observations')
+    assert db.create_schema().applied==('0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
     with db.session() as session:
         j=AgentJournal(Workbench(session,s.artifact_root),task,sid)
         assert [e.record_hash for e in j.events()]==before

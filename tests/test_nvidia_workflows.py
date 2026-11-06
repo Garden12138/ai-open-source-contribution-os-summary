@@ -371,7 +371,7 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
             "0038_agent_runtime_v2",
             "0039_environment_contracts",
             "0040_deepseek_reviews", "0041_native_model_tools",
-            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations",
+            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity",
     )
     with app.state.database.session() as session:
         assert session.get(ReviewRun, review_id) is not None

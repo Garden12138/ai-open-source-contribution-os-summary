@@ -357,7 +357,7 @@ def test_recovery_upgrade_preserves_hashes_and_database_rejects_unproven_input(t
         db, settings, tid, aid, workers, *_ = disposed_verify(tmp_path, monkeypatch)
         with db.session() as session:
             hashes = [e.record_hash for e in Workbench(session, settings.artifact_root).history(tid)]
-    assert db.create_schema().applied == ("0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
+    assert db.create_schema().applied == ("0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
     assert db.create_schema().applied == ()
     with db.session() as session:
         assert [e.record_hash for e in Workbench(session, settings.artifact_root).history(tid)] == hashes

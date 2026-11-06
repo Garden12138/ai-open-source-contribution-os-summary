@@ -65,11 +65,12 @@ class DockerAgentToolGateway:
                 if view.result_inventory_hash != source_hash:
                     raise ValueError("agent_batch_view_mismatch")
             raw = await self._source(workspace, policy, {"name": "read_batch_preflight",
-                "arguments": {"requests": requests}, "write_paths": spec.write_paths, "originals": {}})
+                "arguments": {"requests": requests}, "write_paths": spec.write_paths, "originals": {},
+                "binding_hash": content_hash(spec.binding.model_dump())})
             if (raw["before_hash"] != raw["after_hash"] or source_hash not in {
                     spec.binding.archive_hash, raw["before_hash"]}):
                 raise ValueError("agent_batch_source_mismatch")
-            return {"version": "native-read-batch-preflight-v2", "input_hash": input_hash,
+            return {"version": "native-read-batch-preflight-v3", "input_hash": input_hash,
                 "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": raw["before_hash"],
                 "after_hash": raw["after_hash"], "requests_hash": content_hash(requests),
                 "status": "rejected" if raw.get("error") else "succeeded", "failure_code": raw.get("error"),
@@ -272,8 +273,14 @@ try:
         for item in args['requests']:
             data,observation=read_source(item)
             check={'path':item['path'],'offset':item['offset'],'max_bytes':item['max_bytes']}
-            checked.append({**check,**observation} if data is None else {**check,'availability':'present',
-                'content_hash':digest(data),'total_bytes':len(data)})
+            native={'tool':'read_file','execution_backend':'docker','path':item['path'],**observation}
+            if data is None:
+                native.update(version='source-file-observation-v1',binding_hash=request['binding_hash'],inventory_hash=before_hash)
+            encoded=json.dumps(native,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+            capacity={'data_json_bytes':len(encoded),'data_hash':digest(encoded),
+                'page_bytes':len(observation['text'].encode()) if data is not None else 0}
+            checked.append({**check,**observation,**capacity} if data is None else {**check,'availability':'present',
+                'content_hash':digest(data),'total_bytes':len(data),**capacity})
         output['data']={'checked':checked}
     elif name=='read_file':
         data,observation=read_source(args)

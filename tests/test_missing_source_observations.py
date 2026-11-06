@@ -63,12 +63,17 @@ class MissingGateway(ReadGateway):
 
     async def preflight_read_batch(self, spec, calls, **kwargs):
         proof = await super().preflight_read_batch(spec, calls, **kwargs)
-        proof["version"] = "native-read-batch-preflight-v2"
+        proof["version"] = "native-read-batch-preflight-v3"
         for call, check in zip(calls, proof["checked"], strict=True):
             check["availability"] = "present"
             if call.arguments["path"] == MISSING:
                 check.pop("content_hash"); check.pop("total_bytes")
                 check.update(availability="not_found", reason_code="source_not_found", creation_allowed=True)
+                data = MissingSourceObservation(tool="read_file", path=MISSING, availability="not_found",
+                    reason_code="source_not_found", creation_allowed=True, binding_hash=content_hash(spec.binding.model_dump()),
+                    inventory_hash=kwargs["source_hash"], execution_backend="docker").model_dump(exclude_none=True)
+                from app.agent_v2.read_capacity import size
+                check.update(page_bytes=0, data_json_bytes=size(data), data_hash=content_hash(data))
         return proof
 
     async def execute(self, spec, call, arguments, *, source_hash, snapshot, input_hash):
@@ -254,7 +259,7 @@ def test_forward_migration_keeps_old_journal_and_rejects_forged_absence(tmp_path
         values = fixture(tmp_path, patch, saved_response())
     db, settings, task, sid = values[:4]
     before = [e.record_hash for e in inspect(values)[1]]
-    assert db.create_schema().applied == ("0045_source_file_observations",)
+    assert db.create_schema().applied == ("0045_source_file_observations", "0046_read_capacity",)
     assert [e.record_hash for e in inspect(values)[1]] == before
     with db.session() as session:
         journal = AgentJournal(Workbench(session, settings.artifact_root), task, sid)

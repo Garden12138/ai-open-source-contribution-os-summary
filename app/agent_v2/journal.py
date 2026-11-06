@@ -61,6 +61,15 @@ class AgentJournal:
         if state not in EDGES[current.state]:
             raise WorkbenchError("运行状态不能这样继续。", code="agent_transition_invalid")
         values = {**current.model_dump(), **updates, "state": state}
+        if state in {"blocked", "cancelled"}:
+            from app.agent_v2 import read_batches, read_capacity
+            batch = read_batches.active(self)
+            if batch and read_batches.record(self, batch).get("capacity_contract") == read_capacity.VERSION:
+                reason = next((e.payload["failure"]["safe_reason_code"] for e in reversed(self.events())
+                    if e.payload.get("failure")), "agent_read_batch_" + state)
+                usage = dict(values["usage"])
+                read_batches.stop(self, batch, code=reason, job_id=job_id, usage=usage)
+                values["usage"] = usage
         next_checkpoint = AgentCheckpoint.model_validate(values)
         self.append("checkpoint", {"checkpoint": next_checkpoint.model_dump()}, key=key, job_id=job_id)
         result = self.checkpoint()

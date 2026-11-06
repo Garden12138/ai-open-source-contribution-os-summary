@@ -19,16 +19,22 @@ from tests.test_native_read_progress import run_round
 
 
 @pytest.mark.parametrize('repair', [False, True])
-def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_path, repair):
+@pytest.mark.parametrize('batch', [False, True])
+def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_path, repair, batch):
     workers = []
     db, settings, task, sid, model, _, runner, _ = fixture(tmp_path, capture_workers=workers)
     # The protocol fixture starts its session directly; drain the already queued
     # context job before exercising the complete workflow coordinator.
     assert asyncio.run(workers[1].run_once()).state == 'succeeded'
+    from tests.test_native_read_batches import ReadGateway, reads, drain
+    read_gateway = ReadGateway(); read_gateway.text = "content"
     class Gateway(FixtureGateway):
+        async def preflight_read_batch(self, *args, **kwargs):
+            return await read_gateway.preflight_read_batch(*args, **kwargs)
         failed = False
         async def execute(self, spec, call, args, **kw):
-            value = await super().execute(spec, call, args, **kw)
+            value = (await read_gateway.execute(spec, call, args, **kw) if batch and call.name == "read_file"
+                else await super().execute(spec, call, args, **kw))
             if repair and call.name == 'run_approved_checks' and not self.failed:
                 self.failed = True
                 value['result']['data']['outcome'] = 'failed'
@@ -42,9 +48,10 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
     def patch(old, new):
         return response('apply_patch', {'path': path, 'expected_hash': hashlib.sha256(old.encode()).hexdigest(),
             'old_text': old, 'new_text': new})
-    runner.responses.extend([response('read_file', {'path': path}), patch('content', 'changed'), response('run_approved_checks', {})])
+    runner.responses.extend([reads(8, path=path, max_bytes=16000) if batch else response('read_file', {'path': path}), patch('content', 'changed'), response('run_approved_checks', {})])
     for _ in range(3):
         run_round(model, tool)
+        if batch: drain(tool)
     if repair:
         ledger, _ = progress(db, settings, task, sid)
         assert ledger['phase'] == 'repairing'

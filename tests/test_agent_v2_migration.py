@@ -22,7 +22,7 @@ def test_upgrade_backup_restore_preserves_v1_hashes_and_enforces_new_cas(tmp_pat
         with sqlite3.connect(db.engine.url.database) as source, sqlite3.connect(backup) as destination:
             source.backup(destination)
     report=db.create_schema()
-    assert report.applied==('0038_agent_runtime_v2','0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations')
+    assert report.applied==('0038_agent_runtime_v2','0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
     with db.session() as session:
         wb=Workbench(session,s.artifact_root)
         assert [(e.id,e.record_hash) for e in wb.history(task)]==original

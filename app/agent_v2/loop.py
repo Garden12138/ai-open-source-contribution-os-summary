@@ -239,10 +239,16 @@ def prompt_for(journal: AgentJournal) -> dict:
 def issued_artifacts(journal: AgentJournal) -> set[str]:
     refs = {e.payload["artifact_id"] for e in journal.events() if e.kind in {"agent_v2_tool_result", "agent_v2_progress",
         "agent_v2_read_batch", "agent_v2_read_batch_preflight", "agent_v2_read_sub_batch_completed",
-        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped"}}
+        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped", "agent_v2_read_capacity"}}
     for event in journal.events():
         if event.kind == "agent_v2_model_started":
             refs.update(event.payload.get("context_artifacts", []))
+        if event.kind == "agent_v2_tool_result" and event.payload.get("name") == "read_file" and event.payload.get("status") == "succeeded":
+            from hashlib import sha256
+            data = journal.wb.read(event.payload["artifact_id"])["data"]
+            aid = data.get("source_page_artifact")
+            if isinstance(data.get("text"), str) and aid == sha256(data["text"].encode()).hexdigest():
+                refs.add(aid)
     return refs
 
 
@@ -478,11 +484,16 @@ class AgentToolWorker(WorkbenchJobWorker):
                     or proof["status"] not in {"succeeded", "rejected"}):
                 raise ValueError("read_preflight_binding_invalid")
             if proof["status"] == "succeeded":
+                if batch.get("capacity_contract") and proof["version"] != "native-read-batch-preflight-v3":
+                    raise ValueError("read_capacity_proof_version_invalid")
                 if len(proof["checked"]) != len(requests):
                     raise ValueError("read_preflight_incomplete")
                 for check, args in zip(proof["checked"], requests, strict=True):
                     if not read_batches.checked_path_valid(check, args, spec.write_paths):
                         raise ValueError("read_preflight_path_invalid")
+                    if proof["version"] == "native-read-batch-preflight-v3":
+                        from app.agent_v2.read_capacity import validate_claim
+                        validate_claim(check, args, spec, proof["source_hash"])
         except Exception:
             # No application call was dispatched. Preserve this distinction from
             # a later failed read with a real, partially executed prefix.
@@ -497,22 +508,33 @@ class AgentToolWorker(WorkbenchJobWorker):
             current = journal.checkpoint()
             if current.revision != running.revision:
                 raise WorkbenchError("读取预检回执已过期。", code="agent_checkpoint_stale")
-            aid = journal.wb.artifact(proof)
+            from app.agent_v2 import read_capacity
+            usage = dict(current.usage)
+            metered = batch.get("capacity_contract") == read_capacity.VERSION
+            aid = read_capacity.store(journal, proof, usage, role="read_preflight") if metered else journal.wb.artifact(proof)
             journal.append("read_batch_preflight", {"batch_artifact": root.payload["artifact_id"],
                 "artifact_id": aid, "source_hash": proof["source_hash"], "status": proof["status"]},
                 key="read-preflight-result:" + job.id, job_id=job.id)
-            if proof["status"] == "succeeded":
-                current = journal.transition(current, state="tools", source_hash=proof["source_hash"],
+            capacity = None
+            if metered and proof["status"] == "succeeded":
+                capacity = read_capacity.certificate(batch, proof, batch_artifact=root.payload["artifact_id"],
+                    proof_artifact=aid, remaining=journal.remaining(current.model_copy(update={"usage": usage}))["output_bytes"])
+                capacity_id = read_capacity.store(journal, capacity, usage, role="read_capacity")
+                journal.append("read_capacity", {"batch_artifact": root.payload["artifact_id"],
+                    "artifact_id": capacity_id, "status": capacity["status"], "source_hash": proof["source_hash"]},
+                    key="read-capacity:" + root.payload["artifact_id"], job_id=job.id)
+            if proof["status"] == "succeeded" and (capacity is None or capacity["status"] == "succeeded"):
+                current = journal.transition(current, state="tools", source_hash=proof["source_hash"], usage=usage,
                     key="read-preflight-ready:" + job.id, job_id=job.id)
                 read_batches.child_started(journal, root, current, 0, job_id=job.id)
                 schedule(journal)
             else:
-                code = proof["failure_code"]
-                category = "platform" if code == "source_unavailable" else "stale_upstream" if code == "source_hash_conflict" else "security"
+                code = "agent_read_batch_budget" if capacity and capacity["status"] == "rejected" else proof["failure_code"]
+                category = "budget" if code == "agent_read_batch_budget" else "platform" if code == "source_unavailable" else "stale_upstream" if code == "source_hash_conflict" else "security"
                 info = failure(journal, category, code, "inspect_diagnostic")
                 journal.append("blocked", {"failure": info.model_dump()}, key="read-preflight-block:" + job.id, job_id=job.id)
-                read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid)
-                journal.transition(current, state="blocked", pending_calls=[],
+                read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid, usage=usage if metered else None)
+                journal.transition(current, state="blocked", pending_calls=[], usage=usage,
                     key="read-preflight-block-cp:" + job.id, job_id=job.id)
             return self.finish(s, job, {"artifact_id": aid, "preflight": proof["status"]})
 
@@ -632,14 +654,32 @@ class AgentToolWorker(WorkbenchJobWorker):
     def _complete(self, s, job, journal, cp, result, *, snapshot_artifact=None):
         call = cp.pending_calls[0]
         batch = read_batches.active(journal)
+        from app.agent_v2 import read_capacity
+        entry = read_capacity.attested_entry(journal, batch, call.call_id) if batch else None
+        usage = dict(cp.usage)
+        def observed_data(value):
+            raw = value.model_dump()
+            amount = read_capacity.size(raw)
+            if ((entry and amount > entry["result_bytes_bound"])
+                    or amount + read_capacity.FAILURE_BYTES > journal.remaining(cp.model_copy(update={"usage": usage}))["output_bytes"]):
+                return {"observed_result_hash": content_hash(raw), "observed_bytes": amount,
+                    "observed_result_availability": "unavailable_exceeds_proven_capacity"}
+            return {"observed_result_artifact": read_capacity.store(journal, raw, usage, role="observed_result")}
         if batch and (result.output_source_hash != read_batches.source_hash(journal, batch)
                 or snapshot_artifact not in {None, cp.snapshot_artifact}):
-            observed = journal.wb.artifact(result.model_dump())
+            observed = observed_data(result)
             info = failure(journal, "security", "agent_read_batch_source_changed", "inspect_diagnostic")
             result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
                 source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
-                data={"observed_result_artifact": observed}, failure=info)
+                data=observed, failure=info)
             snapshot_artifact = cp.snapshot_artifact
+        if (entry and result.status in {"succeeded", "not_found"}
+                and not read_capacity.observation_matches(result, entry)):
+            observed = observed_data(result)
+            info = failure(journal, "security", "agent_read_capacity_observation_mismatch", "inspect_diagnostic")
+            result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
+                source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
+                data=observed, failure=info)
         registry = RestrictedToolRegistry()
         try:
             args = registry.validate(call, journal.spec())
@@ -659,22 +699,34 @@ class AgentToolWorker(WorkbenchJobWorker):
                     if proof["checked"][position].get("availability") != "not_found":
                         raise ValueError("missing_result_preflight_conflict")
             except (ValueError, WorkbenchError, KeyError, IndexError):
-                observed = journal.wb.artifact(result.model_dump())
+                observed = observed_data(result)
                 info = failure(journal, "security", "agent_missing_source_evidence_invalid", "inspect_diagnostic")
                 result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
                     source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
-                    data={"observed_result_artifact": observed}, failure=info)
+                    data=observed, failure=info)
         if args is not None and call.name == "read_file" and journal.spec().model_transport is not None:
             from app.agent_v2.read_progress import source_read_progress
             progress = source_read_progress(journal, args, current=result)
             if progress is not None:
                 result = result.model_copy(update={"data": {**result.data,
                     "source_read_progress": progress.note.model_dump()}})
-        usage = journal.charge(cp, {"output_bytes": len(canonical_json(result.model_dump()).encode())})
         if result.failure:
+            # Snapshot immediately BEFORE persisting this receipt. This removes
+            # the old post-charge mutation/self-referential byte count.
             result = result.model_copy(update={"failure": result.failure.model_copy(update={
                 "remaining_budget": journal.remaining(cp.model_copy(update={"usage": usage}))})})
-        artifact = journal.wb.artifact(result.model_dump())
+        if entry and read_capacity.size(result.model_dump()) > entry["result_bytes_bound"]:
+            observed = observed_data(result)
+            info = failure(journal, "security", "agent_read_capacity_result_exceeded", "inspect_diagnostic")
+            info = info.model_copy(update={"remaining_budget": journal.remaining(cp.model_copy(update={"usage": usage}))})
+            result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
+                source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown", data=observed, failure=info)
+        if entry and result.status == "unknown" and read_capacity.size(result.model_dump()) > read_capacity.FAILURE_BYTES:
+            raise WorkbenchError("失败诊断超出冻结容量。", code="agent_read_capacity_failure_exceeded")
+        if call.name == "read_file" and args is not None and result.status == "succeeded" and isinstance(result.data.get("text"), str):
+            aid = read_capacity.source_page(journal, result.data["text"], usage)
+            result = result.model_copy(update={"data": {**result.data, "source_page_artifact": aid}})
+        artifact = read_capacity.store(journal, result.model_dump(), usage, role="tool_result")
         from app.agent_v2.model_receipts import original_call
         from app.agent_v2.progress import current_progress, record_tool
         progress = current_progress(journal)
@@ -700,7 +752,8 @@ class AgentToolWorker(WorkbenchJobWorker):
             blocking = True
         next_child = False
         if batch and (not pending or blocking):
-            pending = read_batches.complete_child(journal, batch, cp, index, job_id=job.id, stopped=blocking)
+            pending = read_batches.complete_child(journal, batch, cp, index, job_id=job.id, stopped=blocking,
+                usage=usage if entry else None)
             next_child = bool(pending)
         if batch and blocking:
             info = (failure(journal, "budget", "agent_no_progress", "inspect_progress_and_replan")
@@ -708,7 +761,8 @@ class AgentToolWorker(WorkbenchJobWorker):
                 or failure(journal, "platform", "agent_read_batch_stopped", "inspect_diagnostic"))
             info = info.model_copy(update={"retryable": False, "blocking_scope": "session"})
             journal.append("blocked", {"failure": info.model_dump()}, key="read-tool-block:" + job.id, job_id=job.id)
-            read_batches.stop(journal, batch, code=info.safe_reason_code, job_id=job.id, evidence=artifact)
+            read_batches.stop(journal, batch, code=info.safe_reason_code, job_id=job.id, evidence=artifact,
+                usage=usage if entry else None)
             pending = []
         updated = journal.transition(cp, state="blocked" if blocking else "tools" if pending else "ready",
             usage=usage,

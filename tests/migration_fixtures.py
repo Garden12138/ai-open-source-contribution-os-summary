@@ -7,7 +7,9 @@ from sqlalchemy import Connection
 def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -> None:
     execute = getattr(connection, "exec_driver_sql", connection.execute)
     execute("DROP TRIGGER IF EXISTS agent_v2_missing_source_receipt")
-    execute("DELETE FROM _schema_migrations WHERE revision='0045_source_file_observations'")
+    execute("DELETE FROM _schema_migrations WHERE revision IN ('0045_source_file_observations','0046_read_capacity')")
+    for name in ('agent_v2_output_charge_guard','agent_v2_read_capacity_guard','agent_v2_read_capacity_before_child'):
+        execute('DROP TRIGGER IF EXISTS ' + name)
     execute("DROP TRIGGER IF EXISTS agent_v2_read_batch_lifecycle")
     execute("DROP TRIGGER IF EXISTS agent_v2_read_batch_admission")
     execute("DELETE FROM _schema_migrations WHERE revision='0044_native_read_batches'")

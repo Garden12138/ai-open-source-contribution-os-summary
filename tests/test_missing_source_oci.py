@@ -8,7 +8,7 @@ import pytest
 
 from app.agent_v2.contracts import ToolCall
 from app.agent_v2.native_tools import native_model_transport
-from app.agent_v2.read_batches import ReadBatchPreflightV2
+from app.agent_v2.read_batches import parse_preflight
 from app.agent_v2.tools import RestrictedToolRegistry
 from app.archives import RepositoryArchiveStore
 from app.provenance import content_hash
@@ -46,7 +46,7 @@ def test_real_frozen_plan13_eight_reads_and_authorized_new_file_creation(tmp_pat
     async def scenario():
         proof = await gateway.preflight_read_batch(spec, calls, source_hash=spec.binding.archive_hash,
             snapshot=None, input_hash="a" * 64)
-        ReadBatchPreflightV2.model_validate(proof)
+        parse_preflight(proof)
         assert proof["status"] == "succeeded" and proof["source_hash"] == "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c"
         assert [c["availability"] for c in proof["checked"]] == ["present"] * 7 + ["not_found"]
         results = []

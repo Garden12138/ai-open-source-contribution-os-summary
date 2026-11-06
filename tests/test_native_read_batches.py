@@ -50,13 +50,21 @@ class ReadGateway:
         from app.agent_v2.tools import RestrictedToolRegistry
         args = [RestrictedToolRegistry().validate(c, spec).model_dump() for c in calls]
         denied = any(a['path'] == self.denied for a in args)
-        return {'version': 'native-read-batch-preflight-v1', 'input_hash': input_hash,
+        checked = []
+        for a in args:
+            page = artifact_page(self.text.encode(), a['offset'], a['max_bytes'])
+            data = {'tool': 'read_file', 'execution_backend': 'docker', 'path': a['path'],
+                'content_hash': hashlib.sha256(self.text.encode()).hexdigest(), **page}
+            from app.agent_v2.read_capacity import size
+            checked.append({'path': a['path'], 'availability': 'present', 'content_hash': data['content_hash'],
+                'offset': a['offset'], 'max_bytes': a['max_bytes'], 'total_bytes': len(self.text.encode()),
+                'page_bytes': len(page['text'].encode()), 'data_json_bytes': size(data), 'data_hash': content_hash(data)})
+        return {'version': 'native-read-batch-preflight-v3', 'input_hash': input_hash,
             'binding_hash': content_hash(spec.binding.model_dump()), 'source_hash': source_hash,
             'after_hash': source_hash, 'requests_hash': content_hash(args),
             'status': 'rejected' if denied else 'succeeded',
             'failure_code': 'path_denied' if denied else None,
-            'checked': [] if denied else [{'path': a['path'], 'content_hash': hashlib.sha256(self.text.encode()).hexdigest(),
-                'offset': a['offset'], 'max_bytes': a['max_bytes'], 'total_bytes': len(self.text.encode())} for a in args],
+            'checked': [] if denied else checked,
             'execution_backend': 'fixture'}
 
     async def execute(self, spec, call, arguments, *, source_hash, snapshot, input_hash):

@@ -15,8 +15,8 @@ POLICY = {"version": "native-read-batch-v1", "eligible_tool": "read_file",
     "original_calls_max": 8, "sub_batch_calls_max": 4, "admission": "whole_batch_before_execution",
     "sandbox_preflight": "all_paths_hashes_ranges_before_first_read", "failure": "stop_remaining_keep_receipts",
     "budget": "reserve_all_reads_no_refund", "observation": "after_original_batch_only"}
-POLICY.update(preflight_contract="native-read-batch-preflight-v2",
-    missing_source="OCI_attested_approved_new_path_not_found_v1")
+POLICY.update(preflight_contract="native-read-batch-preflight-v3",
+    missing_source="OCI_attested_approved_new_path_not_found_v1", output_capacity="native-read-capacity-v1")
 
 
 class NativeReadBatch(StrictModel):
@@ -79,13 +79,35 @@ class ReadBatchPreflightV2(ReadBatchPreflight):
         Field(discriminator="availability")]] = Field(max_length=8)
 
 
+class CapacityPresent(ReadPathCheck):
+    availability: Literal["present"]
+    data_json_bytes: int = Field(ge=2, le=100000)
+    data_hash: Hash
+    page_bytes: int = Field(ge=0, le=16000)
+
+
+class CapacityMissing(MissingReadPathCheck):
+    data_json_bytes: int = Field(ge=2, le=100000)
+    data_hash: Hash
+    page_bytes: Literal[0]
+
+
+class ReadBatchPreflightV3(ReadBatchPreflight):
+    version: Literal["native-read-batch-preflight-v3"]
+    checked: list[Annotated[CapacityPresent | CapacityMissing,
+        Field(discriminator="availability")]] = Field(max_length=8)
+
+
 def parse_preflight(value: dict) -> dict:
-    cls = ReadBatchPreflightV2 if value.get("version") == "native-read-batch-preflight-v2" else ReadBatchPreflight
+    cls = {"native-read-batch-preflight-v2": ReadBatchPreflightV2,
+        "native-read-batch-preflight-v3": ReadBatchPreflightV3}.get(value.get("version"), ReadBatchPreflight)
     return cls.model_validate(value).model_dump()
 
 
 def checked_path_valid(check: dict, args: dict, write_paths: list[str]) -> bool:
     if any(check[k] != args[k] for k in ("path", "offset", "max_bytes")):
+        return False
+    if "page_bytes" in check and not 0 <= check["page_bytes"] <= args["max_bytes"]:
         return False
     if check.get("availability") == "not_found":
         return args["path"] in write_paths and args["expected_hash"] is None
@@ -145,18 +167,12 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
     if len(vendors) != len(proposal.calls):
         raise WorkbenchError("读取批次数量不匹配。", code="agent_read_batch_invalid")
     registry = RestrictedToolRegistry()
-    bound = 0
     for index, call in enumerate(proposal.calls):
         vendor = vendors[index]
         if (vendor["function"]["name"] != call.name or json.loads(vendor["function"]["arguments"]) != call.arguments
                 or call.call_id != "native-" + content_hash([model_job_id, index, vendor["id"]])[:32]):
             raise WorkbenchError("读取批次调用来源不匹配。", code="agent_read_batch_invalid")
-        args = registry.validate(call, spec)
-        # JSON escaping plus bounded receipt/progress/failure metadata. This is
-        # admission capacity, not a refund or an expansion of output allowance.
-        bound += 6 * args.max_bytes + 8192
-    if bound > journal.remaining(checkpoint)["output_bytes"]:
-        raise WorkbenchError("读取批次输出预算不足。", code="agent_read_batch_budget")
+        registry.validate(call, spec)
     reserved = journal.charge(checkpoint.model_copy(update={"usage": usage}), {"reads": len(proposal.calls)})
     calls = platform_calls(model_job_id, proposal)
     children = [{"index": i // 4, "id": content_hash([response_artifact, spec.binding.model_dump(), i // 4]),
@@ -165,11 +181,15 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
         "response_artifact": response_artifact, "binding_hash": content_hash(spec.binding.model_dump()),
         "admission_source_hash": checkpoint.source_hash, "policy_hash": spec.binding.policy_hash,
         "calls": [c.model_dump() for c in calls], "sub_batches": children,
-        "reads_reserved": len(calls), "output_bytes_admission_bound": bound}
-    aid = journal.wb.artifact(value)
+        "reads_reserved": len(calls), "capacity_contract": POLICY["output_capacity"]}
+    from app.agent_v2 import read_capacity
+    requests = [registry.validate(c, spec).model_dump() for c in calls]
+    if read_capacity.size(value) + read_capacity.preflight_bound(requests, value) > journal.remaining(checkpoint)["output_bytes"]:
+        raise WorkbenchError("读取预检证据预算不足。", code="agent_read_batch_budget")
+    aid = read_capacity.store(journal, value, reserved, role="read_batch")
     journal.append("read_batch", {"artifact_id": aid, "response_artifact": response_artifact,
         "call_count": len(calls), "reads_reserved": len(calls), "source_hash": checkpoint.source_hash,
-        "binding_hash": value["binding_hash"]}, key="read-batch:" + model_job_id, job_id=model_job_id)
+        "binding_hash": value["binding_hash"], "capacity_contract": POLICY["output_capacity"]}, key="read-batch:" + model_job_id, job_id=model_job_id)
     journal.transition(checkpoint, state="tools", usage=reserved, pending_calls=calls[:4],
         key="read-batch-cp:" + model_job_id, job_id=model_job_id)
 
@@ -195,7 +215,7 @@ def child_index(journal: Any, root: Any, call_id: str) -> int:
     return next(i for i, child in enumerate(value["sub_batches"]) if call_id in child["call_ids"])
 
 
-def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | None = None) -> None:
+def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | None = None, usage: dict | None = None) -> None:
     value = record(journal, root)
     receipts = [e for e in journal.events() if e.kind == "agent_v2_tool_result"
         and e.payload.get("read_batch_artifact") == root.payload["artifact_id"]]
@@ -206,12 +226,14 @@ def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | Non
         "actual_receipts": [e.payload["artifact_id"] for e in receipts],
         "unknown_calls": [c["call_id"] for c in value["calls"] if c["call_id"] in started - completed],
         "not_executed": [c["call_id"] for c in value["calls"] if c["call_id"] not in completed | started]}
-    journal.append("read_batch_stopped", {**data, "artifact_id": journal.wb.artifact(data)},
+    from app.agent_v2 import read_capacity
+    aid = read_capacity.store(journal, data, usage, role="read_batch_stopped") if usage is not None else journal.wb.artifact(data)
+    journal.append("read_batch_stopped", {**data, "artifact_id": aid},
         key="read-batch-stop:" + root.payload["artifact_id"], job_id=job_id)
 
 
 def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_id: str,
-                   stopped: bool) -> list[ToolCall]:
+                   stopped: bool, usage: dict | None = None) -> list[ToolCall]:
     value = record(journal, root)
     child = value["sub_batches"][index]
     results = [e for e in journal.events() if e.kind == "agent_v2_tool_result"
@@ -224,8 +246,10 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
         "sub_batch_id": child["id"], "index": index, "status": "stopped" if stopped else "succeeded",
         "source_hash": checkpoint.source_hash, "binding_hash": value["binding_hash"],
         "call_ids": ids, "receipts": [by_call[cid].payload["artifact_id"] for cid in ids]}
+    from app.agent_v2 import read_capacity
+    aid = read_capacity.store(journal, receipt, usage, role="read_child_result") if usage is not None else journal.wb.artifact(receipt)
     journal.append("read_sub_batch_completed", {**{k: v for k, v in receipt.items() if k != "version"},
-        "artifact_id": journal.wb.artifact(receipt)},
+        "artifact_id": aid},
         key="read-child-complete:" + child["id"], job_id=job_id)
     if stopped:
         return []
@@ -239,7 +263,8 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
         "response_artifact": value["response_artifact"], "source_hash": checkpoint.source_hash,
         "binding_hash": value["binding_hash"], "call_ids": ids,
         "receipts": [by_call[cid].payload["artifact_id"] for cid in ids]}
+    aid = read_capacity.store(journal, data, usage, role="read_batch_result") if usage is not None else journal.wb.artifact(data)
     journal.append("read_batch_completed", {**{k: v for k, v in data.items() if k != "version"},
-        "artifact_id": journal.wb.artifact(data)},
+        "artifact_id": aid},
         key="read-batch-complete:" + root.payload["artifact_id"], job_id=job_id)
     return []

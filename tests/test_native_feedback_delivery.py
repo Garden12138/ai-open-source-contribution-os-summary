@@ -52,13 +52,23 @@ def test_all_four_batch_results_are_observed_including_first_requested_file(tmp_
         assert native_input_bound(prompt) <= 32000
 
 
-def test_full_task_and_four_unicode_pages_share_the_existing_cap_without_lost_offsets():
+def test_recoverable_task_and_four_unicode_pages_share_cap_without_lost_offsets():
     prompt, spec, inputs = task_input_prompt('complete task requirement ' * 340)
     raw = [receipt(i, ('page ' + str(i) + ' 中文🙂 ') * 500, offset=123, total=30000) for i in range(4)]
     prompt['feedback'] = [{**r, 'receipt_artifact': content_hash(r)} for r in raw]
     before = canonical_json(prompt)
     projected = project_native_prompt(prompt, spec, task_input=inputs)
-    assert projected['approved_task_input'] == inputs
+    reference = projected['approved_task_input']
+    assert reference['partial'] is True and reference['artifact_id'] == content_hash(inputs)
+    encoded = canonical_json(inputs).encode()
+    assert reference['total_bytes'] == len(encoded)
+    from app.agent_v2.tools import artifact_page
+    recovered = b''
+    while len(recovered) < len(encoded):
+        page = artifact_page(encoded, len(recovered), 16000)
+        recovered += page['text'].encode()
+        assert page['next_offset'] == (len(recovered) if len(recovered) < len(encoded) else None)
+    assert recovered == encoded  # No Plan/Issue acceptance fact is dropped.
     assert len(projected['feedback']) == 4 and native_input_bound(projected) <= 32000
     for original, result in zip(raw, projected['feedback'], strict=True):
         data = result['data']

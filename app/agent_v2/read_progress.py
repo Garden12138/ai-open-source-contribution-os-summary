@@ -115,7 +115,10 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
                 continue
             raw, note = by_id[aid]
             data = projected.get('data', {})
-            if (data.get('source_read_progress') != note.model_dump()
+            projected_note = data.get('source_read_progress')
+            full_note = note.model_dump()
+            compact_note = {k: v for k, v in full_note.items() if k != 'instruction'}
+            if (projected_note not in (full_note, compact_note)
                     or projected.get('output_source_hash') != source_hash):
                 continue
             if (data.get('path') == args.path and data.get('content_hash') == file_hash
