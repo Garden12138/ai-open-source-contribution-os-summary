@@ -1,0 +1,135 @@
+{
+  "version": "output-capacity-plan15-human-execution-consent-v1",
+  "recorded_at": "2026-11-06T08:04:24.819637+00:00",
+  "proposal_hash": "f7c000560f1e2e1bb9bad33ba20b21c81ceb39bbcfd97f843f1c4e745bc41a6e",
+  "source": "explicit_current_user_message_exact_confirmation",
+  "actor": "human-user",
+  "confirmation_text_sha256": "e781abe83dc6711227d6a7e534f4d4ea7ddad02233ec9795d642fd8241e90488",
+  "scope": "one_bounded_real_acceptance_and_independent_review_only",
+  "plan_id": "626be813-5437-4ad3-8a24-e30d12c7b803",
+  "plan_hash": "448b0a90cd2c9e4d3dfc14c94de8705ee5a7f2ec89487473397c18dc3e654740",
+  "binding_hash": "2672bf166060bf9ec58eda0392a55ba0d141c02dad8fc9a4853a7d4b1d29e70b",
+  "runtime_source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "deployed_images": {
+    "app": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a",
+    "worker": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+  },
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "model_identities": {
+    "implementation": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    },
+    "review": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    }
+  },
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "model_transport_hash": "95c9e5e54214196a219e122c5701a200cd3ca3933db03d6ce0b2d2641117ba0f",
+  "new_run_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "review_bounds": {
+    "max_input_bytes": 1800000,
+    "max_job_attempts": 3,
+    "job_timeout_seconds": 300,
+    "per_call_output_tokens": 16384,
+    "note": "Independent Review retains its separate evidence-bound job/Profile. At most two code repairs under this exact authorization; original per-stage limits remain."
+  },
+  "existing_call_bounds": {
+    "native_model_output_tokens_per_call": 4096,
+    "native_step_max_job_attempts": 1,
+    "native_step_timeout_seconds": 300,
+    "native_input_bound": 32000,
+    "page_max_bytes": 16000,
+    "original_read_batch_max_calls": 8,
+    "sub_batch_and_Decision_max_calls": 4,
+    "bounded_failure_envelope_bytes": 8192,
+    "note": "Existing enforced ceilings, no new allowance; subject to remaining per-run budgets."
+  },
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "allowed_actions": [
+    "fresh preparation and original four Baseline commands",
+    "native Investigation and same-scope Patch",
+    "all four approved checks on latest source",
+    "at most two code repairs",
+    "independent evidence-bound Review",
+    "stop for Human Acceptance"
+  ],
+  "acceptance_report_contract_hash": "cb40bac7961c49ecfad986d8d4eb685b5c351e342f29b18c13403ef91dc755ec",
+  "upstream_hash": "41f85769b29bc95b6c28e4d285fd6b18dc7b9f1cdb6030ff8e2087a8df1b57dd",
+  "execution_revision": "925ae4a1ba64bdd53cfa9c50301d65b0825ac8a44d2d4c6ef77d6f321a22cd87",
+  "stop_at": "human_final_acceptance_or_original_failure_or_budget_boundary",
+  "subsequent_paid_rounds_approved": false,
+  "old_authority_terminal_or_budget_reuse": false,
+  "Push_PR_comments_publication_approved": false,
+  "approval_hash": "f27e76fc680eb7c2a4da8172dafc8ec6deb5f5b02cd8da02aeda0388fc41d26f"
+}

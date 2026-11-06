@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | output-capacity-v1 frozen; independent Plan15/latest binding and exact preview prepared and read-only audited. Await separate exact one-time execution consent; Plan11–14 remain terminal, HR4/5 and P5-G06 remain open |
+| First current task | Plan15 exact consent consumed once: Baseline4/4 and two 8-call/4+4 reads pass; 15 real model requests, no Patch/Verify/Review, stopped deepseek_completion_truncated. Await human direction; no paid retry authorization. HR4/5 and P5-G06 remain open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6552,8 +6552,9 @@ Plan11 的账目与失败保持原样：累计保留输入171256/输出12756，�
 
 Current专项：**2026-11-05 Native Read-Only Batch Scheduler v1离线验收通过；
 Plan11/12/13/14仍为原终态；缺失文件语义和output-capacity-v1已离线/OCI修复及部署，
-Plan14的Baseline4/4、模型3次及容量阻塞证据保留；独立Plan15/最新绑定与精确预览已准备并只读核验。
-尚无真实Patch/修改后Verify/Review，HR4/5未通过，等待单独精确执行授权；没有付费重试授权**。
+Plan14失败证据保留。用户另行精确授权的Plan15已执行一次：Baseline4/4、两批8-call均4+4成功，
+15次真实模型请求后因deepseek_completion_truncated安全停止；Patch/修改后Verify/Review均0或not_run。
+HR4/5未通过，本轮授权已消费，没有付费重试授权**。
 原路线图Phase 5/P5-G06与UPEVE-E04及全部跨平台/真实交付门禁保持原状态。
 设计依据为 [专项文档](agent-harness-reset-v1/README.md)。
 
@@ -6744,6 +6745,30 @@ Plan14的Baseline4/4、模型3次及容量阻塞证据保留；独立Plan15/最�
   本次止于预览与待用户另行确认的文本；HR4/5、P5-G06及原生Linux amd64门禁仍开放。
   以上为冻结准备时点记录。之后用户单独授权提交并推送准备材料；
   Git交付记录见该目录git-delivery-check.json，原预览/审计及其中的HEAD保持原时点，不回填或视作执行授权。
+- [x] **HR4-P15-REAL** 用户另行逐项批准精确预览f7c00056、实际Plan15/Plan Hash/Binding及原全部预算，单次有界真实验收已执行并安全停止。
+  [本轮报告](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/README.md)：
+  执行前重新核验Issue/base/归档、254源码/五角色镜像、模型/协议/沙箱、8路径/4命令、Revision/Preflight/预算一致；
+  8aa9051仅提交准备文档，原预览未修改。人类授权Hashf27e76fc、服务端执行授权Hashc0cffa54，
+  仅一次POST与独立幂等键harness-capacity-plan15-execute-once，Jobd049cece；
+  Run103ce13d、Attemptf1174c5e、Sessionsession-02147971b2194757d6b48d00358fbf5c。
+  新鲜准备/Baseline4/4通过，真实请求/响应15/15。第6轮8个默认4096页、第12轮8个max_bytes16000页
+  均先完成OCI v3预检/容量证明，再按4+4原序执行，子批之间模型请求0；上界192802≤400899、227735≤237030。
+  第14轮5个search_code+1个read_file超出4-call且不满足纯read_file分批条件，整批零执行，消耗原协议纠偏1/2；
+  第15轮finish_reason=length，输出4096 Token全部reasoning，无final_text/tool_calls，
+  deepseek_completion_truncated/retryable=false终态blocked。单次上限触发，整轮额度尚余；未提高额度或续跑。
+  [真实指标](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/coding-metrics.json)：
+  40次计费读取=27源码回执+13 Artifact调用；16次新增字节、11次精确重复复用、18次同偏移重读。
+  工具/实际Prompt去重源码70855/10624字节，输入投影最大31923/32000；完整Plan9431字节恢复，其他5个证据Artifact仅部分送达，
+  未使用原文source_page_artifact完成源码恢复。首次Patch提案/应用均null，修改后Verify/独立Review未运行，not_found为not_observed。
+  实际Provider输入135863/输出14939 Token；失败预留保留后的账本176505/17211，输出证据426518/500000字节，写入/检查/Provider重试/代码修复均0。
+  [真实审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/final-audit.json)Hash24b2bbcf核验原始ID/回执/容量及最终字节计费；
+  [原始证据](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/evidence-index.json)保存457条新事件及161份原字节JSON/text Artifact。
+  [终态核验](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/terminal-checks.json)Hashb385cde1通过：
+  旧10个Checkpoint/2094事件前缀/旧审批费用及Planning64/64与3次未知占用不变；任务事件2551、Artifact1802、模型启动106、授权/审批各13、Plan仍15、活动Job0。
+  四端健康、254源码/五角色镜像安全配置和凭据/canary/日志核验通过；未改生产源码、未重部署、未恢复旧终态、未新增Plan、未Commit/Push/PR/评论。
+  本条仅记单次授权执行和证据归档完成，不代表HR4/5验收通过；真实Patch/最新源码Verify/独立Review及原生Linux amd64门禁仍开放。
+  以上为真实执行归档时点。之后用户另行授权将本轮材料提交并推送；Git交付记录见该目录git-delivery-check.json。
+  原预览、响应、源码页及终态审计保留原字节和时点字段；该Git操作不授权恢复Plan15或新增付费调用。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
   [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、

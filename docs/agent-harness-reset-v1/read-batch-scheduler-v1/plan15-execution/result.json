@@ -1,0 +1,131 @@
+{
+  "version": "output-capacity-plan15-real-acceptance-result-v1",
+  "status": "blocked",
+  "stop_reason_code": "deepseek_completion_truncated",
+  "proposal_hash": "f7c000560f1e2e1bb9bad33ba20b21c81ceb39bbcfd97f843f1c4e745bc41a6e",
+  "plan_id": "626be813-5437-4ad3-8a24-e30d12c7b803",
+  "plan_record_hash": "448b0a90cd2c9e4d3dfc14c94de8705ee5a7f2ec89487473397c18dc3e654740",
+  "plan_binding_hash": "2672bf166060bf9ec58eda0392a55ba0d141c02dad8fc9a4853a7d4b1d29e70b",
+  "human_consent_hash": "f27e76fc680eb7c2a4da8172dafc8ec6deb5f5b02cd8da02aeda0388fc41d26f",
+  "execution_authorization_hash": "c0cffa5486fb041c5f82f0788e0d539f8053c52ce7c3fb7338339f5fb456bd7a",
+  "run_id": "103ce13d-e235-4e50-ad29-eac67fc6d587",
+  "attempts": [
+    {
+      "id": "f1174c5e-92ba-46a8-bf5c-f6fc052a2d2b",
+      "record_hash": "a1e1819171cdd7a09c349b7a052b105a1c9e8a7ee23c0147ffb428975e4beb1a"
+    }
+  ],
+  "session_id": "session-02147971b2194757d6b48d00358fbf5c",
+  "runtime_source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "baseline": {
+    "status": "passed",
+    "baseline_verdict": "passed",
+    "passed": 4,
+    "total": 4,
+    "missing_dependencies": [],
+    "failures": []
+  },
+  "model_requests": 15,
+  "model_responses_preserved": 15,
+  "actual_provider_usage": {
+    "input_tokens": 135863,
+    "output_tokens": 14939,
+    "cached_input_tokens": 42112
+  },
+  "charged_usage_including_retained_failed_reservations": {
+    "model_calls": 15,
+    "input_tokens": 176505,
+    "output_tokens": 17211,
+    "output_bytes": 426518,
+    "reads": 40,
+    "protocol_repairs": 1
+  },
+  "stop_failure": {
+    "sequence": 2545,
+    "kind": "agent_v2_model_rejected",
+    "failure": {
+      "category": "model",
+      "safe_reason_code": "deepseek_completion_truncated",
+      "retryable": false,
+      "remaining_budget": {
+        "model_calls": 9,
+        "reads": 24,
+        "writes": 24,
+        "checks": 6,
+        "protocol_repairs": 1,
+        "provider_retries": 2,
+        "code_repairs": 2,
+        "input_tokens": 23495,
+        "output_tokens": 14789,
+        "output_bytes": 73482,
+        "seconds": 1033
+      },
+      "next_allowed_action": "inspect_diagnostic",
+      "blocking_scope": "session",
+      "evidence_ref": null
+    }
+  },
+  "read_batches": {
+    "completed": 2,
+    "child_sizes": [
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "capacity_certificate_bounds": [
+      192802,
+      227735
+    ],
+    "remaining_output_at_certificate": [
+      400899,
+      237030
+    ],
+    "no_Decision_between_children": true,
+    "original_ID_order_verified": true
+  },
+  "reads": {
+    "billed": 40,
+    "source_receipts": 27,
+    "Artifact_calls": 13,
+    "effective_source_read_calls": 16,
+    "exact_duplicate_source_receipts": 11,
+    "same_offset_repetitions": 18,
+    "unique_tool_source_bytes": 70855,
+    "unique_model_input_source_bytes": 10624
+  },
+  "first_patch_proposal_round": null,
+  "first_patch_applied_round": null,
+  "Patch_count": 0,
+  "latest_source_Verify": "not_run",
+  "independent_Review": "not_run",
+  "not_found_observation": "not_observed",
+  "protocol_rejection_round": 14,
+  "protocol_rejection_original_calls": 6,
+  "rejected_calls_executed": 0,
+  "terminal_response_round": 15,
+  "terminal_finish_reason": "length",
+  "terminal_completion_tokens": 4096,
+  "terminal_reasoning_tokens": 4096,
+  "terminal_final_text_present": false,
+  "terminal_tool_calls_present": false,
+  "next_model_request_sent": false,
+  "next_model_request_authorized": false,
+  "all_old_checkpoints_usage_approvals_and_holds_unchanged": true,
+  "frozen_budgets_not_increased": true,
+  "new_Plans": 0,
+  "new_execution_authorizations": 1,
+  "Push_PR_comments_publication": false,
+  "human_final_acceptance": "not_reached",
+  "HR4_HR5": "not_passed",
+  "native_Linux_amd64": "not_run_still_open",
+  "evidence_index_hash": "a191236ea9e2f2cfd2e983f44877917cb1081a61b92fd3957d6fd0bb61398c34",
+  "audit_hash": "24b2bbcffff1e6f60cac824d86304ac639249ba3f5496076611448d5f8ca358c",
+  "metrics_hash": "17e1e00422a37654c924a95b536f585872fde25062721b4a741302f6b1fdb897",
+  "metric_rendering_note": "coding-metrics-initial.json is a superseded derived rendering with incorrect raw-provider usage key names; coding-metrics.json corrects them and maps delivered receipt JSON source characters. All original events/Artifact bytes and real usage remain unchanged.",
+  "report_hash": "66fc210bdf2139b4a1474de943a62d3978b155737acd90ea26d0f760d4f1e08a"
+}
