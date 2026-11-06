@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | Plan15 exact consent consumed once: Baseline4/4 and two 8-call/4+4 reads pass; 15 real model requests, no Patch/Verify/Review, stopped deepseek_completion_truncated. Await human direction; no paid retry authorization. HR4/5 and P5-G06 remain open |
+| First current task | Coding Loop Recovery v1 local diagnosis/fix passed offline regression (2056 passed/79 skipped) and 24 actual OCI cases; awaiting user code review. Plan15 remains blocked; no paid retry, Plan16, deployment or publication authorized. HR4/5 and P5-G06 remain open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6769,6 +6769,16 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   本条仅记单次授权执行和证据归档完成，不代表HR4/5验收通过；真实Patch/最新源码Verify/独立Review及原生Linux amd64门禁仍开放。
   以上为真实执行归档时点。之后用户另行授权将本轮材料提交并推送；Git交付记录见该目录git-delivery-check.json。
   原预览、响应、源码页及终态审计保留原字节和时点字段；该Git操作不授权恢复Plan15或新增付费调用。
+- [x] **HR3-CLR** Coding Loop Recovery v1 仅本地/离线诊断与最小修复完成，等待用户代码审查。
+  [交付与限制](agent-harness-reset-v1/coding-loop-recovery-v1/README.md)记录15轮实际Prompt/响应及161 Artifact Hash核验、事实/根因/假设区分；
+  新增独立Coding度量，区分工具可用/响应确认送达源码，6轮纠偏、8轮后停止，不强制无依据Patch、不增加原预算。
+  精确Task Brief/最多4文件工作集保留原始Artifact恢复；旧重复读取警告可见性兼容修复，阈值不变。
+  最终255生产文件Hash3af23ee0，协议native-coding-loop-recovery-v10；冻结全量2056通过/79跳过，警告兼容专项36通过，
+  OCI套件26通过（24实际OCI/2 unit），保存Plan12/13/14五信封保持4+2/4+1/4+1/4+4/4+4及原ID/计费。
+  确定性替身Patch/最新源码Verify/独立Review门禁通过，不证明真实自主Coding成功；reasoning high/4096及所有原上限未改。
+  query_only比对原45表全部行、11个Checkpoint、106次模型启动、13审批及全部预算/未知占用完全不变；五线上角色仍为原254源码。
+  本轮未真实调用模型、未建Plan16、未恢复Plan15、未新增真实审批/Job、未部署、Commit/Push/PR/评论；Linux amd64仍未验证。
+  旧失败全量报告保留，最终源码独立分片全量重跑通过。下一真实验收NO-GO，须先审查，再另行指示新的冻结与精确授权。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
   [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、

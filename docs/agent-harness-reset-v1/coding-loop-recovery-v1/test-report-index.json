@@ -1,0 +1,117 @@
+{
+  "reports": [
+    {
+      "file": "test-results/coding-loop-recovery-focused.xml",
+      "classification": "development_including_preserved_failure",
+      "source_hash": null,
+      "raw_sha256": "15852f6ea8b47cbaae3128e5ec440c7f6b0ef17729d6ddf8a9d1dc928d6136ac",
+      "public_sha256": "176947f6be05153817d05ee56e77fff17ee7ad7f811151e329f77407b76aa60a",
+      "outcomes_and_order_unchanged": true,
+      "tests": 128,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 128
+    },
+    {
+      "file": "test-results/coding-loop-recovery-final-delta.xml",
+      "classification": "development_including_preserved_failure",
+      "source_hash": null,
+      "raw_sha256": "bd82ed45f5594d34daa0626cc3302f2e749d8d9580951581eccd3c5feec8ae4f",
+      "public_sha256": "08b3fa79813182778e2e220798a410fc44173f9d7b416e81ac17da8fe17926b4",
+      "outcomes_and_order_unchanged": true,
+      "tests": 114,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 114
+    },
+    {
+      "file": "test-results/coding-loop-recovery-oci.xml",
+      "classification": "real_OCI_fixed_unchanged_runner",
+      "source_hash": null,
+      "raw_sha256": "2b31b4c03d4645774f19ef0b141c213964b5fb85be72a31fd25ca335b0589ca8",
+      "public_sha256": "55e806457509a810683eb3afc11a688a4fa5418dba45386b4fdd806d990dce15",
+      "outcomes_and_order_unchanged": true,
+      "tests": 16,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16
+    },
+    {
+      "file": "test-results/coding-loop-recovery-oci-delta.xml",
+      "classification": "real_OCI_fixed_unchanged_runner",
+      "source_hash": null,
+      "raw_sha256": "4717a5c2d164b638929ce31d14d2ea27389ae1ca4024895e9eae5da52a5a2aae",
+      "public_sha256": "3a6d60c50092f9ef8822d9735700514cc7241198ee0d77c9903af2cef87b8c48",
+      "outcomes_and_order_unchanged": true,
+      "tests": 10,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 10
+    },
+    {
+      "file": "test-results/coding-loop-recovery-warning-compat.xml",
+      "classification": "frozen_source_deterministic",
+      "source_hash": "3af23ee0f476c2d80b75cffad33cafb85479cbd7daa9e9cc7d93d3ec9400a18f",
+      "raw_sha256": "54f1b26fee2c672eeebe40f1aa3531e8131332f2aef708758763abe2bf2ee9a9",
+      "public_sha256": "71766cc0783c32b3d65f766421260093b277251da7cd743502fa542491703f4a",
+      "outcomes_and_order_unchanged": true,
+      "tests": 36,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 36
+    },
+    {
+      "file": "test-results/coding-loop-recovery-full.xml",
+      "classification": "development_including_preserved_failure",
+      "source_hash": null,
+      "raw_sha256": "6f55ba8249d91c90db3382079b14d81da9541efb15cea3769be8d8ebd1263c8d",
+      "public_sha256": "4813c608d89f3342e6f13e35145fef82d4ac8be9074c507f1713e815659a6b49",
+      "outcomes_and_order_unchanged": true,
+      "tests": 2134,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 79,
+      "passed": 2054
+    },
+    {
+      "file": "test-results/coding-loop-recovery-final-full-0.xml",
+      "classification": "frozen_source_deterministic",
+      "source_hash": "3af23ee0f476c2d80b75cffad33cafb85479cbd7daa9e9cc7d93d3ec9400a18f",
+      "raw_sha256": "ca40bfa14c104b2566667dd7507b2a35489ad32d5f19f4fa8304e132d69d26d1",
+      "public_sha256": "fba256dfad0d13343ce51e30520ed7ea66943326df29d57bb0b2c7a21777938a",
+      "outcomes_and_order_unchanged": true,
+      "tests": 1068,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 37,
+      "passed": 1031
+    },
+    {
+      "file": "test-results/coding-loop-recovery-final-full-1.xml",
+      "classification": "frozen_source_deterministic",
+      "source_hash": "3af23ee0f476c2d80b75cffad33cafb85479cbd7daa9e9cc7d93d3ec9400a18f",
+      "raw_sha256": "2d17e5b8fb227d106294998c2086583179cfd1643c6347fd966b2a95f5a4db20",
+      "public_sha256": "9e27cfaf3134fe777c6e0135a16305fb9d255d8290f0fc8a3ad1d601f7aece8c",
+      "outcomes_and_order_unchanged": true,
+      "tests": 1067,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 42,
+      "passed": 1025
+    }
+  ],
+  "paid_calls": 0,
+  "metadata_redactions": [
+    "home",
+    "temporary_directory",
+    "email",
+    "hostname"
+  ],
+  "development_failure_preserved": "Duplicate warning delivery observer fixed; original failed report retained",
+  "report_hash": "1add10ffd6f71aa002a9f67e8cf654e7c35bfcc9e8e388ea93e3decfa6634fb9"
+}

@@ -1,0 +1,729 @@
+diff --git a/app/agent_v2/loop.py b/app/agent_v2/loop.py
+index c8efe9e..3d4e2da 100644
+--- a/app/agent_v2/loop.py
++++ b/app/agent_v2/loop.py
+@@ -220,6 +220,11 @@ def prompt_for(journal: AgentJournal) -> dict:
+         prompt["source_files"] = file_context(journal, snapshot, inputs["approved_plan"]["files_to_inspect"])
+     from app.agent_v2.progress import prompt_progress
+     progress = prompt_progress(journal)
++    source_pages = None
++    if native and progress is not None:
++        from app.agent_v2.coding_context import observe
++        coding, source_pages = observe(journal)
++        progress["coding"] = coding
+     if progress is not None:
+         prompt["implementation_progress"] = progress
+     batch_result = next((e for e in reversed(journal.events()) if e.kind in {
+@@ -233,7 +238,8 @@ def prompt_for(journal: AgentJournal) -> dict:
+     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
+         history_artifact = journal.wb.artifact({"version": "agent-tool-history-index-v1", "session_id": journal.session_id,
+             "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": cp.source_hash, "rows": index})
+-    return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs)
++    return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs,
++        source_pages=source_pages)
+ 
+ 
+ def issued_artifacts(journal: AgentJournal) -> set[str]:
+@@ -274,6 +280,15 @@ class AgentModelWorker(WorkbenchJobWorker):
+             cp = journal.checkpoint()
+             if cp.state != "ready" or cp.revision != job.payload["checkpoint_hash"]:
+                 raise WorkbenchError("模型回合已过期。", code="agent_checkpoint_stale")
++            if spec.model_transport is not None:
++                from app.agent_v2.coding_context import observe
++                coding, _ = observe(journal)
++                if coding["stop_required"]:
++                    info = failure(journal, "budget", "agent_coding_stalled", "inspect_coding_evidence_and_replan")
++                    journal.append("blocked", {"failure": info.model_dump(), "coding_progress": coding},
++                        key="coding-stall:" + job.id, job_id=job.id)
++                    journal.transition(cp, state="blocked", key="coding-stall-cp:" + job.id, job_id=job.id)
++                    return self.finish(s, job, {"state": "blocked", "reason_code": info.safe_reason_code})
+             prompt = prompt_for(journal)
+             adapter = self.adapter_factory(s, spec)
+             bound = (adapter.input_bound(prompt) if hasattr(adapter, "input_bound") else
+diff --git a/app/agent_v2/native_tools.py b/app/agent_v2/native_tools.py
+index c72ac1e..10699d8 100644
+--- a/app/agent_v2/native_tools.py
++++ b/app/agent_v2/native_tools.py
+@@ -17,7 +17,7 @@ from app.security import SensitiveDataError, ensure_no_sensitive_data
+ 
+ FINISH = "contribos_agent_finish"
+ BLOCKED = "contribos_agent_blocked"
+-NATIVE_PROMPT_VERSION = "native-read-capacity-v9"
++NATIVE_PROMPT_VERSION = "native-coding-loop-recovery-v10"
+ NATIVE_HISTORY_WINDOW = 8
+ NATIVE_INPUT_LIMIT = 32000
+ NATIVE_FEEDBACK_PAGE_LIMITS = (8192, 4096, 2048, 1024, 512, 256, 128, 64, 0)
+@@ -112,15 +112,16 @@ def native_tool_definitions() -> list[dict[str, Any]]:
+ def native_model_transport() -> ModelTransport:
+     from app.agent_v2.read_progress import POLICY as read_progress_policy
+     from app.agent_v2.progress import POLICY as implementation_progress_policy
++    from app.agent_v2.coding_context import POLICY as coding_policy
+     return ModelTransport(tools_schema_hash=content_hash({"tools": native_tool_definitions(), "instruction": INSTRUCTION,
+         "max_calls": 4, "read_batch_scheduler": READ_BATCH_POLICY,
+         "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
+-            "task_input": {"strategy": "complete_if_admitted", "max_input_bound": NATIVE_INPUT_LIMIT},
++            "task_input": {"strategy": "complete_without_source_else_exact_brief", "max_input_bound": NATIVE_INPUT_LIMIT},
+             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
+                 "minimum_feedback_before_inline_task": NATIVE_MIN_FEEDBACK_BYTES, "read_ranges": "source_bound"},
+             "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn",
+             "source_read_progress": read_progress_policy,
+-            "implementation_progress": implementation_progress_policy}}))
++            "implementation_progress": implementation_progress_policy, "coding_progress": coding_policy}}))
+ 
+ 
+ def require_native_transport(value: ModelTransport | dict) -> ModelTransport:
+@@ -182,7 +183,7 @@ def _feedback_page(receipt: dict, limit: int) -> dict:
+ 
+ 
+ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str | None = None,
+-                         task_input: dict | None = None) -> dict:
++                         task_input: dict | None = None, source_pages: list[dict] | None = None) -> dict:
+     """Reference registered schemas and full immutable receipts without duplication."""
+     if spec.model_transport is None:
+         return prompt
+@@ -221,8 +222,83 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
+                 "instruction": "Read the approved plan and Issue using read_artifact before implementing; a goal alone is not the complete acceptance contract."}
+         complete = {**projected, "approved_task_input": task_input,
+             "feedback": [_feedback_page(row, NATIVE_MIN_FEEDBACK_BYTES) for row in feedback]}
+-        if native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
++        if not source_pages and native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
+             projected = complete
++        elif source_pages:
++            from app.agent_v2.coding_context import task_brief
++            projected["approved_task_input"] = task_brief(task_input, prompt["task_context_artifact"])
++            if projected["approved_task_input"]["brief"].get("goal") == prompt.get("goal"):
++                projected["approved_task_input"]["brief"].pop("goal")
++    if source_pages:
++        # Receipts stay individually recoverable in original order. Spend body
++        # space on verified source rather than duplicated Plan/progress JSON.
++        projected["history_index"] = [{k: v for k, v in row.items() if k != "content_hash"}
++            for row in projected["history_index"]]
++        projected["recent_decisions"] = projected.get("recent_decisions", [])[-1:]
++        if projected.get("implementation_progress"):
++            projected["implementation_progress"] = {**projected["implementation_progress"],
++                "instruction": "Follow next_action and coding. Patch only with source evidence; otherwise recover specific missing evidence or report a blocker. No new scope or budget."}
++        if isinstance(projected.get("source_files"), dict):
++            projected["source_files"] = {k: v for k, v in projected["source_files"].items()
++                if k not in {"instruction", "planned_write_paths"}}
++        projected["feedback"] = []
++        for row in feedback:
++            value = _feedback_page(row, 0)
++            if row.get("data", {}).get("tool") in {"read_file", "read_artifact"} and row.get("status") == "succeeded":
++                data = row["data"]
++                value = {k: row[k] for k in ("receipt_artifact", "call_id", "status", "output_source_hash")}
++                if row.get("failure") is not None:
++                    value["failure"] = row["failure"]
++                value["data"] = {k: data[k] for k in ("tool", "path", "artifact_id", "offset", "next_offset", "total_bytes") if k in data}
++                if data["tool"] == "read_artifact":
++                    # An explicitly requested recovery page must still arrive.
++                    # Keep its true byte offset and continuation, even when the
++                    # requested artifact is the Plan rather than source.
++                    value = _feedback_page(row, 1024)
++            projected["feedback"].append(value)
++        # One recently observed page per path/range, preferring approved paths.
++        # Start at a not-yet-delivered byte when available; all excerpts remain
++        # byte-exact, including UTF-8 boundaries. No new tool read is invented.
++        index = prompt.get("implementation_progress", {}).get("coding", {}).get("source_index", [])
++        selected, paths = [], set()
++        from app.agent_v2.coding_context import POLICY as coding_policy
++        for page in source_pages:
++            if page["path"] in paths:
++                continue
++            if len(paths) >= coding_policy["working_set_max_files"]:
++                break
++            paths.add(page["path"])
++            ranges = next((r["delivered"] for r in index if r["path"] == page["path"] and r["content_hash"] == page["content_hash"]), [])
++            start = page["offset"]
++            for lo, hi in ranges:
++                if lo <= start < hi:
++                    start = hi
++            raw = page["text"].encode()
++            if start >= page["offset"] + len(raw):
++                start = page["offset"]
++            local = start - page["offset"]
++            # Advancing to a whole UTF-8 character does not claim the skipped
++            # continuation bytes as delivered.
++            while local < len(raw) and raw[local] & 0xC0 == 0x80:
++                local += 1
++            selected.append((page, local))
++        for limit in coding_policy["source_page_limits"]:
++            working = []
++            for page, local in selected:
++                text = page["text"].encode()[local:local + limit].decode("utf-8", errors="ignore")
++                end = page["offset"] + local + len(text.encode())
++                working.append({"receipt_artifact": page["receipt_artifact"], "path": page["path"],
++                    "offset": page["offset"] + local, "text": text, "total_bytes": page["total_bytes"],
++                    "next_offset": end if end < page["total_bytes"] else None})
++                note = page.get("read_progress_note")
++                if note and note["prior_same_range_reads"] > 0:
++                    working[-1].update(source_read_progress=note, output_source_hash=page["source_hash"])
++            candidate = {**projected, "source_working_set": working}
++            if native_input_bound(candidate) <= NATIVE_INPUT_LIMIT:
++                return candidate
++        # Metadata can itself fill the bound. Keep exact mandatory facts and
++        # let the worker fail closed; never silently lose authority or absence.
++        return {**projected, "source_working_set": []}
+     full = {**projected, "feedback": feedback}
+     if native_input_bound(full) <= NATIVE_INPUT_LIMIT:
+         return full
+diff --git a/app/agent_v2/orchestrator.py b/app/agent_v2/orchestrator.py
+index fd09a8b..49920d2 100644
+--- a/app/agent_v2/orchestrator.py
++++ b/app/agent_v2/orchestrator.py
+@@ -122,8 +122,14 @@ def runtime_view(wb: Workbench, task_id: str) -> dict | None:
+     from app.agent_v2.metrics import journey_metrics
+     from app.agent_v2.progress import current_progress
+     progress = current_progress(journal)
++    progress_view = progress.model_dump() if progress else None
++    if progress_view is not None:
++        from app.agent_v2.native_tools import native_model_transport
++        if journal.spec().model_transport == native_model_transport():
++            from app.agent_v2.coding_context import observe
++            progress_view["coding"] = observe(journal)[0]
+     metrics = journey_metrics(wb, task_id)
+     return {"version": "agent-runtime-v2", "session_id": journal.session_id,
+             "checkpoint": cp.model_dump(), "remaining_budget": journal.remaining(), "timeline": timeline,
+-            "implementation_progress": progress.model_dump() if progress else None,
++            "implementation_progress": progress_view,
+             "metrics": metrics, "native_journey_completed": bool(metrics["native_journey_completed"])}
+diff --git a/app/agent_v2/read_progress.py b/app/agent_v2/read_progress.py
+index c5e95d5..1b49bde 100644
+--- a/app/agent_v2/read_progress.py
++++ b/app/agent_v2/read_progress.py
+@@ -109,7 +109,23 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
+         if event.kind != 'agent_v2_model_started':
+             continue
+         prompt = journal.wb.read(event.payload['prompt_artifact'])
+-        for projected in prompt.get('feedback', []):
++        shown = list(prompt.get('feedback', []))
++        for page in prompt.get('source_working_set', []):
++            aid = page.get('receipt_artifact')
++            if aid not in by_id:
++                continue
++            raw, _ = by_id[aid]
++            text, offset = page.get('text'), page.get('offset')
++            if not isinstance(text, str) or type(offset) is not int:
++                continue
++            start = offset - raw.data['offset']
++            if start < 0 or raw.data['text'].encode()[start:start + len(text.encode())] != text.encode():
++                continue
++            # The exact note must be actually present, not merely reachable by
++            # hash. Its receipt binds the file hash and current workspace.
++            shown.append({'receipt_artifact': aid, 'output_source_hash': page.get('output_source_hash'),
++                'data': {**page, 'content_hash': raw.data['content_hash']}})
++        for projected in shown:
+             aid = projected.get('receipt_artifact')
+             if aid not in by_id:
+                 continue
+diff --git a/app/static/workbench.js b/app/static/workbench.js
+index d7e767e..148e41b 100644
+--- a/app/static/workbench.js
++++ b/app/static/workbench.js
+@@ -494,6 +494,10 @@ export function mountContributionWorkbench(root, taskId, options) {
+     if (progress) {
+       const phases = {investigating:"调查中",implementing:"实现中",verifying:"验证中",repairing:"修复中",reviewing:"等待独立审查",ready_for_human:"等待人工验收",blocked:"进度已阻塞"};
+       drawerBody.append(node("p", `实施进度：${phases[progress.phase] || progress.phase} · 连续无进展回合 ${progress.no_progress_streak}`));
++      if (progress.coding) {
++        const coding = progress.coding;
++        drawerBody.append(node("p", `编码推进：连续 ${coding.rounds_without_applied_patch} 轮未应用修改 · 可用源码 ${coding.available_source_bytes} 字节 · 已送达模型 ${coding.delivered_source_bytes} 字节 · 重叠读取 ${coding.overlapping_source_reads} 次`));
++      }
+     }
+     const timeline = node("ol"); timeline.setAttribute("aria-label", "工具时间线");
+     for (const event of runtime.timeline || []) {
+diff --git a/tests/test_agent_native_tools.py b/tests/test_agent_native_tools.py
+index 19edb12..3bc922d 100644
+--- a/tests/test_agent_native_tools.py
++++ b/tests/test_agent_native_tools.py
+@@ -55,12 +55,13 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
+     assert native_model_transport().tools_schema_hash == content_hash({"tools": definitions, "instruction": INSTRUCTION,
+         "max_calls": 4, "read_batch_scheduler": __import__("app.agent_v2.read_batches", fromlist=["POLICY"]).POLICY,
+         "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
+-            "task_input": {"strategy": "complete_if_admitted", "max_input_bound": 32000},
++            "task_input": {"strategy": "complete_without_source_else_exact_brief", "max_input_bound": 32000},
+             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
+                 "minimum_feedback_before_inline_task": 8192, "read_ranges": "source_bound"},
+             "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn",
+             "source_read_progress": __import__("app.agent_v2.read_progress", fromlist=["POLICY"]).POLICY,
+-            "implementation_progress": __import__("app.agent_v2.progress", fromlist=["POLICY"]).POLICY}})
++            "implementation_progress": __import__("app.agent_v2.progress", fromlist=["POLICY"]).POLICY,
++            "coding_progress": __import__("app.agent_v2.coding_context", fromlist=["POLICY"]).POLICY}})
+ 
+ 
+ def test_known_calls_are_typed_namespaced_and_never_expose_private_reasoning():
+diff --git a/tests/test_harness_coding_journey.py b/tests/test_harness_coding_journey.py
+index 885988f..52b1d07 100644
+--- a/tests/test_harness_coding_journey.py
++++ b/tests/test_harness_coding_journey.py
+@@ -85,6 +85,10 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
+     with db.session() as session:
+         wb = Workbench(session, settings.artifact_root)
+         j = AgentJournal(wb, task, sid)
++        from app.agent_v2.coding_context import observe
++        coding, _ = observe(j)
++        assert coding['first_patch_round'] == 2
++        assert coding['next_action'] == 'human_acceptance'
+         assert j.checkpoint().usage.get('code_repairs', 0) == int(repair)
+         assert wb.latest(task, 'awaiting_acceptance')
+         assert not wb.latest(task, 'execution_accepted') and not wb.latest(task, 'publication_confirmed')
+diff --git a/tests/test_harness_progress_boundaries.py b/tests/test_harness_progress_boundaries.py
+index dfd15a1..fd17458 100644
+--- a/tests/test_harness_progress_boundaries.py
++++ b/tests/test_harness_progress_boundaries.py
+@@ -145,6 +145,8 @@ def test_runtime_exposes_task_scoped_progress_and_response_artifacts(tmp_path):
+         route = f'/api/v1/tasks/{task}/workbench/runtime'
+         view = client.get(route).json()
+         assert view['implementation_progress']['revision'] >= 2
++        assert view['implementation_progress']['coding']['rounds_without_applied_patch'] == 1
++        assert view['implementation_progress']['coding']['delivered_source_bytes'] == 0
+         for event in view['timeline']:
+             if event['kind'] not in {'agent_v2_model_response', 'agent_v2_progress'}:
+                 continue
+diff --git a/tests/test_native_read_batches.py b/tests/test_native_read_batches.py
+index 0b4bf4f..dc25b9f 100644
+--- a/tests/test_native_read_batches.py
++++ b/tests/test_native_read_batches.py
+@@ -135,8 +135,15 @@ def test_real_saved_envelopes_split_and_aggregate_original_order(tmp_path, index
+         assert len(prompt['feedback']) == count and prompt['read_batch_observation']['status'] == 'completed'
+         assert [f['receipt_artifact'] for f in prompt['feedback']] == aggregate.payload['receipts']
+         for f in prompt['feedback']:
+-            text = f['data']['text'];d=f['data'];end=d['offset']+len(text.encode())
++            original = j.wb.read(f['receipt_artifact'])
++            assert f['status'] == original['status']
++            text = original['data']['text'];d=original['data'];end=d['offset']+len(text.encode())
+             assert d['next_offset'] == (end if end < d['total_bytes'] else None)
++        assert prompt['source_working_set']
++        for page in prompt['source_working_set']:
++            original = j.wb.read(page['receipt_artifact'])['data']
++            start = page['offset'] - original['offset']
++            assert page['text'].encode() == original['text'].encode()[start:start + len(page['text'].encode())]
+     assert len(runner.prompts) == 1
+ 
+ 
+diff --git a/app/agent_v2/coding_context.py b/app/agent_v2/coding_context.py
+new file mode 100644
+index 0000000..777f3b5
+--- /dev/null
++++ b/app/agent_v2/coding_context.py
+@@ -0,0 +1,200 @@
++"""Recoverable Coding observations derived from the existing immutable Journal.
++
++No new state store, model summary, quota or authority. A saved response confirms
++request delivery; a tool receipt alone only proves availability to the platform.
++"""
++from __future__ import annotations
++
++from collections import defaultdict
++from hashlib import sha256
++from typing import Any
++
++from app.provenance import canonical_json, content_hash
++
++POLICY = {"version": "coding-loop-recovery-v1", "correction_after_unpatched_rounds": 6,
++    "stop_after_unpatched_rounds": 8, "delivery": "committed_response_and_exact_source_bytes",
++    "projection": "exact_task_brief_and_source_working_set", "working_set_max_files": 4,
++    "source_page_limits": [4096, 2048, 1024, 768, 512, 256, 128]}
++
++
++def merge(ranges: list[list[int]]) -> list[list[int]]:
++    result: list[list[int]] = []
++    for start, end in sorted(ranges):
++        if end <= start:
++            continue
++        if result and start <= result[-1][1]:
++            result[-1][1] = max(end, result[-1][1])
++        else:
++            result.append([start, end])
++    return result
++
++
++def size(ranges: list[list[int]]) -> int:
++    return sum(end - start for start, end in merge(ranges))
++
++
++def source_page(receipt: dict, aid: str) -> dict | None:
++    """Only typed, source-bound byte pages qualify; no inferred file contents."""
++    data = receipt.get("data", {})
++    text, offset, total = data.get("text"), data.get("offset"), data.get("total_bytes")
++    if (receipt.get("status") != "succeeded" or data.get("tool") != "read_file"
++            or not isinstance(text, str) or type(offset) is not int or type(total) is not int
++            or not isinstance(data.get("path"), str) or not isinstance(data.get("content_hash"), str)
++            or len(data["content_hash"]) != 64 or not 0 <= offset <= total
++            or offset + len(text.encode()) > total
++            or data.get("next_offset") != (offset + len(text.encode()) if offset + len(text.encode()) < total else None)
++            or data.get("source_page_artifact") != sha256(text.encode()).hexdigest()):
++        return None
++    note = data.get("source_read_progress")
++    return {"receipt_artifact": aid, "source_hash": receipt["output_source_hash"],
++        "read_progress_note": {k: v for k, v in note.items() if k != "instruction"} if isinstance(note, dict) else None,
++        **{k: data[k] for k in ("path", "content_hash", "offset", "text", "total_bytes", "next_offset", "source_page_artifact")}}
++
++
++def key(page: dict) -> tuple[str, str, str]:
++    return page["source_hash"], page["path"], page["content_hash"]
++
++
++def observe(journal: Any) -> tuple[dict, list[dict]]:
++    """Recompute after restart, including only response-confirmed prompt bytes.
++
++    Unknown deliveries are deliberately excluded. Historical source versions
++    remain in their original artifacts and cannot verify the current workspace.
++    """
++    events, cp = journal.events(), journal.checkpoint()
++    receipts: dict[str, dict] = {}
++    pages: dict[str, dict] = {}
++    available: dict[tuple, list] = defaultdict(list)
++    delivered: dict[tuple, list] = defaultdict(list)
++    repeated_reads = repeated_plan = 0
++    plan_ranges: dict[str, list] = defaultdict(list)
++    task_refs = {journal.wb.read(e.payload["prompt_artifact"])["task_context_artifact"]
++        for e in events if e.kind == "agent_v2_model_started"}
++    last_patch = last_patch_attempt = -1
++    patch_sequences = []
++    for event in events:
++        if event.kind != "agent_v2_tool_result":
++            continue
++        aid = event.payload["artifact_id"]
++        receipt = journal.wb.read(aid)
++        if content_hash(receipt) != aid or event.actor_id != "orchestrator":
++            raise ValueError("coding_receipt_reference_invalid")
++        receipts[aid] = receipt
++        data = receipt.get("data", {})
++        if data.get("tool") == "apply_patch":
++            last_patch_attempt = event.sequence
++            if receipt["status"] == "succeeded" and receipt["source_hash"] != receipt["output_source_hash"]:
++                last_patch = event.sequence
++                patch_sequences.append(event.sequence)
++        page = source_page(receipt, aid)
++        if page is not None:
++            # wb.read verifies the JSON receipt; verify the raw page as well.
++            if sha256(journal.wb.artifacts.read_bytes(page["source_page_artifact"])).hexdigest() != page["source_page_artifact"]:
++                raise ValueError("coding_source_page_invalid")
++            pages[aid] = page
++            if page["source_hash"] == cp.source_hash:
++                ranges = available[key(page)]
++                before = size(ranges)
++                ranges.append([page["offset"], page["offset"] + len(page["text"].encode())])
++                repeated_reads += size(ranges) - before < len(page["text"].encode())
++        if data.get("tool") == "read_artifact" and data.get("artifact_id") in task_refs and isinstance(data.get("text"), str):
++            ranges = plan_ranges[data["artifact_id"]]
++            before = size(ranges)
++            ranges.append([data["offset"], data["offset"] + len(data["text"].encode())])
++            repeated_plan += size(ranges) - before < len(data["text"].encode())
++    responses = {e.job_id: e for e in events if e.kind == "agent_v2_model_response" and e.actor_id == "orchestrator"}
++    starts = [e for e in events if e.kind == "agent_v2_model_started"]
++    no_context = 0
++    for event in starts:
++        if event.job_id not in responses:
++            continue
++        prompt = journal.wb.read(event.payload["prompt_artifact"])
++        response = responses[event.job_id]
++        raw_response = journal.wb.read(response.payload["artifact_id"])
++        if (event.actor_id != "orchestrator" or response.payload.get("prompt_artifact") != event.payload["prompt_artifact"]
++                or raw_response.get("request_id") != event.job_id
++                or raw_response.get("binding_hash") != content_hash(prompt["binding"])):
++            raise ValueError("coding_delivery_identity_invalid")
++        before = sum(size(r) for r in delivered.values())
++        candidates = list(prompt.get("source_working_set", []))
++        for feedback in prompt.get("feedback", []):
++            aid = feedback.get("receipt_artifact")
++            if aid in pages:
++                candidates.append({**feedback.get("data", {}), "receipt_artifact": aid})
++            # Raw source pages recovered with read_artifact are equally valid.
++            original = receipts.get(aid, {}).get("data", {})
++            shown = feedback.get("data", {})
++            if original.get("tool") == "read_artifact" and isinstance(shown.get("text"), str):
++                target = original["artifact_id"]
++                body = journal.wb.artifacts.read_bytes(target)
++                lo, chunk = shown["offset"], shown["text"].encode()
++                if body[lo:lo + len(chunk)] != chunk:
++                    raise ValueError("coding_artifact_delivery_invalid")
++                for page in pages.values():
++                    if page["source_page_artifact"] == target:
++                        candidates.append({**page, "offset": page["offset"] + shown["offset"], "text": shown["text"]})
++                # A receipt JSON page may contain escaped source. Count only
++                # fully delivered encoded characters, never the entire receipt.
++                page = pages.get(target)
++                if page is not None and page["source_hash"] == cp.source_hash:
++                    marker = b'"text":' + canonical_json(page["text"]).encode()
++                    if body.count(marker) != 1:
++                        raise ValueError("coding_receipt_text_mapping_invalid")
++                    cursor = body.index(marker) + len(b'"text":"')
++                    source_offset = page["offset"]
++                    for char in page["text"]:
++                        width = len(canonical_json(char).encode()[1:-1])
++                        end = source_offset + len(char.encode())
++                        if lo <= cursor and cursor + width <= lo + len(chunk):
++                            delivered[key(page)].append([source_offset, end])
++                        cursor += width
++                        source_offset = end
++        for shown in candidates:
++            page = pages.get(shown.get("receipt_artifact"))
++            if page is None or page["source_hash"] != cp.source_hash or not isinstance(shown.get("text"), str):
++                continue
++            offset, text = shown.get("offset"), shown["text"].encode()
++            if type(offset) is not int:
++                continue
++            local = offset - page["offset"]
++            if local < 0 or local + len(text) > len(page["text"].encode()) or page["text"].encode()[local:local + len(text)] != text:
++                raise ValueError("coding_delivered_source_invalid")
++            delivered[key(page)].append([offset, offset + len(text)])
++        if event.sequence > last_patch:
++            no_context = no_context + 1 if sum(size(r) for r in delivered.values()) == before else 0
++    rounds = sum(e.sequence > last_patch for e in starts)
++    since_attempt = sum(e.sequence > last_patch_attempt for e in starts)
++    correction = rounds >= POLICY["correction_after_unpatched_rounds"]
++    ledger = next((e.payload["progress"] for e in reversed(events) if e.kind == "agent_v2_progress"), None)
++    metrics = {"version": POLICY["version"], "source_hash": cp.source_hash,
++        "model_rounds": len(starts), "rounds_without_applied_patch": rounds,
++        "rounds_without_patch_attempt": since_attempt, "rounds_without_new_delivered_source": no_context,
++        "first_patch_round": next((i for i, e in enumerate(starts, 1) if patch_sequences and
++            e.sequence < patch_sequences[0] and (i == len(starts) or starts[i].sequence > patch_sequences[0])), None),
++        "available_source_bytes": sum(size(r) for r in available.values()),
++        "delivered_source_bytes": sum(size(r) for r in delivered.values()),
++        "overlapping_source_reads": repeated_reads, "repeated_task_artifact_reads": repeated_plan,
++        "correction_issued": correction, "stop_required": rounds >= POLICY["stop_after_unpatched_rounds"],
++        "next_action": (ledger["next_action"] if ledger and ledger["phase"] != "investigating" else
++            "use_source_evidence_for_exact_patch_or_report_specific_missing_evidence" if correction else "collect_missing_source_or_implement"),
++        "absence_evidence": [{"path": r["data"]["path"], "receipt_artifact": aid}
++            for aid, r in receipts.items() if r["status"] == "not_found" and r["output_source_hash"] == cp.source_hash],
++        "source_index": [{"path": k[1], "content_hash": k[2], "available": merge(ranges),
++            "delivered": merge(delivered[k])} for k, ranges in sorted(available.items())]}
++    # One page per actual receipt/range; recent pages and approved paths first.
++    unique = {}
++    for page in reversed(list(pages.values())):
++        if page["source_hash"] == cp.source_hash:
++            unique.setdefault((*key(page), page["offset"], len(page["text"].encode())), page)
++    working = sorted(unique.values(), key=lambda p: p["path"] not in journal.spec().write_paths)
++    return metrics, working
++
++
++def task_brief(task: dict, artifact: str) -> dict:
++    """Exact field extraction, never a model/platform-written task summary."""
++    plan, issue = task["approved_plan"], task["issue"]
++    return {"partial": True, "artifact_id": artifact, "binding_hash": task["binding_hash"],
++        "brief": {k: v for k, v in plan.items() if k not in {
++            "commands_to_run", "files_likely_to_change", "files_to_inspect"}},
++        "issue": {k: issue[k] for k in ("title", "html_url", "number") if k in issue},
++        "instruction": "Exact frozen Plan fields; goal/checks/write authority also appear at the root. Full Plan and Issue body remain in artifact_id. Recover missing details only when needed. Working-set bytes come from receipt_artifact; do not patch without sufficient evidence."}
+diff --git a/tests/test_coding_loop_recovery.py b/tests/test_coding_loop_recovery.py
+new file mode 100644
+index 0000000..40ac795
+--- /dev/null
++++ b/tests/test_coding_loop_recovery.py
+@@ -0,0 +1,158 @@
++"""Offline recovery regressions. Deterministic responses do not prove autonomy."""
++import asyncio
++import json
++from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
++
++from app.agent_v2.coding_context import observe, POLICY
++from app.agent_v2.journal import AgentJournal
++from app.agent_v2.loop import prompt_for
++from app.agent_v2.native_tools import native_input_bound, native_model_transport, project_native_prompt
++from app.provenance import content_hash
++from app.workbench import Workbench
++from tests.test_agent_native_tools import response
++from tests.test_native_read_progress import setup, run_round
++
++SAVED = Path("docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution")
++
++
++def observed(db, settings, task, sid):
++    with db.session() as session:
++        return observe(AgentJournal(Workbench(session, settings.artifact_root), task, sid))[0]
++
++
++def test_new_source_receipts_cannot_reset_unpatched_round_limit(tmp_path):
++    values = setup(tmp_path, *[{"offset": i * 128, "max_bytes": 128} for i in range(8)])
++    db, settings, task, sid, model, tool, runner, gateway = values
++    for _ in range(8):
++        run_round(model, tool)
++    assert runner.prompts[6]["implementation_progress"]["coding"]["correction_issued"]
++    assert observed(db, settings, task, sid)["stop_required"]
++    before = len(runner.prompts)
++    assert asyncio.run(model.run_once()).state == "succeeded"
++    assert len(runner.prompts) == before == POLICY["stop_after_unpatched_rounds"]
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        assert j.checkpoint().state == "blocked"
++        assert j.checkpoint().usage["model_calls"] == 8
++        assert j.remaining()["model_calls"] == 16
++        assert j.remaining()["protocol_repairs"] == 2
++        assert j.events()[-1].payload["progress"]["blocker"] == "agent_coding_stalled"
++    assert asyncio.run(model.run_once()) is None
++
++
++def test_available_source_is_not_delivered_until_a_response_confirms_the_prompt(tmp_path):
++    db, settings, task, sid, model, tool, runner, gateway = setup(tmp_path, {}, {"offset": 4096})
++    run_round(model, tool)
++    first = observed(db, settings, task, sid)
++    assert first["available_source_bytes"] == 4096 and first["delivered_source_bytes"] == 0
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        projection = prompt_for(j)
++        assert projection["source_working_set"][0]["text"] == "a" * 4096
++        assert native_input_bound(projection) <= 32000
++    # Merely building a preview must not claim model delivery.
++    assert observed(db, settings, task, sid) == first
++    assert asyncio.run(model.run_once()).state == "succeeded"
++    assert observed(db, settings, task, sid)["delivered_source_bytes"] == 4096
++    # Recomputing through a fresh Journal yields identical counters/ranges.
++    assert observed(db, settings, task, sid) == observed(db, settings, task, sid)
++
++
++def test_duplicate_source_and_plan_never_create_coding_progress(tmp_path):
++    db, settings, task, sid, model, tool, runner, gateway = setup(tmp_path, {}, {})
++    run_round(model, tool)
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        aid = prompt_for(j)["task_context_artifact"]
++    runner.responses.extend([response("read_artifact", {"artifact_id": aid})] * 2)
++    for _ in range(3):
++        run_round(model, tool)
++    coding = observed(db, settings, task, sid)
++    assert coding["available_source_bytes"] == 4096
++    assert coding["delivered_source_bytes"] == 4096
++    assert coding["overlapping_source_reads"] == 1
++    assert coding["repeated_task_artifact_reads"] == 1
++    assert coding["rounds_without_applied_patch"] == 4
++    assert coding["rounds_without_new_delivered_source"] == 2
++
++
++def archived_journal(round_number):
++    """Read all saved bytes by content hash; never execute archived helpers."""
++    from hashlib import sha256
++    index = json.loads((SAVED / "evidence-index.json").read_text())
++    paths = {r["id"]: SAVED / r["file"] for r in index["exported_artifacts"]}
++    def read_bytes(aid):
++        raw = paths[aid].read_bytes()
++        assert sha256(raw).hexdigest() == aid
++        return raw
++    def read(aid):
++        return json.loads(read_bytes(aid))
++    starts = [e for e in index["events"] if e["kind"] == "agent_v2_model_started"]
++    start = starts[round_number - 1]
++    events = [SimpleNamespace(**{**e, "actor_id": "orchestrator"}) for e in index["events"]
++        if e["sequence"] < start["sequence"]]
++    prompt = read(start["payload"]["prompt_artifact"])
++    j = SimpleNamespace(events=lambda: events, checkpoint=lambda: SimpleNamespace(source_hash=prompt["source_hash"]),
++        spec=lambda: SimpleNamespace(write_paths=prompt["write_paths"]),
++        wb=SimpleNamespace(read=read, artifacts=SimpleNamespace(read_bytes=read_bytes)))
++    return j, prompt, read
++
++
++@pytest.mark.parametrize("round_number", [7, 13])
++def test_saved_plan15_source_is_delivered_instead_of_repeating_full_plan(round_number):
++    journal, prompt, read = archived_journal(round_number)
++    coding, pages = observe(journal)
++    prompt["implementation_progress"]["coding"] = coding
++    prompt["feedback"] = [{**read(row["receipt_artifact"]), "receipt_artifact": row["receipt_artifact"]}
++        for row in prompt["feedback"]]
++    transport = SimpleNamespace(model_transport=native_model_transport())
++    projected = project_native_prompt(prompt, transport,
++        history_artifact=prompt.get("history_evidence", {}).get("artifact_id"),
++        task_input=read(prompt["task_context_artifact"]), source_pages=pages)
++    assert native_input_bound(projected) <= 32000
++    # Four useful excerpts, at least 3x the old uniform 128-byte/8-call projection.
++    assert sum(len(p["text"].encode()) for p in projected["source_working_set"]) >= 3072
++    assert projected["approved_task_input"]["brief"]["acceptance_criteria"] == read(prompt["task_context_artifact"])["approved_plan"]["acceptance_criteria"]
++    for page in projected["source_working_set"]:
++        original = read(page["receipt_artifact"])["data"]
++        local = page["offset"] - original["offset"]
++        assert page["text"].encode() == original["text"].encode()[local:local + len(page["text"].encode())]
++    assert [r["receipt_artifact"] for r in projected["feedback"]] == [r["receipt_artifact"] for r in prompt["feedback"]]
++
++
++def test_saved_plan15_historical_guard_diagnosis_does_not_resume_it():
++    journal, _, _ = archived_journal(15)
++    coding, _ = observe(journal)
++    assert coding["model_rounds"] == coding["rounds_without_applied_patch"] == 14
++    assert coding["stop_required"] and coding["first_patch_round"] is None
++
++
++def test_saved_truncated_usage_is_retained_without_retry_or_tool_execution(tmp_path):
++    from tests.test_native_protocol_repairs import fixture
++    journal, _, read = archived_journal(15)
++    index = json.loads((SAVED / "evidence-index.json").read_text())
++    event = [e for e in index["events"] if e["kind"] == "agent_v2_model_response"][-1]
++    saved = read(event["payload"]["artifact_id"])
++    choice = saved["choices"][0]
++    wire = {"choices": [{"finish_reason": choice["finish_reason"], "message": {
++        "role": choice["role"], "content": None, "tool_calls": choice["tool_calls"]}}], "usage": saved["usage"]}
++    db, settings, task, sid, model, tool, runner, gateway = fixture(tmp_path, wire)
++    assert asyncio.run(model.run_once()).state == "succeeded"
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        started = next(e for e in j.events() if e.kind == "agent_v2_model_started")
++        rejected = next(e for e in j.events() if e.kind == "agent_v2_model_rejected")
++        captured = next(e for e in j.events() if e.kind == "agent_v2_model_response")
++        assert j.wb.read(captured.payload["artifact_id"])["usage"] == saved["usage"]
++        assert j.checkpoint().state == "blocked"
++        assert rejected.payload["failure"]["safe_reason_code"] == "deepseek_completion_truncated"
++        assert not rejected.payload["failure"]["retryable"]
++        assert j.checkpoint().usage["input_tokens"] == started.payload["input_bound"]
++        assert j.checkpoint().usage["output_tokens"] == 4096
++        assert j.remaining()["provider_retries"] == 2
++        assert observe(j)[0]["model_rounds"] == 1
++    assert len(runner.prompts) == 1 and gateway.calls == []
++    assert asyncio.run(model.run_once()) is None and asyncio.run(tool.run_once()) is None
+diff --git a/tests/test_coding_loop_recovery_oci.py b/tests/test_coding_loop_recovery_oci.py
+new file mode 100644
+index 0000000..ed38fe9
+--- /dev/null
++++ b/tests/test_coding_loop_recovery_oci.py
+@@ -0,0 +1,52 @@
++"""Deterministic source-to-patch substitute, using real offline OCI file edits."""
++import asyncio
++import os
++
++import pytest
++
++from app.agent_v2.contracts import ToolCall
++from app.agent_v2.tools import RestrictedToolRegistry
++from tests.test_native_read_batches_oci import actual
++
++pytestmark = pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1",
++    reason="Requires real credential-free OCI; never a real model success claim")
++
++
++def test_source_evidence_drives_deterministic_patch_and_exact_oci_readback(tmp_path):
++    spec, gateway, _, _ = actual(tmp_path)
++    registry = RestrictedToolRegistry()
++    async def scenario():
++        read = ToolCall(call_id="substitute-source", name="read_file", arguments={"path": "calc.py"})
++        first = await gateway.execute(spec, read, registry.validate(read, spec),
++            source_hash=spec.binding.archive_hash, snapshot=None, input_hash="a" * 64)
++        receipt = first["result"]
++        assert receipt["status"] == "succeeded"
++        data = receipt["data"]
++        assert data["execution_backend"] == "docker" and data["text"]
++        # The substitute uses only the actual observed page/hash, never a
++        # pre-scripted file body or an expected_hash invented by the platform.
++        patch = ToolCall(call_id="substitute-patch", name="apply_patch", arguments={
++            "path": data["path"], "expected_hash": data["content_hash"],
++            "old_text": "", "new_text": "# deterministic offline fixture edit\n"})
++        # Empty old_text is not legal for an existing file. Use the complete
++        # observed prefix, whose replacement must match exactly once.
++        patch = patch.model_copy(update={"arguments": {**patch.arguments,
++            "old_text": data["text"], "new_text": "# deterministic offline fixture edit\n" + data["text"]}})
++        # The repeating fixture makes a partial prefix ambiguous; recover the
++        # entire file through the existing bounded read tool first.
++        read = read.model_copy(update={"arguments": {"path": "calc.py", "max_bytes": 16000}})
++        full = await gateway.execute(spec, read, registry.validate(read, spec),
++            source_hash=receipt["output_source_hash"], snapshot=None, input_hash="b" * 64)
++        data = full["result"]["data"]
++        assert data["next_offset"] is None
++        patch = patch.model_copy(update={"arguments": {**patch.arguments,
++            "old_text": data["text"], "new_text": "# deterministic offline fixture edit\n" + data["text"]}})
++        edited = await gateway.execute(spec, patch, registry.validate(patch, spec),
++            source_hash=full["result"]["output_source_hash"], snapshot=None, input_hash="c" * 64)
++        assert edited["result"]["status"] == "succeeded"
++        assert edited["result"]["output_source_hash"] != full["result"]["output_source_hash"]
++        latest = await gateway.execute(spec, read, registry.validate(read, spec),
++            source_hash=edited["result"]["output_source_hash"], snapshot=edited["snapshot"], input_hash="d" * 64)
++        assert latest["result"]["data"]["text"] == patch.arguments["new_text"]
++        assert edited["snapshot"]["files"]["calc.py"]["content"] == patch.arguments["new_text"]
++    asyncio.run(scenario())
