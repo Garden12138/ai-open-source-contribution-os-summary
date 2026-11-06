@@ -1,5 +1,22 @@
 # Native Read-Only Batch Scheduler v1 — 离线验收
 
+最新真实验收（2026-11-06）：[Plan14已按精确授权执行一次](plan14-execution/README.md)，
+Baseline4/4、真实模型3次；第三响应8个read_file各max_bytes16000，整批输出容量准入拒绝，
+未创建子批次/派发，Session安全终态agent_read_batch_budget。Patch/修改后Verify/Review未完成，
+not_found未观察到，HR4/5仍未通过；旧历史/预算不变，无新付费重试或Plan15。
+
+最新修复：[批准缺失文件语义专项](missing-file-semantics-v1/README.md)离线门禁已通过并部署。
+原信封8-call现在可得7个正常读取和1个可信not_found，原批准新建仍受Registry与OCI约束。
+全量2025通过/77跳过、真实OCI24通过；旧任务和Plan13 reads12保留，无新付费调用。
+随后按仅准备授权完成[独立Plan14绑定](plan14-preparation/README.md)，
+[实际精确预览](plan14-preparation/execution-preview.md)等待新的执行确认；没有新增执行审批/Job/预算分配。
+下列旧结果与[原文件候选](missing-file-semantics-v1/real-model-acceptance-preview.md)保持归档，不改写原Hash。
+
+后续状态（2026-11-05）：用户先仅授权创建同内容Plan13与Scheduler绑定，随后批准精确预览c628ea47。
+[真实结果](plan13-execution/README.md)：新Baseline4/4通过，2次模型调用；第二轮8-call提案通过解析，
+但缺失文件使整批OCI预检拒绝，8个应用调用未派发，安全停止。Patch/Verify/Review未完成，
+真实成功分批未观察到，没有额外付费重试。以下保留此前离线验收时点的事实与预览，不改写原Hash。
+
 2026-11-05，在`refactor/agent-runtime-v2`完成Plan12暴露的原生Provider提案与执行契约修复。
 未重构整个Runtime、未扩大UPEVE、未付费重现、未创建Plan13、未Push或PR。
 原Plan11缺失信息仍为unavailable；Plan12终态和全部历史用量不变。
@@ -63,3 +80,7 @@ write_paths、批准命令、网络、凭据隔离、容器资源与默认Token/
 冻结同一Issue/基线/方案内容、原模型、8条路径、4条命令和原上限。
 新协议Hash使旧Plan12绑定过期，预览没有虚构新Plan/授权ID或复用旧审批。
 用户未授权前不物化新方案、不派发付费任务；待明确允许相同内容新绑定后，再提交带实际ID的精确执行确认。
+
+上述绑定与[Plan13实际执行预览](plan13-preparation/execution-preview.json)的单次执行授权现均已收到并消费，
+结果见[真实审计](plan13-execution/final-audit.json)。原a7b2f501与c628ea47预览JSON均保持原样；
+不能用已消费的审批恢复终态或再次派发付费任务。

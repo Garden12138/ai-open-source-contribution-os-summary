@@ -1,0 +1,55 @@
+{
+  "version": "approved-missing-plan14-terminal-checks-v1",
+  "recorded_at": "2026-11-06T01:42:42.778500+00:00",
+  "proposal_hash": "3825f2d60954527af8276556fdff71235a185554177a3d5159da2aed06769250",
+  "result_hash": "667bf3ffd365da476b88cab01fa3aefc33fc7d58a1e22620e60daac445c77da5",
+  "audit_hash": "0be0450ffeabd8d6e6c938aba3beed203945eb956762f36d7ae9c358ee995080",
+  "evidence_index_hash": "551a08c2c6ed953ce7552906fa6d3569f1eb86768ccbe840076c7aef204ad62d",
+  "runtime_source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "all252_source_files_and_five_images_security_resources_verified": true,
+  "all_preexisting_rows_and_checkpoints_preserved": true,
+  "old_Plan13_reads": 12,
+  "planning_usage_unknown_holds_caps_unchanged": true,
+  "new_Plan14_terminal_unchanged": true,
+  "new_execution_authorizations": 1,
+  "new_model_requests": 3,
+  "no_automatic_retry_or_restart": true,
+  "active_jobs": 0,
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 91,
+    "execution_authorizations": 12,
+    "plan_approvals": 12,
+    "task_events": 2090,
+    "artifacts": 1640
+  },
+  "plan_count": 14,
+  "credential_checked_saved_files": 51,
+  "live_artifacts_hash_and_credentials_checked": 1640,
+  "logs_credentials": "passed",
+  "compileall_app_and_helpers": "passed",
+  "git_diff_check": "passed",
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "source_or_policy_or_budget_changed_during_run": false,
+  "new_production_patch_or_redeployment": false,
+  "Push_PR_comments_publication": false,
+  "HR4_HR5": "not_passed",
+  "Linux_amd64": "not_run_still_open",
+  "report_hash": "eb862e8a014acaba214bf730ba5221bd09cea2c6fe0c00f96bdd9449a21d54d1"
+}

@@ -1,0 +1,27 @@
+{
+  "version": "approved-missing-plan14-prerequisites-v1",
+  "recorded_at": "2026-11-05T14:38:21.892721+00:00",
+  "intent_hash": "5c20cae76a88bdc5f06cf2cb819cf63aa1355993512f6f0f74b30cda47999376",
+  "source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "upstream_hash": "0b0e4a049513569d8465ba8c744078d20fb2debbaecdd69d979abc3364d8e34b",
+  "all_four_conditions_passed": true,
+  "full_regression_passed": 2025,
+  "full_regression_skipped": 77,
+  "real_OCI_passed": 24,
+  "real_OCI_platform": "macOS arm64 / OrbStack",
+  "Linux_amd64": "not_run_still_open",
+  "offline_new_file_gate_hash": "1cffdb439ab45847a3485fe5344aef36760c99d746c86e2d5a78af6dac6f3ddd",
+  "all_frozen_inputs_match": true,
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 88,
+    "execution_authorizations": 11,
+    "plan_approvals": 11,
+    "task_events": 2013,
+    "artifacts": 1610
+  },
+  "plan_created": false,
+  "model_calls": 0,
+  "report_hash": "6895380f104ca6241cf6db2aaf0826abcbe098c05e30ba221225d7eeb4a746d1"
+}

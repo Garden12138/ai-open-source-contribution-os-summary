@@ -1,0 +1,102 @@
+{
+  "version": "plan14-offline-output-capacity-analysis-v1",
+  "recorded_at": "2026-11-06T01:46:45.728318+00:00",
+  "classification": "read_only_frozen_context_serialization_analysis_not_OCI_receipts_or_admission_proof",
+  "source_context_artifact": "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834",
+  "source_response_artifact": "f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3",
+  "prior_diagnostic_hash": "3e34956390c4a112f259585bd2f3be4d8b8c8915a909a49b3ff8eb4cde393c45",
+  "all_source_contents_hash_verified": true,
+  "rows": [
+    {
+      "provider_call_id": "call_00_0kiEwN4lzjB1loCBzgyV3309",
+      "path": "web/hooks/simulation/handle-tool-events.ts",
+      "source_file_bytes": 6518,
+      "visible_page_bytes": 6518,
+      "predicted_data_canonical_JSON_bytes": 6932,
+      "next_offset": null,
+      "file_content_hash": "43556669992773fba142d096766771af76ad64161d5d05e08f817cb0af0d2cd9"
+    },
+    {
+      "provider_call_id": "call_01_UyhJNjsSXg8DBZkAm5pI2179",
+      "path": "web/hooks/simulation/types.ts",
+      "source_file_bytes": 4416,
+      "visible_page_bytes": 4416,
+      "predicted_data_canonical_JSON_bytes": 4771,
+      "next_offset": null,
+      "file_content_hash": "5a73297acb10135b1fe2de7ccbb5c5b59b918815d35bd88d2262f744e65aeb19"
+    },
+    {
+      "provider_call_id": "call_02_RLmDSmcs7Ndt57NkyGxU0804",
+      "path": "web/lib/agent-types.ts",
+      "source_file_bytes": 7545,
+      "visible_page_bytes": 7545,
+      "predicted_data_canonical_JSON_bytes": 8050,
+      "next_offset": null,
+      "file_content_hash": "aca228d727fc36f2dfd24aef581b760cb667960d62430484511d137f8719cbdd"
+    },
+    {
+      "provider_call_id": "call_03_sDcwgaWGThLgcBEmCl9P9590",
+      "path": "web/hooks/simulation/process-event.ts",
+      "source_file_bytes": 4631,
+      "visible_page_bytes": 4631,
+      "predicted_data_canonical_JSON_bytes": 4966,
+      "next_offset": null,
+      "file_content_hash": "08808a3dbb5129f910b1bfa2c45db2641e81e333c09fcab1de7bea0f0e3585c1"
+    },
+    {
+      "provider_call_id": "call_04_cC3ZZ5PrWLXmbQkQeZkY7291",
+      "path": "extension/src/transcript-parser.ts",
+      "source_file_bytes": 33130,
+      "visible_page_bytes": 16000,
+      "predicted_data_canonical_JSON_bytes": 16648,
+      "next_offset": 16000,
+      "file_content_hash": "1124a36d2667624dfcb44a1ed988c7ed63930e6233cebe7872105099343181d9"
+    },
+    {
+      "provider_call_id": "call_05_N6RhTZn3AcCwlrrZYcBe3611",
+      "path": "extension/src/hook-server.ts",
+      "source_file_bytes": 12122,
+      "visible_page_bytes": 12122,
+      "predicted_data_canonical_JSON_bytes": 12709,
+      "next_offset": null,
+      "file_content_hash": "b77b14ed4a731f7d21192759774568d93385fcb1c0b25c538f6601d6069ed3a9"
+    },
+    {
+      "provider_call_id": "call_06_JtKuQrnd39c9KdujZD291563",
+      "path": "extension/src/protocol.ts",
+      "source_file_bytes": 7015,
+      "visible_page_bytes": 7015,
+      "predicted_data_canonical_JSON_bytes": 7464,
+      "next_offset": null,
+      "file_content_hash": "3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5"
+    },
+    {
+      "provider_call_id": "call_07_OC2sORIlgp9OfuKUCv3L1469",
+      "path": "extension/test/transcript-parser.test.ts",
+      "source_file_bytes": 10091,
+      "visible_page_bytes": 10091,
+      "predicted_data_canonical_JSON_bytes": 10583,
+      "next_offset": null,
+      "file_content_hash": "8d49a0d068ba247b4a75af1131962cc61d9311addeb100db0f6445be93f2839a"
+    }
+  ],
+  "visible_page_bytes_total": 68338,
+  "predicted_data_canonical_JSON_bytes_total": 72123,
+  "existing_requested_maximum_bound": 833536,
+  "using_file_lengths_with_existing_sixfold_bound": 475564,
+  "remaining_output_bytes_at_original_admission": 464474,
+  "length_only_bound_still_exceeds_remaining_by": 11090,
+  "not_included_in_predicted_data_bytes": [
+    "ToolResult outer envelope",
+    "source_read_progress",
+    "batch and preflight metadata",
+    "failure or unknown-result envelopes",
+    "other output charged by current policy"
+  ],
+  "inference": "Trusted source-range lengths alone are insufficient under the existing sixfold formula for this exact envelope. A future fix needs conservatively verified serialized page and metadata bounds, or bounded request correction; merely replacing max_bytes with file length is insufficient.",
+  "implementation_authorized_by_this_report": false,
+  "paid_calls": 0,
+  "live_database_modified": false,
+  "Plan14_resumed": false,
+  "report_hash": "1d6e593c497790cb4a75d84d351c116747ab0ca629e61ca7d2926f59dc0e8136"
+}

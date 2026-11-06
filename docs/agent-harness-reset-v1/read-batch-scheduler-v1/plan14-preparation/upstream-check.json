@@ -1,0 +1,19 @@
+{
+  "version": "approved-missing-plan14-upstream-v1",
+  "recorded_at": "2026-11-05T14:36:55.888942+00:00",
+  "transport": "existing_allowlisted_read_only_search_and_head_proxy",
+  "issue_url": "https://github.com/patoles/agent-flow/issues/107",
+  "state": "open",
+  "title": "Parallel tool calls are incorrectly deduplicated and completed by tool name instead of call identity",
+  "updated_at": "2026-10-29T22:23:57Z",
+  "issue_body_hash": "5512d263e7d8ab8c10262d9ac2f92b014c05117b070934507fe4b1673680897a",
+  "issue_body_hash_encoding": "canonical_JSON_string_SHA256_matches_frozen_evidence",
+  "issue_body_raw_utf8_sha256": "0721d326add1c977ff9fda6c1d3e1f980687e46ebd42bb4f5bb6c60c4ad0c756",
+  "branch": "main",
+  "HEAD": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+  "model_calls": 0,
+  "third_party_writes": 0,
+  "issue_body_matches": true,
+  "baseline_matches": true,
+  "record_hash": "0b0e4a049513569d8465ba8c744078d20fb2debbaecdd69d979abc3364d8e34b"
+}

@@ -1,0 +1,49 @@
+{
+  "version": "approved-missing-real-acceptance-report-template-v1",
+  "classification": "unexecuted_template_not_acceptance_evidence",
+  "proposal_hash": "3825f2d60954527af8276556fdff71235a185554177a3d5159da2aed06769250",
+  "plan_id": "e8503bc5-9b61-4e51-95c6-c4eb33bb919e",
+  "plan_record_hash": "1006e34393baf6a239c3f4e001af5726baaf3c69e00065a25d5934531b693d06",
+  "plan_binding_hash": "6222c965647cdf54e039dad1c41544cdd5dd54245e0b59c6ee528bbd584c36bf",
+  "runtime_source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "acceptance_report_contract_hash": "7e975bd947b051e09b3660a312556edd2ececd3f33d71eba81d25e117612df4e",
+  "execution_authorization_hash": "not_created",
+  "attempt_id": "not_created",
+  "session_id": "not_created",
+  "actual_read_batches": [],
+  "not_found_observation": {
+    "status": "not_run",
+    "receipt_artifact": null,
+    "next_real_model_prompt_artifact": null
+  },
+  "real_model_patch_generated": {
+    "status": "not_run",
+    "response_artifact": null
+  },
+  "real_OCI_patch_applied": {
+    "status": "not_run",
+    "receipt_artifact": null,
+    "latest_source_hash": null,
+    "diff_hash": null
+  },
+  "latest_source_Verify": {
+    "status": "not_run",
+    "source_hash": null,
+    "four_command_results": [],
+    "test_results_hash": null,
+    "verify_result_hash": null
+  },
+  "independent_Review": {
+    "status": "not_run",
+    "review_run_id": null,
+    "review_hash": null,
+    "reviewer_invocation_id": null
+  },
+  "blocker": null,
+  "recoverability": "not_applicable_execution_not_authorized",
+  "paid_model_calls": 0,
+  "third_party_writes": 0,
+  "record_hash": "34775991df8453bf1cd01e8a1c97c07f2ea30e78ccfc2764c5b074b54effda6a"
+}

@@ -1,0 +1,57 @@
+{
+  "version": "approved-missing-plan14-preparation-final-checks-v1",
+  "recorded_at": "2026-11-05T14:44:29.818172+00:00",
+  "plan_id": "e8503bc5-9b61-4e51-95c6-c4eb33bb919e",
+  "plan_record_hash": "1006e34393baf6a239c3f4e001af5726baaf3c69e00065a25d5934531b693d06",
+  "binding_hash": "6222c965647cdf54e039dad1c41544cdd5dd54245e0b59c6ee528bbd584c36bf",
+  "proposal_hash": "3825f2d60954527af8276556fdff71235a185554177a3d5159da2aed06769250",
+  "runtime_source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "source_unchanged_in_preparation": true,
+  "only_new_preparation_documents_and_helpers": true,
+  "JSON_and_text_credential_checks": 18,
+  "self_hashes_and_domain_hashes_verified": true,
+  "compileall_app_and_preparation_helpers": "passed",
+  "git_diff_check": "passed",
+  "all_original_previews_preserved": true,
+  "legacy_business_rows_from_before_0045_preserved": true,
+  "all_old_checkpoints_preserved": 9,
+  "logs_credentials_check": "passed",
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "counts": {
+    "active_jobs": 0,
+    "model_starts": 88,
+    "plan_approvals": 11,
+    "plans": 14,
+    "max_plan": 14,
+    "artifacts": 1610,
+    "attempts": 11
+  },
+  "new_paid_model_calls": 0,
+  "new_execution_authorizations": 0,
+  "new_jobs": 0,
+  "new_attempts": 0,
+  "new_Plan_versions": 1,
+  "new_run_budget_allocated": false,
+  "execution_request_sent": false,
+  "human_consent": "pending_new_exact_execution_authorization",
+  "HR4_HR5": "not_passed",
+  "Linux_amd64": "not_run_still_open",
+  "Push_PR_comments_publication": false,
+  "preview_audit_hash": "656f6d602a278e8cf6835028bf66e30bce4450959bcba594f02b9bd1bb9254ab",
+  "report_hash": "e042f77ddc0032458c1af8d2f9e393b4c22b4a44e4a3bef842b691b2bb2a1760"
+}
