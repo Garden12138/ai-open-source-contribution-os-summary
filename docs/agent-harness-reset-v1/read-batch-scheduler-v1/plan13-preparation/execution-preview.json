@@ -1,0 +1,1384 @@
+{
+  "version": "native-read-batch-bound-execution-preview-v1",
+  "recorded_at": "2026-11-05T06:41:11.312481+00:00",
+  "status": "awaiting_new_exact_execution_and_budget_confirmation",
+  "parent_intent_hash": "a7b2f501f7320db06810b37c04816b0d973e3aaee595c8cd00aac94d2c402291",
+  "preparation_authorization": "user_explicitly_authorized_new_plan_and_binding_only_no_model_or_execution",
+  "target": {
+    "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+    "repository": "patoles/agent-flow",
+    "issue_url": "https://github.com/patoles/agent-flow/issues/107",
+    "base_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+    "snapshot_id": "ba5e120b-0d3f-4f6c-8ddd-dbee4fe8ef84",
+    "snapshot_hash": "5db57facb4415022a4a1b0f682c10d065469ae3ae87d8b81c7298c589af17e74"
+  },
+  "git_HEAD": "e5cc92a8e3154acf79025cb0e235357b514024fd",
+  "runtime_source_hash": "9601fd8b2ca3c1e7b605633ba7a5e67491591d5a61ff05bf1de3590cca85860d",
+  "deployed_images": {
+    "app": "sha256:2d55f581471718af91d830fe0b65afa701979927cb6226d07b72d53e9b7322ff",
+    "worker": "sha256:82331ba69d9196f3d1eab611efc4d2687eb18ba6741d22af6ab2fc6c0d4c6d86"
+  },
+  "plan": {
+    "id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+    "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+    "task_state_version_id": "5655e4ae-1e14-4716-81cb-48c8a912517e",
+    "parent_version_id": "5c6df081-f469-44be-a2de-81fec47b2289",
+    "parent_record_hash": "c91a11677f13080efba7b36136bcf2eccffb71d0bf86b0fee421e2bf6d256f1b",
+    "schema_version": "1",
+    "version_number": 13,
+    "task_record_hash": "9fbcf671d496627aa6bafe3ad09aea978abc87d9317246d2a08879446a3ae33f",
+    "task_state_record_hash": "68a8ad9ec7baf88f8c803699aa9ce9eac066cfe14da05710bdd2047f84af7661",
+    "goal": "修复并行工具调用被错误去重、以及乱序结果按工具名错误完成的问题：在生产端（transcript-parser 与 hook-server）的 tool_call_start/tool_call_end 事件中透传稳定调用标识 tool_use_id，并在 web 仿真层按该标识进行去重与完成，替代按 (agent, tool) 组合去重与按工具名完成。",
+    "acceptance_criteria": [
+      "同一 agent 对同一工具发起的多次并行调用（不同 tool_use_id、不同参数/文件）均被独立记录，不再被去重丢弃。",
+      "fileAttention 中每个被读取的不同文件都有独立条目。",
+      "乱序到达的 tool_call_end 按 tool_use_id 精确完成对应那条调用，不影响同工具的其他运行中调用。",
+      "同一 tool_use_id 的重复投递（Hook Server 与 Session Watcher 竞态）仍被去重为单条调用。",
+      "现有测试与类型检查全部通过；对不含 tool_use_id 的旧 replay 数据保持兼容回退。"
+    ],
+    "files_to_inspect": [
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts",
+      "web/hooks/simulation/process-event.ts",
+      "extension/src/protocol.ts",
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts",
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-entries.test.ts",
+      "package.json",
+      ".github/workflows/ci.yml"
+    ],
+    "files_likely_to_change": [
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts",
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts",
+      "web/hooks/simulation/handle-tool-events.test.ts",
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-server.test.ts"
+    ],
+    "implementation_steps": [
+      "在 extension/src/transcript-parser.ts 的 handleToolUse 中，将 transcript tool_use 块的 block.id 作为 tool_use_id 加入 tool_call_start 事件的 payload。",
+      "在 extension/src/transcript-parser.ts 的 handleToolResult 中，将 block.tool_use_id 作为 tool_use_id 加入 tool_call_end 事件的 payload。",
+      "在 extension/src/hook-server.ts 的 handlePreToolUse 中，将 hook 输入 payload.tool_use_id 加入 tool_call_start 事件 payload。",
+      "在 extension/src/hook-server.ts 的 handlePostToolUse 与 handlePostToolUseFailure 中，将 tool_use_id 加入 tool_call_end 事件 payload。",
+      "HookPayload 已在冻结 hook-server.ts 中声明 tool_use_id 字段，直接按源码使用，不额外修改类型。",
+      "在 web/hooks/simulation/handle-tool-events.ts 的 handleToolCallStart 中读取 payload.tool_use_id 作为稳定标识；无该字段时回退生成唯一本地 id。以该标识作为 toolCalls Map 键，并将去重逻辑改为按同一 tool_use_id 判定（仅拦截真正的重复投递），移除按 (agent, tool, 3 秒窗口) 去重。",
+      "在 handleToolCallEnd 中读取 payload.tool_use_id，按该标识精确匹配并完成/置错那一条调用；无该字段时回退到现有按 (agent, tool) 匹配以兼容旧 replay。",
+      "如 toolCall 节点需要新增调用标识字段，在 web/lib/agent-types.ts 与 web/hooks/simulation/types.ts 同步补齐类型。",
+      "先新增回归测试并记录真实失败，再实现上述改动，使测试转绿并保持既有公共行为。"
+    ],
+    "tests_to_add_or_run": [
+      "extension/test/transcript-parser.test.ts：新增回归测试，断言 transcript-parser 发出的 tool_call_start payload 携带 tool_use_id（等于 tool_use block.id），tool_call_end payload 携带 tool_use_id（等于 tool_result block.tool_use_id）。",
+      "extension/test/hook-server.test.ts（新增文件，参考 hook-entries.test.ts 的 node:test + assert/strict 风格）：新增回归测试，断言 handlePreToolUse 发出的 tool_call_start payload 携带来自 hook 输入 payload.tool_use_id，handlePostToolUse 与 handlePostToolUseFailure 发出的 tool_call_end payload 携带相同 tool_use_id。",
+      "web/hooks/simulation/handle-tool-events.test.ts：新增回归测试，断言同一 agent 对多个不同文件并行 Read（不同 tool_use_id）均被独立记录、fileAttention 每个文件独立条目；乱序结果按 tool_use_id 精确完成对应调用；同一 tool_use_id 重复投递被去重。",
+      "运行 pnpm test（根目录，覆盖 web/hooks/**/*.test.ts 与 web/lib/**/*.test.ts）。",
+      "运行 pnpm --dir extension test（覆盖 extension/test/**/*.test.ts，含新增 hook-server.test.ts）。",
+      "运行 pnpm --filter agent-flow run lint（extension 类型检查）。",
+      "运行 pnpm --dir web exec tsc --noEmit（web 类型检查）。"
+    ],
+    "commands_to_run": [
+      {
+        "command_id": "root_tests",
+        "purpose": "运行根目录测试套件（scripts、app、web hooks/lib），覆盖新增回归测试所在目录",
+        "argv": [
+          "pnpm",
+          "test"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "extension_tests",
+        "purpose": "运行 extension 测试套件，覆盖新增 transcript-parser 与 hook-server 回归测试",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "extension",
+          "test"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "extension_lint",
+        "purpose": "extension 类型检查",
+        "argv": [
+          "pnpm",
+          "--filter",
+          "agent-flow",
+          "run",
+          "lint"
+        ],
+        "working_directory": "."
+      },
+      {
+        "command_id": "web_typecheck",
+        "purpose": "web 类型检查",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "web",
+          "exec",
+          "tsc",
+          "--noEmit"
+        ],
+        "working_directory": "."
+      }
+    ],
+    "risks": [
+      "需确认 hook-server 的 tool_use_id 与 transcript-parser 的 block.id 对同一次工具调用取值一致，才能让去重正确折叠竞态同时保留不同调用。",
+      "不含 tool_use_id 的旧 replay 数据需要兼容回退路径，避免破坏既有回放行为。"
+    ],
+    "questions_for_maintainer": [],
+    "content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+    "record_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+    "created_at": "2026-11-05T06:40:59.105992Z"
+  },
+  "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "plan_record_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+  "plan_binding_hash": "bcbf07e445030ca723db34c272feecfb05776de94496cc7fe86a3f0e434ccbe2",
+  "plan_binding": {
+    "id": "50aa4560-8915-4f04-821e-0c275a0ea6a1",
+    "record_hash": "bcbf07e445030ca723db34c272feecfb05776de94496cc7fe86a3f0e434ccbe2",
+    "payload": {
+      "context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+      "context_id": "cd7d7528-ce37-4137-b5d6-53fe50194171",
+      "plan_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+      "environment_engine": {
+        "version": "upeve-v1",
+        "target_platform": "linux/arm64"
+      },
+      "agent_model_transport": {
+        "version": "agent-native-tools-v1",
+        "tools_schema_hash": "c28c466b892af0b28c6cb7635c5f7c14b175b1b098c59cfff16e98de28c2ff8c"
+      }
+    }
+  },
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "model_profiles": {
+    "analysis": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "planning": "f3687acf-ef9a-4b59-9b7f-c17ad5132382",
+    "implementation": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+    "review": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e"
+  },
+  "model_identities": {
+    "implementation": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    },
+    "review": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    }
+  },
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "model_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "c28c466b892af0b28c6cb7635c5f7c14b175b1b098c59cfff16e98de28c2ff8c"
+  },
+  "model_transport_hash": "bc1d221e9b696c88d35a36c4862e143c148636bc83eeae3b85ee08475fe10260",
+  "scheduler_policy": {
+    "version": "native-read-batch-v1",
+    "eligible_tool": "read_file",
+    "original_calls_max": 8,
+    "sub_batch_calls_max": 4,
+    "admission": "whole_batch_before_execution",
+    "sandbox_preflight": "all_paths_hashes_ranges_before_first_read",
+    "failure": "stop_remaining_keep_receipts",
+    "budget": "reserve_all_reads_no_refund",
+    "observation": "after_original_batch_only"
+  },
+  "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "environment": {
+    "status": "supported",
+    "ecosystem": "node",
+    "mode": "workspace-v2",
+    "preparation_version": "node-workspace-preparation-v1",
+    "project_directory": ".",
+    "manifests": [
+      ".github/workflows/ci.yml",
+      "app/package.json",
+      "extension/package.json",
+      "package.json",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      "web/package.json"
+    ],
+    "lockfiles": [
+      "pnpm-lock.yaml"
+    ],
+    "change_paths": [
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts",
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts",
+      "web/hooks/simulation/handle-tool-events.test.ts",
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-server.test.ts"
+    ],
+    "reason": "按项目声明选择运行时和包管理器，冻结完整工作区依赖；独立离线构建后，先运行修改前测试，再实施及离线验证。",
+    "manifest_hashes": {
+      ".github/workflows/ci.yml": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+      "app/package.json": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+      "extension/package.json": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+      "package.json": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+      "pnpm-workspace.yaml": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+      "web/package.json": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb"
+    },
+    "node_environment": {
+      "version": "node-environment-v2",
+      "manager": "pnpm",
+      "manager_version": "",
+      "runtime_requirement": "22",
+      "runtime_pin": "",
+      "project_directory": ".",
+      "package_roots": [
+        ".",
+        "extension",
+        "web"
+      ],
+      "linker": "node-modules",
+      "workspace_lifecycle": [],
+      "registry": "https://registry.npmjs.org",
+      "manager_constraint": ">=1.0.0 10",
+      "lockfile": "pnpm-lock.yaml",
+      "lock_strategy": "existing"
+    },
+    "capability_version": "node-environment-v2",
+    "ci_toolchains": {
+      "version": "node-ci-toolchains-v1",
+      "manager": [
+        "10"
+      ],
+      "runtime": [
+        "22"
+      ],
+      "declarations": [
+        {
+          "tool": "pnpm",
+          "range": "10",
+          "action": "pnpm/action-setup@v4",
+          "input": "version",
+          "path": ".github/workflows/ci.yml",
+          "line": 16,
+          "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+        },
+        {
+          "tool": "node",
+          "range": "22",
+          "action": "actions/setup-node@v4",
+          "input": "node-version",
+          "path": ".github/workflows/ci.yml",
+          "line": 20,
+          "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+        }
+      ],
+      "sources": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+          "parser": "node-ci-toolchains-v1"
+        }
+      ]
+    },
+    "environment_engine": {
+      "version": "upeve-v1",
+      "target_platform": "linux/arm64"
+    },
+    "verification_contract": {
+      "version": "verification-environment-contract-v1",
+      "binding": {
+        "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+        "snapshot_hash": "5db57facb4415022a4a1b0f682c10d065469ae3ae87d8b81c7298c589af17e74",
+        "source_archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+        "base_commit_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+        "plan_version_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+        "approved_commands_hash": "242e269eb003566833727789906fc3dd7a128b12764c4e4aeceec1296c66e22b",
+        "target_platform": "linux/arm64",
+        "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+        "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+      },
+      "resolver_versions": {
+        "engine": "upeve-v1",
+        "adapter": "node-toolchain-v4"
+      },
+      "commands": [
+        {
+          "command_id": "root_tests",
+          "argv": [
+            "pnpm",
+            "test"
+          ],
+          "working_directory": ".",
+          "source_refs": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "app/package.json",
+              "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "extension/package.json",
+              "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "package.json",
+              "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-lock.yaml",
+              "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-workspace.yaml",
+              "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "web/package.json",
+              "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+              "parser": "node-toolchain-v4"
+            }
+          ],
+          "chain": [
+            "package.json#test",
+            ".:node --import tsx --test 'scripts/**/*.test.ts' 'app/src/**/*.test.ts' 'web/hooks/**/*.test.ts' 'web/lib/**/*.test.ts'"
+          ],
+          "entrypoints": [
+            [
+              ".",
+              "node"
+            ],
+            [
+              ".",
+              "pnpm"
+            ]
+          ],
+          "required_executable": "pnpm",
+          "distributions": [],
+          "resolution": "resolved",
+          "leaf_commands": [
+            {
+              "argv": [
+                "node",
+                "--import",
+                "tsx",
+                "--test",
+                "scripts/**/*.test.ts",
+                "app/src/**/*.test.ts",
+                "web/hooks/**/*.test.ts",
+                "web/lib/**/*.test.ts"
+              ],
+              "working_directory": "."
+            }
+          ]
+        },
+        {
+          "command_id": "extension_tests",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "extension",
+            "test"
+          ],
+          "working_directory": ".",
+          "source_refs": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "app/package.json",
+              "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "extension/package.json",
+              "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "package.json",
+              "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-lock.yaml",
+              "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-workspace.yaml",
+              "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "web/package.json",
+              "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+              "parser": "node-toolchain-v4"
+            }
+          ],
+          "chain": [
+            "extension/package.json#test",
+            "extension:tsx --test 'test/**/*.test.ts'"
+          ],
+          "entrypoints": [
+            [
+              ".",
+              "pnpm"
+            ],
+            [
+              "extension",
+              "tsx"
+            ]
+          ],
+          "required_executable": "pnpm",
+          "distributions": [],
+          "resolution": "resolved",
+          "leaf_commands": [
+            {
+              "argv": [
+                "tsx",
+                "--test",
+                "test/**/*.test.ts"
+              ],
+              "working_directory": "extension"
+            }
+          ]
+        },
+        {
+          "command_id": "extension_lint",
+          "argv": [
+            "pnpm",
+            "--filter",
+            "agent-flow",
+            "run",
+            "lint"
+          ],
+          "working_directory": ".",
+          "source_refs": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "app/package.json",
+              "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "extension/package.json",
+              "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "package.json",
+              "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-lock.yaml",
+              "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-workspace.yaml",
+              "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "web/package.json",
+              "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+              "parser": "node-toolchain-v4"
+            }
+          ],
+          "chain": [
+            "pnpm#filter=agent-flow@cwd=extension",
+            "extension/package.json#lint",
+            "extension:tsc --noEmit"
+          ],
+          "entrypoints": [
+            [
+              ".",
+              "pnpm"
+            ],
+            [
+              "extension",
+              "tsc"
+            ]
+          ],
+          "required_executable": "pnpm",
+          "distributions": [],
+          "resolution": "resolved",
+          "leaf_commands": [
+            {
+              "argv": [
+                "tsc",
+                "--noEmit"
+              ],
+              "working_directory": "extension"
+            }
+          ]
+        },
+        {
+          "command_id": "web_typecheck",
+          "argv": [
+            "pnpm",
+            "--dir",
+            "web",
+            "exec",
+            "tsc",
+            "--noEmit"
+          ],
+          "working_directory": ".",
+          "source_refs": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "app/package.json",
+              "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "extension/package.json",
+              "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "package.json",
+              "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-lock.yaml",
+              "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "pnpm-workspace.yaml",
+              "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+              "parser": "node-toolchain-v4"
+            },
+            {
+              "path": "web/package.json",
+              "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+              "parser": "node-toolchain-v4"
+            }
+          ],
+          "chain": [
+            "web:tsc --noEmit"
+          ],
+          "entrypoints": [
+            [
+              ".",
+              "pnpm"
+            ],
+            [
+              "web",
+              "tsc"
+            ]
+          ],
+          "required_executable": "pnpm",
+          "distributions": [],
+          "resolution": "resolved",
+          "leaf_commands": [
+            {
+              "argv": [
+                "tsc",
+                "--noEmit"
+              ],
+              "working_directory": "web"
+            }
+          ]
+        }
+      ],
+      "declarations": [],
+      "evidence": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "app/package.json",
+          "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "extension/package.json",
+          "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "package.json",
+          "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "pnpm-lock.yaml",
+          "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+          "parser": "node-toolchain-v4"
+        },
+        {
+          "path": "web/package.json",
+          "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+          "parser": "node-toolchain-v4"
+        }
+      ],
+      "preparation": {
+        "independent_directories": [],
+        "toolchain_declarations": [
+          {
+            "tool": "pnpm",
+            "range": "10",
+            "action": "pnpm/action-setup@v4",
+            "input": "version",
+            "path": ".github/workflows/ci.yml",
+            "line": 16,
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+          },
+          {
+            "tool": "node",
+            "range": "22",
+            "action": "actions/setup-node@v4",
+            "input": "node-version",
+            "path": ".github/workflows/ci.yml",
+            "line": 20,
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+          }
+        ]
+      },
+      "unresolved": [],
+      "admission": "static_admitted",
+      "expected_failures": {}
+    },
+    "verification_contract_hash": "e5d143bf2b6a5ddec2446df574a8d3324cd4287b73c999cf0be56239bb5d09de",
+    "readiness": {
+      "static_admitted": true,
+      "toolchain_prepared": "unverified",
+      "baseline_verified": "unverified"
+    }
+  },
+  "preflight": {
+    "version": "execution-capabilities-v3",
+    "status": "ready",
+    "issues": [],
+    "environment": {
+      "status": "supported",
+      "ecosystem": "node",
+      "mode": "workspace-v2",
+      "preparation_version": "node-workspace-preparation-v1",
+      "project_directory": ".",
+      "manifests": [
+        ".github/workflows/ci.yml",
+        "app/package.json",
+        "extension/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "web/package.json"
+      ],
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "change_paths": [
+        "extension/src/transcript-parser.ts",
+        "extension/src/hook-server.ts",
+        "web/hooks/simulation/handle-tool-events.ts",
+        "web/hooks/simulation/types.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/handle-tool-events.test.ts",
+        "extension/test/transcript-parser.test.ts",
+        "extension/test/hook-server.test.ts"
+      ],
+      "reason": "按项目声明选择运行时和包管理器，冻结完整工作区依赖；独立离线构建后，先运行修改前测试，再实施及离线验证。",
+      "manifest_hashes": {
+        ".github/workflows/ci.yml": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+        "app/package.json": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+        "extension/package.json": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+        "package.json": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+        "pnpm-workspace.yaml": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+        "web/package.json": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb"
+      },
+      "node_environment": {
+        "version": "node-environment-v2",
+        "manager": "pnpm",
+        "manager_version": "",
+        "runtime_requirement": "22",
+        "runtime_pin": "",
+        "project_directory": ".",
+        "package_roots": [
+          ".",
+          "extension",
+          "web"
+        ],
+        "linker": "node-modules",
+        "workspace_lifecycle": [],
+        "registry": "https://registry.npmjs.org",
+        "manager_constraint": ">=1.0.0 10",
+        "lockfile": "pnpm-lock.yaml",
+        "lock_strategy": "existing"
+      },
+      "capability_version": "node-environment-v2",
+      "ci_toolchains": {
+        "version": "node-ci-toolchains-v1",
+        "manager": [
+          "10"
+        ],
+        "runtime": [
+          "22"
+        ],
+        "declarations": [
+          {
+            "tool": "pnpm",
+            "range": "10",
+            "action": "pnpm/action-setup@v4",
+            "input": "version",
+            "path": ".github/workflows/ci.yml",
+            "line": 16,
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+          },
+          {
+            "tool": "node",
+            "range": "22",
+            "action": "actions/setup-node@v4",
+            "input": "node-version",
+            "path": ".github/workflows/ci.yml",
+            "line": 20,
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+          }
+        ],
+        "sources": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+            "parser": "node-ci-toolchains-v1"
+          }
+        ]
+      },
+      "environment_engine": {
+        "version": "upeve-v1",
+        "target_platform": "linux/arm64"
+      },
+      "verification_contract": {
+        "version": "verification-environment-contract-v1",
+        "binding": {
+          "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+          "snapshot_hash": "5db57facb4415022a4a1b0f682c10d065469ae3ae87d8b81c7298c589af17e74",
+          "source_archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+          "base_commit_sha": "3489e17c48985b74fdb42cde122376b1eb12d8a7",
+          "plan_version_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+          "approved_commands_hash": "242e269eb003566833727789906fc3dd7a128b12764c4e4aeceec1296c66e22b",
+          "target_platform": "linux/arm64",
+          "runner_image_digest": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+          "sandbox_policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086"
+        },
+        "resolver_versions": {
+          "engine": "upeve-v1",
+          "adapter": "node-toolchain-v4"
+        },
+        "commands": [
+          {
+            "command_id": "root_tests",
+            "argv": [
+              "pnpm",
+              "test"
+            ],
+            "working_directory": ".",
+            "source_refs": [
+              {
+                "path": ".github/workflows/ci.yml",
+                "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "app/package.json",
+                "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "extension/package.json",
+                "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "package.json",
+                "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-lock.yaml",
+                "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-workspace.yaml",
+                "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "web/package.json",
+                "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+                "parser": "node-toolchain-v4"
+              }
+            ],
+            "chain": [
+              "package.json#test",
+              ".:node --import tsx --test 'scripts/**/*.test.ts' 'app/src/**/*.test.ts' 'web/hooks/**/*.test.ts' 'web/lib/**/*.test.ts'"
+            ],
+            "entrypoints": [
+              [
+                ".",
+                "node"
+              ],
+              [
+                ".",
+                "pnpm"
+              ]
+            ],
+            "required_executable": "pnpm",
+            "distributions": [],
+            "resolution": "resolved",
+            "leaf_commands": [
+              {
+                "argv": [
+                  "node",
+                  "--import",
+                  "tsx",
+                  "--test",
+                  "scripts/**/*.test.ts",
+                  "app/src/**/*.test.ts",
+                  "web/hooks/**/*.test.ts",
+                  "web/lib/**/*.test.ts"
+                ],
+                "working_directory": "."
+              }
+            ]
+          },
+          {
+            "command_id": "extension_tests",
+            "argv": [
+              "pnpm",
+              "--dir",
+              "extension",
+              "test"
+            ],
+            "working_directory": ".",
+            "source_refs": [
+              {
+                "path": ".github/workflows/ci.yml",
+                "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "app/package.json",
+                "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "extension/package.json",
+                "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "package.json",
+                "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-lock.yaml",
+                "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-workspace.yaml",
+                "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "web/package.json",
+                "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+                "parser": "node-toolchain-v4"
+              }
+            ],
+            "chain": [
+              "extension/package.json#test",
+              "extension:tsx --test 'test/**/*.test.ts'"
+            ],
+            "entrypoints": [
+              [
+                ".",
+                "pnpm"
+              ],
+              [
+                "extension",
+                "tsx"
+              ]
+            ],
+            "required_executable": "pnpm",
+            "distributions": [],
+            "resolution": "resolved",
+            "leaf_commands": [
+              {
+                "argv": [
+                  "tsx",
+                  "--test",
+                  "test/**/*.test.ts"
+                ],
+                "working_directory": "extension"
+              }
+            ]
+          },
+          {
+            "command_id": "extension_lint",
+            "argv": [
+              "pnpm",
+              "--filter",
+              "agent-flow",
+              "run",
+              "lint"
+            ],
+            "working_directory": ".",
+            "source_refs": [
+              {
+                "path": ".github/workflows/ci.yml",
+                "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "app/package.json",
+                "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "extension/package.json",
+                "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "package.json",
+                "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-lock.yaml",
+                "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-workspace.yaml",
+                "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "web/package.json",
+                "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+                "parser": "node-toolchain-v4"
+              }
+            ],
+            "chain": [
+              "pnpm#filter=agent-flow@cwd=extension",
+              "extension/package.json#lint",
+              "extension:tsc --noEmit"
+            ],
+            "entrypoints": [
+              [
+                ".",
+                "pnpm"
+              ],
+              [
+                "extension",
+                "tsc"
+              ]
+            ],
+            "required_executable": "pnpm",
+            "distributions": [],
+            "resolution": "resolved",
+            "leaf_commands": [
+              {
+                "argv": [
+                  "tsc",
+                  "--noEmit"
+                ],
+                "working_directory": "extension"
+              }
+            ]
+          },
+          {
+            "command_id": "web_typecheck",
+            "argv": [
+              "pnpm",
+              "--dir",
+              "web",
+              "exec",
+              "tsc",
+              "--noEmit"
+            ],
+            "working_directory": ".",
+            "source_refs": [
+              {
+                "path": ".github/workflows/ci.yml",
+                "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "app/package.json",
+                "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "extension/package.json",
+                "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "package.json",
+                "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-lock.yaml",
+                "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "pnpm-workspace.yaml",
+                "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+                "parser": "node-toolchain-v4"
+              },
+              {
+                "path": "web/package.json",
+                "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+                "parser": "node-toolchain-v4"
+              }
+            ],
+            "chain": [
+              "web:tsc --noEmit"
+            ],
+            "entrypoints": [
+              [
+                ".",
+                "pnpm"
+              ],
+              [
+                "web",
+                "tsc"
+              ]
+            ],
+            "required_executable": "pnpm",
+            "distributions": [],
+            "resolution": "resolved",
+            "leaf_commands": [
+              {
+                "argv": [
+                  "tsc",
+                  "--noEmit"
+                ],
+                "working_directory": "web"
+              }
+            ]
+          }
+        ],
+        "declarations": [],
+        "evidence": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "app/package.json",
+            "sha256": "04c4e71121916029d27a33201a8db007357c77884fd8fc474b5d4ad09c5e9c4a",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "extension/package.json",
+            "sha256": "632352a9ef40b70fe0ef1cee127eeb011c4bb024e050aa589e81a2eb37c65891",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "package.json",
+            "sha256": "a34610229832a200854c8b9dbe1c6913b93c106895e1e16fae74741d85867ccb",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "pnpm-lock.yaml",
+            "sha256": "d5115f79ff9b073e1f88e957a49270238235c7729eb89b13f1ef2465c513596d",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "pnpm-workspace.yaml",
+            "sha256": "38301d0e9971afcd9a1a7fad283880410a8adac35a1124c9b4f4ca4f3b6775e5",
+            "parser": "node-toolchain-v4"
+          },
+          {
+            "path": "web/package.json",
+            "sha256": "80fc14eaefe0b8996a931f319c9d85bb54244d4866f67a9cf75655223e52cedb",
+            "parser": "node-toolchain-v4"
+          }
+        ],
+        "preparation": {
+          "independent_directories": [],
+          "toolchain_declarations": [
+            {
+              "tool": "pnpm",
+              "range": "10",
+              "action": "pnpm/action-setup@v4",
+              "input": "version",
+              "path": ".github/workflows/ci.yml",
+              "line": 16,
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+            },
+            {
+              "tool": "node",
+              "range": "22",
+              "action": "actions/setup-node@v4",
+              "input": "node-version",
+              "path": ".github/workflows/ci.yml",
+              "line": 20,
+              "sha256": "b42efb81117c51ee65630a501a968726ddb111e7e81e478b8648309bee204deb"
+            }
+          ]
+        },
+        "unresolved": [],
+        "admission": "static_admitted",
+        "expected_failures": {}
+      },
+      "verification_contract_hash": "e5d143bf2b6a5ddec2446df574a8d3324cd4287b73c999cf0be56239bb5d09de",
+      "readiness": {
+        "static_admitted": true,
+        "toolchain_prepared": "unverified",
+        "baseline_verified": "unverified"
+      }
+    },
+    "input_hash": "c843664bce6ac7d48f686ce743d5089c8a615d2a913c207fa30f128a5d01791c",
+    "limits": {
+      "coding_file_bytes": 700000,
+      "coding_context_bytes": 1500000
+    },
+    "readiness": {
+      "static_admitted": true,
+      "toolchain_prepared": "unverified",
+      "baseline_verified": "unverified"
+    },
+    "readiness_label": "static_admitted",
+    "agent_model_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "c28c466b892af0b28c6cb7635c5f7c14b175b1b098c59cfff16e98de28c2ff8c"
+    },
+    "report_hash": "0c9746b76da8b221b853ae7e38b84491cfed3cfd243f51fbe72afcf3cd809b76"
+  },
+  "preflight_hash": "0c9746b76da8b221b853ae7e38b84491cfed3cfd243f51fbe72afcf3cd809b76",
+  "execution_revision": "123f665bfe9ed6f2d5b384a7c947c420cbe5b9dbe7beaf0c857549a5cc9c3a31",
+  "context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+  "planning_budget": {
+    "version": "planning-budget-v1",
+    "revision": "a15f05c6592210065b6aeedbad89cbc8d2513722e3e7ae35558e1aff94cdf0d9",
+    "record_hash": "a377b5d6ba7f0945842e695650caa4490c6d876253a7de9cb0e3be180aa50c42",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 250000
+    },
+    "usage": {
+      "calls": 64,
+      "input_tokens": 1639419,
+      "output_tokens": 166739
+    },
+    "remaining": {
+      "calls": 0,
+      "input_tokens": 1010581,
+      "output_tokens": 42301
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "additional_run_limits_pending_consent": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "review_bounds": {
+    "max_input_bytes": 1800000,
+    "max_job_attempts": 3,
+    "job_timeout_seconds": 300,
+    "per_call_output_tokens": 16384,
+    "note": "Independent Review retains its separate evidence-bound job/Profile. At most two code repairs under this exact authorization; original per-stage limits remain."
+  },
+  "allowed_actions_only_after_new_execution_consent": [
+    "fresh preparation and original four Baseline commands",
+    "native Investigation and same-scope Patch",
+    "all four approved checks on latest source",
+    "at most two code repairs",
+    "independent evidence-bound Review",
+    "stop for Human Acceptance"
+  ],
+  "success_conditions": [
+    "new preparation and four Baseline checks pass",
+    "native Investigation reaches real same-scope Patch",
+    "all four approved checks pass on current patched source",
+    "independent evidence-bound Review completes",
+    "stop at Human Acceptance"
+  ],
+  "batch_coverage_condition": "If the model emits no 5-to-8 read_file proposal, report real batch coverage as not_observed; never buy an automatic retry to force it.",
+  "execution_conditions": [
+    "fresh one-time human consent bound to this exact preview Hash, actual Plan and Binding",
+    "recheck issue body and base SHA, source/images/models/transport/policy/scopes/budgets before dispatch",
+    "current preflight/revision must match; changed frozen inputs require another preview",
+    "fresh preparation and original four Baseline commands before native implementation",
+    "stop safely on failure, unknown result, stale input or any limit; no automatic extra paid rerun",
+    "no reuse of old terminal authority, usage or reservations; no paid Planner"
+  ],
+  "future_execution_request": {
+    "method": "POST",
+    "path": "/api/v1/tasks/f0e017fa-d2a6-4eb8-8a94-32bb1d29586c/workbench/execute",
+    "idempotency_key": "harness-rb-plan13-execute-once",
+    "body": {
+      "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+      "plan_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+      "approve_plan": true,
+      "start_execution": true,
+      "max_repairs": 2,
+      "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+      "model_transport_hash": "bc1d221e9b696c88d35a36c4862e143c148636bc83eeae3b85ee08475fe10260",
+      "conversation": true
+    },
+    "sent": false
+  },
+  "historical_checkpoints_unchanged": true,
+  "historical_budget_limits_usage_and_holds_unchanged": true,
+  "all_preexisting_database_rows_preserved": true,
+  "history_before_count": 1942,
+  "history_after_count": 1946,
+  "counts_before": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 86,
+    "execution_authorizations": 10,
+    "plan_approvals": 10,
+    "task_events": 1942,
+    "artifacts": 1581
+  },
+  "counts_after": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 86,
+    "execution_authorizations": 10,
+    "plan_approvals": 10,
+    "task_events": 1946,
+    "artifacts": 1581
+  },
+  "new_model_calls": 0,
+  "execution_approved": false,
+  "execution_started": false,
+  "new_execution_authorization_hash": "not_created_pending_new_human_confirmation",
+  "new_attempt_id": "not_created",
+  "new_diff_test_review_hashes": "not_created",
+  "third_party_writes_approved": false,
+  "Push_PR_comments": false,
+  "Linux_amd64_gate": "not_run_still_open",
+  "HR4_HR5": "not_passed",
+  "proposal_hash": "c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c"
+}

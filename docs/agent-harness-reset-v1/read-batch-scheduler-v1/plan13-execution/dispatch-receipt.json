@@ -1,0 +1,17 @@
+{
+  "version": "native-read-batch-plan13-dispatch-receipt-v1",
+  "recorded_at": "2026-11-05T07:14:48.977929+00:00",
+  "proposal_hash": "c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c",
+  "approval_hash": "f53731d9d39745b5d1587ff4f3dcf87b9a6a67a5afabc27a37201aaa933ca418",
+  "intent_hash": "f1feeec7ee13ffd7698b157c9d21c2ad72853c91ef60885f1e2c9751a9f29fb2",
+  "job": {
+    "id": "ed9389d3-1c65-4c41-9311-fc7e1ecc0f7a",
+    "kind": "contribution_start",
+    "state": "queued"
+  },
+  "HTTP_status": 202,
+  "single_execution_POST": true,
+  "automatic_extra_run": false,
+  "third_party_writes": 0,
+  "receipt_hash": "b598018655c532170cb1ba4ee3b399246bf309b0fb8b56ba626695699bd72129"
+}

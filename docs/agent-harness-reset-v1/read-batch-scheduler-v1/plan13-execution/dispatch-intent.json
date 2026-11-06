@@ -1,0 +1,24 @@
+{
+  "version": "native-read-batch-plan13-dispatch-intent-v1",
+  "recorded_at": "2026-11-05T07:14:47.419544+00:00",
+  "proposal_hash": "c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c",
+  "approval_hash": "f53731d9d39745b5d1587ff4f3dcf87b9a6a67a5afabc27a37201aaa933ca418",
+  "task_id": "f0e017fa-d2a6-4eb8-8a94-32bb1d29586c",
+  "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+  "idempotency_key": "harness-rb-plan13-execute-once",
+  "body": {
+    "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+    "plan_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+    "approve_plan": true,
+    "start_execution": true,
+    "max_repairs": 2,
+    "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+    "model_transport_hash": "bc1d221e9b696c88d35a36c4862e143c148636bc83eeae3b85ee08475fe10260",
+    "conversation": true
+  },
+  "history_start_sequence": 1946,
+  "status": "submission_may_be_in_flight_reconcile_without_resubmission",
+  "automatic_retry": false,
+  "third_party_writes": 0,
+  "intent_hash": "f1feeec7ee13ffd7698b157c9d21c2ad72853c91ef60885f1e2c9751a9f29fb2"
+}

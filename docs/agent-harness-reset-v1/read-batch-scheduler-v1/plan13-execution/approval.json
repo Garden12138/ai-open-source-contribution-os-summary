@@ -1,0 +1,116 @@
+{
+  "version": "native-read-batch-plan13-human-execution-consent-v1",
+  "recorded_at": "2026-11-05T07:14:47.418885+00:00",
+  "proposal_hash": "c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c",
+  "actor": "human-user",
+  "source": "explicit_current_user_message",
+  "scope": "one_additional_bounded_real_acceptance_and_independent_review_only",
+  "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+  "plan_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+  "binding_hash": "bcbf07e445030ca723db34c272feecfb05776de94496cc7fe86a3f0e434ccbe2",
+  "model_identities": {
+    "implementation": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    },
+    "review": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    }
+  },
+  "model_binding_hash": "35237a2ad287596a5cd769489b65b640950210cdff57d4fb7799c2ada7d8a08b",
+  "model_transport_hash": "bc1d221e9b696c88d35a36c4862e143c148636bc83eeae3b85ee08475fe10260",
+  "new_run_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "review_bounds": {
+    "max_input_bytes": 1800000,
+    "max_job_attempts": 3,
+    "job_timeout_seconds": 300,
+    "per_call_output_tokens": 16384,
+    "note": "Independent Review retains its separate evidence-bound job/Profile. At most two code repairs under this exact authorization; original per-stage limits remain."
+  },
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "allowed_actions": [
+    "fresh preparation and original four Baseline commands",
+    "native Investigation and same-scope Patch",
+    "all four approved checks on latest source",
+    "at most two code repairs",
+    "independent evidence-bound Review",
+    "stop for Human Acceptance"
+  ],
+  "stop_at": "human_final_acceptance_or_existing_failure_or_budget_boundary",
+  "subsequent_paid_rounds_approved": false,
+  "old_authority_or_budget_reuse": false,
+  "Push_PR_comments_publication_approved": false,
+  "upstream_hash": "cc6bf30de41eb36fbb11388ff3a00efca84395a29fe02c675b01858ef4967788",
+  "runtime_source_hash": "9601fd8b2ca3c1e7b605633ba7a5e67491591d5a61ff05bf1de3590cca85860d",
+  "execution_revision": "123f665bfe9ed6f2d5b384a7c947c420cbe5b9dbe7beaf0c857549a5cc9c3a31",
+  "approval_hash": "f53731d9d39745b5d1587ff4f3dcf87b9a6a67a5afabc27a37201aaa933ca418"
+}

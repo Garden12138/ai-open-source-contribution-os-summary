@@ -1,0 +1,80 @@
+{
+  "version": "native-read-batch-bound-preview-audit-v1",
+  "recorded_at": "2026-11-05T06:43:13.189484+00:00",
+  "intent_hash": "a7b2f501f7320db06810b37c04816b0d973e3aaee595c8cd00aac94d2c402291",
+  "proposal_hash": "c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c",
+  "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+  "plan_record_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+  "plan_content_hash": "7bcea4e1ed4eae3712343c18825c358acbc9ce785c390507732b9ee2a8d664ed",
+  "plan_binding_hash": "bcbf07e445030ca723db34c272feecfb05776de94496cc7fe86a3f0e434ccbe2",
+  "upstream_record_hash": "4b49a932835150046649a3d1bbc8fc2a4a3c9e4e1c3221c61ba3a4883752509f",
+  "read_only_audit": true,
+  "source_and_five_deployed_roles_verified": true,
+  "plan_and_binding_verified_with_domain_readers": true,
+  "frozen_scopes_models_budgets_policy_unchanged": true,
+  "live_execution_revision_and_preflight_match": true,
+  "future_request_schema_validated_and_unsent": true,
+  "historical_checkpoints_hashes": {
+    "session-0a263d676341a8739957a20848022b88": "e3ee507edf00569f611ea6cf22365302649cf1a176441cff848a809a7b03f1bf",
+    "session-f70f65e95c116b9b26b24d9bc9e9d327": "e4fdb843302fdd450653d52d33b038a0ebf20aa56cb721bac49623d6d4a0b11b",
+    "session-64c9a659532deef8a11c9356bfcb290a": "6af242c9d58c277a8efd4fa66618c47e2d005992f1964ad57ecf638ce8622b9b",
+    "session-dcf70b2fce43b05ef4c709930be5acec": "337c6d0dbc77ccffc015b53b5a2d13562fbdcebaa0cb4f1faa94684205696e52",
+    "session-2949001857988865f22ded6c4460caae": "0e7dab62ddd8ae5d6e2e916ae16070714ec562b69b611a71544fa48592ce1206",
+    "session-dc66c2ae075cea16edec58f10a27d8ab": "106cdf14b2a614cef917d940b6a7d4997e9899cf0bc1e887ee503a7b4f56762b",
+    "session-2dd44f18b8adba684806de67cc01a327": "eaf60810a548d09cd9342e31124080483acf9b234528fe6d2dac2ae044690ea9",
+    "session-345b2c24d307d9e35767d4f34f34d672": "2648fd4039cfda718ad092932901eb4aa31cd201556cf2832c953b453e2c0f4b"
+  },
+  "historical_checkpoints_unchanged": true,
+  "all_preexisting_database_rows_unchanged": true,
+  "only_appended_tables": {
+    "contribution_task_state_versions": {
+      "before_count": 33,
+      "after_count": 34,
+      "preexisting_rows_unchanged": true,
+      "before_hash": "51184700f25cc30804b68d9b97a0d4061bc748706b7889b5f05a9846cb696a84",
+      "after_hash": "70cb5a2faea7f3a196e4a42840f9f3355e46cea24db14a6ebe9d4829edbb1317"
+    },
+    "plan_versions": {
+      "before_count": 12,
+      "after_count": 13,
+      "preexisting_rows_unchanged": true,
+      "before_hash": "b3af159c47ed4484ae1b95b8afc3c26a5ea1d0fa532f54bf8090d779790a0f16",
+      "after_hash": "b62e744278ca30517b15de7cb7ef4c8351789521474ffc0b8ec0b925099fc420"
+    },
+    "workbench_events": {
+      "before_count": 2248,
+      "after_count": 2252,
+      "preexisting_rows_unchanged": true,
+      "before_hash": "be0f364a4f6b86a53c6ca8001386d71fa98f6dad115881ea16056105fbae71c2",
+      "after_hash": "ed607886690909967b9266fda18c7022296d54b9ec23844c0526e5a9b5ab4d9e"
+    }
+  },
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 86,
+    "execution_authorizations": 10,
+    "plan_approvals": 10,
+    "task_events": 1946,
+    "artifacts": 1581
+  },
+  "artifact_hash_and_credentials_verified": 1581,
+  "integrity_check": "ok",
+  "foreign_key_violations": 0,
+  "audit_chain_valid": true,
+  "credential_scan": "passed",
+  "model_calls_by_preparation": 0,
+  "new_execution_authorizations": 0,
+  "new_execution_attempts": 0,
+  "new_jobs": 0,
+  "new_business_patch": false,
+  "execution_approved": false,
+  "new_run_budget_allocated": false,
+  "toolchain_preparation_and_baseline": "not_run_for_Plan13",
+  "Coding_Verify_Review": "not_run_for_Plan13",
+  "third_party_writes": 0,
+  "Push_PR_comments": false,
+  "Linux_amd64": "not_run_still_open",
+  "HR4_HR5": "not_passed",
+  "report_hash": "fbc86491c89657fe3571973860c9c7402de12b49f0f23240f86c1f0498a5e0f4"
+}
