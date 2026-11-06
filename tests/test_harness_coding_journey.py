@@ -85,6 +85,10 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
     with db.session() as session:
         wb = Workbench(session, settings.artifact_root)
         j = AgentJournal(wb, task, sid)
+        from app.agent_v2.coding_context import observe
+        coding, _ = observe(j)
+        assert coding['first_patch_round'] == 2
+        assert coding['next_action'] == 'human_acceptance'
         assert j.checkpoint().usage.get('code_repairs', 0) == int(repair)
         assert wb.latest(task, 'awaiting_acceptance')
         assert not wb.latest(task, 'execution_accepted') and not wb.latest(task, 'publication_confirmed')

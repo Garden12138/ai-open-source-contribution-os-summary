@@ -17,7 +17,7 @@ from app.security import SensitiveDataError, ensure_no_sensitive_data
 
 FINISH = "contribos_agent_finish"
 BLOCKED = "contribos_agent_blocked"
-NATIVE_PROMPT_VERSION = "native-read-capacity-v9"
+NATIVE_PROMPT_VERSION = "native-coding-loop-recovery-v10"
 NATIVE_HISTORY_WINDOW = 8
 NATIVE_INPUT_LIMIT = 32000
 NATIVE_FEEDBACK_PAGE_LIMITS = (8192, 4096, 2048, 1024, 512, 256, 128, 64, 0)
@@ -112,15 +112,16 @@ def native_tool_definitions() -> list[dict[str, Any]]:
 def native_model_transport() -> ModelTransport:
     from app.agent_v2.read_progress import POLICY as read_progress_policy
     from app.agent_v2.progress import POLICY as implementation_progress_policy
+    from app.agent_v2.coding_context import POLICY as coding_policy
     return ModelTransport(tools_schema_hash=content_hash({"tools": native_tool_definitions(), "instruction": INSTRUCTION,
         "max_calls": 4, "read_batch_scheduler": READ_BATCH_POLICY,
         "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
-            "task_input": {"strategy": "complete_if_admitted", "max_input_bound": NATIVE_INPUT_LIMIT},
+            "task_input": {"strategy": "complete_without_source_else_exact_brief", "max_input_bound": NATIVE_INPUT_LIMIT},
             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
                 "minimum_feedback_before_inline_task": NATIVE_MIN_FEEDBACK_BYTES, "read_ranges": "source_bound"},
             "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn",
             "source_read_progress": read_progress_policy,
-            "implementation_progress": implementation_progress_policy}}))
+            "implementation_progress": implementation_progress_policy, "coding_progress": coding_policy}}))
 
 
 def require_native_transport(value: ModelTransport | dict) -> ModelTransport:
@@ -182,7 +183,7 @@ def _feedback_page(receipt: dict, limit: int) -> dict:
 
 
 def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str | None = None,
-                         task_input: dict | None = None) -> dict:
+                         task_input: dict | None = None, source_pages: list[dict] | None = None) -> dict:
     """Reference registered schemas and full immutable receipts without duplication."""
     if spec.model_transport is None:
         return prompt
@@ -221,8 +222,83 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
                 "instruction": "Read the approved plan and Issue using read_artifact before implementing; a goal alone is not the complete acceptance contract."}
         complete = {**projected, "approved_task_input": task_input,
             "feedback": [_feedback_page(row, NATIVE_MIN_FEEDBACK_BYTES) for row in feedback]}
-        if native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
+        if not source_pages and native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
             projected = complete
+        elif source_pages:
+            from app.agent_v2.coding_context import task_brief
+            projected["approved_task_input"] = task_brief(task_input, prompt["task_context_artifact"])
+            if projected["approved_task_input"]["brief"].get("goal") == prompt.get("goal"):
+                projected["approved_task_input"]["brief"].pop("goal")
+    if source_pages:
+        # Receipts stay individually recoverable in original order. Spend body
+        # space on verified source rather than duplicated Plan/progress JSON.
+        projected["history_index"] = [{k: v for k, v in row.items() if k != "content_hash"}
+            for row in projected["history_index"]]
+        projected["recent_decisions"] = projected.get("recent_decisions", [])[-1:]
+        if projected.get("implementation_progress"):
+            projected["implementation_progress"] = {**projected["implementation_progress"],
+                "instruction": "Follow next_action and coding. Patch only with source evidence; otherwise recover specific missing evidence or report a blocker. No new scope or budget."}
+        if isinstance(projected.get("source_files"), dict):
+            projected["source_files"] = {k: v for k, v in projected["source_files"].items()
+                if k not in {"instruction", "planned_write_paths"}}
+        projected["feedback"] = []
+        for row in feedback:
+            value = _feedback_page(row, 0)
+            if row.get("data", {}).get("tool") in {"read_file", "read_artifact"} and row.get("status") == "succeeded":
+                data = row["data"]
+                value = {k: row[k] for k in ("receipt_artifact", "call_id", "status", "output_source_hash")}
+                if row.get("failure") is not None:
+                    value["failure"] = row["failure"]
+                value["data"] = {k: data[k] for k in ("tool", "path", "artifact_id", "offset", "next_offset", "total_bytes") if k in data}
+                if data["tool"] == "read_artifact":
+                    # An explicitly requested recovery page must still arrive.
+                    # Keep its true byte offset and continuation, even when the
+                    # requested artifact is the Plan rather than source.
+                    value = _feedback_page(row, 1024)
+            projected["feedback"].append(value)
+        # One recently observed page per path/range, preferring approved paths.
+        # Start at a not-yet-delivered byte when available; all excerpts remain
+        # byte-exact, including UTF-8 boundaries. No new tool read is invented.
+        index = prompt.get("implementation_progress", {}).get("coding", {}).get("source_index", [])
+        selected, paths = [], set()
+        from app.agent_v2.coding_context import POLICY as coding_policy
+        for page in source_pages:
+            if page["path"] in paths:
+                continue
+            if len(paths) >= coding_policy["working_set_max_files"]:
+                break
+            paths.add(page["path"])
+            ranges = next((r["delivered"] for r in index if r["path"] == page["path"] and r["content_hash"] == page["content_hash"]), [])
+            start = page["offset"]
+            for lo, hi in ranges:
+                if lo <= start < hi:
+                    start = hi
+            raw = page["text"].encode()
+            if start >= page["offset"] + len(raw):
+                start = page["offset"]
+            local = start - page["offset"]
+            # Advancing to a whole UTF-8 character does not claim the skipped
+            # continuation bytes as delivered.
+            while local < len(raw) and raw[local] & 0xC0 == 0x80:
+                local += 1
+            selected.append((page, local))
+        for limit in coding_policy["source_page_limits"]:
+            working = []
+            for page, local in selected:
+                text = page["text"].encode()[local:local + limit].decode("utf-8", errors="ignore")
+                end = page["offset"] + local + len(text.encode())
+                working.append({"receipt_artifact": page["receipt_artifact"], "path": page["path"],
+                    "offset": page["offset"] + local, "text": text, "total_bytes": page["total_bytes"],
+                    "next_offset": end if end < page["total_bytes"] else None})
+                note = page.get("read_progress_note")
+                if note and note["prior_same_range_reads"] > 0:
+                    working[-1].update(source_read_progress=note, output_source_hash=page["source_hash"])
+            candidate = {**projected, "source_working_set": working}
+            if native_input_bound(candidate) <= NATIVE_INPUT_LIMIT:
+                return candidate
+        # Metadata can itself fill the bound. Keep exact mandatory facts and
+        # let the worker fail closed; never silently lose authority or absence.
+        return {**projected, "source_working_set": []}
     full = {**projected, "feedback": feedback}
     if native_input_bound(full) <= NATIVE_INPUT_LIMIT:
         return full

@@ -135,8 +135,15 @@ def test_real_saved_envelopes_split_and_aggregate_original_order(tmp_path, index
         assert len(prompt['feedback']) == count and prompt['read_batch_observation']['status'] == 'completed'
         assert [f['receipt_artifact'] for f in prompt['feedback']] == aggregate.payload['receipts']
         for f in prompt['feedback']:
-            text = f['data']['text'];d=f['data'];end=d['offset']+len(text.encode())
+            original = j.wb.read(f['receipt_artifact'])
+            assert f['status'] == original['status']
+            text = original['data']['text'];d=original['data'];end=d['offset']+len(text.encode())
             assert d['next_offset'] == (end if end < d['total_bytes'] else None)
+        assert prompt['source_working_set']
+        for page in prompt['source_working_set']:
+            original = j.wb.read(page['receipt_artifact'])['data']
+            start = page['offset'] - original['offset']
+            assert page['text'].encode() == original['text'].encode()[start:start + len(page['text'].encode())]
     assert len(runner.prompts) == 1
 
 

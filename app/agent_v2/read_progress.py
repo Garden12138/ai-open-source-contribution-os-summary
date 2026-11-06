@@ -109,7 +109,23 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
         if event.kind != 'agent_v2_model_started':
             continue
         prompt = journal.wb.read(event.payload['prompt_artifact'])
-        for projected in prompt.get('feedback', []):
+        shown = list(prompt.get('feedback', []))
+        for page in prompt.get('source_working_set', []):
+            aid = page.get('receipt_artifact')
+            if aid not in by_id:
+                continue
+            raw, _ = by_id[aid]
+            text, offset = page.get('text'), page.get('offset')
+            if not isinstance(text, str) or type(offset) is not int:
+                continue
+            start = offset - raw.data['offset']
+            if start < 0 or raw.data['text'].encode()[start:start + len(text.encode())] != text.encode():
+                continue
+            # The exact note must be actually present, not merely reachable by
+            # hash. Its receipt binds the file hash and current workspace.
+            shown.append({'receipt_artifact': aid, 'output_source_hash': page.get('output_source_hash'),
+                'data': {**page, 'content_hash': raw.data['content_hash']}})
+        for projected in shown:
             aid = projected.get('receipt_artifact')
             if aid not in by_id:
                 continue

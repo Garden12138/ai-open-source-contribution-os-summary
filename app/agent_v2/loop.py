@@ -220,6 +220,11 @@ def prompt_for(journal: AgentJournal) -> dict:
         prompt["source_files"] = file_context(journal, snapshot, inputs["approved_plan"]["files_to_inspect"])
     from app.agent_v2.progress import prompt_progress
     progress = prompt_progress(journal)
+    source_pages = None
+    if native and progress is not None:
+        from app.agent_v2.coding_context import observe
+        coding, source_pages = observe(journal)
+        progress["coding"] = coding
     if progress is not None:
         prompt["implementation_progress"] = progress
     batch_result = next((e for e in reversed(journal.events()) if e.kind in {
@@ -233,7 +238,8 @@ def prompt_for(journal: AgentJournal) -> dict:
     if spec.model_transport is not None and len(index) > NATIVE_HISTORY_WINDOW:
         history_artifact = journal.wb.artifact({"version": "agent-tool-history-index-v1", "session_id": journal.session_id,
             "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": cp.source_hash, "rows": index})
-    return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs)
+    return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs,
+        source_pages=source_pages)
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:
@@ -274,6 +280,15 @@ class AgentModelWorker(WorkbenchJobWorker):
             cp = journal.checkpoint()
             if cp.state != "ready" or cp.revision != job.payload["checkpoint_hash"]:
                 raise WorkbenchError("模型回合已过期。", code="agent_checkpoint_stale")
+            if spec.model_transport is not None:
+                from app.agent_v2.coding_context import observe
+                coding, _ = observe(journal)
+                if coding["stop_required"]:
+                    info = failure(journal, "budget", "agent_coding_stalled", "inspect_coding_evidence_and_replan")
+                    journal.append("blocked", {"failure": info.model_dump(), "coding_progress": coding},
+                        key="coding-stall:" + job.id, job_id=job.id)
+                    journal.transition(cp, state="blocked", key="coding-stall-cp:" + job.id, job_id=job.id)
+                    return self.finish(s, job, {"state": "blocked", "reason_code": info.safe_reason_code})
             prompt = prompt_for(journal)
             adapter = self.adapter_factory(s, spec)
             bound = (adapter.input_bound(prompt) if hasattr(adapter, "input_bound") else

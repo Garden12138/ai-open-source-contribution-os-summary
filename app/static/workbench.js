@@ -494,6 +494,10 @@ export function mountContributionWorkbench(root, taskId, options) {
     if (progress) {
       const phases = {investigating:"调查中",implementing:"实现中",verifying:"验证中",repairing:"修复中",reviewing:"等待独立审查",ready_for_human:"等待人工验收",blocked:"进度已阻塞"};
       drawerBody.append(node("p", `实施进度：${phases[progress.phase] || progress.phase} · 连续无进展回合 ${progress.no_progress_streak}`));
+      if (progress.coding) {
+        const coding = progress.coding;
+        drawerBody.append(node("p", `编码推进：连续 ${coding.rounds_without_applied_patch} 轮未应用修改 · 可用源码 ${coding.available_source_bytes} 字节 · 已送达模型 ${coding.delivered_source_bytes} 字节 · 重叠读取 ${coding.overlapping_source_reads} 次`));
+      }
     }
     const timeline = node("ol"); timeline.setAttribute("aria-label", "工具时间线");
     for (const event of runtime.timeline || []) {

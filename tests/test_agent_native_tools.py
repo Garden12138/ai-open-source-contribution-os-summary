@@ -55,12 +55,13 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
     assert native_model_transport().tools_schema_hash == content_hash({"tools": definitions, "instruction": INSTRUCTION,
         "max_calls": 4, "read_batch_scheduler": __import__("app.agent_v2.read_batches", fromlist=["POLICY"]).POLICY,
         "prompt_projection": {"version": NATIVE_PROMPT_VERSION, "history_window": NATIVE_HISTORY_WINDOW,
-            "task_input": {"strategy": "complete_if_admitted", "max_input_bound": 32000},
+            "task_input": {"strategy": "complete_without_source_else_exact_brief", "max_input_bound": 32000},
             "feedback": {"strategy": "latest_completed_batch", "page_limits": NATIVE_FEEDBACK_PAGE_LIMITS,
                 "minimum_feedback_before_inline_task": 8192, "read_ranges": "source_bound"},
             "protocol_rejections": "latest_committed_receipt_current_budget_until_next_valid_turn",
             "source_read_progress": __import__("app.agent_v2.read_progress", fromlist=["POLICY"]).POLICY,
-            "implementation_progress": __import__("app.agent_v2.progress", fromlist=["POLICY"]).POLICY}})
+            "implementation_progress": __import__("app.agent_v2.progress", fromlist=["POLICY"]).POLICY,
+            "coding_progress": __import__("app.agent_v2.coding_context", fromlist=["POLICY"]).POLICY}})
 
 
 def test_known_calls_are_typed_namespaced_and_never_expose_private_reasoning():

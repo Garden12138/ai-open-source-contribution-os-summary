@@ -145,6 +145,8 @@ def test_runtime_exposes_task_scoped_progress_and_response_artifacts(tmp_path):
         route = f'/api/v1/tasks/{task}/workbench/runtime'
         view = client.get(route).json()
         assert view['implementation_progress']['revision'] >= 2
+        assert view['implementation_progress']['coding']['rounds_without_applied_patch'] == 1
+        assert view['implementation_progress']['coding']['delivered_source_bytes'] == 0
         for event in view['timeline']:
             if event['kind'] not in {'agent_v2_model_response', 'agent_v2_progress'}:
                 continue

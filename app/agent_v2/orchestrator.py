@@ -122,8 +122,14 @@ def runtime_view(wb: Workbench, task_id: str) -> dict | None:
     from app.agent_v2.metrics import journey_metrics
     from app.agent_v2.progress import current_progress
     progress = current_progress(journal)
+    progress_view = progress.model_dump() if progress else None
+    if progress_view is not None:
+        from app.agent_v2.native_tools import native_model_transport
+        if journal.spec().model_transport == native_model_transport():
+            from app.agent_v2.coding_context import observe
+            progress_view["coding"] = observe(journal)[0]
     metrics = journey_metrics(wb, task_id)
     return {"version": "agent-runtime-v2", "session_id": journal.session_id,
             "checkpoint": cp.model_dump(), "remaining_budget": journal.remaining(), "timeline": timeline,
-            "implementation_progress": progress.model_dump() if progress else None,
+            "implementation_progress": progress_view,
             "metrics": metrics, "native_journey_completed": bool(metrics["native_journey_completed"])}
