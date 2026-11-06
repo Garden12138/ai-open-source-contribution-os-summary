@@ -1,0 +1,85 @@
+{
+  "version": "read-capacity-legacy-audit-v1",
+  "classification": "real_business_database_query_only",
+  "before_hash": "3c3c4c7244c3a639a50c38d97254c52400ab7d7a24821490cfed3ec23bb7009e",
+  "after_hash": "34db2a17fe6ca5bd5395a9d440bacdc70f522be53558dc2dae8ecd31590c9d7a",
+  "all_old_rows_preserved": true,
+  "old_task_events_preserved": 2090,
+  "old_checkpoints_preserved": 10,
+  "all_old_budgets_and_terminal_states_unchanged": true,
+  "model_profiles_and_identities_unchanged": true,
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 91,
+    "execution_authorizations": 12,
+    "plan_approvals": 12,
+    "task_events": 2090,
+    "artifacts": 1640
+  },
+  "plans": 14,
+  "only_schema_migration_appended": "0046_read_capacity",
+  "Plan15_created": false,
+  "Plan14_resumed": false,
+  "model_calls": 0,
+  "execution_approvals_added": 0,
+  "third_party_writes": 0,
+  "runner_image_unchanged": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "historical_Plans": [
+    {
+      "Plan": 11,
+      "session_id": "session-2dd44f18b8adba684806de67cc01a327",
+      "checkpoint_hash": "eaf60810a548d09cd9342e31124080483acf9b234528fe6d2dac2ae044690ea9",
+      "state": "blocked",
+      "usage": {
+        "model_calls": 14,
+        "input_tokens": 171256,
+        "output_tokens": 12756,
+        "reads": 43,
+        "output_bytes": 216162,
+        "protocol_repairs": 2
+      }
+    },
+    {
+      "Plan": 12,
+      "session_id": "session-345b2c24d307d9e35767d4f34f34d672",
+      "checkpoint_hash": "2648fd4039cfda718ad092932901eb4aa31cd201556cf2832c953b453e2c0f4b",
+      "state": "blocked",
+      "usage": {
+        "model_calls": 8,
+        "input_tokens": 137303,
+        "output_tokens": 15038,
+        "output_bytes": 87173,
+        "reads": 13,
+        "protocol_repairs": 2
+      }
+    },
+    {
+      "Plan": 13,
+      "session_id": "session-11901711068ace4c72aa1410a8847453",
+      "checkpoint_hash": "1a97a5545ab0e0e24dca816cfeeb7ce0af268e7c59b57836136d865a331f88f5",
+      "state": "blocked",
+      "usage": {
+        "model_calls": 2,
+        "input_tokens": 15882,
+        "output_tokens": 1164,
+        "output_bytes": 24369,
+        "reads": 12
+      }
+    },
+    {
+      "Plan": 14,
+      "session_id": "session-2f7eb4b35c9954bc3c1623c299cf8dde",
+      "checkpoint_hash": "bdde830d73deeffdd42b5c90abe1c764f68afcbd67147f7f4b33548a27523373",
+      "state": "blocked",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 46008,
+        "output_tokens": 4560,
+        "output_bytes": 35526,
+        "reads": 5
+      }
+    }
+  ],
+  "report_hash": "0dbbc8555f8a98dde9be88772ccfface53a8b5f802b26d7226fee2c2627a49cd"
+}

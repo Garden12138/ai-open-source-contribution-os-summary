@@ -6704,6 +6704,24 @@ HR4/5未通过；Plan14已按新的精确授权执行一次，Baseline4/4、模�
   核验2090任务事件/1640Artifact与28份导出JSON，全部旧行/9个Checkpoint/历史审批预算原样。
   Plan仍14、模型启动91、审批/授权各12、活动Job0；旧Plan13 reads12与Planning64/64/3未知占用保留。
   本轮授权已消费，未恢复Plan14、未另起付费轮次/Plan15、未修改冻结Runtime、未Push/PR/评论。
+- [x] **HR3-CAP** 2026-11-06用户单独授权的 Plan14 最小离线容量/输入投影修复完成。
+  [交付与证据](agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/README.md)
+  保留8-call/4-call/500000字节与原权限预算：OCI preflight-v3证明实际页序列化大小，
+  capacity-v1覆盖完整回执、进度、原文Artifact、有界失败及批次元数据，证明成功后才开始子批次。
+  修复失败回执记账后再修改预算快照造成的190字节口径差异，输出按最终持久化对象精确计费。
+  保存Plan12的6/5/5、Plan13的7成功+1not_found及Plan14的8大页均离线通过。
+  原页68338字节；完整下一轮输入重建31027/32000、正文1024字节，10次原文Artifact分页
+  加2次尾部read_file能恢复八文件完整Hash；未扩大上下文/Token，未假定模型记住旧Plan。
+  最终冻结源码31deb61b的全量2047通过/78跳过，额外两项唯一预算/事务回归通过；
+  当前平台OCI套件25通过（23实际OCI+2单元），确定性Investigation→Patch→Verify→Review→人工门禁通过。
+  迁移0046仅新增证据guard；五角色原权限重部署、四健康端点通过，44业务表/2090事件/10旧Checkpoint不变。
+  [旧任务审计](agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/legacy-audit.json)
+  证明Plan11/12/13/14仍blocked、历史费用/预算原样，模型启动91、授权/审批各12、Plan仍14、活动Job0。
+  离线验收时无付费模型/真实Issue Coding、无Plan15/新绑定、未恢复旧终态、未Commit/Push/PR/评论。
+  后续用户单独授权将既有源码/测试与验收文档分开本地Commit；不授权Push或任何新执行，
+  基线/测试/部署快照仍按原时点保留，Git整理记录见上述交付目录git-delivery-check.json。
+  仅允许审阅本地离线修复；后续独立绑定及真实模型执行须另获精确授权。
+  HR4/5的真实Patch/当前源码Verify/独立Review及原生Linux amd64门禁仍未通过。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
   [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、

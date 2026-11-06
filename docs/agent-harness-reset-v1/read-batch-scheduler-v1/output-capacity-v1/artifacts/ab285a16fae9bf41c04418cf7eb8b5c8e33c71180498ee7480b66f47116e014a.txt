@@ -1,0 +1,186 @@
+ound subagents still running at attach time, so the
+          // <task-notification> that arrives later can complete them.
+          if (entry.type === 'user' && entry.message) {
+            const notification = parseTaskNotification(userContentText(entry.message.content))
+            if (notification) { this.backgroundSubagents.delete(notification.toolUseId) }
+          }
+          // Build dedup sets for tool_use blocks and messages + accumulate token counts
+          const isUser = entry.message?.role === 'user' || entry.message?.role === 'human'
+          if (entry.message && Array.isArray(entry.message.content)) {
+            for (const block of entry.message.content) {
+              if (block.type === 'tool_use' && (block as ToolUseBlock).id) {
+                const toolBlock = block as ToolUseBlock
+                session.seenToolUseIds.add(toolBlock.id)
+                // Track subagent names so startWatchingSubagentFile assigns correct names
+                // and handleToolResult can resolve the child name on completion
+                if (toolBlock.name === 'Agent' || toolBlock.name === 'Task') {
+                  const childName = resolveSubagentChildName(toolBlock.input)
+                  session.spawnedSubagents.add(childName)
+                  this.subagentChildNames.set(toolBlock.id, childName)
+                }
+                // Track pending tool calls so handleToolResult works after reconnect
+                const args = summarizeInput(toolBlock.name, toolBlock.input)
+                const rawPath = toolBlock.input.file_path || toolBlock.input.path
+                const filePath = typeof rawPath === 'string' ? rawPath : undefined
+                session.pendingToolCalls.set(toolBlock.id, { name: toolBlock.name, args, filePath, startTime: Date.now() })
+              } else if (block.type === 'tool_result') {
+                const resultBlock = block as ToolResultBlock
+                const childName = resultBlock.tool_use_id ? this.subagentChildNames.get(resultBlock.tool_use_id) : undefined
+                if (childName && parseAgentToolUseResult(entry.toolUseResult).isAsync) {
+                  this.backgroundSubagents.set(resultBlock.tool_use_id, { childName, parent: ORCHESTRATOR_NAME, sessionId: session.sessionId })
+                }
+                // Clear matched pending tool call
+                if (resultBlock.tool_use_id) {
+                  session.pendingToolCalls.delete(resultBlock.tool_use_id)
+                }
+                // Accumulate tool result tokens
+                session.contextBreakdown.toolResults += estimateTokensFromContent(resultBlock.content)
+              } else if (block.type === 'text' && 'text' in block) {
+                const text = safeText(block)
+                if (text) {
+                  const emitRole = isUser ? 'user' : 'assistant'
+                  const hashKey = entry.uuid ? `${emitRole}:${entry.uuid}` : `${emitRole}:${text.slice(0, HASH_PREFIX_MAX)}`
+                  session.seenMessageHashes.add(hashKey)
+                  // Accumulate text tokens
+                  if (isUser) { session.contextBreakdown.userMessages += estimateTokensFromText(text) }
+                  else { session.contextBreakdown.reasoning += estimateTokensFromText(text) }
+                }
+              } else if (block.type === 'thinking' && 'thinking' in block) {
+                const thinking = safeThinking(block)
+                const redactedSig = thinking ? null : redactedThinkingSignature(block)
+                if (thinking || redactedSig) {
+                  session.seenMessageHashes.add(thinkingHashKey(entry.uuid, thinking || redactedSig || ''))
+                  if (thinking) { session.contextBreakdown.reasoning += estimateTokensFromText(thinking) }
+                }
+              }
+            }
+          } else if (entry.type === 'user' && typeof entry.message?.content === 'string') {
+            const text = entry.message.content.trim()
+            if (text) {
+              const hashKey = entry.uuid ? `user:${entry.uuid}` : `user:${text.slice(0, HASH_PREFIX_MAX)}`
+              session.seenMessageHashes.add(hashKey)
+              session.contextBreakdown.userMessages += estimateTokensFromText(text)
+            }
+          }
+          // Extract model from first assistant message
+          if (entry.type === 'assistant' && isRealModelId(entry.message?.model) && !session.model) {
+            session.model = entry.message.model
+          }
+          // Collect emittable entries (user and assistant turns)
+          if (entry.type === 'user' || entry.type === 'assistant') {
+            catchUpEntries.push(entry)
+          }
+        } catch (err) { log.debug('Skipping unparseable transcript line:', err) }
+      }
+      log.info(`Pre-scanned ${session.seenToolUseIds.size} existing tool_use IDs, ${catchUpEntries.length} entries total`)
+
+      return catchUpEntries
+    } catch (err) {
+      log.error('Pre-scan failed:', err)
+      return []
+    }
+  }
+
+  /** Emit message events for pre-existing transcript entries (catch-up on session detection).
+   *  Only emits the last user message (the current turn), not the full history. */
+  emitCatchUpEntries(entries: TranscriptEntry[], session: WatchedSession, sessionId: string): void {
+    // Find the last user entry — that's the current turn
+    let lastUserIndex = -1
+    for (let i = entries.length - 1; i >= 0; i--) {
+      if (entries[i].type === 'user') { lastUserIndex = i; break }
+    }
+    if (lastUserIndex === -1) { return }
+    const recentEntries = entries.slice(lastUserIndex)
+
+    for (const entry of recentEntries) {
+      const role = entry.type === 'user' ? 'user' : 'assistant'
+      const msg = entry.message
+      if (!msg) { continue }
+
+      // String content (common for user messages)
+      if (typeof msg.content === 'string' && msg.content.trim()) {
+        const text = msg.content.trim()
+        if (this.isSystemInjectedContent(text)) { continue }
+        this.delegate.emit({
+          time: 0,
+          type: 'message',
+          payload: { agent: ORCHESTRATOR_NAME, role, content: text.slice(0, MESSAGE_MAX) },
+        }, sessionId)
+        continue
+      }
+
+      // Array content (text blocks, thinking blocks, tool_use blocks)
+      if (!Array.isArray(msg.content)) { continue }
+      for (const block of msg.content) {
+        if (block.type === 'text' && 'text' in block) {
+          const text = safeText(block)
+          if (text && !this.isSystemInjectedContent(text)) {
+            this.delegate.emit({
+              time: 0,
+              type: 'message',
+              payload: { agent: ORCHESTRATOR_NAME, role, content: text.slice(0, MESSAGE_MAX) },
+            }, sessionId)
+          }
+        }
+      }
+    }
+  }
+
+  /** Extract a human-readable label from the first user message in transcript entries */
+  extractSessionLabel(entries: TranscriptEntry[], session: WatchedSession): void {
+    if (session.labelSet) return
+    for (const entry of entries) {
+      if (entry.type !== 'user') continue
+      const text = this.extractUserMessageText(entry)
+      if (text) {
+        session.label = this.truncateLabel(text)
+        session.labelSet = true
+        return
+      }
+    }
+  }
+
+  /** Extract text content from a user transcript entry, skipping system-injected tags */
+  extractUserMessageText(entry: TranscriptEntry): string | null {
+    const msg = entry.message
+    if (!msg) return null
+    if (typeof msg.content === 'string' && msg.content.trim()) {
+      const text = msg.content.trim()
+      if (!this.isSystemInjectedContent(text)) return text
+      return null
+    }
+    if (Array.isArray(msg.content)) {
+      for (const block of msg.content) {
+        if (block.type === 'text' && 'text' in block) {
+          const text = safeText(block)
+          if (text && !this.isSystemInjectedContent(text)) return text
+        }
+      }
+    }
+    return null
+  }
+
+  /** Check if text is system-injected context (not a real user/assistant message) */
+  isSystemInjectedContent(text: string): boolean {
+    return SYSTEM_CONTENT_PREFIXES.some(prefix => text.startsWith(prefix))
+  }
+
+  /** Truncate to first line, max chars — fits in a tab */
+  truncateLabel(text: string): string {
+    const firstLine = text.split('\n')[0].trim()
+    if (firstLine.length <= SESSION_LABEL_MAX) return firstLine
+    return firstLine.slice(0, SESSION_LABEL_TRUNCATED) + '..'
+  }
+
+  /** Update session label on first user message and notify the webview */
+  maybeSetSessionLabel(entry: TranscriptEntry, sessionId: string): void {
+    const session = this.delegate.getSession(sessionId)
+    if (!session || session.labelSet) return
+    if (entry.type !== 'user') return
+    const text = this.extractUserMessageText(entry)
+    if (!text) return
+    session.label = this.truncateLabel(text)
+    session.labelSet = true
+    this.delegate.fireSessionLifecycle({ type: 'updated', sessionId, label: session.label })
+  }
+}

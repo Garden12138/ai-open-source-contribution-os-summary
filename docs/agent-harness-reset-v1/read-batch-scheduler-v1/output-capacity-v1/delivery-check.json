@@ -1,0 +1,1356 @@
+{
+  "version": "capacity-delivery-check-v1",
+  "source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "proposed_files": [
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/.gitattributes",
+      "bytes": 185,
+      "sha256": "dedccbb979a76235302cb063fff6cb439910904f40fdd42e307567e481fe0157"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/README.md",
+      "bytes": 6797,
+      "sha256": "7e18aef65d5459365972d1fd8989b76ef293f14718d268e17c6fa7b29af3d3eb"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0103e1bb00fd04938c414a61a00ee53844c889bc0894ee5decbe2fc7d3fc6d3a.json",
+      "bytes": 5444,
+      "sha256": "0103e1bb00fd04938c414a61a00ee53844c889bc0894ee5decbe2fc7d3fc6d3a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/017b6a35a96eb26d6a6a572dcdc066d8ab6c368e1d86546042fb4c147490000a.json",
+      "bytes": 2850,
+      "sha256": "017b6a35a96eb26d6a6a572dcdc066d8ab6c368e1d86546042fb4c147490000a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0241fb294e6057ac72df8cd4b509774e4130622382227b3fdf0d12367317fbfe.json",
+      "bytes": 5447,
+      "sha256": "0241fb294e6057ac72df8cd4b509774e4130622382227b3fdf0d12367317fbfe"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/08808a3dbb5129f910b1bfa2c45db2641e81e333c09fcab1de7bea0f0e3585c1.txt",
+      "bytes": 4631,
+      "sha256": "08808a3dbb5129f910b1bfa2c45db2641e81e333c09fcab1de7bea0f0e3585c1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0c7259c8dee0b4795d08d6284b525ef616605896b1c2a058abe20cb0ccd8f416.json",
+      "bytes": 2032,
+      "sha256": "0c7259c8dee0b4795d08d6284b525ef616605896b1c2a058abe20cb0ccd8f416"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834.json",
+      "bytes": 226596,
+      "sha256": "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0e2614a65e8c9d6a7c917c0489580d6a2ecfc3b89f3403b25fa58ba760bf67fc.json",
+      "bytes": 1752,
+      "sha256": "0e2614a65e8c9d6a7c917c0489580d6a2ecfc3b89f3403b25fa58ba760bf67fc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0eecef57398a760cf67bcd7dbf10b508b404102c63e92a9c6905b585e55e901c.json",
+      "bytes": 1933,
+      "sha256": "0eecef57398a760cf67bcd7dbf10b508b404102c63e92a9c6905b585e55e901c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/0fe6312e23c3793d1fd91e2d337eac64d857362df6b8ec577d89a20bf46cea48.txt",
+      "bytes": 4096,
+      "sha256": "0fe6312e23c3793d1fd91e2d337eac64d857362df6b8ec577d89a20bf46cea48"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/110aa67f9149a8b5b73383435c3bd39f8abfe1193f67a2287e3a8df1a103024e.txt",
+      "bytes": 4096,
+      "sha256": "110aa67f9149a8b5b73383435c3bd39f8abfe1193f67a2287e3a8df1a103024e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/11694e0a229fe8efd8d11a92b3fc92aa9ed8360c70d118a75cca6b5a9f313e4a.json",
+      "bytes": 17651,
+      "sha256": "11694e0a229fe8efd8d11a92b3fc92aa9ed8360c70d118a75cca6b5a9f313e4a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/11a594b5d3722bd3149fedcb9ac69d4ee3069c07d4fbd3eb441ff550faf57a11.json",
+      "bytes": 1752,
+      "sha256": "11a594b5d3722bd3149fedcb9ac69d4ee3069c07d4fbd3eb441ff550faf57a11"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/15374bcb2107427f360997be05bdbbae716f75c721ae0ccef9ab1b18aaa48bb6.json",
+      "bytes": 2434,
+      "sha256": "15374bcb2107427f360997be05bdbbae716f75c721ae0ccef9ab1b18aaa48bb6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/17bed1098c90d3eff9eb36d66f695ffd91a803ca5ced85210395e95f6ec3e8fc.json",
+      "bytes": 20313,
+      "sha256": "17bed1098c90d3eff9eb36d66f695ffd91a803ca5ced85210395e95f6ec3e8fc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/196f64f456904999ae3f7d210527d3f161d873c9e67b8786520cd9efe6b0357b.json",
+      "bytes": 5447,
+      "sha256": "196f64f456904999ae3f7d210527d3f161d873c9e67b8786520cd9efe6b0357b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/1b967905b786f4d84b558f459f58ea2d431b923bfee2947c10bc5028585cf730.json",
+      "bytes": 2120,
+      "sha256": "1b967905b786f4d84b558f459f58ea2d431b923bfee2947c10bc5028585cf730"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/1c8f918293fcfdfe6c781cd478c0c7d1261ff08b39666c9d0e3394379509d1dd.json",
+      "bytes": 5050,
+      "sha256": "1c8f918293fcfdfe6c781cd478c0c7d1261ff08b39666c9d0e3394379509d1dd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/1d5f7749d22c1414aa5d2c294850586dec4b7741cac8c2dde81a8f4d916f43a8.json",
+      "bytes": 3509,
+      "sha256": "1d5f7749d22c1414aa5d2c294850586dec4b7741cac8c2dde81a8f4d916f43a8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/20106d37d3779d5d0ed68b113c7115e8dfd84edca0236795d8e28896db9f3f9b.json",
+      "bytes": 5467,
+      "sha256": "20106d37d3779d5d0ed68b113c7115e8dfd84edca0236795d8e28896db9f3f9b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/2191ba7a92f6b5f5b980b3d3f1936d8b4e1dd08f5b8c7c87ba7260c4e93f1bce.json",
+      "bytes": 7935,
+      "sha256": "2191ba7a92f6b5f5b980b3d3f1936d8b4e1dd08f5b8c7c87ba7260c4e93f1bce"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/21a4ae95f5e840b669253972432fe3b4107c294474703bfbdef8c44e9eb6d8fc.json",
+      "bytes": 22823,
+      "sha256": "21a4ae95f5e840b669253972432fe3b4107c294474703bfbdef8c44e9eb6d8fc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/22312cdc6a8d1eee179d1d2347080f1670c7099c5d70039cebcc9651e53f80d7.json",
+      "bytes": 2435,
+      "sha256": "22312cdc6a8d1eee179d1d2347080f1670c7099c5d70039cebcc9651e53f80d7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/24f947cddfee447125e6663c565bc35ecc928e822f0da3d45d0fcd7acc717f1f.json",
+      "bytes": 5467,
+      "sha256": "24f947cddfee447125e6663c565bc35ecc928e822f0da3d45d0fcd7acc717f1f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/25c68915b990779c5738f9cc81e9ebbc943bcd2ed68a12d0436224fe653eb668.json",
+      "bytes": 10355,
+      "sha256": "25c68915b990779c5738f9cc81e9ebbc943bcd2ed68a12d0436224fe653eb668"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/27b81347e732bc95eff8191697163a21d64db835df6c4c149f02ce988a956101.txt",
+      "bytes": 4096,
+      "sha256": "27b81347e732bc95eff8191697163a21d64db835df6c4c149f02ce988a956101"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/291730074ee48b7fb3dab85452d7657232f3818f8f32b11dd12c4587bba94220.json",
+      "bytes": 2166,
+      "sha256": "291730074ee48b7fb3dab85452d7657232f3818f8f32b11dd12c4587bba94220"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/2a287c85154ccf1c16b0eaac96d147585f312349e58fb2f774c74c536e8324a7.json",
+      "bytes": 5356,
+      "sha256": "2a287c85154ccf1c16b0eaac96d147585f312349e58fb2f774c74c536e8324a7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/2f66f99a0e273970c3cb49d53c0e5763550c7c1c3951923d464f9435ebf02231.json",
+      "bytes": 5677,
+      "sha256": "2f66f99a0e273970c3cb49d53c0e5763550c7c1c3951923d464f9435ebf02231"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/2fe86080b3e75dfe346bf1c03c736c9f9796a46b725c1b46a59fb3dbf5596c86.json",
+      "bytes": 12989,
+      "sha256": "2fe86080b3e75dfe346bf1c03c736c9f9796a46b725c1b46a59fb3dbf5596c86"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/30a91a85edbd71b08d425c003d5c52b7464ad21794641a0cdfbacba8daf3e804.json",
+      "bytes": 2569,
+      "sha256": "30a91a85edbd71b08d425c003d5c52b7464ad21794641a0cdfbacba8daf3e804"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/36b7df6889ed0520eaa2cb22c4eef11ca5f8fbe01be604a23f29d096d337985f.json",
+      "bytes": 2618,
+      "sha256": "36b7df6889ed0520eaa2cb22c4eef11ca5f8fbe01be604a23f29d096d337985f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/3796d10ea9ec7c8e8510a7c6a86a582c88506ea8477e2cca5eaef0d4d66eefcd.json",
+      "bytes": 5671,
+      "sha256": "3796d10ea9ec7c8e8510a7c6a86a582c88506ea8477e2cca5eaef0d4d66eefcd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/389e3f53e944f33906d8b421721c88e45703029142bbd0ae5159bb1344ea96a1.json",
+      "bytes": 5237,
+      "sha256": "389e3f53e944f33906d8b421721c88e45703029142bbd0ae5159bb1344ea96a1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/38f666f5a14eaae259b1c8fd4ecf72daa9b43487e451689b23041f046eca02b3.json",
+      "bytes": 2434,
+      "sha256": "38f666f5a14eaae259b1c8fd4ecf72daa9b43487e451689b23041f046eca02b3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/39d4fe1fb8888a79cc85c8c50ea2ca3e891ebcd106d1ebd4205814a69b815c1d.json",
+      "bytes": 891,
+      "sha256": "39d4fe1fb8888a79cc85c8c50ea2ca3e891ebcd106d1ebd4205814a69b815c1d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/3a0a6b39bc3349c009fdaadb7558e6ae71f28528270aa25442ac1af416dd0ec1.json",
+      "bytes": 17651,
+      "sha256": "3a0a6b39bc3349c009fdaadb7558e6ae71f28528270aa25442ac1af416dd0ec1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/3a2d0dcb69b071a85f97e7df40245e58a8c51f10b346059e77c6923fb0ac3df4.json",
+      "bytes": 1321,
+      "sha256": "3a2d0dcb69b071a85f97e7df40245e58a8c51f10b346059e77c6923fb0ac3df4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/3d8332fac41316ffdf657dc6c8728be3918251ebc224a7a31a1b96d88083c4f4.json",
+      "bytes": 17582,
+      "sha256": "3d8332fac41316ffdf657dc6c8728be3918251ebc224a7a31a1b96d88083c4f4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5.txt",
+      "bytes": 7015,
+      "sha256": "3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/42f05b3eabbbf16e5424e3d1fd79ebc348ec550cd18afee4874d0ad29935def3.json",
+      "bytes": 5677,
+      "sha256": "42f05b3eabbbf16e5424e3d1fd79ebc348ec550cd18afee4874d0ad29935def3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/43556669992773fba142d096766771af76ad64161d5d05e08f817cb0af0d2cd9.txt",
+      "bytes": 6518,
+      "sha256": "43556669992773fba142d096766771af76ad64161d5d05e08f817cb0af0d2cd9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/438aeb5c292d86af441ba2652da2bc04cc3568eb3418d17711054a6b64228ae8.json",
+      "bytes": 23177,
+      "sha256": "438aeb5c292d86af441ba2652da2bc04cc3568eb3418d17711054a6b64228ae8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/4bb9de842e657056a2165ea74c4dfe66f00cf50042308093c80dcc58991139be.json",
+      "bytes": 2032,
+      "sha256": "4bb9de842e657056a2165ea74c4dfe66f00cf50042308093c80dcc58991139be"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/4cee5834c8c2eee9cf1117c2639c79fe93ca16620d6c150625040ea8e3d7d983.json",
+      "bytes": 891,
+      "sha256": "4cee5834c8c2eee9cf1117c2639c79fe93ca16620d6c150625040ea8e3d7d983"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/50874a975d4e675d0cfdf8eafa9bd86ddc2505fc8a4cd8ea46f5de5cee8d906d.json",
+      "bytes": 3394,
+      "sha256": "50874a975d4e675d0cfdf8eafa9bd86ddc2505fc8a4cd8ea46f5de5cee8d906d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/50ba043134d8a1f857ba7eea5399b50f9a24394469d89cd79c7e402e468b50f4.json",
+      "bytes": 1752,
+      "sha256": "50ba043134d8a1f857ba7eea5399b50f9a24394469d89cd79c7e402e468b50f4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/51e0f40ec20833f933e586bc9f9588d6419cc5914aef8e2a9a4f2946b131444c.json",
+      "bytes": 2032,
+      "sha256": "51e0f40ec20833f933e586bc9f9588d6419cc5914aef8e2a9a4f2946b131444c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/5591d70448af183e9d2e7e5e6c6194a76dae4276689f4e87c7e906abf9da44f3.json",
+      "bytes": 2166,
+      "sha256": "5591d70448af183e9d2e7e5e6c6194a76dae4276689f4e87c7e906abf9da44f3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/586cabc0987b22394cf14d4afd680d8a0474029aaa6a5430f1e5ff047b73e2a9.json",
+      "bytes": 2431,
+      "sha256": "586cabc0987b22394cf14d4afd680d8a0474029aaa6a5430f1e5ff047b73e2a9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/58d114e7db70e96a13fb5e4da258424f823d1f47b9be4cab7977aa122cda1066.txt",
+      "bytes": 4096,
+      "sha256": "58d114e7db70e96a13fb5e4da258424f823d1f47b9be4cab7977aa122cda1066"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/5a73297acb10135b1fe2de7ccbb5c5b59b918815d35bd88d2262f744e65aeb19.txt",
+      "bytes": 4416,
+      "sha256": "5a73297acb10135b1fe2de7ccbb5c5b59b918815d35bd88d2262f744e65aeb19"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/5cbf660d195f48d917665468b701820601cf66ab609292ea8b0e8776a352f548.json",
+      "bytes": 2434,
+      "sha256": "5cbf660d195f48d917665468b701820601cf66ab609292ea8b0e8776a352f548"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/5d57191e7573d42796e0ef5d39a0a13842646b6bfb4cddfe965aff8a5fb87266.json",
+      "bytes": 5444,
+      "sha256": "5d57191e7573d42796e0ef5d39a0a13842646b6bfb4cddfe965aff8a5fb87266"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/5fc2bc3df0a99f8a85f76ff1f70033f4553ac848293cb9f65352da9f1509c879.json",
+      "bytes": 16921,
+      "sha256": "5fc2bc3df0a99f8a85f76ff1f70033f4553ac848293cb9f65352da9f1509c879"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/610ca76b19aa6a88fd050f71b48f1bae8d45ff5d038442bf11a28c0aacf2fba2.json",
+      "bytes": 1321,
+      "sha256": "610ca76b19aa6a88fd050f71b48f1bae8d45ff5d038442bf11a28c0aacf2fba2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6273b23da2b7347d0ed06a4fe14dfdd7b201dafe6ca2fcb194affb8f3afd700a.json",
+      "bytes": 5672,
+      "sha256": "6273b23da2b7347d0ed06a4fe14dfdd7b201dafe6ca2fcb194affb8f3afd700a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6334beeaccb52e5158b358f82b3c3b91c8eaa522240552e0e75bc23d387336e9.json",
+      "bytes": 2032,
+      "sha256": "6334beeaccb52e5158b358f82b3c3b91c8eaa522240552e0e75bc23d387336e9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/636fbf11e0f8b7f9608e70d12354901041fd1dcd853f23c445804f13dc68490f.json",
+      "bytes": 9053,
+      "sha256": "636fbf11e0f8b7f9608e70d12354901041fd1dcd853f23c445804f13dc68490f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/670e0aac51bff489accd3c581a3ee11fc0331a05a592e37d6c559f7a858c04b0.json",
+      "bytes": 5685,
+      "sha256": "670e0aac51bff489accd3c581a3ee11fc0331a05a592e37d6c559f7a858c04b0"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6838b8d6e1e9a11fc7fbb1fcc72c566defff8c3bdb07828e09d4ac1659f76fcd.json",
+      "bytes": 8467,
+      "sha256": "6838b8d6e1e9a11fc7fbb1fcc72c566defff8c3bdb07828e09d4ac1659f76fcd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6ac2bf65eaeb7a938dae9e6ac155ffbbaadd6ab10a6e23ff73addf71e5997274.json",
+      "bytes": 10851,
+      "sha256": "6ac2bf65eaeb7a938dae9e6ac155ffbbaadd6ab10a6e23ff73addf71e5997274"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6bdd31fb5624ea83b76c6691aa05758f5630d1c9f654d940614219168d9b4f87.json",
+      "bytes": 5357,
+      "sha256": "6bdd31fb5624ea83b76c6691aa05758f5630d1c9f654d940614219168d9b4f87"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6bff046022c2759675592543427a302407a7897290354da774248513d6077592.json",
+      "bytes": 9431,
+      "sha256": "6bff046022c2759675592543427a302407a7897290354da774248513d6077592"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6ca95e4d624b52f97acf187783f8a5bb28586c50d0a6fcc779a20021bd030fc6.json",
+      "bytes": 7747,
+      "sha256": "6ca95e4d624b52f97acf187783f8a5bb28586c50d0a6fcc779a20021bd030fc6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6cc5a91bb07176033e8ca25e0cb1518948ecd954e6b4476e0250ac95ec5b5ec7.json",
+      "bytes": 1284,
+      "sha256": "6cc5a91bb07176033e8ca25e0cb1518948ecd954e6b4476e0250ac95ec5b5ec7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/6dbd9ec4451f228e43a5704b7a0bd572bf92b2371b5cba8f63daa8cb69a390e3.json",
+      "bytes": 20317,
+      "sha256": "6dbd9ec4451f228e43a5704b7a0bd572bf92b2371b5cba8f63daa8cb69a390e3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/73c0e8643219e5cf65bc009327fb0ec7de9f7c6b5ffdddd57917abc57abd68e6.json",
+      "bytes": 546,
+      "sha256": "73c0e8643219e5cf65bc009327fb0ec7de9f7c6b5ffdddd57917abc57abd68e6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/748554d0914cb4a05f3446ec7da30f8aa29549d2f2612323c815ad8b0af2f181.json",
+      "bytes": 6264,
+      "sha256": "748554d0914cb4a05f3446ec7da30f8aa29549d2f2612323c815ad8b0af2f181"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/74b0d5f3748d6d96018319a7a3464e2f3bb10e10604fbb38ce41347c8b6f9be9.json",
+      "bytes": 5447,
+      "sha256": "74b0d5f3748d6d96018319a7a3464e2f3bb10e10604fbb38ce41347c8b6f9be9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/766511269dbc6a4789211dba89252f5d12631ea4cf2c1a0b8299ec62ffaae118.json",
+      "bytes": 1898,
+      "sha256": "766511269dbc6a4789211dba89252f5d12631ea4cf2c1a0b8299ec62ffaae118"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/76ed377e69070c405fa014b7c33d871ecc10145139905d2537a2442b51ab4e2f.json",
+      "bytes": 13712,
+      "sha256": "76ed377e69070c405fa014b7c33d871ecc10145139905d2537a2442b51ab4e2f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/79823580ed4cf611f1b029c20af4346e19e5e9ff1b6d00315a045191c61cde6e.json",
+      "bytes": 976,
+      "sha256": "79823580ed4cf611f1b029c20af4346e19e5e9ff1b6d00315a045191c61cde6e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/7b3c034de1341b542d9491113438e3851d22d09b7ad118ffd920c81eb558bab0.json",
+      "bytes": 1306,
+      "sha256": "7b3c034de1341b542d9491113438e3851d22d09b7ad118ffd920c81eb558bab0"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/822c1ac1e485c12b76ed963aa400a8491870a6243070671057f40729d7a6d726.txt",
+      "bytes": 4096,
+      "sha256": "822c1ac1e485c12b76ed963aa400a8491870a6243070671057f40729d7a6d726"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/84488cc9af7995b7443e55490052852246d96c703eb75639a2dd17389555c64c.json",
+      "bytes": 5432,
+      "sha256": "84488cc9af7995b7443e55490052852246d96c703eb75639a2dd17389555c64c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/851582958abef57d9379395a49a212029aad72c42c470278ac9a051215366208.txt",
+      "bytes": 16000,
+      "sha256": "851582958abef57d9379395a49a212029aad72c42c470278ac9a051215366208"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/890a608d67ffc00f0ac104852fe7f1fd68691d10dfd81d64ef1eb91ff7c59cee.json",
+      "bytes": 5462,
+      "sha256": "890a608d67ffc00f0ac104852fe7f1fd68691d10dfd81d64ef1eb91ff7c59cee"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/896a106d266b061e525f8143516e5743e9cf347a85900cf8c34ad8727f759fa7.json",
+      "bytes": 767,
+      "sha256": "896a106d266b061e525f8143516e5743e9cf347a85900cf8c34ad8727f759fa7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/89d98cc9c794459d887eb8e27a497a82d7dd78178add95bdbac5cd34576946ef.json",
+      "bytes": 891,
+      "sha256": "89d98cc9c794459d887eb8e27a497a82d7dd78178add95bdbac5cd34576946ef"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/89e0c7071fab4a00758f60a17450fb64ba728caae07cc7146a1179e2b767ee90.json",
+      "bytes": 1828,
+      "sha256": "89e0c7071fab4a00758f60a17450fb64ba728caae07cc7146a1179e2b767ee90"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/8d49a0d068ba247b4a75af1131962cc61d9311addeb100db0f6445be93f2839a.txt",
+      "bytes": 10091,
+      "sha256": "8d49a0d068ba247b4a75af1131962cc61d9311addeb100db0f6445be93f2839a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/8e7adaf09f49228a225be6e1feeaacc832e7c65f4a9256a944c2db7d908c3df3.json",
+      "bytes": 2435,
+      "sha256": "8e7adaf09f49228a225be6e1feeaacc832e7c65f4a9256a944c2db7d908c3df3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/8ee95d7bfe93104675abf6d0d77f554266de57abf1c5665e42705ec14c39c72b.json",
+      "bytes": 2300,
+      "sha256": "8ee95d7bfe93104675abf6d0d77f554266de57abf1c5665e42705ec14c39c72b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/90f6b7b422e95d62e688faab5705da5cdcc30f315eeed0d97b1568da4474624c.json",
+      "bytes": 891,
+      "sha256": "90f6b7b422e95d62e688faab5705da5cdcc30f315eeed0d97b1568da4474624c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/9175d5c3e2ed0e01c12ed78723fcabc35b3d6fd11de63ad62fbe42121205ce55.json",
+      "bytes": 2702,
+      "sha256": "9175d5c3e2ed0e01c12ed78723fcabc35b3d6fd11de63ad62fbe42121205ce55"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/92272e9e5fbf8c916158db4be4c1be4fd34e851441361ec5a951b75c55451777.json",
+      "bytes": 5665,
+      "sha256": "92272e9e5fbf8c916158db4be4c1be4fd34e851441361ec5a951b75c55451777"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/92701b37f0932db6e9ccbb8f2d0999d4a40344d31455e8564cb160b45b53b321.json",
+      "bytes": 3058,
+      "sha256": "92701b37f0932db6e9ccbb8f2d0999d4a40344d31455e8564cb160b45b53b321"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/9275a7117ed1fcc74ed5f38afdaee42ed0cae545f8d4dae8a3906de0574f63dd.json",
+      "bytes": 2166,
+      "sha256": "9275a7117ed1fcc74ed5f38afdaee42ed0cae545f8d4dae8a3906de0574f63dd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/93da073e68862bf726264fa650c742ea81adb41543ce50b8af40a716d48e4c38.json",
+      "bytes": 1898,
+      "sha256": "93da073e68862bf726264fa650c742ea81adb41543ce50b8af40a716d48e4c38"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/95ff43096cf5b30bd3f12a45726dc9dd3d36e7c1bb6bf5f8e9a5e6023b8f1cc4.json",
+      "bytes": 2032,
+      "sha256": "95ff43096cf5b30bd3f12a45726dc9dd3d36e7c1bb6bf5f8e9a5e6023b8f1cc4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/97c93e15ba1f23d84b5afad2c82c9548ce4a4ed5d4acc84d5342e78a364b8217.json",
+      "bytes": 8525,
+      "sha256": "97c93e15ba1f23d84b5afad2c82c9548ce4a4ed5d4acc84d5342e78a364b8217"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/99d303f359c19d391cef42cb496994dc521a67f29e40a07c35d3d62674e92e37.json",
+      "bytes": 5432,
+      "sha256": "99d303f359c19d391cef42cb496994dc521a67f29e40a07c35d3d62674e92e37"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/9abcb319943d3af97d6c6d4310989048917651c4173abc2e5a74a08a4c240c2f.json",
+      "bytes": 1898,
+      "sha256": "9abcb319943d3af97d6c6d4310989048917651c4173abc2e5a74a08a4c240c2f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a26705ac73dbf3048ae129f8c1814ac2375244a3a22f15079266ce4829d001e3.json",
+      "bytes": 2217,
+      "sha256": "a26705ac73dbf3048ae129f8c1814ac2375244a3a22f15079266ce4829d001e3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a2b8c331531cfcffcf0cea627787ecdd2b5a6c2499a0f78f6a83616bb866c718.json",
+      "bytes": 22646,
+      "sha256": "a2b8c331531cfcffcf0cea627787ecdd2b5a6c2499a0f78f6a83616bb866c718"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a2e3e3c816134d9a107c178dd6a70054d305f78948661bcc16f66aa089416b9c.json",
+      "bytes": 2166,
+      "sha256": "a2e3e3c816134d9a107c178dd6a70054d305f78948661bcc16f66aa089416b9c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a3347d72526e4a3f174ef6a93f32d277439de46d92c16baf829dca1e67bda053.json",
+      "bytes": 5774,
+      "sha256": "a3347d72526e4a3f174ef6a93f32d277439de46d92c16baf829dca1e67bda053"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a3bdb017f588e201a59e8e4bcb420f08cdde0d7bff4398e505567ac1d446af80.json",
+      "bytes": 1571,
+      "sha256": "a3bdb017f588e201a59e8e4bcb420f08cdde0d7bff4398e505567ac1d446af80"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a4a1b4771bbf15c1049aeb0ac68227c5141034a3e6ca71dd4ebce0d6e6ef217f.json",
+      "bytes": 1787,
+      "sha256": "a4a1b4771bbf15c1049aeb0ac68227c5141034a3e6ca71dd4ebce0d6e6ef217f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a70845edf0755957f42a30ce372628c9224ecfef839334fe9261e14dbf0b27cc.json",
+      "bytes": 697,
+      "sha256": "a70845edf0755957f42a30ce372628c9224ecfef839334fe9261e14dbf0b27cc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a73d6594a067f1e0973141c7033c3169f36bfa3f4fe0bcdcb04c14354b5f0714.json",
+      "bytes": 7935,
+      "sha256": "a73d6594a067f1e0973141c7033c3169f36bfa3f4fe0bcdcb04c14354b5f0714"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a83ad14607172176a209c4327dba6004eb318de614777e5e73f97d4f32654728.json",
+      "bytes": 2356,
+      "sha256": "a83ad14607172176a209c4327dba6004eb318de614777e5e73f97d4f32654728"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a856351e4b2e96bf1a0a3094202c466193eed38be2da682bc32fa695e4b22726.json",
+      "bytes": 5446,
+      "sha256": "a856351e4b2e96bf1a0a3094202c466193eed38be2da682bc32fa695e4b22726"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a86020cba944d386698cc7c791f8d870a388fb65b6dee9591ddde8ff61f9a1ad.json",
+      "bytes": 10295,
+      "sha256": "a86020cba944d386698cc7c791f8d870a388fb65b6dee9591ddde8ff61f9a1ad"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a887d6f5506dc7e25b1e0c1a531a93ffe5ada4ff19133e682594216bb51d332d.json",
+      "bytes": 9053,
+      "sha256": "a887d6f5506dc7e25b1e0c1a531a93ffe5ada4ff19133e682594216bb51d332d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/a96a56f35e3506dc8f0b13d7147d50297bdb4902131b877a8ec19f582ab1778b.json",
+      "bytes": 2166,
+      "sha256": "a96a56f35e3506dc8f0b13d7147d50297bdb4902131b877a8ec19f582ab1778b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ab285a16fae9bf41c04418cf7eb8b5c8e33c71180498ee7480b66f47116e014a.txt",
+      "bytes": 8938,
+      "sha256": "ab285a16fae9bf41c04418cf7eb8b5c8e33c71180498ee7480b66f47116e014a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/abc1e61325c8e3dfe2b73a52a35b5895d7d7e623d3d16e0ec82b9b03d79b1ae7.json",
+      "bytes": 2568,
+      "sha256": "abc1e61325c8e3dfe2b73a52a35b5895d7d7e623d3d16e0ec82b9b03d79b1ae7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ac77a95487b98c80d48b4c4c9f90eb31661b3f614799b8be12e87cf7f399f7cc.json",
+      "bytes": 5377,
+      "sha256": "ac77a95487b98c80d48b4c4c9f90eb31661b3f614799b8be12e87cf7f399f7cc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/aca228d727fc36f2dfd24aef581b760cb667960d62430484511d137f8719cbdd.txt",
+      "bytes": 7545,
+      "sha256": "aca228d727fc36f2dfd24aef581b760cb667960d62430484511d137f8719cbdd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ae9f6f88b4681df538b8360031c5a88b396c789828b493f6211b46fda456c704.json",
+      "bytes": 2300,
+      "sha256": "ae9f6f88b4681df538b8360031c5a88b396c789828b493f6211b46fda456c704"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b1b176db588645dcc62e6c2a70b140f9abfa2bfb9645443a42fae909f56715c8.json",
+      "bytes": 891,
+      "sha256": "b1b176db588645dcc62e6c2a70b140f9abfa2bfb9645443a42fae909f56715c8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b25555e9126d4525b9405243f4fdd8ae1ea22aa511a4b48f6bec6acb61188a16.json",
+      "bytes": 8467,
+      "sha256": "b25555e9126d4525b9405243f4fdd8ae1ea22aa511a4b48f6bec6acb61188a16"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b3450a7391f27d64ee6c68e9f20945a3a7e396ba9cf99678aa1b29ab57d4749b.json",
+      "bytes": 1091,
+      "sha256": "b3450a7391f27d64ee6c68e9f20945a3a7e396ba9cf99678aa1b29ab57d4749b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b4bad101195ea7aa5d56ccb38910293e2c20429685beed89859a10f556c30b5a.json",
+      "bytes": 2300,
+      "sha256": "b4bad101195ea7aa5d56ccb38910293e2c20429685beed89859a10f556c30b5a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b50f5c39b17954bb4e32524dfc5e0015d745a36182be3035cf0718191e4f8e8d.json",
+      "bytes": 891,
+      "sha256": "b50f5c39b17954bb4e32524dfc5e0015d745a36182be3035cf0718191e4f8e8d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b63f092c8ad0611a98ba714603ff900467cda4d9bc8b93da68f90814c6fcc2dc.json",
+      "bytes": 1752,
+      "sha256": "b63f092c8ad0611a98ba714603ff900467cda4d9bc8b93da68f90814c6fcc2dc"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b77b14ed4a731f7d21192759774568d93385fcb1c0b25c538f6601d6069ed3a9.txt",
+      "bytes": 12122,
+      "sha256": "b77b14ed4a731f7d21192759774568d93385fcb1c0b25c538f6601d6069ed3a9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/b8e930681aa4dfb6ae7791db7f460c0d55465529226ea92a0fa034e51156e33d.json",
+      "bytes": 891,
+      "sha256": "b8e930681aa4dfb6ae7791db7f460c0d55465529226ea92a0fa034e51156e33d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/bcd4c3c9ce4450c6af502d12bcc5ecc009f9311cac13d67140a4eef5b2a9408b.json",
+      "bytes": 1752,
+      "sha256": "bcd4c3c9ce4450c6af502d12bcc5ecc009f9311cac13d67140a4eef5b2a9408b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/bd558c0f8d88b9afa5237ddb6993d7d42e83de81e5e455f3fdff67905d0c4ff5.txt",
+      "bytes": 4096,
+      "sha256": "bd558c0f8d88b9afa5237ddb6993d7d42e83de81e5e455f3fdff67905d0c4ff5"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/bf8826955161d622e3952f2cc192d36ee189d6444b8247ed74db56c78a6ed469.json",
+      "bytes": 5467,
+      "sha256": "bf8826955161d622e3952f2cc192d36ee189d6444b8247ed74db56c78a6ed469"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/bfc51a14be3736a510025e1328efa82f89c257078ce46a2ec44de7747c6db2c6.json",
+      "bytes": 5334,
+      "sha256": "bfc51a14be3736a510025e1328efa82f89c257078ce46a2ec44de7747c6db2c6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/c3106c2f74fb58f0584a8496870fa4913156dd4482c70fb9dcb55cd2ef7b3ca2.json",
+      "bytes": 5446,
+      "sha256": "c3106c2f74fb58f0584a8496870fa4913156dd4482c70fb9dcb55cd2ef7b3ca2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/c44fdd72a92a440a73397fc6fcd98f9605d56b8680100f051b44d3c570727a97.json",
+      "bytes": 2837,
+      "sha256": "c44fdd72a92a440a73397fc6fcd98f9605d56b8680100f051b44d3c570727a97"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/c6c3811ca090632f18443d4d70921e03a921fa2ac9f4abf9a223514c9eda7c5f.json",
+      "bytes": 2320,
+      "sha256": "c6c3811ca090632f18443d4d70921e03a921fa2ac9f4abf9a223514c9eda7c5f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/cc3554d7ca01096d0650e96d6f4146ddd4e4fd40e1f857914a08c879805abc45.json",
+      "bytes": 2222,
+      "sha256": "cc3554d7ca01096d0650e96d6f4146ddd4e4fd40e1f857914a08c879805abc45"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/cd0475ea7bd8de1009e2ba2f80cc964673c7a0efd3403acddf74363c29dcfcf2.json",
+      "bytes": 2300,
+      "sha256": "cd0475ea7bd8de1009e2ba2f80cc964673c7a0efd3403acddf74363c29dcfcf2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/cd4fec92ebc2f30d19748fcb5d0d7897309696b023a73502507a08e88db1d8ea.json",
+      "bytes": 4551,
+      "sha256": "cd4fec92ebc2f30d19748fcb5d0d7897309696b023a73502507a08e88db1d8ea"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d0b726467fab5738c635ddbd9737b1e2f14e1c8e98e16ef9a66d8b7f26934633.json",
+      "bytes": 2300,
+      "sha256": "d0b726467fab5738c635ddbd9737b1e2f14e1c8e98e16ef9a66d8b7f26934633"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d131ef0f02ed27a6907f2e2f08cba4bf73328de800d9058ba8fc30d69732b741.json",
+      "bytes": 661,
+      "sha256": "d131ef0f02ed27a6907f2e2f08cba4bf73328de800d9058ba8fc30d69732b741"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d2f7a31ffe5e30b8619cb2857c6f149184d6b88521ae9efe69ecab4f244adc86.json",
+      "bytes": 5662,
+      "sha256": "d2f7a31ffe5e30b8619cb2857c6f149184d6b88521ae9efe69ecab4f244adc86"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d4007d031aacfc14e87deec1c8f2bc7e2a0cf5c2bfaa2e3f5f648cbdeef4dc3c.json",
+      "bytes": 1432,
+      "sha256": "d4007d031aacfc14e87deec1c8f2bc7e2a0cf5c2bfaa2e3f5f648cbdeef4dc3c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d4e38dcfd11f914439da56d059ee6fc4e1c8b6a272328a81ade5b9b802ff337e.json",
+      "bytes": 1321,
+      "sha256": "d4e38dcfd11f914439da56d059ee6fc4e1c8b6a272328a81ade5b9b802ff337e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d5ee4f3520f6eeb7cdefc1718462860a7a0eec11c4ca9dcd6262bd390ad574a3.json",
+      "bytes": 7198,
+      "sha256": "d5ee4f3520f6eeb7cdefc1718462860a7a0eec11c4ca9dcd6262bd390ad574a3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d62bb3e7fcf51d406712212a5f18f3fc1b61f533474970c67672539c43e2af21.json",
+      "bytes": 11586,
+      "sha256": "d62bb3e7fcf51d406712212a5f18f3fc1b61f533474970c67672539c43e2af21"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d6ec37a55202dd847eed04d3ce9ed1b7ab89c5caa2e351dee5a3bc9361958a65.json",
+      "bytes": 2568,
+      "sha256": "d6ec37a55202dd847eed04d3ce9ed1b7ab89c5caa2e351dee5a3bc9361958a65"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d706ecde8eca6e781a7d7b73a2215cf3b3f3864a8d314b3661306168690caa06.json",
+      "bytes": 9431,
+      "sha256": "d706ecde8eca6e781a7d7b73a2215cf3b3f3864a8d314b3661306168690caa06"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/d8a475c32e379ae9e19b0ecde67eadb1af253e52b2b586832f047998299754c3.json",
+      "bytes": 2123,
+      "sha256": "d8a475c32e379ae9e19b0ecde67eadb1af253e52b2b586832f047998299754c3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/da6a588a7d0062720877cb6b4e97241c47ab519c4aae4dbf080236e49c0248c0.json",
+      "bytes": 5444,
+      "sha256": "da6a588a7d0062720877cb6b4e97241c47ab519c4aae4dbf080236e49c0248c0"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/db6e4b771cf7a0ca1ca74904e09b54c90372284bfdc6c406a0c376b1ac2e6982.txt",
+      "bytes": 4096,
+      "sha256": "db6e4b771cf7a0ca1ca74904e09b54c90372284bfdc6c406a0c376b1ac2e6982"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/dc263dd29c34bf9145fd78fefd11e689d68632699d0382ce30dcc21219052396.json",
+      "bytes": 3556,
+      "sha256": "dc263dd29c34bf9145fd78fefd11e689d68632699d0382ce30dcc21219052396"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/df883b48a91ac481e605ec3b299d34f113081d753b5a2d98f57f777ae278b311.json",
+      "bytes": 11586,
+      "sha256": "df883b48a91ac481e605ec3b299d34f113081d753b5a2d98f57f777ae278b311"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e25afdf79e5c4e9eb84718d5371ee9a79b1427ea29197ef4a3301a8776f52ad8.json",
+      "bytes": 546,
+      "sha256": "e25afdf79e5c4e9eb84718d5371ee9a79b1427ea29197ef4a3301a8776f52ad8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e3196cf99232e5277b79cfb53599ce76ecb35927b132e3f77e64e6a289ce38f2.json",
+      "bytes": 17651,
+      "sha256": "e3196cf99232e5277b79cfb53599ce76ecb35927b132e3f77e64e6a289ce38f2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e3f4fc3d2937f5b851eaaf187415b83f5fb652dda369537c0f6df4e3bebdbcd1.json",
+      "bytes": 1572,
+      "sha256": "e3f4fc3d2937f5b851eaaf187415b83f5fb652dda369537c0f6df4e3bebdbcd1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e482d50eae932d31cafc518489fba0d5ec3af28f14b8179138cc226a72b72e23.txt",
+      "bytes": 4096,
+      "sha256": "e482d50eae932d31cafc518489fba0d5ec3af28f14b8179138cc226a72b72e23"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e636a0fb5417ecfb6d0150afc1e3827ff2ee6dfa866548d710cdefe226d76a3e.json",
+      "bytes": 13712,
+      "sha256": "e636a0fb5417ecfb6d0150afc1e3827ff2ee6dfa866548d710cdefe226d76a3e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e90f9784c74692033b62433cffacc2bbae011072043833ca842e4981424531a1.json",
+      "bytes": 22332,
+      "sha256": "e90f9784c74692033b62433cffacc2bbae011072043833ca842e4981424531a1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/e957864f35413cbcf04eb86ce43df887e0589a2da5249588a30e69298643da48.json",
+      "bytes": 5969,
+      "sha256": "e957864f35413cbcf04eb86ce43df887e0589a2da5249588a30e69298643da48"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ecc9f542ff5d388141c7867832f0a415fe3fc3f542dd6505508b508c27a60f59.json",
+      "bytes": 1898,
+      "sha256": "ecc9f542ff5d388141c7867832f0a415fe3fc3f542dd6505508b508c27a60f59"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ef6d0f92b368beceb05f1261a1aa384bfc7aeafbf151aa0db7826b4ee38f94d6.json",
+      "bytes": 976,
+      "sha256": "ef6d0f92b368beceb05f1261a1aa384bfc7aeafbf151aa0db7826b4ee38f94d6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/ef77590a2d6214f0ffe54bc9d98e919576a7516a99c597628006f2c87a484a3d.json",
+      "bytes": 5774,
+      "sha256": "ef77590a2d6214f0ffe54bc9d98e919576a7516a99c597628006f2c87a484a3d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f10a2d7d0241224a1aed665e982f5cb1a32ccb227802a7401370f3a41aea602e.json",
+      "bytes": 2702,
+      "sha256": "f10a2d7d0241224a1aed665e982f5cb1a32ccb227802a7401370f3a41aea602e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f29b2bea51c5b588c45434c373c3ab5bb230f6403878de6752dac553ca17c1e1.json",
+      "bytes": 5446,
+      "sha256": "f29b2bea51c5b588c45434c373c3ab5bb230f6403878de6752dac553ca17c1e1"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f3101e7123dcff0ba51f60657e65ee154af1811cb22f0e6c9318140c344cd294.json",
+      "bytes": 3095,
+      "sha256": "f3101e7123dcff0ba51f60657e65ee154af1811cb22f0e6c9318140c344cd294"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f3165783b639b0210c9eb85cc897cbcb7b2bfb96e4ed822cfa4cbc2e570ea129.json",
+      "bytes": 8336,
+      "sha256": "f3165783b639b0210c9eb85cc897cbcb7b2bfb96e4ed822cfa4cbc2e570ea129"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3.json",
+      "bytes": 1933,
+      "sha256": "f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/f974fcadd4847a211b9467a9a0f9e1580ca2d060d4ade813635cfda2f75ff2c9.txt",
+      "bytes": 16000,
+      "sha256": "f974fcadd4847a211b9467a9a0f9e1580ca2d060d4ade813635cfda2f75ff2c9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/fa08732676c4715c9ed9a41a314b0c37684f299fe3827142d1fea90152f9ed00.json",
+      "bytes": 1898,
+      "sha256": "fa08732676c4715c9ed9a41a314b0c37684f299fe3827142d1fea90152f9ed00"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/artifacts/fa661e2784ad6ffc94f427dbd75bc34cef7d414a56803f575535e908f82c3a84.json",
+      "bytes": 5969,
+      "sha256": "fa661e2784ad6ffc94f427dbd75bc34cef7d414a56803f575535e908f82c3a84"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/audit_legacy.py",
+      "bytes": 3906,
+      "sha256": "895d17bff7bd15dbebaad5bb41e5f8e0f4c49fd037ebf27cbba22acf1ec4a20b"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/build-report-initial.json",
+      "bytes": 765,
+      "sha256": "f976ffdf0875316bc271a41fb46183b340cba1f3b92f6ffb989f6621c5dbdc96"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/build-report.json",
+      "bytes": 765,
+      "sha256": "d71fa8141f52969dadafefb95c8c494bc13d3d3ebe52350604224e2743e304a8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/build_candidate.py",
+      "bytes": 2045,
+      "sha256": "c09807f21261645b100e3202b60d9da8a5e76b97076af42ab51263e6406deed6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/code.diff",
+      "bytes": 98517,
+      "sha256": "230327fa81c3947f550888f4b25f9dd6abd8fad76e6f4ebedb6286c550a49f82"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/delivery_check.py",
+      "bytes": 7132,
+      "sha256": "165a8d7ab61f8286353960b73cfac0dda794455f161fdacfac5c43762f26cf93"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/deploy_candidate.py",
+      "bytes": 10298,
+      "sha256": "d949818f07fe3e43d6db6e4e443be44678966e4362f00e9f28b9cf649ee7cc56"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/deployment-report.json",
+      "bytes": 6780,
+      "sha256": "3080ef3f6c51fd76747780c9d4b2fe7edcbc49e6a794c8028f4dff4400a25cde"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/diagnosis.md",
+      "bytes": 7322,
+      "sha256": "dbc1be03721cc4895dd666650d3ee2eefd61d7157dab8d06e81564f216372737"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/export_tests.py",
+      "bytes": 4182,
+      "sha256": "d681b6b384a9fe3630c34f356203df8a92e03de9efe97355b17c057ba31c1a23"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/initial-regression.json",
+      "bytes": 818,
+      "sha256": "9bea2e037341033f57d923ffff1ad42fdc0c6daab3ed48e2f9fc23a95d4535ac"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/legacy-after.json",
+      "bytes": 844941,
+      "sha256": "6028ebc5dba674c2d01da6c4167b40cf972d035f92d10daa4906fffcc35017d4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/legacy-audit.json",
+      "bytes": 2692,
+      "sha256": "d22ed7caa8747ff9654141296e647cdc760aad226f463f9f07e9efbb495622b9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/legacy-before.json",
+      "bytes": 844865,
+      "sha256": "8ffe79f67ecbdfde87dbeb3ccf9623f8e5942712eaa6ab4da02715624ebd3437"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/model-visible-source-coverage.json",
+      "bytes": 23689,
+      "sha256": "5ee709a165fb2b5453aadf2e77b85bc8c896d0fa023f5c58dfa1c4bc4c8aebcb"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/model-visible-source-coverage.md",
+      "bytes": 2836,
+      "sha256": "b81cabcfe29b5d3d3893c1f7900045605b4c00584fd63c2a17a34dac11047509"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/next-acceptance-readiness.json",
+      "bytes": 3722,
+      "sha256": "8ace8f07457ec07398991e9b8d30997aaa9c9450bafcf6ca8d1d908295668e70"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/oci-capacity-binding.json",
+      "bytes": 5424,
+      "sha256": "afb406ff393ff3d2d3857e10a50152900f2cfc1d5d694d8e3af9d9aedb749fb8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/offline-replay.json",
+      "bytes": 788344,
+      "sha256": "6311fb85f7c2030b838a02304d84b70d5be06fc3d01f9f1a2522f4135e08a0ce"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/plan14-real-oci-final.json",
+      "bytes": 92319,
+      "sha256": "1d5ffb522b7e0a6e03607c741aa771b61ff2b596bcd09bc86c0f761bef5d4230"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/plan14-real-oci.json",
+      "bytes": 92319,
+      "sha256": "1d5ffb522b7e0a6e03607c741aa771b61ff2b596bcd09bc86c0f761bef5d4230"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/projection-before.json",
+      "bytes": 8301,
+      "sha256": "d5bd6ef4ed8b1ed16b78c185e121ab743ab9c8fed221d6f4823355cfafe4a16a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/replay.py",
+      "bytes": 6594,
+      "sha256": "a303f9210a7d081b124dc54be4ed88e685adbb66e7d0c3d9c23566990869a186"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/source-manifest-initial.json",
+      "bytes": 27092,
+      "sha256": "f985ece7d0227bb329663dd782dfc77cbecc9f9bd4493388047f1ef07e0e4297"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/source-manifest.json",
+      "bytes": 27092,
+      "sha256": "b57704e3a67df70c528fcbe899a95493dc78c0b54c6b5d3fb4b6b9045fa217f8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-report-index.json",
+      "bytes": 9875,
+      "sha256": "c3bf240f638ecebf78f209840de0fb118c5163036361ceb7eacf9f69269c15e0"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-atomic.xml",
+      "bytes": 402,
+      "sha256": "004e6797016794618d817a0cceb67e603653d4d70bd2e1c5bb706ef16f02f3a8"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-budget-projection.xml",
+      "bytes": 547,
+      "sha256": "3d608a54941fb75c5ff161372779db58d487ca70024c4c535d03b800fafefdc5"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-delta.xml",
+      "bytes": 678,
+      "sha256": "f31e900a9ad26d35c033d57b26f76eedcb8817a75b645a2524f95d167f5a86f6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-focused.xml",
+      "bytes": 6929,
+      "sha256": "401e272db213b32907a4bbb0f85e4f8f4ee447db6d47c18d517aba85d99271f9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-full-0.xml",
+      "bytes": 170975,
+      "sha256": "2f2c6e245b08af8d411f8132beafaf5a8df48981698d4c45f9e181a1cd5b18d6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-full-1.xml",
+      "bytes": 226280,
+      "sha256": "1c79cefc6e07a5b2823dd6e13549a34605d159ffea6c4eb1eaf0ad6e575ceaff"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-final-real-oci.xml",
+      "bytes": 3979,
+      "sha256": "df468ec9f244561d4403c7599aab90abd6b6cbb10359ae8783fed01774a8b921"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-focused.xml",
+      "bytes": 11125,
+      "sha256": "5be12b00258773750503a495e96fd336b0cd620ae81d289175b7265c0b638e94"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-full-0.xml",
+      "bytes": 173709,
+      "sha256": "df4a5f19927583f234169ce1832896d2dde73340631f106a18fc28c1697d0b53"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-full-1.xml",
+      "bytes": 234911,
+      "sha256": "a15ef74a9ee643b4c5a4895cf9fa395de67cf6663f08b4fd1a995e693d5de7ab"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-journey.xml",
+      "bytes": 897,
+      "sha256": "65119b428cb1a7a75347d5da632c5feddb567900f08111a2a6b62312bf672dd7"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-new.xml",
+      "bytes": 9405,
+      "sha256": "be43396f052e9f2be794d492f3ff1ff8e7d47538e909fa4bcae61a1f31a57874"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-projection-final.xml",
+      "bytes": 8332,
+      "sha256": "29c3df29ef29569942fbd31a2e9c17e5092ba146c9ac9356eeeca9fcfe1d22bb"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-real-oci-final.xml",
+      "bytes": 4536,
+      "sha256": "afd6df6ba3743a3483fbcf2c6e57643c0856ae2e3fa830c51bf51fcf5378c706"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-real-oci.xml",
+      "bytes": 13418,
+      "sha256": "f6d8243a3159e84ea70c5788998d6e974c3762c64034352e807552f08aeb2cd6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/test-results/capacity-verify-oci.xml",
+      "bytes": 541,
+      "sha256": "7afda0004b1e3eb3420a88700c8a94dd7eccc04839a43199a0afb5e6d7097284"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/validation-report.json",
+      "bytes": 8800,
+      "sha256": "c92aee6ceec3100ae93c247586ee3f5564d4c7aa70bd54b0c9bfbf0da71b3904"
+    },
+    {
+      "path": "app/agent_v2/journal.py",
+      "bytes": 6959,
+      "sha256": "d0f7d41c8efd8fea532bf7839c18825533d2bab0373afb8bb49e195386d3a75e"
+    },
+    {
+      "path": "app/agent_v2/loop.py",
+      "bytes": 55152,
+      "sha256": "88c8baf623905a2c48dc97ce45aae70aa7d3a66c97926f098540c16996085b8e"
+    },
+    {
+      "path": "app/agent_v2/native_tools.py",
+      "bytes": 22693,
+      "sha256": "b6ad129ae7aa53303bd95f4c17b4a2e9569a15d94b724645aa779ccb26b92263"
+    },
+    {
+      "path": "app/agent_v2/read_batches.py",
+      "bytes": 14725,
+      "sha256": "2e1ad41a1c64d768e74003a68b94b36da969e552512f0d0a71095fc31dfff941"
+    },
+    {
+      "path": "app/agent_v2/read_capacity.py",
+      "bytes": 10412,
+      "sha256": "a08a0dec251cee867db70a0a1aa9596d9dd46f522faa1b15fdfadfb2dc8ce356"
+    },
+    {
+      "path": "app/agent_v2/read_progress.py",
+      "bytes": 6865,
+      "sha256": "017339f80dbcf1c236c69d02540da6e96151a4e0f92965c2686ca528b5610950"
+    },
+    {
+      "path": "app/migrations/versions/__init__.py",
+      "bytes": 5712,
+      "sha256": "a049bf71c0cf548836ecf74d1292ef29ddf3dce8c52403c9441e19fe7b31e271"
+    },
+    {
+      "path": "app/migrations/versions/v0046_read_capacity.py",
+      "bytes": 3659,
+      "sha256": "b3ac5cf43c99c2dd980ab25e38770d61e59fcafdc4319a39682f36e4d1c7cfec"
+    },
+    {
+      "path": "app/sandbox_worker/agent_tools.py",
+      "bytes": 21562,
+      "sha256": "465a9494b1ea945b11519b77198eec0d6f9f113b9b71ffcfc2acdc8cce5bca87"
+    },
+    {
+      "path": "docs/tasks.md",
+      "bytes": 558361,
+      "sha256": "09ef6e8422b36c8fae5040c3db7cc073d59a219e25abc8f33535c6218187e63b"
+    },
+    {
+      "path": "tests/capacity_fixture.py",
+      "bytes": 3021,
+      "sha256": "11e15ef832139bf38067a5d269a6fb1e364572c98c91082adbfbb416c6f68a19"
+    },
+    {
+      "path": "tests/capacity_projection.py",
+      "bytes": 14476,
+      "sha256": "7303931f5d48a534680ace82f69d95c8b512c0245ed13735ea3147b048439b80"
+    },
+    {
+      "path": "tests/migration_fixtures.py",
+      "bytes": 3240,
+      "sha256": "a1755991b958595ca8d0414df25b3476a75b648a1b4cd11c2fe8c784e97b7588"
+    },
+    {
+      "path": "tests/test_agent_native_tools.py",
+      "bytes": 18898,
+      "sha256": "3d4af76f735e189d035f098fc65ba4473bc2009390a2ba01ac699900179879bd"
+    },
+    {
+      "path": "tests/test_agent_v2_migration.py",
+      "bytes": 2144,
+      "sha256": "406692603c8a1c547352658c29a2f6a85a1947544dffb687a0def1bd612d5731"
+    },
+    {
+      "path": "tests/test_baseline_feedback.py",
+      "bytes": 25147,
+      "sha256": "385549755a0153758e72d17d8a28439f5b0877a0a14b170e5232d27f8aa14507"
+    },
+    {
+      "path": "tests/test_environment_engine_baseline.py",
+      "bytes": 11926,
+      "sha256": "42e7cc8d35d9125ce28c163531f6e9f9b875ded450836a8c2d5af70210104070"
+    },
+    {
+      "path": "tests/test_execution_scheduling_recovery.py",
+      "bytes": 26097,
+      "sha256": "63cb64cd5d6a688ad00121a62ed65c9ad82d83b99bc591f0e23bb2638c7cb350"
+    },
+    {
+      "path": "tests/test_harness_coding_journey.py",
+      "bytes": 5030,
+      "sha256": "afaaed7213b5281abcb72c110876c6c22c5d1c890fc9ca30360e2d264b0e08c4"
+    },
+    {
+      "path": "tests/test_harness_migration.py",
+      "bytes": 2353,
+      "sha256": "97600c481e65f855fd4b4c60a95f758535810280d0f673380cc4dff538d87732"
+    },
+    {
+      "path": "tests/test_migrations.py",
+      "bytes": 20768,
+      "sha256": "3d194c661e698b4d41b29c6ccf504cbd6cd4521a6fdcfe8d04bce8b842960dcf"
+    },
+    {
+      "path": "tests/test_missing_source_observations.py",
+      "bytes": 15943,
+      "sha256": "4ae8fd48c4eb8918441cd760fbd777710a7fb06ebce8f4868570b35822918c4c"
+    },
+    {
+      "path": "tests/test_missing_source_oci.py",
+      "bytes": 8134,
+      "sha256": "334ea432939fc231f56bf2962302ba2e79dbda2d48b75390c1fe18cde18e1397"
+    },
+    {
+      "path": "tests/test_native_feedback_delivery.py",
+      "bytes": 9115,
+      "sha256": "ece90b23ea2856932fc6c17ae0e7d8820c757a8746354b11773db103c2651b85"
+    },
+    {
+      "path": "tests/test_native_read_batch_boundaries.py",
+      "bytes": 8825,
+      "sha256": "e7a1ecc7b44c4738f068c6eec2078664b02f05902f3d508341f17a5b65e25bbd"
+    },
+    {
+      "path": "tests/test_native_read_batches.py",
+      "bytes": 11583,
+      "sha256": "6b77e01359dfc01c01baee1537838d43fb3012d9e9dd3216ae3ce4de85e99d6c"
+    },
+    {
+      "path": "tests/test_nvidia_workflows.py",
+      "bytes": 16943,
+      "sha256": "ec8f75d63fe95e4e2c0bfe4c4bf74df9522d418c3e61cf77b5fbed357042c73c"
+    },
+    {
+      "path": "tests/test_planning.py",
+      "bytes": 187200,
+      "sha256": "c3d923f29572af00ad81e5fd4add0f81bcac5ccfd34048adb8c978621d51eb64"
+    },
+    {
+      "path": "tests/test_read_capacity.py",
+      "bytes": 17607,
+      "sha256": "2d45be14f320e52c08b699c722521c6b2bbe34cb6bd2da9c4d018eca97560723"
+    },
+    {
+      "path": "tests/test_read_capacity_oci.py",
+      "bytes": 5312,
+      "sha256": "0943007c80edc2a12c113eb7f24ce36c9e3497595a7c2a27b15e8e220afb99b7"
+    },
+    {
+      "path": "tests/test_snapshot_assessment.py",
+      "bytes": 14688,
+      "sha256": "af5758496cf3ea732859f0478c15e1616e132f2ee4d369528d8aad870891485a"
+    },
+    {
+      "path": "tests/test_task_visibility.py",
+      "bytes": 12810,
+      "sha256": "8d1287b5b1120db47b12457e64da69db45dd18a33ca935ca564fccb2040a1c47"
+    },
+    {
+      "path": "tests/test_workbench.py",
+      "bytes": 40070,
+      "sha256": "105475dd5dd8b9be0988d36f2f955f054594488ebf14883a60010e6f9ea8aeba"
+    },
+    {
+      "path": "tests/test_workspace_execution.py",
+      "bytes": 40342,
+      "sha256": "0149c553007e2c976cf5dbe3b19342a62d2ad0c79c63412a457e2fd67e448e67"
+    }
+  ],
+  "credential_pattern_scan": "passed_with_reviewed_existing_prose_and_test_canaries",
+  "reviewed_pattern_matches": [
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "bd0499596b419041b1eabbc85f5ddc408162f503e9da3c4cdb6a2bd5e3cdfcfe",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "bb1b3117ff3814e62e2bf4da554aa55e1024c823c1b07997e7d346e2c5eedc04",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "15b66e7e73ba999d9d22d2c209a17b1be26463ea9a80857cae14f65ef15ca5b8",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "20ee560baf34b6470003c4f24a65b652d6b528c025653b59972f30617f86ee06",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "20ee560baf34b6470003c4f24a65b652d6b528c025653b59972f30617f86ee06",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "b12056328fb4b14d081075f7c385c9751ae00fa4bae7432bfb81af4312f62144",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "docs/tasks.md",
+      "match_sha256": "f4a9189503737e664f8825dad9698a66cbdad9cb98abcae59563520016d7746c",
+      "classification": "existing_English_technical_prose",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_baseline_feedback.py",
+      "match_sha256": "022167cb04b810a201b0f70870d199240d500e7df78b394bfd1d832b07d6e86d",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_execution_scheduling_recovery.py",
+      "match_sha256": "421810d0378653d51ed95d53211ccc49967198abb8ff8e4968deff69ad9364cc",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "386a0992cc67b7d9d80ec1310bb43ed5365b5b90e52370a9d7281a1fd9565383",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "4fb937f524a88969796ff904884115f25abe374de3736fe20d78eeac9ee9db81",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "98d54b1edefeaef4d6bf2ac725deced0d1b12d2e82f1caeebe2c4ae66f32e57a",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "386a0992cc67b7d9d80ec1310bb43ed5365b5b90e52370a9d7281a1fd9565383",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "97a1b276f25e500bfcc02826befc53ccc5ae9ef6a7a09a3234d7d29c1058ab13",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "233f2f2361f87a67e3f157a3f7369ed42ea4e911df577b73416afbbf1fc68ff2",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "5ffa6e737c9d79039aaf41eec205d1edaa68efc0baec1b1f8e69dd2e7dfec9cf",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_planning.py",
+      "match_sha256": "36d6851e0202e78d33e78d14ab9a2312e6b90b92b30039b81922d2f1d41b794e",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_workbench.py",
+      "match_sha256": "b1f5968adfd683992c2c23268bf78cddc02d69ffeb358cfee33b7cff363a6347",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_workbench.py",
+      "match_sha256": "8b70787dcc06722f512649e6716dfba20f638e9f6064008b1aab676738634e17",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_workbench.py",
+      "match_sha256": "877cbea5b0d7473425466e59014ed5f053b01792fe58b9e1b66f33068c32371a",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    },
+    {
+      "file": "tests/test_workbench.py",
+      "match_sha256": "82a9865a3466ce2d6b08720188fc5fd79558dbfacd327019f8177290a04ef910",
+      "classification": "existing_deterministic_credential_canary_or_error_fixture",
+      "baseline_unchanged": true
+    }
+  ],
+  "exact_configured_credential_scan": "passed",
+  "credential_values_checked_count": 5,
+  "local_home_and_email_privacy_scan": "passed",
+  "owned_container_logs_scanned": 6,
+  "raw_databases_ENV_archives_private_keys_in_delivery": false,
+  "content_addressed_artifact_bytes": "verified",
+  "git_diff_check": "passed",
+  "new_file_whitespace_checks": 212,
+  "reverse_apply_diff_check": "passed_with_unidiff_zero",
+  "compileall_app": "passed",
+  "git_HEAD": "4328e4a02cd1b4ecff2492b4b4fc15ef238087f1",
+  "git_branch": "refactor/agent-runtime-v2",
+  "index_unmodified": true,
+  "commit_created": false,
+  "push_or_PR": false,
+  "unrelated_untracked_files_preserved_excluded": [
+    "agent-harness-reset-v1.zip",
+    "old four unredacted JUnit reports",
+    "plan13-execution/preflight-diagnostic.jsonl"
+  ],
+  "report_hash": "2a13a1076c9bde3566e25de6e660d443bad034a4a92b14977a9be4d41ceccb68"
+}

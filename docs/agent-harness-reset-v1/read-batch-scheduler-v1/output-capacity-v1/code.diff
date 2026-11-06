@@ -1,0 +1,1404 @@
+diff --git a/app/agent_v2/journal.py b/app/agent_v2/journal.py
+index 0361136..44e40c6 100644
+--- a/app/agent_v2/journal.py
++++ b/app/agent_v2/journal.py
+@@ -63,0 +64,9 @@ class AgentJournal:
++        if state in {"blocked", "cancelled"}:
++            from app.agent_v2 import read_batches, read_capacity
++            batch = read_batches.active(self)
++            if batch and read_batches.record(self, batch).get("capacity_contract") == read_capacity.VERSION:
++                reason = next((e.payload["failure"]["safe_reason_code"] for e in reversed(self.events())
++                    if e.payload.get("failure")), "agent_read_batch_" + state)
++                usage = dict(values["usage"])
++                read_batches.stop(self, batch, code=reason, job_id=job_id, usage=usage)
++                values["usage"] = usage
+diff --git a/app/agent_v2/loop.py b/app/agent_v2/loop.py
+index c5583ba..c8efe9e 100644
+--- a/app/agent_v2/loop.py
++++ b/app/agent_v2/loop.py
+@@ -242 +242 @@ def issued_artifacts(journal: AgentJournal) -> set[str]:
+-        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped"}}
++        "agent_v2_read_batch_completed", "agent_v2_read_batch_stopped", "agent_v2_read_capacity"}}
+@@ -245,0 +246,6 @@ def issued_artifacts(journal: AgentJournal) -> set[str]:
++        if event.kind == "agent_v2_tool_result" and event.payload.get("name") == "read_file" and event.payload.get("status") == "succeeded":
++            from hashlib import sha256
++            data = journal.wb.read(event.payload["artifact_id"])["data"]
++            aid = data.get("source_page_artifact")
++            if isinstance(data.get("text"), str) and aid == sha256(data["text"].encode()).hexdigest():
++                refs.add(aid)
+@@ -480,0 +487,2 @@ class AgentToolWorker(WorkbenchJobWorker):
++                if batch.get("capacity_contract") and proof["version"] != "native-read-batch-preflight-v3":
++                    raise ValueError("read_capacity_proof_version_invalid")
+@@ -485,0 +494,3 @@ class AgentToolWorker(WorkbenchJobWorker):
++                    if proof["version"] == "native-read-batch-preflight-v3":
++                        from app.agent_v2.read_capacity import validate_claim
++                        validate_claim(check, args, spec, proof["source_hash"])
+@@ -500 +511,4 @@ class AgentToolWorker(WorkbenchJobWorker):
+-            aid = journal.wb.artifact(proof)
++            from app.agent_v2 import read_capacity
++            usage = dict(current.usage)
++            metered = batch.get("capacity_contract") == read_capacity.VERSION
++            aid = read_capacity.store(journal, proof, usage, role="read_preflight") if metered else journal.wb.artifact(proof)
+@@ -504,2 +518,10 @@ class AgentToolWorker(WorkbenchJobWorker):
+-            if proof["status"] == "succeeded":
+-                current = journal.transition(current, state="tools", source_hash=proof["source_hash"],
++            capacity = None
++            if metered and proof["status"] == "succeeded":
++                capacity = read_capacity.certificate(batch, proof, batch_artifact=root.payload["artifact_id"],
++                    proof_artifact=aid, remaining=journal.remaining(current.model_copy(update={"usage": usage}))["output_bytes"])
++                capacity_id = read_capacity.store(journal, capacity, usage, role="read_capacity")
++                journal.append("read_capacity", {"batch_artifact": root.payload["artifact_id"],
++                    "artifact_id": capacity_id, "status": capacity["status"], "source_hash": proof["source_hash"]},
++                    key="read-capacity:" + root.payload["artifact_id"], job_id=job.id)
++            if proof["status"] == "succeeded" and (capacity is None or capacity["status"] == "succeeded"):
++                current = journal.transition(current, state="tools", source_hash=proof["source_hash"], usage=usage,
+@@ -510,2 +532,2 @@ class AgentToolWorker(WorkbenchJobWorker):
+-                code = proof["failure_code"]
+-                category = "platform" if code == "source_unavailable" else "stale_upstream" if code == "source_hash_conflict" else "security"
++                code = "agent_read_batch_budget" if capacity and capacity["status"] == "rejected" else proof["failure_code"]
++                category = "budget" if code == "agent_read_batch_budget" else "platform" if code == "source_unavailable" else "stale_upstream" if code == "source_hash_conflict" else "security"
+@@ -514,2 +536,2 @@ class AgentToolWorker(WorkbenchJobWorker):
+-                read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid)
+-                journal.transition(current, state="blocked", pending_calls=[],
++                read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid, usage=usage if metered else None)
++                journal.transition(current, state="blocked", pending_calls=[], usage=usage,
+@@ -634,0 +657,11 @@ class AgentToolWorker(WorkbenchJobWorker):
++        from app.agent_v2 import read_capacity
++        entry = read_capacity.attested_entry(journal, batch, call.call_id) if batch else None
++        usage = dict(cp.usage)
++        def observed_data(value):
++            raw = value.model_dump()
++            amount = read_capacity.size(raw)
++            if ((entry and amount > entry["result_bytes_bound"])
++                    or amount + read_capacity.FAILURE_BYTES > journal.remaining(cp.model_copy(update={"usage": usage}))["output_bytes"]):
++                return {"observed_result_hash": content_hash(raw), "observed_bytes": amount,
++                    "observed_result_availability": "unavailable_exceeds_proven_capacity"}
++            return {"observed_result_artifact": read_capacity.store(journal, raw, usage, role="observed_result")}
+@@ -637 +670 @@ class AgentToolWorker(WorkbenchJobWorker):
+-            observed = journal.wb.artifact(result.model_dump())
++            observed = observed_data(result)
+@@ -641 +674 @@ class AgentToolWorker(WorkbenchJobWorker):
+-                data={"observed_result_artifact": observed}, failure=info)
++                data=observed, failure=info)
+@@ -642,0 +676,7 @@ class AgentToolWorker(WorkbenchJobWorker):
++        if (entry and result.status in {"succeeded", "not_found"}
++                and not read_capacity.observation_matches(result, entry)):
++            observed = observed_data(result)
++            info = failure(journal, "security", "agent_read_capacity_observation_mismatch", "inspect_diagnostic")
++            result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
++                source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
++                data=observed, failure=info)
+@@ -662 +702 @@ class AgentToolWorker(WorkbenchJobWorker):
+-                observed = journal.wb.artifact(result.model_dump())
++                observed = observed_data(result)
+@@ -666 +706 @@ class AgentToolWorker(WorkbenchJobWorker):
+-                    data={"observed_result_artifact": observed}, failure=info)
++                    data=observed, failure=info)
+@@ -673 +712,0 @@ class AgentToolWorker(WorkbenchJobWorker):
+-        usage = journal.charge(cp, {"output_bytes": len(canonical_json(result.model_dump()).encode())})
+@@ -674,0 +714,2 @@ class AgentToolWorker(WorkbenchJobWorker):
++            # Snapshot immediately BEFORE persisting this receipt. This removes
++            # the old post-charge mutation/self-referential byte count.
+@@ -677 +718,12 @@ class AgentToolWorker(WorkbenchJobWorker):
+-        artifact = journal.wb.artifact(result.model_dump())
++        if entry and read_capacity.size(result.model_dump()) > entry["result_bytes_bound"]:
++            observed = observed_data(result)
++            info = failure(journal, "security", "agent_read_capacity_result_exceeded", "inspect_diagnostic")
++            info = info.model_copy(update={"remaining_budget": journal.remaining(cp.model_copy(update={"usage": usage}))})
++            result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
++                source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown", data=observed, failure=info)
++        if entry and result.status == "unknown" and read_capacity.size(result.model_dump()) > read_capacity.FAILURE_BYTES:
++            raise WorkbenchError("失败诊断超出冻结容量。", code="agent_read_capacity_failure_exceeded")
++        if call.name == "read_file" and args is not None and result.status == "succeeded" and isinstance(result.data.get("text"), str):
++            aid = read_capacity.source_page(journal, result.data["text"], usage)
++            result = result.model_copy(update={"data": {**result.data, "source_page_artifact": aid}})
++        artifact = read_capacity.store(journal, result.model_dump(), usage, role="tool_result")
+@@ -703 +755,2 @@ class AgentToolWorker(WorkbenchJobWorker):
+-            pending = read_batches.complete_child(journal, batch, cp, index, job_id=job.id, stopped=blocking)
++            pending = read_batches.complete_child(journal, batch, cp, index, job_id=job.id, stopped=blocking,
++                usage=usage if entry else None)
+@@ -711 +764,2 @@ class AgentToolWorker(WorkbenchJobWorker):
+-            read_batches.stop(journal, batch, code=info.safe_reason_code, job_id=job.id, evidence=artifact)
++            read_batches.stop(journal, batch, code=info.safe_reason_code, job_id=job.id, evidence=artifact,
++                usage=usage if entry else None)
+diff --git a/app/agent_v2/native_tools.py b/app/agent_v2/native_tools.py
+index f7a9c0b..c72ac1e 100644
+--- a/app/agent_v2/native_tools.py
++++ b/app/agent_v2/native_tools.py
+@@ -20 +20 @@ BLOCKED = "contribos_agent_blocked"
+-NATIVE_PROMPT_VERSION = "native-source-observations-v8"
++NATIVE_PROMPT_VERSION = "native-read-capacity-v9"
+@@ -23 +23,2 @@ NATIVE_INPUT_LIMIT = 32000
+-NATIVE_FEEDBACK_PAGE_LIMITS = (4096, 2048, 1024, 512, 256, 128, 64, 0)
++NATIVE_FEEDBACK_PAGE_LIMITS = (8192, 4096, 2048, 1024, 512, 256, 128, 64, 0)
++NATIVE_MIN_FEEDBACK_BYTES = 8192
+@@ -45 +46 @@ TOOL_DESCRIPTIONS = {
+-    "read_artifact": "Recover full task input, progress ledger or tool evidence by platform-issued artifact_id. Follow next_offset in bytes. Use existing receipt references to recover already fetched source instead of rereading from offset zero.",
++    "read_artifact": "Recover full task input, progress ledger or tool evidence by platform-issued artifact_id. Follow next_offset in bytes. A read_file source_page_artifact contains the raw returned source page, with artifact offsets starting at zero; later file bytes still require read_file. Reuse issued evidence instead of rereading from offset zero.",
+@@ -119 +120 @@ def native_model_transport() -> ModelTransport:
+-                "task_before_page_bodies": True, "read_ranges": "source_bound"},
++                "minimum_feedback_before_inline_task": NATIVE_MIN_FEEDBACK_BYTES, "read_ranges": "source_bound"},
+@@ -136 +137 @@ def native_input_bound(prompt: dict) -> int:
+-def _feedback_page(receipt: dict, limit: int) -> dict:
++def _feedback_page_full(receipt: dict, limit: int) -> dict:
+@@ -171,0 +173,11 @@ def _feedback_page(receipt: dict, limit: int) -> dict:
++def _feedback_page(receipt: dict, limit: int) -> dict:
++    value = _feedback_page_full(receipt, limit)
++    note = value.get("data", {}).get("source_read_progress")
++    if isinstance(note, dict) and "instruction" in note:
++        # This fixed instruction already lives in the immutable full receipt.
++        # Preserve every range/count/reference; avoid repeating it eight times.
++        return {**value, "data": {**value["data"], "source_read_progress": {
++            k: v for k, v in note.items() if k != "instruction"}}}
++    return value
++
++
+@@ -181 +193,6 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
+-    projected["history_index"] = [{k: v for k, v in row.items() if k != "call_id" and (v is not None or k == "next_offset")}
++    # Compact hashes only when the complete immutable index is issued below.
++    omitted = {"call_id"}
++    if len(prompt["history_index"]) > NATIVE_HISTORY_WINDOW:
++        omitted.update({"source_hash", "output_source_hash"})
++    projected["history_index"] = [{k: v for k, v in row.items() if k not in omitted
++        and (v is not None or k == "next_offset")}
+@@ -205 +222,2 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
+-        complete = {**projected, "approved_task_input": task_input}
++        complete = {**projected, "approved_task_input": task_input,
++            "feedback": [_feedback_page(row, NATIVE_MIN_FEEDBACK_BYTES) for row in feedback]}
+diff --git a/app/agent_v2/read_batches.py b/app/agent_v2/read_batches.py
+index 3c84282..07368c2 100644
+--- a/app/agent_v2/read_batches.py
++++ b/app/agent_v2/read_batches.py
+@@ -18,2 +18,2 @@ POLICY = {"version": "native-read-batch-v1", "eligible_tool": "read_file",
+-POLICY.update(preflight_contract="native-read-batch-preflight-v2",
+-    missing_source="OCI_attested_approved_new_path_not_found_v1")
++POLICY.update(preflight_contract="native-read-batch-preflight-v3",
++    missing_source="OCI_attested_approved_new_path_not_found_v1", output_capacity="native-read-capacity-v1")
+@@ -81,0 +82,19 @@ class ReadBatchPreflightV2(ReadBatchPreflight):
++class CapacityPresent(ReadPathCheck):
++    availability: Literal["present"]
++    data_json_bytes: int = Field(ge=2, le=100000)
++    data_hash: Hash
++    page_bytes: int = Field(ge=0, le=16000)
++
++
++class CapacityMissing(MissingReadPathCheck):
++    data_json_bytes: int = Field(ge=2, le=100000)
++    data_hash: Hash
++    page_bytes: Literal[0]
++
++
++class ReadBatchPreflightV3(ReadBatchPreflight):
++    version: Literal["native-read-batch-preflight-v3"]
++    checked: list[Annotated[CapacityPresent | CapacityMissing,
++        Field(discriminator="availability")]] = Field(max_length=8)
++
++
+@@ -83 +102,2 @@ def parse_preflight(value: dict) -> dict:
+-    cls = ReadBatchPreflightV2 if value.get("version") == "native-read-batch-preflight-v2" else ReadBatchPreflight
++    cls = {"native-read-batch-preflight-v2": ReadBatchPreflightV2,
++        "native-read-batch-preflight-v3": ReadBatchPreflightV3}.get(value.get("version"), ReadBatchPreflight)
+@@ -89,0 +110,2 @@ def checked_path_valid(check: dict, args: dict, write_paths: list[str]) -> bool:
++    if "page_bytes" in check and not 0 <= check["page_bytes"] <= args["max_bytes"]:
++        return False
+@@ -148 +169,0 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
+-    bound = 0
+@@ -154,6 +175 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
+-        args = registry.validate(call, spec)
+-        # JSON escaping plus bounded receipt/progress/failure metadata. This is
+-        # admission capacity, not a refund or an expansion of output allowance.
+-        bound += 6 * args.max_bytes + 8192
+-    if bound > journal.remaining(checkpoint)["output_bytes"]:
+-        raise WorkbenchError("读取批次输出预算不足。", code="agent_read_batch_budget")
++        registry.validate(call, spec)
+@@ -168,2 +184,6 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
+-        "reads_reserved": len(calls), "output_bytes_admission_bound": bound}
+-    aid = journal.wb.artifact(value)
++        "reads_reserved": len(calls), "capacity_contract": POLICY["output_capacity"]}
++    from app.agent_v2 import read_capacity
++    requests = [registry.validate(c, spec).model_dump() for c in calls]
++    if read_capacity.size(value) + read_capacity.preflight_bound(requests, value) > journal.remaining(checkpoint)["output_bytes"]:
++        raise WorkbenchError("读取预检证据预算不足。", code="agent_read_batch_budget")
++    aid = read_capacity.store(journal, value, reserved, role="read_batch")
+@@ -172 +192 @@ def admit(journal: Any, checkpoint: Any, proposal: NativeReadBatch, *, response_
+-        "binding_hash": value["binding_hash"]}, key="read-batch:" + model_job_id, job_id=model_job_id)
++        "binding_hash": value["binding_hash"], "capacity_contract": POLICY["output_capacity"]}, key="read-batch:" + model_job_id, job_id=model_job_id)
+@@ -198 +218 @@ def child_index(journal: Any, root: Any, call_id: str) -> int:
+-def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | None = None) -> None:
++def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | None = None, usage: dict | None = None) -> None:
+@@ -209 +229,3 @@ def stop(journal: Any, root: Any, *, code: str, job_id: str, evidence: str | Non
+-    journal.append("read_batch_stopped", {**data, "artifact_id": journal.wb.artifact(data)},
++    from app.agent_v2 import read_capacity
++    aid = read_capacity.store(journal, data, usage, role="read_batch_stopped") if usage is not None else journal.wb.artifact(data)
++    journal.append("read_batch_stopped", {**data, "artifact_id": aid},
+@@ -214 +236 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
+-                   stopped: bool) -> list[ToolCall]:
++                   stopped: bool, usage: dict | None = None) -> list[ToolCall]:
+@@ -226,0 +249,2 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
++    from app.agent_v2 import read_capacity
++    aid = read_capacity.store(journal, receipt, usage, role="read_child_result") if usage is not None else journal.wb.artifact(receipt)
+@@ -228 +252 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
+-        "artifact_id": journal.wb.artifact(receipt)},
++        "artifact_id": aid},
+@@ -241,0 +266 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
++    aid = read_capacity.store(journal, data, usage, role="read_batch_result") if usage is not None else journal.wb.artifact(data)
+@@ -243 +268 @@ def complete_child(journal: Any, root: Any, checkpoint: Any, index: int, *, job_
+-        "artifact_id": journal.wb.artifact(data)},
++        "artifact_id": aid},
+diff --git a/app/agent_v2/read_progress.py b/app/agent_v2/read_progress.py
+index 3bdf219..c5e95d5 100644
+--- a/app/agent_v2/read_progress.py
++++ b/app/agent_v2/read_progress.py
+@@ -118 +118,4 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
+-            if (data.get('source_read_progress') != note.model_dump()
++            projected_note = data.get('source_read_progress')
++            full_note = note.model_dump()
++            compact_note = {k: v for k, v in full_note.items() if k != 'instruction'}
++            if (projected_note not in (full_note, compact_note)
+diff --git a/app/migrations/versions/__init__.py b/app/migrations/versions/__init__.py
+index 6fdd41b..decbb38 100644
+--- a/app/migrations/versions/__init__.py
++++ b/app/migrations/versions/__init__.py
+@@ -1,0 +2 @@ from app.migrations.core import Migration
++from app.migrations.versions.v0046_read_capacity import MIGRATION as READ_CAPACITY
+@@ -145,0 +147 @@ MIGRATIONS: tuple[Migration, ...] = (
++    READ_CAPACITY,
+diff --git a/app/sandbox_worker/agent_tools.py b/app/sandbox_worker/agent_tools.py
+index 04aa0cb..1139878 100644
+--- a/app/sandbox_worker/agent_tools.py
++++ b/app/sandbox_worker/agent_tools.py
+@@ -68 +68,2 @@ class DockerAgentToolGateway:
+-                "arguments": {"requests": requests}, "write_paths": spec.write_paths, "originals": {}})
++                "arguments": {"requests": requests}, "write_paths": spec.write_paths, "originals": {},
++                "binding_hash": content_hash(spec.binding.model_dump())})
+@@ -72 +73 @@ class DockerAgentToolGateway:
+-            return {"version": "native-read-batch-preflight-v2", "input_hash": input_hash,
++            return {"version": "native-read-batch-preflight-v3", "input_hash": input_hash,
+@@ -275,2 +276,8 @@ try:
+-            checked.append({**check,**observation} if data is None else {**check,'availability':'present',
+-                'content_hash':digest(data),'total_bytes':len(data)})
++            native={'tool':'read_file','execution_backend':'docker','path':item['path'],**observation}
++            if data is None:
++                native.update(version='source-file-observation-v1',binding_hash=request['binding_hash'],inventory_hash=before_hash)
++            encoded=json.dumps(native,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
++            capacity={'data_json_bytes':len(encoded),'data_hash':digest(encoded),
++                'page_bytes':len(observation['text'].encode()) if data is not None else 0}
++            checked.append({**check,**observation,**capacity} if data is None else {**check,'availability':'present',
++                'content_hash':digest(data),'total_bytes':len(data),**capacity})
+diff --git a/tests/migration_fixtures.py b/tests/migration_fixtures.py
+index b9fb84b..8fbd849 100644
+--- a/tests/migration_fixtures.py
++++ b/tests/migration_fixtures.py
+@@ -10 +10,3 @@ def remove_task_visibility_schema(connection: Connection | sqlite3.Connection) -
+-    execute("DELETE FROM _schema_migrations WHERE revision='0045_source_file_observations'")
++    execute("DELETE FROM _schema_migrations WHERE revision IN ('0045_source_file_observations','0046_read_capacity')")
++    for name in ('agent_v2_output_charge_guard','agent_v2_read_capacity_guard','agent_v2_read_capacity_before_child'):
++        execute('DROP TRIGGER IF EXISTS ' + name)
+diff --git a/tests/test_agent_native_tools.py b/tests/test_agent_native_tools.py
+index 950e76d..19edb12 100644
+--- a/tests/test_agent_native_tools.py
++++ b/tests/test_agent_native_tools.py
+@@ -60 +60 @@ def test_registered_functions_are_exact_existing_capabilities_and_strict_termina
+-                "task_before_page_bodies": True, "read_ranges": "source_bound"},
++                "minimum_feedback_before_inline_task": 8192, "read_ranges": "source_bound"},
+@@ -297 +297 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
+-    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+@@ -312 +312 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
+-    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/tests/test_agent_v2_migration.py b/tests/test_agent_v2_migration.py
+index 90876e1..0f12bb4 100644
+--- a/tests/test_agent_v2_migration.py
++++ b/tests/test_agent_v2_migration.py
+@@ -25 +25 @@ def test_upgrade_backup_restore_preserves_v1_hashes_and_enforces_new_cas(tmp_pat
+-    assert report.applied==('0038_agent_runtime_v2','0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations')
++    assert report.applied==('0038_agent_runtime_v2','0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
+diff --git a/tests/test_baseline_feedback.py b/tests/test_baseline_feedback.py
+index d659e13..5a44b08 100644
+--- a/tests/test_baseline_feedback.py
++++ b/tests/test_baseline_feedback.py
+@@ -197 +197 @@ def test_upgrade_preserves_approvals_and_rejects_unproven_replan_transition(tmp_
+-    assert db.create_schema().applied == ('0037_baseline_feedback', '0038_agent_runtime_v2', '0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations')
++    assert db.create_schema().applied == ('0037_baseline_feedback', '0038_agent_runtime_v2', '0039_environment_contracts', '0040_deepseek_reviews', '0041_native_model_tools', '0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
+diff --git a/tests/test_environment_engine_baseline.py b/tests/test_environment_engine_baseline.py
+index 962fc89..9d434a1 100644
+--- a/tests/test_environment_engine_baseline.py
++++ b/tests/test_environment_engine_baseline.py
+@@ -112 +112 @@ def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch)
+-    assert db.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert db.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+@@ -120 +120 @@ def test_new_migration_preserves_real_v38_rows_and_backup(tmp_path, monkeypatch)
+-    assert restored.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert restored.create_schema().applied == ("0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/tests/test_execution_scheduling_recovery.py b/tests/test_execution_scheduling_recovery.py
+index 49a94ff..d0ae817 100644
+--- a/tests/test_execution_scheduling_recovery.py
++++ b/tests/test_execution_scheduling_recovery.py
+@@ -360 +360 @@ def test_recovery_upgrade_preserves_hashes_and_database_rejects_unproven_input(t
+-    assert db.create_schema().applied == ("0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert db.create_schema().applied == ("0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/tests/test_harness_coding_journey.py b/tests/test_harness_coding_journey.py
+index 3cb2fa2..885988f 100644
+--- a/tests/test_harness_coding_journey.py
++++ b/tests/test_harness_coding_journey.py
+@@ -22 +22,2 @@ from tests.test_native_read_progress import run_round
+-def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_path, repair):
++@pytest.mark.parametrize('batch', [False, True])
++def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_path, repair, batch):
+@@ -27,0 +29,2 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
++    from tests.test_native_read_batches import ReadGateway, reads, drain
++    read_gateway = ReadGateway(); read_gateway.text = "content"
+@@ -28,0 +32,2 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
++        async def preflight_read_batch(self, *args, **kwargs):
++            return await read_gateway.preflight_read_batch(*args, **kwargs)
+@@ -31 +36,2 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
+-            value = await super().execute(spec, call, args, **kw)
++            value = (await read_gateway.execute(spec, call, args, **kw) if batch and call.name == "read_file"
++                else await super().execute(spec, call, args, **kw))
+@@ -45 +51 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
+-    runner.responses.extend([response('read_file', {'path': path}), patch('content', 'changed'), response('run_approved_checks', {})])
++    runner.responses.extend([reads(8, path=path, max_bytes=16000) if batch else response('read_file', {'path': path}), patch('content', 'changed'), response('run_approved_checks', {})])
+@@ -47,0 +54 @@ def test_native_coding_verify_repair_and_independent_review_stop_for_human(tmp_p
++        if batch: drain(tool)
+diff --git a/tests/test_harness_migration.py b/tests/test_harness_migration.py
+index 8f3b488..519ba30 100644
+--- a/tests/test_harness_migration.py
++++ b/tests/test_harness_migration.py
+@@ -23 +23 @@ def test_0041_upgrade_preserves_old_rows_and_backup_recovery(tmp_path, monkeypat
+-    assert db.create_schema().applied == ('0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations')
++    assert db.create_schema().applied == ('0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
+@@ -36 +36 @@ def test_0041_upgrade_preserves_old_rows_and_backup_recovery(tmp_path, monkeypat
+-    assert restored.create_schema().applied == ('0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations')
++    assert restored.create_schema().applied == ('0042_agent_response_evidence', '0043_implementation_progress', '0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
+diff --git a/tests/test_migrations.py b/tests/test_migrations.py
+index 13ecc62..c02eaf2 100644
+--- a/tests/test_migrations.py
++++ b/tests/test_migrations.py
+@@ -19 +19 @@ BASELINE_REVISION = "0001_phase1_baseline"
+-LATEST_REVISION = "0045_source_file_observations"
++LATEST_REVISION = "0046_read_capacity"
+@@ -85,0 +86 @@ def test_empty_database_is_migrated_and_repeatable(tmp_path: Path) -> None:
++            "0045_source_file_observations",
+@@ -292,0 +294 @@ def test_real_phase1_fixture_is_adopted_without_data_loss(tmp_path: Path) -> Non
++            "0045_source_file_observations",
+@@ -442,0 +445 @@ def test_execution_artifact_manifest_upgrade_preserves_previous_rows(
++            "0045_source_file_observations",
+@@ -498,0 +502 @@ def test_product_experience_and_review_binding_upgrade_preserves_rows(
++            "0045_source_file_observations",
+diff --git a/tests/test_missing_source_observations.py b/tests/test_missing_source_observations.py
+index ad4b12c..3205fe4 100644
+--- a/tests/test_missing_source_observations.py
++++ b/tests/test_missing_source_observations.py
+@@ -66 +66 @@ class MissingGateway(ReadGateway):
+-        proof["version"] = "native-read-batch-preflight-v2"
++        proof["version"] = "native-read-batch-preflight-v3"
+@@ -71,0 +72,5 @@ class MissingGateway(ReadGateway):
++                data = MissingSourceObservation(tool="read_file", path=MISSING, availability="not_found",
++                    reason_code="source_not_found", creation_allowed=True, binding_hash=content_hash(spec.binding.model_dump()),
++                    inventory_hash=kwargs["source_hash"], execution_backend="docker").model_dump(exclude_none=True)
++                from app.agent_v2.read_capacity import size
++                check.update(page_bytes=0, data_json_bytes=size(data), data_hash=content_hash(data))
+@@ -257 +262 @@ def test_forward_migration_keeps_old_journal_and_rejects_forged_absence(tmp_path
+-    assert db.create_schema().applied == ("0045_source_file_observations",)
++    assert db.create_schema().applied == ("0045_source_file_observations", "0046_read_capacity",)
+diff --git a/tests/test_missing_source_oci.py b/tests/test_missing_source_oci.py
+index e3919e8..795f06a 100644
+--- a/tests/test_missing_source_oci.py
++++ b/tests/test_missing_source_oci.py
+@@ -11 +11 @@ from app.agent_v2.native_tools import native_model_transport
+-from app.agent_v2.read_batches import ReadBatchPreflightV2
++from app.agent_v2.read_batches import parse_preflight
+@@ -49 +49 @@ def test_real_frozen_plan13_eight_reads_and_authorized_new_file_creation(tmp_pat
+-        ReadBatchPreflightV2.model_validate(proof)
++        parse_preflight(proof)
+diff --git a/tests/test_native_feedback_delivery.py b/tests/test_native_feedback_delivery.py
+index 6e66ce1..5144045 100644
+--- a/tests/test_native_feedback_delivery.py
++++ b/tests/test_native_feedback_delivery.py
+@@ -55 +55 @@ def test_all_four_batch_results_are_observed_including_first_requested_file(tmp_
+-def test_full_task_and_four_unicode_pages_share_the_existing_cap_without_lost_offsets():
++def test_recoverable_task_and_four_unicode_pages_share_cap_without_lost_offsets():
+@@ -61 +61,11 @@ def test_full_task_and_four_unicode_pages_share_the_existing_cap_without_lost_of
+-    assert projected['approved_task_input'] == inputs
++    reference = projected['approved_task_input']
++    assert reference['partial'] is True and reference['artifact_id'] == content_hash(inputs)
++    encoded = canonical_json(inputs).encode()
++    assert reference['total_bytes'] == len(encoded)
++    from app.agent_v2.tools import artifact_page
++    recovered = b''
++    while len(recovered) < len(encoded):
++        page = artifact_page(encoded, len(recovered), 16000)
++        recovered += page['text'].encode()
++        assert page['next_offset'] == (len(recovered) if len(recovered) < len(encoded) else None)
++    assert recovered == encoded  # No Plan/Issue acceptance fact is dropped.
+diff --git a/tests/test_native_read_batch_boundaries.py b/tests/test_native_read_batch_boundaries.py
+index 8f8c390..98c14c8 100644
+--- a/tests/test_native_read_batch_boundaries.py
++++ b/tests/test_native_read_batch_boundaries.py
+@@ -34 +34 @@ def seed_reserved_usage(values, charges):
+-@pytest.mark.parametrize('charges',[{'reads':60},{'output_bytes':450000}])
++@pytest.mark.parametrize('charges',[{'reads':60},{'output_bytes':490000}])
+@@ -136,0 +137,7 @@ os._exit(23)
++    with db.session() as session:
++        j=AgentJournal(Workbench(session,s.artifact_root),task,sid)
++        charges=[e for e in j.events() if e.kind=='agent_v2_output_charge']
++        model_bytes=sum(len(j.wb.artifacts.read_bytes(e.payload['artifact_id'])) for e in j.events() if e.kind=='agent_v2_model_response')
++        assert cp.usage['output_bytes']==model_bytes+sum(e.payload['bytes'] for e in charges)
++        pages=[e.payload['artifact_id'] for e in charges if e.payload['role']=='source_page']
++        assert len(pages)==len(set(pages))
+@@ -147 +154 @@ def test_migration_upgrade_and_lifecycle_guard_preserve_existing_rows(tmp_path,m
+-    assert db.create_schema().applied==('0044_native_read_batches', '0045_source_file_observations')
++    assert db.create_schema().applied==('0044_native_read_batches', '0045_source_file_observations', '0046_read_capacity')
+diff --git a/tests/test_native_read_batches.py b/tests/test_native_read_batches.py
+index 1e1461d..0b4bf4f 100644
+--- a/tests/test_native_read_batches.py
++++ b/tests/test_native_read_batches.py
+@@ -53 +53,10 @@ class ReadGateway:
+-        return {'version': 'native-read-batch-preflight-v1', 'input_hash': input_hash,
++        checked = []
++        for a in args:
++            page = artifact_page(self.text.encode(), a['offset'], a['max_bytes'])
++            data = {'tool': 'read_file', 'execution_backend': 'docker', 'path': a['path'],
++                'content_hash': hashlib.sha256(self.text.encode()).hexdigest(), **page}
++            from app.agent_v2.read_capacity import size
++            checked.append({'path': a['path'], 'availability': 'present', 'content_hash': data['content_hash'],
++                'offset': a['offset'], 'max_bytes': a['max_bytes'], 'total_bytes': len(self.text.encode()),
++                'page_bytes': len(page['text'].encode()), 'data_json_bytes': size(data), 'data_hash': content_hash(data)})
++        return {'version': 'native-read-batch-preflight-v3', 'input_hash': input_hash,
+@@ -58,2 +67 @@ class ReadGateway:
+-            'checked': [] if denied else [{'path': a['path'], 'content_hash': hashlib.sha256(self.text.encode()).hexdigest(),
+-                'offset': a['offset'], 'max_bytes': a['max_bytes'], 'total_bytes': len(self.text.encode())} for a in args],
++            'checked': [] if denied else checked,
+diff --git a/tests/test_nvidia_workflows.py b/tests/test_nvidia_workflows.py
+index f4d0e2d..b94a88e 100644
+--- a/tests/test_nvidia_workflows.py
++++ b/tests/test_nvidia_workflows.py
+@@ -374 +374 @@ def test_kimi_review_creates_review_bound_to_provider_invocation(
+-            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations",
++            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity",
+diff --git a/tests/test_planning.py b/tests/test_planning.py
+index 5ece979..e0244a8 100644
+--- a/tests/test_planning.py
++++ b/tests/test_planning.py
+@@ -4683 +4683 @@ def test_task_state_migration_backfills_existing_task_root(
+-            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations",
++            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity",
+diff --git a/tests/test_snapshot_assessment.py b/tests/test_snapshot_assessment.py
+index 8c20293..f857bdf 100644
+--- a/tests/test_snapshot_assessment.py
++++ b/tests/test_snapshot_assessment.py
+@@ -84 +84 @@ def test_upgrade_preserves_old_analysis_tasks_and_plan_hashes(tmp_path, monkeypa
+-    assert db.create_schema().applied == ("0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert db.create_schema().applied == ("0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/tests/test_task_visibility.py b/tests/test_task_visibility.py
+index 1b61223..f827ae7 100644
+--- a/tests/test_task_visibility.py
++++ b/tests/test_task_visibility.py
+@@ -189 +189 @@ def test_upgrade_from_0030_preserves_tasks_and_backup_recovery(tmp_path, monkeyp
+-    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews", "0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert report.applied == ("0031_task_visibility", "0032_minimax_reviews", "0033_snapshot_assessments", "0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/tests/test_workbench.py b/tests/test_workbench.py
+index dc9ad6b..5d62086 100644
+--- a/tests/test_workbench.py
++++ b/tests/test_workbench.py
+@@ -870 +870 @@ def test_workbench_migration_preserves_existing_drafts_and_references(tmp_path):
+-            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations",
++            "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity",
+diff --git a/tests/test_workspace_execution.py b/tests/test_workspace_execution.py
+index d77c6bd..abe7cbb 100644
+--- a/tests/test_workspace_execution.py
++++ b/tests/test_workspace_execution.py
+@@ -399 +399 @@ def test_baseline_migration_preserves_old_history_and_rejects_invalid_reference(
+-    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
++    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations", "0046_read_capacity")
+diff --git a/app/agent_v2/read_capacity.py b/app/agent_v2/read_capacity.py
+new file mode 100644
+index 0000000..e498624
+--- /dev/null
++++ b/app/agent_v2/read_capacity.py
+@@ -0,0 +1,177 @@
++"""Source-attested read capacity and exact output artifact metering.
++
++Output bytes cover model envelopes, final ToolResults, observed unsafe results
++when affordable, and batch/proof/certificate/result artifacts. Journal/control
++checkpoints and progress-ledger references are separate bounded audit storage;
++they contain no additional source page bodies. Reservations are not usage.
++"""
++from __future__ import annotations
++
++from typing import Any
++from hashlib import sha256
++
++from app.agent_v2.contracts import ToolResult
++from app.agent_v2.read_progress import ReadProgressNote
++from app.provenance import canonical_json, content_hash
++from app.workbench import WorkbenchError
++
++VERSION = "native-read-capacity-v1"
++FAILURE_BYTES = 8192  # Enforced bound for the platform's diagnostic envelope.
++H = "f" * 64
++
++
++def size(value: Any) -> int:
++    return len(canonical_json(value).encode("utf-8"))
++
++
++def store(journal: Any, value: dict, usage: dict, *, role: str) -> str:
++    """Charge the exact immutable bytes, in the same transaction as the checkpoint."""
++    amount = size(value)
++    # Dispatch enforces wall time. Committing already-observed truth or a stop
++    # record must remain possible after that deadline, within the byte reserve.
++    charged = dict(usage)
++    total = charged.get("output_bytes", 0) + amount
++    if total > journal.spec().limits.output_bytes:
++        raise WorkbenchError("输出证据预算不足。", code="agent_budget_exceeded")
++    charged["output_bytes"] = total
++    aid = journal.wb.artifact(value)
++    journal.append("output_charge", {"artifact_id": aid, "bytes": amount, "role": role,
++        "contract": VERSION}, key="output-charge:" + role + ":" + aid)
++    usage.clear(); usage.update(charged)
++    return aid
++
++
++def source_page(journal: Any, text: str, usage: dict) -> str:
++    """Issue only already-observed bytes, billed once per session and hash."""
++    raw = text.encode("utf-8")
++    aid = sha256(raw).hexdigest()
++    prior = next((e for e in journal.events() if e.kind == "agent_v2_output_charge"
++        and e.payload["role"] == "source_page" and e.payload["artifact_id"] == aid), None)
++    if prior is not None:
++        if prior.payload["bytes"] != len(raw) or journal.wb.artifacts.read_bytes(aid) != raw:
++            raise WorkbenchError("源码页证据失效。", code="agent_source_page_invalid")
++        return aid
++    total = usage.get("output_bytes", 0) + len(raw)
++    if total > journal.spec().limits.output_bytes:
++        raise WorkbenchError("输出证据预算不足。", code="agent_budget_exceeded")
++    stored = journal.wb.artifacts.store_bytes(raw, media_type="text/plain; charset=utf-8", commit=False)
++    journal.append("output_charge", {"artifact_id": stored.id, "bytes": len(raw), "role": "source_page",
++        "contract": VERSION}, key="output-charge:source_page:" + stored.id)
++    usage["output_bytes"] = total
++    return stored.id
++
++
++def progress_bound() -> int:
++    note = ReadProgressNote(range_key=H, max_bytes=16000, prior_same_range_reads=256,
++        prior_receipt=H, warning_receipts_seen=[H, H], visible_bytes=16000, visible_next_offset=1000000)
++    # Merge size includes the comma, and accommodates reuse's longer backend.
++    return size({"source_read_progress": note.model_dump(), "reused_receipt": H}) + len("platform_receipt_reuse")
++
++
++def receipt_bound(call_id: str, data_bytes: int) -> int:
++    outer = ToolResult(call_id=call_id, input_hash=H, source_hash=H, output_source_hash=H,
++        artifact_id=H, status="succeeded", data={}).model_dump()
++    return size(outer) - 2 + data_bytes + progress_bound() + size({"source_page_artifact": H})
++
++
++def validate_claim(check: dict, args: dict, spec: Any, source_hash: str) -> None:
++    if check.get("availability") == "not_found":
++        from app.agent_v2.contracts import MissingSourceObservation
++        data = MissingSourceObservation(tool="read_file", path=args["path"], availability="not_found",
++            reason_code="source_not_found", creation_allowed=True, binding_hash=content_hash(spec.binding.model_dump()),
++            inventory_hash=source_hash, execution_backend="docker").model_dump(exclude_none=True)
++        if check["page_bytes"] != 0 or check["data_json_bytes"] != size(data) or check["data_hash"] != content_hash(data):
++            raise ValueError("read_capacity_absence_invalid")
++        return
++    count = check["page_bytes"]
++    if (not 0 <= count <= min(args["max_bytes"], check["total_bytes"] - args["offset"])
++            or count == 0 and args["offset"] != check["total_bytes"]):
++        raise ValueError("read_capacity_page_invalid")
++    end = args["offset"] + count
++    empty = {"tool": "read_file", "execution_backend": "docker", "path": args["path"], "text": "",
++        "offset": args["offset"], "next_offset": end if end < check["total_bytes"] else None,
++        "total_bytes": check["total_bytes"], "content_hash": check["content_hash"]}
++    if not size(empty) + count <= check["data_json_bytes"] <= size(empty) + 6 * count:
++        raise ValueError("read_capacity_serialization_invalid")
++
++
++def structural_bound(batch: dict, source_hash: str) -> int:
++    """Upper bound both completion and a stopped prefix; IDs retain actual lengths."""
++    ids = [c["call_id"] for c in batch["calls"]]
++    common = {"batch_artifact": H, "source_hash": source_hash, "binding_hash": H}
++    children = [{"version": "native-read-sub-batch-result-v1", **common,
++        "sub_batch_id": c["id"], "index": c["index"], "status": "succeeded",
++        "call_ids": c["call_ids"], "receipts": [H] * len(c["call_ids"])} for c in batch["sub_batches"]]
++    aggregate = {"version": "native-read-batch-result-v1", **common, "response_artifact": H,
++        "call_ids": ids, "receipts": [H] * len(ids)}
++    stopped = {"batch_artifact": H, "reason_code": "x" * 100, "evidence": H,
++        "actual_receipts": [H] * len(ids), "unknown_calls": ids, "not_executed": ids}
++    return sum(map(size, children)) + size(aggregate) + size(stopped) + FAILURE_BYTES
++
++
++def preflight_bound(requests: list[dict], batch: dict) -> int:
++    checked = [{"path": a["path"], "offset": a["offset"], "max_bytes": a["max_bytes"],
++        "availability": "not_found", "content_hash": H, "total_bytes": 1000000,
++        "reason_code": "source_not_found", "creation_allowed": True,
++        "data_json_bytes": 100000, "data_hash": H, "page_bytes": 16000} for a in requests]
++    proof = {"version": "native-read-batch-preflight-v3", "input_hash": H, "binding_hash": H,
++        "source_hash": H, "after_hash": H, "requests_hash": H, "status": "succeeded",
++        "failure_code": "x" * 100, "checked": checked, "execution_backend": "fixture"}
++    return size(proof) + structural_bound(batch, H)
++
++
++def certificate(batch: dict, proof: dict, *, batch_artifact: str, proof_artifact: str,
++                remaining: int) -> dict:
++    if proof["version"] != "native-read-batch-preflight-v3":
++        raise ValueError("read_capacity_proof_version_invalid")
++    calls = []
++    for call, check in zip(batch["calls"], proof["checked"], strict=True):
++        normal = receipt_bound(call["call_id"], check["data_json_bytes"])
++        calls.append({"call_id": call["call_id"], "data_hash": check["data_hash"],
++            "data_json_bytes": check["data_json_bytes"], "result_bytes_bound": normal + FAILURE_BYTES,
++            # Either a valid receipt + raw source page (<=16000), or an
++            # observed invalid result + bounded diagnostic (2*8192). These
++            # branches are exclusive; reservations are never charged as usage.
++            "output_bytes_bound": normal + 2 * FAILURE_BYTES})
++    value = {"version": VERSION, "batch_artifact": batch_artifact, "preflight_artifact": proof_artifact,
++        "source_hash": proof["source_hash"], "binding_hash": batch["binding_hash"],
++        "remaining_output_bytes": remaining, "calls": calls, "status": "succeeded",
++        "metadata_bytes_bound": structural_bound(batch, proof["source_hash"]), "total_bytes_bound": 0}
++    # Certificate is itself charged; use maximal numeric/status widths for its bound.
++    overhead = size({**value, "total_bytes_bound": 4000000, "status": "rejected"})
++    value["total_bytes_bound"] = sum(c["output_bytes_bound"] for c in calls) + value["metadata_bytes_bound"] + overhead
++    if value["total_bytes_bound"] > remaining:
++        value["status"] = "rejected"
++    return value
++
++
++def attested_entry(journal: Any, batch: Any, call_id: str) -> dict | None:
++    original = journal.wb.read(batch.payload["artifact_id"])
++    if original.get("capacity_contract") != VERSION:
++        return None  # Legacy batches keep their original already-admitted bound.
++    event = next((e for e in journal.events() if e.kind == "agent_v2_read_capacity"
++        and e.payload["batch_artifact"] == batch.payload["artifact_id"]), None)
++    if event is None:
++        raise WorkbenchError("读取容量证明缺失。", code="agent_read_capacity_missing")
++    value = journal.wb.read(event.payload["artifact_id"])
++    proof_event = next(e for e in journal.events() if e.kind == "agent_v2_read_batch_preflight"
++        and e.payload["batch_artifact"] == batch.payload["artifact_id"])
++    expected = certificate(original, journal.wb.read(proof_event.payload["artifact_id"]),
++        batch_artifact=batch.payload["artifact_id"], proof_artifact=proof_event.payload["artifact_id"],
++        remaining=value["remaining_output_bytes"])
++    if (value != expected or event.actor_id != "orchestrator" or value["status"] != "succeeded"
++            or value["source_hash"] != journal.checkpoint().source_hash):
++        raise WorkbenchError("读取容量证明已失效。", code="agent_read_capacity_stale")
++    return next(c for c in value["calls"] if c["call_id"] == call_id)
++
++
++def observation_matches(result: ToolResult, entry: dict) -> bool:
++    data = {k: v for k, v in result.data.items() if k not in {"source_read_progress", "reused_receipt"}}
++    if "source_page_artifact" in data:
++        if not isinstance(data.get("text"), str) or data.pop("source_page_artifact") != sha256(data["text"].encode()).hexdigest():
++            return False
++    # The trusted OCI commitment is to the original observation before cache metadata.
++    if data.get("execution_backend") not in {"docker", "fixture", "platform_receipt_reuse"}:
++        return False
++    data["execution_backend"] = "docker"
++    return size(data) == entry["data_json_bytes"] and content_hash(data) == entry["data_hash"]
+diff --git a/app/migrations/versions/v0046_read_capacity.py b/app/migrations/versions/v0046_read_capacity.py
+new file mode 100644
+index 0000000..e481aa4
+--- /dev/null
++++ b/app/migrations/versions/v0046_read_capacity.py
+@@ -0,0 +1,61 @@
++"""Additive metered output and capacity-before-child evidence guards."""
++from sqlalchemy import Connection
++from app.migrations.core import Migration
++
++STATEMENTS = (
++"""CREATE TRIGGER agent_v2_output_charge_guard BEFORE INSERT ON workbench_events
++WHEN NEW.kind='agent_v2_output_charge'
++BEGIN
++ SELECT CASE WHEN NEW.actor_id!='orchestrator'
++  OR json_extract(NEW.payload,'$.contract') IS NOT 'native-read-capacity-v1'
++  OR json_type(NEW.payload,'$.bytes') IS NOT 'integer'
++  OR json_type(NEW.payload,'$.role') IS NOT 'text'
++  OR json_extract(NEW.payload,'$.role') NOT IN ('read_batch','read_preflight','read_capacity','tool_result',
++   'observed_result','source_page','read_child_result','read_batch_result','read_batch_stopped')
++  OR json_extract(NEW.payload,'$.bytes') < 0
++  OR NOT EXISTS (SELECT 1 FROM artifacts a WHERE a.id=json_extract(NEW.payload,'$.artifact_id')
++   AND a.size_bytes=json_extract(NEW.payload,'$.bytes'))
++  OR NOT EXISTS (SELECT 1 FROM workbench_events s WHERE s.task_id=NEW.task_id
++   AND s.kind='agent_v2_session' AND json_extract(s.payload,'$.session_id')=json_extract(NEW.payload,'$.session_id'))
++ THEN RAISE(ABORT,'Invalid exact output charge') END;
++END""",
++"""CREATE TRIGGER agent_v2_read_capacity_guard BEFORE INSERT ON workbench_events
++WHEN NEW.kind='agent_v2_read_capacity'
++BEGIN
++ SELECT CASE WHEN NEW.actor_id!='orchestrator'
++  OR json_type(NEW.payload,'$.status') IS NOT 'text'
++  OR json_extract(NEW.payload,'$.status') NOT IN ('succeeded','rejected')
++  OR NOT EXISTS (SELECT 1 FROM artifacts WHERE id=json_extract(NEW.payload,'$.artifact_id'))
++  OR NOT EXISTS (SELECT 1 FROM workbench_events p WHERE p.task_id=NEW.task_id
++   AND p.kind='agent_v2_read_batch_preflight' AND json_extract(p.payload,'$.status')='succeeded'
++   AND json_extract(p.payload,'$.session_id')=json_extract(NEW.payload,'$.session_id')
++   AND json_extract(p.payload,'$.batch_artifact')=json_extract(NEW.payload,'$.batch_artifact')
++   AND json_extract(p.payload,'$.source_hash')=json_extract(NEW.payload,'$.source_hash'))
++  OR EXISTS (SELECT 1 FROM workbench_events p WHERE p.task_id=NEW.task_id AND p.kind=NEW.kind
++   AND json_extract(p.payload,'$.batch_artifact')=json_extract(NEW.payload,'$.batch_artifact'))
++ THEN RAISE(ABORT,'Invalid read capacity evidence') END;
++END""",
++"""CREATE TRIGGER agent_v2_read_capacity_before_child BEFORE INSERT ON workbench_events
++WHEN NEW.kind='agent_v2_read_sub_batch_started' AND EXISTS (
++ SELECT 1 FROM workbench_events b WHERE b.task_id=NEW.task_id AND b.kind='agent_v2_read_batch'
++ AND json_extract(b.payload,'$.artifact_id')=json_extract(NEW.payload,'$.batch_artifact')
++ AND json_extract(b.payload,'$.capacity_contract')='native-read-capacity-v1')
++BEGIN
++ SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM workbench_events p WHERE p.task_id=NEW.task_id
++  AND p.kind='agent_v2_read_capacity' AND json_extract(p.payload,'$.status')='succeeded'
++  AND json_extract(p.payload,'$.batch_artifact')=json_extract(NEW.payload,'$.batch_artifact')
++  AND json_extract(p.payload,'$.source_hash')=json_extract(NEW.payload,'$.source_hash'))
++ THEN RAISE(ABORT,'Read capacity proof required') END;
++END""",
++)
++
++
++def upgrade(connection: Connection) -> None:
++    for statement in STATEMENTS:
++        connection.exec_driver_sql(statement)
++
++
++MIGRATION = Migration(revision="0046_read_capacity", description="Source-attested read capacity and exact output charges",
++    signature="\n".join(STATEMENTS), upgrade=upgrade,
++    recovery="Drain writers, preserve capacity/charge/checkpoint artifacts and restore matched database/artifact/code backup. "
++        "Never delete history, refund reservations, resume terminal Plan14 or reuse an old binding.")
+diff --git a/tests/capacity_fixture.py b/tests/capacity_fixture.py
+new file mode 100644
+index 0000000..6ad8098
+--- /dev/null
++++ b/tests/capacity_fixture.py
+@@ -0,0 +1,48 @@
++"""Frozen Plan14 bytes under fresh synthetic fixture authority, no live database."""
++import hashlib
++import json
++from pathlib import Path
++
++from app.agent_v2.contracts import ToolResult
++from app.agent_v2.tools import artifact_page
++from app.provenance import content_hash
++from tests.test_native_read_batches import ReadGateway
++
++RECORDS = Path(__file__).parents[1] / "docs/agent-harness-reset-v1/read-batch-scheduler-v1"
++CONTEXT_ID = "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834"
++raw_context = (RECORDS / "plan14-execution/artifacts" / (CONTEXT_ID + ".json")).read_bytes()
++assert hashlib.sha256(raw_context).hexdigest() == CONTEXT_ID
++CONTEXT = json.loads(raw_context)
++CONTENTS = {e["path"]: e["content"] for e in CONTEXT["entries"] if e.get("content") is not None}
++assert all(hashlib.sha256(text.encode()).hexdigest() == next(e["prior_hash"] for e in CONTEXT["entries"] if e["path"] == path)
++    for path, text in CONTENTS.items())
++SOURCE = "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c"
++
++
++class FrozenGateway(ReadGateway):
++    """Deterministic frozen-byte substitute; actual OCI tests use the real archive."""
++    async def preflight_read_batch(self, spec, calls, *, source_hash, snapshot, input_hash):
++        from app.agent_v2.tools import RestrictedToolRegistry
++        from app.agent_v2.read_capacity import size
++        self.preflights += 1
++        args = [RestrictedToolRegistry().validate(c, spec).model_dump() for c in calls]
++        checked = []
++        for a in args:
++            raw = CONTENTS[a["path"]].encode(); page = artifact_page(raw, a["offset"], a["max_bytes"])
++            data = {"tool": "read_file", "execution_backend": "docker", "path": a["path"],
++                "content_hash": hashlib.sha256(raw).hexdigest(), **page}
++            checked.append({"availability": "present", "path": a["path"], "offset": a["offset"], "max_bytes": a["max_bytes"],
++                "total_bytes": len(raw), "content_hash": data["content_hash"], "page_bytes": len(page["text"].encode()),
++                "data_json_bytes": size(data), "data_hash": content_hash(data)})
++        return {"version": "native-read-batch-preflight-v3", "input_hash": input_hash,
++            "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": SOURCE, "after_hash": SOURCE,
++            "requests_hash": content_hash(args), "status": "succeeded", "failure_code": None,
++            "checked": checked, "execution_backend": "fixture"}
++
++    async def execute(self, spec, call, args, *, source_hash, snapshot, input_hash):
++        self.calls.append(call)
++        raw = CONTENTS[args.path].encode()
++        data = {"tool": "read_file", "execution_backend": "docker", "path": args.path,
++            "content_hash": hashlib.sha256(raw).hexdigest(), **artifact_page(raw, args.offset, args.max_bytes)}
++        return {"result": ToolResult(call_id=call.call_id, input_hash=input_hash, source_hash=source_hash,
++            output_source_hash=SOURCE, status="succeeded", data=data).model_dump()}
+diff --git a/tests/capacity_projection.py b/tests/capacity_projection.py
+new file mode 100644
+index 0000000..bcc2811
+--- /dev/null
++++ b/tests/capacity_projection.py
+@@ -0,0 +1,193 @@
++"""Retrospective projection of real frozen Issue/Plan bytes, never a live request.
++
++The original binding is namespaced to synthetic IDs: this renderer cannot
++authorize or resume Plan14. Data observations come from the offline scheduler;
++only their outer authority identifiers are rebound for this isolated rendering.
++"""
++import copy
++import json
++from types import SimpleNamespace
++from uuid import NAMESPACE_URL, uuid5
++
++from app.agent_v2.contracts import TaskSpec, ToolResult
++from app.agent_v2.native_tools import native_model_transport, project_native_prompt, native_input_bound
++from app.agent_v2.tools import artifact_page
++from app.provenance import canonical_json, content_hash
++from tests.capacity_fixture import RECORDS, CONTENTS
++
++
++def reconstruction(receipts: list[dict], *, output_delta: int = 250000):
++    root = RECORDS / "plan14-execution"
++    events = json.loads((root / "evidence-index.json").read_text())["events"]
++    artifacts = {}
++    for path in (root / "artifacts").glob("*.json"):
++        value = json.loads(path.read_text()); assert content_hash(value) == path.stem
++        artifacts[path.stem] = value
++    original_spec = TaskSpec.model_validate(artifacts[next(e for e in events if e["kind"] == "agent_v2_session")["payload"]["spec_artifact"]])
++    binding = original_spec.binding.model_copy(update={
++        k: str(uuid5(NAMESPACE_URL, "offline-capacity-projection/" + k))
++        for k in ("task_id", "attempt_id", "plan_id")})
++    binding = binding.model_copy(update={"authorization_hash": content_hash({"synthetic_only": True, "task": binding.task_id})})
++    spec = original_spec.model_copy(update={"binding": binding, "model_transport": native_model_transport()})
++    prompt = copy.deepcopy(artifacts[next(e for e in reversed(events) if e["kind"] == "agent_v2_model_started")["payload"]["prompt_artifact"]])
++    frozen_input_id = prompt["task_context_artifact"]
++    inputs = {**artifacts[frozen_input_id], "binding_hash": content_hash(binding.model_dump())}
++    input_id = content_hash(inputs); artifacts[input_id] = inputs
++    feedback = []
++    for index, receipt in enumerate(receipts):
++        value = ToolResult.model_validate(receipt).model_copy(update={
++            "call_id": "tool-" + content_hash([binding.task_id, index])[:40],
++            "input_hash": content_hash([binding.model_dump(), index, receipt["data"]["path"]])}).model_dump()
++        aid = content_hash(value); artifacts[aid] = value
++        feedback.append({**value, "receipt_artifact": aid})
++    prompt.update(binding=binding.model_dump(), task_context_artifact=input_id, feedback=feedback,
++        source_hash=feedback[0]["output_source_hash"], goal=spec.goal, write_paths=spec.write_paths, approved_checks=spec.commands)
++    # The saved pre-third-turn frame has stale budgets. Use the already charged
++    # historical third response and ADD only new offline tool/evidence costs.
++    audit = json.loads((root / 'final-audit.json').read_text())
++    remaining = dict(audit['failures'][-1]['failure']['remaining_budget'])
++    remaining['reads'] -= len(receipts)
++    remaining['output_bytes'] -= output_delta
++    assert all(v >= 0 for v in remaining.values())
++    prompt['remaining_budget'] = remaining
++    prompt['recent_decisions'] = [*prompt.get('recent_decisions', []), {'reply': '', 'outcome': 'continue',
++        'tools': [{'name': 'read_file', 'path': r['data']['path']} for r in feedback]}][-4:]
++
++    # Run the real ledger reducer in a memory-only projection over the saved
++    # pre-response ledger and newly rebound receipts. No old record is edited.
++    from app.agent_v2.progress import POLICY, record_tool, prompt_progress
++    from app.agent_v2.contracts import ToolCall
++    saved_turn = next(e for e in reversed(events) if e['kind'] == 'agent_v2_model_started')
++    rows = [SimpleNamespace(**{**e, 'actor_id': 'orchestrator', 'job_id': e.get('job_id')})
++        for e in events if e['kind'] == 'agent_v2_progress' and e['sequence'] < saved_turn['sequence']]
++    class Shadow:
++        def __init__(self):
++            self.wb = SimpleNamespace(read=lambda aid: artifacts[aid], artifact=self.artifact)
++        def artifact(self, value):
++            aid = content_hash(value); artifacts[aid] = value; return aid
++        def events(self): return rows
++        def root(self): return SimpleNamespace(payload={'harness_policy': POLICY})
++        def lock(self): pass
++        def checkpoint(self): return SimpleNamespace(revision='f' * 64, source_hash=prompt['source_hash'])
++        def append(self, kind, payload, **kw):
++            rows.append(SimpleNamespace(kind='agent_v2_' + kind, payload=payload,
++                actor_id='orchestrator', record_hash=content_hash(payload), job_id=kw.get('job_id')))
++    shadow = Shadow()
++    for i, value in enumerate(feedback):
++        call = ToolCall(call_id=value['call_id'], name='read_file', arguments={
++            'path': value['data']['path'], 'offset': value['data']['offset'], 'max_bytes': 16000})
++        job = 'offline-reducer-' + str(i)
++        rows.append(SimpleNamespace(kind='agent_v2_tool_result', actor_id='orchestrator', job_id=job,
++            payload={'artifact_id': value['receipt_artifact'], 'request_arguments': call.arguments}))
++        record_tool(shadow, shadow.checkpoint(), call, value['receipt_artifact'], batch_complete=i == len(feedback) - 1, job_id=job)
++    prompt['implementation_progress'] = prompt_progress(shadow)
++    batch_id = shadow.artifact({'version': 'offline-batch-projection-v1', 'original_response_artifact':
++        'f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3',
++        'binding_hash': content_hash(binding.model_dump()), 'source_hash': prompt['source_hash'],
++        'call_ids': [r['call_id'] for r in feedback]})
++    aggregate_id = shadow.artifact({'version': 'native-read-batch-result-v1', 'batch_artifact': batch_id,
++        'response_artifact': 'f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3',
++        'binding_hash': content_hash(binding.model_dump()), 'source_hash': prompt['source_hash'],
++        'call_ids': [r['call_id'] for r in feedback], 'receipts': [r['receipt_artifact'] for r in feedback]})
++    prompt['read_batch_observation'] = {'artifact_id': aggregate_id, 'batch_artifact': batch_id, 'status': 'completed',
++        'instruction': 'All completed calls are observed in original order. A read batch does not complete Coding or Verify.'}
++    prompt["approved_task_input"] = {"partial": True, "artifact_id": input_id,
++        "total_bytes": len(canonical_json(inputs).encode()), "instruction": "Read the approved plan and Issue using read_artifact before implementing; a goal alone is not the complete acceptance contract."}
++    for value in feedback:
++        d = value["data"]
++        prompt["history_index"].append({"tool": "read_file", "path": d["path"], "status": value["status"],
++            "artifact_id": value["receipt_artifact"], "content_hash": d["content_hash"],
++            "source_hash": value["source_hash"], "output_source_hash": value["output_source_hash"],
++            **{k: d[k] for k in ("offset", "next_offset", "total_bytes")}})
++    def render(base):
++        history = {"version": "agent-tool-history-index-v1", "session_id": "offline-projection",
++            "binding_hash": content_hash(binding.model_dump()), "source_hash": base["source_hash"], "rows": base["history_index"]}
++        aid = content_hash(history); artifacts[aid] = history
++        return project_native_prompt(base, spec, history_artifact=aid, task_input=inputs)
++    observed = render(prompt)
++    assert native_input_bound(observed) <= 32000
++    rows = []
++    recovery = []
++    for original, visible in zip(feedback, observed["feedback"], strict=True):
++        d, shown = original["data"], visible["data"]
++        aid = original["receipt_artifact"]
++        source_aid = d.get("source_page_artifact")
++        encoded = d["text"].encode() if source_aid else canonical_json(artifacts[aid]).encode()
++        if source_aid:
++            import hashlib
++            assert hashlib.sha256(encoded).hexdigest() == source_aid
++            artifacts[source_aid] = encoded
++        restored = b""; offset = 0; rounds = 0; recovery_pages = []
++        # Exercise exactly the existing byte-page and Native Prompt projection,
++        # including a second truncation of read_artifact's JSON text if needed.
++        while offset < len(encoded):
++            assert rounds < 64
++            page = artifact_page(encoded, offset, 16000)
++            result = ToolResult(call_id="offline-artifact-" + str(rounds), input_hash="f" * 64,
++                source_hash=prompt["source_hash"], output_source_hash=prompt["source_hash"], status="succeeded",
++                data={"tool": "read_artifact", "artifact_id": source_aid or aid, **page}).model_dump()
++            rid = content_hash(result); artifacts[rid] = result
++            follow = {**prompt, "feedback": [{**result, "receipt_artifact": rid}]}
++            projected = render(follow); assert native_input_bound(projected) <= 32000
++            actual = projected["feedback"][0]["data"]
++            chunk = actual["text"].encode(); assert chunk and chunk == encoded[offset:offset + len(chunk)]
++            assert actual["next_offset"] == (offset + len(chunk) if offset + len(chunk) < len(encoded) else None)
++            recovery_pages.append({'requested_offset': offset, 'requested_max_bytes': 16000,
++                'tool_returned_bytes': len(page['text'].encode()), 'prompt_visible_bytes': len(chunk),
++                'next_offset': actual['next_offset'], 'total_bytes': actual['total_bytes'],
++                'receipt_artifact': rid, 'native_input_bound': native_input_bound(projected)})
++            restored += chunk; offset += len(chunk); rounds += 1
++        assert restored == encoded
++        assert (restored.decode() if source_aid else json.loads(restored)["data"]["text"]) == d["text"]
++        import hashlib
++        full_source = CONTENTS[d['path']].encode()
++        assert hashlib.sha256(full_source).hexdigest() == d['content_hash']
++        reconstructed = d['text'].encode(); cursor = d['offset'] + len(reconstructed)
++        continuation = []
++        while cursor < len(full_source):
++            page = artifact_page(full_source, cursor, 16000)
++            raw_id = hashlib.sha256(page['text'].encode()).hexdigest()
++            artifacts[raw_id] = page['text'].encode()
++            from app.agent_v2.read_progress import ReadProgressNote, _key
++            from app.agent_v2.contracts import ReadFile
++            note = ReadProgressNote(range_key=_key(prompt['source_hash'], d['content_hash'], ReadFile(path=d['path'], offset=cursor, max_bytes=16000)),
++                max_bytes=16000, prior_same_range_reads=0, prior_receipt=None, warning_receipts_seen=[], visible_bytes=0, visible_next_offset=None)
++            result = ToolResult(call_id='offline-source-continuation-' + str(cursor), input_hash='f' * 64,
++                source_hash=prompt['source_hash'], output_source_hash=prompt['source_hash'], status='succeeded',
++                data={'tool': 'read_file', 'path': d['path'], 'execution_backend': 'docker',
++                    'content_hash': d['content_hash'], 'source_page_artifact': raw_id, 'source_read_progress': note.model_dump(), **page}).model_dump()
++            rid = content_hash(result); artifacts[rid] = result
++            projected = render({**prompt, 'feedback': [{**result, 'receipt_artifact': rid}]})
++            actual = projected['feedback'][0]['data']; chunk = actual['text'].encode()
++            assert native_input_bound(projected) <= 32000 and chunk and chunk == full_source[cursor:cursor + len(chunk)]
++            continuation.append({'requested_offset': cursor, 'requested_max_bytes': 16000,
++                'tool_returned_bytes': len(page['text'].encode()), 'prompt_visible_bytes': len(chunk),
++                'visible_next_offset': actual['next_offset'], 'native_input_bound': native_input_bound(projected),
++                'receipt_artifact': rid, 'source_page_artifact': raw_id})
++            reconstructed += chunk; cursor += len(chunk)
++            assert len(continuation) <= 16
++        assert d['offset'] == 0 and reconstructed == full_source
++        rows.append({"path": d["path"], "tool_returned_source_bytes": len(d["text"].encode()),
++            "prompt_inline_source_bytes": len(shown["text"].encode()), "offset": shown["offset"],
++            "next_offset": shown["next_offset"], "total_file_bytes": shown["total_bytes"],
++            "original_page_next_offset": d["next_offset"], "entire_returned_page_visible": shown["text"] == d["text"],
++            "entire_file_visible": shown["text"] == d["text"] and d["offset"] == 0 and d["next_offset"] is None,
++            "source_page_artifact": source_aid, "raw_source_artifact_hash_verified": bool(source_aid),
++            "receipt_artifact": aid, "receipt_hash_verified": content_hash(artifacts[aid]) == aid,
++            "read_artifact_recovers_entire_returned_page": True, "artifact_recovery_rounds": rounds,
++            "artifact_recovery_pages": recovery_pages,
++            "source_continuation_allowed": shown["next_offset"] is not None,
++            "source_tail_continuation": continuation, "entire_file_recovered_offline": True,
++            "reconstructed_file_hash": hashlib.sha256(reconstructed).hexdigest()})
++        recovery.append({"path": d["path"], "artifact": source_aid or aid, "rounds": rounds, "bytes": len(restored)})
++    return {"classification": "offline_frozen_Issue_Plan_projection_synthetic_authority_deterministic_tools",
++        "original_frozen_task_input_artifact": frozen_input_id, "projection_task_input_artifact": input_id,
++        "live_Plan14_binding_reused_for_execution": False, "prompt_actually_sent": False, "paid_model_calls": 0,
++        "remaining_budget": remaining, "new_tool_evidence_output_bytes": output_delta,
++        "ledger_reducer": "production_record_tool_over_memory_only_saved_prefix",
++        "native_input_limit": 32000, "native_input_bound": native_input_bound(observed), "rows": rows,
++        "returned_source_bytes": sum(r["tool_returned_source_bytes"] for r in rows),
++        "inline_source_bytes": sum(r["prompt_inline_source_bytes"] for r in rows), "recovery": recovery,
++        "focused_artifact_recovery_rounds_total": sum(r["rounds"] for r in recovery),
++        "remaining_file_tail_read_file_calls": sum(len(r['source_tail_continuation']) for r in rows),
++        "not_a_prediction_of_real_provider_Token_usage_or_model_reasoning": True}, observed, artifacts
+diff --git a/tests/test_read_capacity.py b/tests/test_read_capacity.py
+new file mode 100644
+index 0000000..1e2aa9b
+--- /dev/null
++++ b/tests/test_read_capacity.py
+@@ -0,0 +1,298 @@
++"""Offline capacity regressions. Scripted provider/tools, never paid acceptance."""
++import asyncio
++import copy
++import json
++import pytest
++from pathlib import Path
++
++from app.agent_v2.journal import AgentJournal
++from app.provenance import canonical_json, content_hash
++from app.workbench import Workbench
++from tests.test_native_read_batches import ReadGateway, setup, inspect, drain, reads
++
++SAVED_PATH = Path(__file__).parents[1] / "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/artifacts/f941ae3218fd1994b1e683e8ab0a57d4cc788a6ed4700624bd1d05f0fb8feee3.json"
++
++
++def saved_response():
++    envelope = json.loads(SAVED_PATH.read_text())
++    assert content_hash(envelope) == SAVED_PATH.stem
++    return {"choices": [{"finish_reason": c["finish_reason"], "message": {"role": c["role"],
++        "tool_calls": copy.deepcopy(c["tool_calls"])}} for c in envelope["choices"]], "usage": envelope["usage"]}
++
++
++def test_saved_plan14_maximum_pages_reach_preflight_without_widening_budget(tmp_path):
++    values = setup(tmp_path, saved_response())
++    assert asyncio.run(values[4].run_once()).state == "succeeded"
++    assert inspect(values)[0].state == "tools"
++    assert not values[-1].calls
++    drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == "ready" and cp.usage["reads"] == 8
++    results = [e for e in events if e.kind == "agent_v2_tool_result"]
++    assert [e.payload["provider_call_id"] for e in results] == [c["id"] for c in saved_response()["choices"][0]["message"]["tool_calls"]]
++    assert [len(e.payload["call_ids"]) for e in events if e.kind == "agent_v2_read_sub_batch_completed"] == [4, 4]
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        assert journal.spec().limits.output_bytes == 500000
++        certificate = next(e for e in journal.events() if e.kind == "agent_v2_read_capacity")
++        assert journal.wb.read(certificate.payload["artifact_id"])["status"] == "succeeded"
++
++
++def test_final_failure_receipt_is_the_object_charged_and_persisted(tmp_path):
++    values = setup(tmp_path, reads(5), gateway=ReadGateway(fail_at=1))
++    asyncio.run(values[4].run_once()); drain(values[5])
++    cp, events, _ = inspect(values)
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        model_bytes = sum(len(journal.wb.artifacts.read_bytes(e.payload["artifact_id"]))
++            for e in events if e.kind == "agent_v2_model_response")
++        tool_bytes = sum(len(journal.wb.artifacts.read_bytes(e.payload["artifact_id"]))
++            for e in events if e.kind == "agent_v2_tool_result")
++        metadata_bytes = sum(e.payload["bytes"] for e in events
++            if e.kind == "agent_v2_output_charge" and e.payload["role"] != "tool_result")
++        assert cp.usage["output_bytes"] == model_bytes + tool_bytes + metadata_bytes
++
++
++@pytest.mark.parametrize("bad", ["bytes", "page", "hash", "version", "source", "requests"])
++def test_unverifiable_capacity_is_rejected_before_any_read(tmp_path, bad):
++    class Forged(ReadGateway):
++        async def preflight_read_batch(self, *args, **kwargs):
++            proof = await super().preflight_read_batch(*args, **kwargs)
++            if bad == "bytes": proof["checked"][-1]["data_json_bytes"] = 2
++            if bad == "page": proof["checked"][-1]["page_bytes"] = 16001
++            if bad == "hash": proof["checked"][-1]["data_hash"] = "invalid"
++            if bad == "version": proof["version"] = "native-read-batch-preflight-v2"
++            if bad == "source": proof["source_hash"] = "b" * 64
++            if bad == "requests": proof["requests_hash"] = "b" * 64
++            return proof
++    values = setup(tmp_path, reads(8), gateway=Forged())
++    asyncio.run(values[4].run_once()); drain(values[5])
++    assert inspect(values)[0].state == "blocked" and not values[-1].calls
++
++
++def test_true_output_shortage_after_attestation_dispatches_zero_reads(tmp_path):
++    from tests.test_native_read_batch_boundaries import seed_reserved_usage
++    values = setup(tmp_path, reads(5))
++    seed_reserved_usage(values, {"output_bytes": 450000})
++    asyncio.run(values[4].run_once()); drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == "blocked" and cp.usage["reads"] == 5
++    assert cp.usage["output_bytes"] > 450000 and not values[-1].calls
++    assert any(e.kind == "agent_v2_read_capacity" and e.payload["status"] == "rejected" for e in events)
++
++
++def test_attested_data_cannot_change_before_result_and_observed_truth_is_preserved(tmp_path):
++    class Changed(ReadGateway):
++        async def execute(self, *args, **kwargs):
++            value = await super().execute(*args, **kwargs)
++            value["result"]["data"]["text"] = "different source"
++            return value
++    values = setup(tmp_path, reads(5), gateway=Changed())
++    asyncio.run(values[4].run_once()); drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == "blocked" and len(values[-1].calls) == 1
++    result_event = next(e for e in events if e.kind == "agent_v2_tool_result")
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        value = journal.wb.read(result_event.payload["artifact_id"])
++        assert value["status"] == "unknown"
++        assert journal.wb.read(value["data"]["observed_result_artifact"])["data"]["text"] == "different source"
++
++
++@pytest.mark.parametrize("text,expected", [("\x01" * 16000, "blocked"),
++    ('\\"\n\t' * 1000, "ready"), ("中文🙂" * 3000, "ready")], ids=["controls", "JSON_escapes", "UTF8"])
++def test_escaped_and_utf8_pages_fit_only_with_complete_verified_bound(tmp_path, text, expected):
++    gateway = ReadGateway(); gateway.text = text
++    values = setup(tmp_path, reads(8, max_bytes=16000), gateway=gateway)
++    asyncio.run(values[4].run_once()); drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == expected
++    if cp.state == "blocked":
++        assert not gateway.calls  # Genuinely unaffordable escaped source.
++    else:
++        assert cp.state == "ready" and len(gateway.calls) == 1  # Seven exact requests reuse the real first receipt.
++        assert len([e for e in events if e.kind == "agent_v2_tool_result"]) == 8
++        with values[0].session() as session:
++            journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++            for event in (e for e in events if e.kind == "agent_v2_tool_result"):
++                d = journal.wb.read(event.payload["artifact_id"])["data"]
++                end = d["offset"] + len(d["text"].encode())
++                assert d["next_offset"] == (end if end < d["total_bytes"] else None)
++                assert text.encode()[d["offset"]:end] == d["text"].encode()
++
++
++def test_expired_execution_stops_but_can_commit_the_real_prefix_and_diagnostic(tmp_path, monkeypatch):
++    values = setup(tmp_path, reads(8, offset=0))
++    asyncio.run(values[4].run_once())
++    asyncio.run(values[5].run_once()); asyncio.run(values[5].run_once())
++    assert len(values[-1].calls) == 1
++    monkeypatch.setattr(AgentJournal, "elapsed_seconds", lambda _: 2000)
++    drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == "blocked" and not cp.pending_calls
++    assert len(values[-1].calls) == 1
++    assert any(e.kind == "agent_v2_read_batch_stopped" for e in events)
++
++
++def test_additive_capacity_migration_preserves_legacy_and_guards_exact_charge(tmp_path, monkeypatch):
++    from app.migrations import versions
++    from sqlalchemy.exc import IntegrityError
++    with monkeypatch.context() as patch:
++        patch.setattr(versions, "MIGRATIONS", tuple(m for m in versions.MIGRATIONS if m.revision < "0046_read_capacity"))
++        values = setup(tmp_path, reads(5))
++    before = [e.record_hash for e in inspect(values)[1]]
++    assert values[0].create_schema().applied == ("0046_read_capacity",)
++    assert before == [e.record_hash for e in inspect(values)[1]]
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        aid = journal.wb.artifact({"unmetered": True})
++        with pytest.raises(IntegrityError, match="Invalid exact output charge"):
++            journal.append("output_charge", {"artifact_id": aid, "bytes": 1, "role": "tool_result",
++                "contract": "native-read-capacity-v1"}, key="forged-byte-count")
++        session.rollback()
++
++
++def test_legacy_preflight_versions_remain_readable_but_cannot_issue_capacity_certificate(tmp_path):
++    from app.agent_v2.read_batches import parse_preflight
++    from app.agent_v2.read_capacity import certificate
++    values = setup(tmp_path, reads(5)); asyncio.run(values[4].run_once())
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        spec = journal.spec()
++    proof = asyncio.run(values[-1].preflight_read_batch(spec, inspect(values)[0].pending_calls,
++        source_hash=spec.binding.archive_hash, snapshot=None, input_hash="a" * 64))
++    for version in ("native-read-batch-preflight-v1", "native-read-batch-preflight-v2"):
++        legacy = copy.deepcopy(proof); legacy["version"] = version
++        for check in legacy["checked"]:
++            for key in ("data_json_bytes", "data_hash", "page_bytes"): check.pop(key)
++            if version.endswith("v1"): check.pop("availability")
++        assert parse_preflight(legacy)["version"] == version
++        with pytest.raises(ValueError, match="read_capacity_proof_version_invalid"):
++            certificate({}, legacy, batch_artifact="b" * 64, proof_artifact="c" * 64, remaining=500000)
++
++
++def test_frozen_plan14_projection_and_raw_source_pages_recover_under_original_limits(tmp_path):
++    from tests.capacity_fixture import FrozenGateway
++    from tests.capacity_projection import reconstruction
++    from app.agent_v2.loop import issued_artifacts, prompt_for
++    values = setup(tmp_path, saved_response(), gateway=FrozenGateway())
++    asyncio.run(values[4].run_once()); drain(values[5])
++    with values[0].session() as session:
++        journal = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        receipts = [journal.wb.read(e.payload['artifact_id']) for e in journal.events() if e.kind == 'agent_v2_tool_result']
++        for r in receipts:
++            aid = r['data']['source_page_artifact']
++            assert journal.wb.artifacts.read_bytes(aid) == r['data']['text'].encode()
++            assert aid in issued_artifacts(journal)
++        report, prompt, _ = reconstruction(receipts)
++        assert report['returned_source_bytes'] == 68338
++        assert report['inline_source_bytes'] > 0
++        assert all(r['prompt_inline_source_bytes'] > 0 and r['read_artifact_recovers_entire_returned_page'] for r in report['rows'])
++        assert report['focused_artifact_recovery_rounds_total'] <= 12
++        assert prompt['approved_task_input']['partial'] is True
++        assert report['native_input_bound'] <= 32000
++        actual = prompt_for(journal)
++        assert [r['call_id'] for r in actual['feedback']] == [r['call_id'] for r in receipts]
++        # Meter every actual persisted output object, including raw page bodies.
++        events = journal.events()
++        model_bytes = sum(len(journal.wb.artifacts.read_bytes(e.payload['artifact_id'])) for e in events if e.kind == 'agent_v2_model_response')
++        charges = [e for e in events if e.kind == 'agent_v2_output_charge']
++        assert all(e.payload['bytes'] == len(journal.wb.artifacts.read_bytes(e.payload['artifact_id'])) for e in charges)
++        assert journal.checkpoint().usage['output_bytes'] == model_bytes + sum(e.payload['bytes'] for e in charges)
++        assert len([e for e in charges if e.payload['role'] == 'source_page']) == 8
++
++
++def test_raw_source_artifact_is_deduplicated_and_does_not_issue_foreign_refs(tmp_path):
++    from app.agent_v2.loop import issued_artifacts
++    values = setup(tmp_path, reads(8))
++    asyncio.run(values[4].run_once()); drain(values[5])
++    with values[0].session() as session:
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        events = j.events()
++        assert len([e for e in events if e.kind == 'agent_v2_output_charge' and e.payload['role'] == 'source_page']) == 1
++        foreign = j.wb.artifact({'unissued': True})
++        assert foreign not in issued_artifacts(j)
++        assert len(values[-1].calls) == 1
++        assert j.checkpoint().usage['reads'] == 8
++
++
++def test_issued_raw_source_page_is_recovered_by_existing_budgeted_tool(tmp_path):
++    from tests.capacity_fixture import FrozenGateway, CONTENTS
++    from tests.test_agent_native_tools import response
++    values = setup(tmp_path, saved_response(), gateway=FrozenGateway())
++    asyncio.run(values[4].run_once()); drain(values[5])
++    with values[0].session() as session:
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        result = j.wb.read(next(e for e in j.events() if e.kind == 'agent_v2_tool_result').payload['artifact_id'])
++        aid = result['data']['source_page_artifact']; path = result['data']['path']
++    values[6].responses.append(response('read_artifact', {'artifact_id': aid, 'offset': 0, 'max_bytes': 16000}))
++    assert asyncio.run(values[4].run_once()).state == 'succeeded'
++    assert asyncio.run(values[5].run_once()).state == 'succeeded'
++    with values[0].session() as session:
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        event = next(e for e in reversed(j.events()) if e.kind == 'agent_v2_tool_result')
++        recovered = j.wb.read(event.payload['artifact_id'])
++        assert event.payload['name'] == 'read_artifact' and recovered['data']['text'] == CONTENTS[path]
++        assert j.checkpoint().usage['reads'] == 9 and len(values[-1].calls) == 8
++
++
++def test_gateway_cannot_smuggle_a_foreign_source_artifact_reference(tmp_path):
++    class Foreign(ReadGateway):
++        async def execute(self, *args, **kw):
++            value = await super().execute(*args, **kw)
++            value['result']['data']['source_page_artifact'] = 'b' * 64
++            return value
++    values = setup(tmp_path, reads(8), gateway=Foreign())
++    asyncio.run(values[4].run_once()); drain(values[5])
++    assert inspect(values)[0].state == 'blocked' and len(values[-1].calls) == 1
++    with values[0].session() as session:
++        from app.agent_v2.loop import issued_artifacts
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        assert 'b' * 64 not in issued_artifacts(j)
++
++
++def test_saved_plan14_envelope_carries_forward_historical_budget_without_refund(tmp_path):
++    """Synthetic counters only; never restores or edits the real Plan14 session."""
++    from tests.capacity_fixture import FrozenGateway
++    from tests.test_native_read_batch_boundaries import seed_reserved_usage
++    values = setup(tmp_path, saved_response(), gateway=FrozenGateway())
++    # Saved response Usage=8946/2201; final saved charged totals=46008/4560.
++    # The canonical new fixture response is 1933 bytes, as in the exported replay.
++    seed_reserved_usage(values, {'model_calls': 2, 'reads': 5, 'output_bytes': 35526 - 1933,
++        'input_tokens': 46008 - 8946, 'output_tokens': 4560 - 2201})
++    assert asyncio.run(values[4].run_once()).state == 'succeeded'
++    drain(values[5])
++    with values[0].session() as session:
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        cp = j.checkpoint(); assert cp.state == 'ready'
++        assert cp.usage['model_calls'] == 3 and cp.usage['reads'] == 13
++        assert cp.usage['input_tokens'] == 46008 and cp.usage['output_tokens'] == 4560
++        charges = sum(e.payload['bytes'] for e in j.events() if e.kind == 'agent_v2_output_charge')
++        assert cp.usage['output_bytes'] == 35526 + charges < 500000
++        assert len(values[-1].calls) == 8
++
++
++def test_raw_page_charge_and_receipt_checkpoint_rollback_together_on_persist_failure(tmp_path, monkeypatch):
++    from app.agent_v2 import read_capacity
++    from app.agent_v2.loop import issued_artifacts, schedule
++    values = setup(tmp_path, reads(8))
++    asyncio.run(values[4].run_once()); asyncio.run(values[5].run_once())
++    original = read_capacity.store
++    def failed_store(journal, value, usage, *, role):
++        if role == 'tool_result': raise RuntimeError('injected crash before final receipt commit')
++        return original(journal, value, usage, role=role)
++    with monkeypatch.context() as patch:
++        patch.setattr(read_capacity, 'store', failed_store)
++        assert asyncio.run(values[5].run_once()).state == 'failed'
++    with values[0].session() as session:
++        j = AgentJournal(Workbench(session, values[1].artifact_root), values[2], values[3])
++        assert not any(e.kind == 'agent_v2_output_charge' and e.payload['role'] == 'source_page' for e in j.events())
++        assert not any(e.kind == 'agent_v2_tool_result' for e in j.events())
++        assert schedule(j) is None
++        session.commit()
++    drain(values[5])
++    cp, events, _ = inspect(values)
++    assert cp.state == 'blocked' and cp.usage['reads'] == 8 and len(values[-1].calls) == 1
++    stopped = next(e for e in events if e.kind == 'agent_v2_read_batch_stopped')
++    assert len(stopped.payload['unknown_calls']) == 1 and len(stopped.payload['not_executed']) == 7
++    assert stopped.payload['actual_receipts'] == []
+diff --git a/tests/test_read_capacity_oci.py b/tests/test_read_capacity_oci.py
+new file mode 100644
+index 0000000..83fd86e
+--- /dev/null
++++ b/tests/test_read_capacity_oci.py
+@@ -0,0 +1,77 @@
++"""Actual OCI reads of the saved Plan14 envelope; no provider or live authority."""
++import asyncio
++import hashlib
++import json
++import os
++from pathlib import Path
++
++import pytest
++from app.agent_v2.contracts import ToolCall, ToolResult
++from app.agent_v2.read_batches import parse_preflight
++from app.agent_v2.read_capacity import certificate, size, validate_claim, observation_matches
++from app.agent_v2.read_progress import ReadProgressNote
++from app.agent_v2.tools import RestrictedToolRegistry
++from app.provenance import canonical_json, content_hash
++from tests.capacity_fixture import CONTENTS, SOURCE
++from tests.test_missing_source_oci import frozen_gateway
++from tests.test_read_capacity import SAVED_PATH
++
++pytestmark = pytest.mark.skipif(os.getenv('CONTRIBOS_RUN_DOCKER_ACCEPTANCE') != '1',
++    reason='Requires real OCI, frozen archive and fixed image; not deterministic/fake acceptance')
++
++
++def test_real_oci_saved_plan14_strict_capacity_and_original_pages(tmp_path):
++    spec, gateway, _ = frozen_gateway(tmp_path)
++    raw = json.loads(SAVED_PATH.read_text()); assert content_hash(raw) == SAVED_PATH.stem
++    original = raw['choices'][0]['tool_calls']
++    calls = [ToolCall(call_id=c['id'], name=c['function']['name'], arguments=json.loads(c['function']['arguments'])) for c in original]
++    async def scenario():
++        registry = RestrictedToolRegistry()
++        proof = parse_preflight(await gateway.preflight_read_batch(spec, calls,
++            source_hash=spec.binding.archive_hash, snapshot=None, input_hash='a' * 64))
++        assert proof['status'] == 'succeeded' and proof['source_hash'] == SOURCE
++        assert proof['execution_backend'] == 'docker'
++        batch = {'binding_hash': content_hash(spec.binding.model_dump()),
++            'response_artifact': SAVED_PATH.stem, 'source_hash': SOURCE,
++            'calls': [c.model_dump() for c in calls], 'sub_batches': [
++                {'id': content_hash([SAVED_PATH.stem, i]), 'index': i // 4,
++                 'call_ids': [c.call_id for c in calls[i:i+4]]} for i in (0, 4)]}
++        remaining = 464474 - size(proof) - size(batch)
++        cert = certificate(batch, proof, batch_artifact=content_hash(batch), proof_artifact=content_hash(proof), remaining=remaining)
++        assert cert['status'] == 'succeeded' and cert['total_bytes_bound'] <= remaining
++        results, raw_pages = [], {}
++        for position, call in enumerate(calls):
++            args = registry.validate(call, spec)
++            validate_claim(proof['checked'][position], args.model_dump(), spec, SOURCE)
++            value = await gateway.execute(spec, call, args, source_hash=SOURCE, snapshot=None,
++                input_hash=content_hash([spec.binding.model_dump(), call.model_dump()]))
++            result = ToolResult.model_validate(value['result'])
++            assert result.status == 'succeeded' and result.call_id == call.call_id
++            assert result.output_source_hash == SOURCE
++            assert observation_matches(result, cert['calls'][position])
++            data = result.data; page = data['text'].encode()
++            assert page == CONTENTS[args.path].encode()[args.offset:args.offset + len(page)]
++            raw_id = hashlib.sha256(page).hexdigest(); raw_pages[raw_id] = page
++            note = ReadProgressNote(range_key='f' * 64, max_bytes=args.max_bytes, prior_same_range_reads=0, prior_receipt=None, warning_receipts_seen=[], visible_bytes=0, visible_next_offset=None)
++            final = result.model_copy(update={'data': {**data, 'source_page_artifact': raw_id,
++                'source_read_progress': note.model_dump()}}).model_dump()
++            assert size(final) <= cert['calls'][position]['result_bytes_bound']
++            assert size(final) + len(page) <= cert['calls'][position]['output_bytes_bound']
++            results.append(final)
++        assert [r['call_id'] for r in results] == [c['id'] for c in original]
++        assert sum(len(r['data']['text'].encode()) for r in results) == 68338
++        output = os.environ.get('CONTRIBOS_CAPACITY_OCI_EVIDENCE')
++        if output:
++            evidence = {'classification': 'saved_Plan14_envelope_real_frozen_archive_real_OCI_synthetic_authority',
++                'provider_requests': 0, 'historical_approval_reused': False, 'new_Plan_created': False,
++                'source_hash': SOURCE, 'archive_hash': spec.binding.archive_hash, 'runner_image': spec.binding.image,
++                'original_response_artifact': SAVED_PATH.stem, 'calls': [c.model_dump() for c in calls],
++                'child_sizes': [4, 4], 'proof': proof, 'certificate': cert, 'results': results,
++                'result_progress_classification': 'bounded_platform_note_fixture; OCI page observations are real',
++                'serialized_results_bytes': sum(size(r) for r in results), 'raw_source_artifact_bytes': sum(map(len,raw_pages.values())),
++                'source_page_hashes': list(raw_pages), 'source_page_bytes': 68338, 'output_limit': spec.limits.output_bytes}
++            evidence['report_hash'] = content_hash(evidence)
++            from app.security import ensure_no_sensitive_data
++            ensure_no_sensitive_data(evidence, context='capacity OCI evidence')
++            with Path(output).open('x') as target: target.write(json.dumps(evidence, ensure_ascii=False, indent=2) + '\n')
++    asyncio.run(scenario())

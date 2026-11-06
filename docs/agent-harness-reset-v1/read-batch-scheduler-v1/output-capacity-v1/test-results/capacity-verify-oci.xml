@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2" time="5.037" timestamp="2026-11-06T11:32:58.907067+08:00" hostname="local-test-host"><testcase classname="tests.test_sandbox_implementation" name="test_real_fresh_container_verify_has_no_network_credentials_or_writes" time="2.591" /><testcase classname="tests.test_sandbox_implementation" name="test_real_verify_resource_exhaustion_is_bounded_and_structured" time="2.032" /></testsuite></testsuites>

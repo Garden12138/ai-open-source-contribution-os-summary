@@ -1,0 +1,118 @@
+{
+  "version": "read-capacity-next-acceptance-readiness-v1",
+  "offline_acceptance": "GO_on_current_platform",
+  "actual_paid_execution": "NO_GO_until_separate_new_binding_and_exact_new_authorization",
+  "current_source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "images": {
+    "app": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a",
+    "worker": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+  },
+  "runner_image": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "policy_hash": "d9edc821c10ef7e84a6b9d29fe8d02f6d1b7927d7d1b47712ebe2a8c527a9086",
+  "native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "165fa6a3ad0c7347a255c4588fe426d4cc9981147aecbdf3a48d8267d14aaa1f"
+  },
+  "read_batch_policy": {
+    "version": "native-read-batch-v1",
+    "eligible_tool": "read_file",
+    "original_calls_max": 8,
+    "sub_batch_calls_max": 4,
+    "admission": "whole_batch_before_execution",
+    "sandbox_preflight": "all_paths_hashes_ranges_before_first_read",
+    "failure": "stop_remaining_keep_receipts",
+    "budget": "reserve_all_reads_no_refund",
+    "observation": "after_original_batch_only",
+    "preflight_contract": "native-read-batch-preflight-v3",
+    "missing_source": "OCI_attested_approved_new_path_not_found_v1",
+    "output_capacity": "native-read-capacity-v1"
+  },
+  "unchanged_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "unchanged_write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "unchanged_commands": [
+    {
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "command_id": "root_tests",
+      "working_directory": "."
+    },
+    {
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "command_id": "extension_tests",
+      "working_directory": "."
+    },
+    {
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "command_id": "extension_lint",
+      "working_directory": "."
+    },
+    {
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "command_id": "web_typecheck",
+      "working_directory": "."
+    }
+  ],
+  "model_identities": {
+    "implementation": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    },
+    "review": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    }
+  },
+  "new_Plan": "not_created",
+  "new_binding": "not_created",
+  "executable_paid_preview": "not_created_not_authorized",
+  "old_Plan14_approval_reusable": false,
+  "next_step": "human_review_local_repair",
+  "real_provider_and_Coding_success": "not_observed_this_round",
+  "native_Linux_amd64": "not_verified",
+  "report_hash": "0fcfd1bf8a7e1011af21fef0e0133faea4e056a2df78e1c30acfe16e1d8bc43b"
+}

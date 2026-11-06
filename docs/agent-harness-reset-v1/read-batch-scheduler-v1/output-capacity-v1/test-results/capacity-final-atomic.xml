@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="2.400" timestamp="2026-11-06T11:49:53.015016+08:00" hostname="local-test-host"><testcase classname="tests.test_read_capacity" name="test_raw_page_charge_and_receipt_checkpoint_rollback_together_on_persist_failure" time="1.735" /></testsuite></testsuites>

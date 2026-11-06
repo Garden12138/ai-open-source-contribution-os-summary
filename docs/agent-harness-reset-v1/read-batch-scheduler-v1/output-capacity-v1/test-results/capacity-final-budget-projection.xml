@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2" time="9.157" timestamp="2026-11-06T11:48:35.219056+08:00" hostname="local-test-host"><testcase classname="tests.test_read_capacity" name="test_saved_plan14_envelope_carries_forward_historical_budget_without_refund" time="4.115" /><testcase classname="tests.test_read_capacity" name="test_frozen_plan14_projection_and_raw_source_pages_recover_under_original_limits" time="4.352" /></testsuite></testsuites>

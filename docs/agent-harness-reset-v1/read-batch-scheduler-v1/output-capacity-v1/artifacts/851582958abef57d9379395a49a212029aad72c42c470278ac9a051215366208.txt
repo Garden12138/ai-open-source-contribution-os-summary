@@ -1,0 +1,346 @@
+, result)
+
+    if (toolName === 'Task' || toolName === 'Agent') {
+      const childName = this.subagentChildNames.get(block.tool_use_id) || pending?.args?.slice(0, CHILD_NAME_MAX) || 'subagent'
+      const launch = parseAgentToolUseResult(toolUseResult)
+      if (launch.model) { this.emitSubagentModel(childName, launch.model, sessionId) }
+
+      if (launch.isAsync) {
+        // Background launch: the subagent keeps running. It finishes when its
+        // <task-notification> arrives (see handleTaskNotification).
+        this.backgroundSubagents.set(block.tool_use_id, { childName, parent: agentName, sessionId })
+      } else {
+        // Clean up inline subagent tracking state
+        this.subagentChildNames.delete(block.tool_use_id)
+        this.inlineSubagentState.delete(block.tool_use_id)
+        this.emitSubagentFinished(childName, agentName, result, sessionId)
+      }
+    }
+
+    // A Workflow run finishing: its subagents live under subagents/workflows/
+    // and never produce Task/Agent tool_results, so complete their nodes now.
+    if (toolName === 'Workflow') {
+      this.completeWorkflowSubagents(agentName, sessionId)
+    }
+
+    // Detect errors in tool output
+    const isError = detectError(result)
+    const errorMessage = isError ? result.slice(0, FAILED_RESULT_MAX) : undefined
+
+    this.delegate.emit({
+      time: this.delegate.elapsed(sessionId),
+      type: 'tool_call_end',
+      payload: {
+        agent: agentName,
+        tool: toolName,
+        result: result.slice(0, RESULT_MAX),
+        tokenCost,
+        ...(discovery ? { discovery } : {}),
+        ...(isError ? { isError, errorMessage } : {}),
+      },
+    }, sessionId)
+
+    // Emit updated context breakdown
+    if (sessionId) {
+      const session = this.delegate.getSession(sessionId)
+      if (session) { this.delegate.emitContextUpdate(agentName, session, sessionId) }
+    }
+  }
+
+  private emitSubagentFinished(childName: string, parent: string, summary: string, sessionId?: string): void {
+    this.delegate.emit({
+      time: this.delegate.elapsed(sessionId),
+      type: 'subagent_return',
+      payload: { child: childName, parent, summary: summary.slice(0, ARGS_MAX) },
+    }, sessionId)
+    this.delegate.emit({
+      time: this.delegate.elapsed(sessionId),
+      type: 'agent_complete',
+      payload: { name: childName },
+    }, sessionId)
+  }
+
+  /** Report a subagent's model from the parent transcript, unless its own
+   *  transcript already did. Covers subagents whose file is never tailed. */
+  private emitSubagentModel(childName: string, model: string, sessionId?: string): void {
+    const session = sessionId ? this.delegate.getSession(sessionId) : undefined
+    if (!session || session.modelDetectedAgents.has(childName)) return
+    session.modelDetectedAgents.set(childName, model)
+    this.delegate.emit({
+      time: this.delegate.elapsed(sessionId),
+      type: 'model_detected',
+      payload: { agent: childName, model },
+    }, sessionId)
+  }
+
+  private handleTaskNotification(
+    notification: { toolUseId: string; status: string; summary: string },
+    sessionId?: string,
+  ): void {
+    const bg = this.backgroundSubagents.get(notification.toolUseId)
+    if (!bg) return
+    this.backgroundSubagents.delete(notification.toolUseId)
+    this.subagentChildNames.delete(notification.toolUseId)
+    this.inlineSubagentState.delete(notification.toolUseId)
+    const summary = notification.status === 'completed'
+      ? notification.summary
+      : `[${notification.status}] ${notification.summary}`.trim()
+    this.emitSubagentFinished(bg.childName, bg.parent, summary, sessionId)
+  }
+
+  /**
+   * Emit subagent_return + agent_complete for file-tailed Workflow subagents
+   * once their Workflow tool call returns. Workflow runs don't spawn via the
+   * Task/Agent tools, so the tool_result completion path above never fires for
+   * them and their nodes would otherwise stay "running" for the whole session.
+   *
+   * The Workflow tool result does not reliably carry the wf_<id> run id (the
+   * "Run ID:" line is conditional, and absent entirely for remote launches),
+   * so instead of parsing ids out of result text we complete every
+   * workflow-path subagent that is idle. Agents belonging to a still-running
+   * concurrent Workflow are mid-tool — they hold unmatched pending tool calls
+   * — and are left alone.
+   */
+  private completeWorkflowSubagents(parentName: string, sessionId?: string): void {
+    if (!sessionId) return
+    // Pick up nested transcripts written since the last directory scan — the
+    // flat fs.watch fallback (Linux/Node 18 hosts) can't see writes below
+    // workflows/, so discovery may lag behind the Workflow's completion.
+    this.delegate.scanSubagents?.(sessionId)
+    const session = this.delegate.getSession(sessionId)
+    if (!session) return
+    const marker = `${path.sep}workflows${path.sep}`
+    for (const [filePath, state] of session.subagentWatchers) {
+      if (!filePath.includes(marker)) continue
+      if (!state.spawnEmitted || state.completed) continue
+      if (state.pendingToolCalls.size > 0) continue
+      state.completed = true
+      this.delegate.emit({
+        time: this.delegate.elapsed(sessionId),
+        type: 'subagent_return',
+        payload: { child: state.agentName, parent: parentName, summary: 'workflow run finished' },
+      }, sessionId)
+      this.delegate.emit({
+        time: this.delegate.elapsed(sessionId),
+        type: 'agent_complete',
+        payload: { name: state.agentName },
+      }, sessionId)
+    }
+  }
+
+  /**
+   * Handle inline progress events from newer Claude Code versions.
+   * These carry subagent transcript entries directly in the main JSONL,
+   * keyed by parentToolUseID (the Agent tool_use that spawned the subagent).
+   */
+  private handleProgressEvent(
+    parsed: Record<string, unknown>,
+    sessionId?: string,
+  ): void {
+    const data = parsed.data
+    if (!isRecord(data) || data.type !== 'agent_progress') { return }
+
+    const innerEntry = data.message as TranscriptEntry | undefined
+    if (!innerEntry?.message) { return }
+
+    const parentToolUseID = typeof parsed.parentToolUseID === 'string' ? parsed.parentToolUseID : undefined
+    if (!parentToolUseID) { return }
+
+    // Get or create per-subagent dedup state
+    let subState = this.inlineSubagentState.get(parentToolUseID)
+    if (!subState) {
+      // Resolve agent name from the stored child name (set when the Agent tool_use was parsed)
+      const childName = this.subagentChildNames.get(parentToolUseID) || generateSubagentFallbackName('', this.inlineSubagentState.size + 1)
+      subState = {
+        agentName: childName,
+        pending: new Map(),
+        seen: new Set(),
+        seenMessages: new Set(),
+      }
+      this.inlineSubagentState.set(parentToolUseID, subState)
+
+      // Mark this subagent as receiving inline progress — file watcher should skip events
+      if (sessionId) {
+        const session = this.delegate.getSession(sessionId)
+        session?.inlineProgressAgents.add(childName)
+      }
+    }
+
+    // Re-wrap as a JSONL line and process through the normal pipeline
+    const innerLine = JSON.stringify(innerEntry)
+    this.processTranscriptLine(innerLine, subState.agentName, subState.pending, subState.seen, sessionId, subState.seenMessages)
+  }
+
+  /**
+   * Pre-scan existing file content:
+   * 1. Build seenToolUseIds dedup set (prevents re-emitting old tool calls)
+   * 2. Return all entries for catch-up emission
+   */
+  prescanExistingContent(filePath: string, size: number, session: WatchedSession): TranscriptEntry[] {
+    if (size === 0) { return [] }
+    const catchUpEntries: TranscriptEntry[] = []
+    try {
+      // Read only up to `size` bytes — the file may have grown since stat.
+      // Reading beyond would add tool_use IDs to the dedup set that haven't
+      // been accounted for in fileSize, causing readNewLines to silently skip them.
+      const content = readFileChunk(filePath, 0, size)
+      for (const line of content.split(/\r?\n/)) {
+        if (!line.trim()) { continue }
+        try {
+          const entry = JSON.parse(line.trim()) as TranscriptEntry & { toolUseResult?: unknown }
+          // Track background subagents still running at attach time, so the
+          // <task-notification> that arrives later can complete them.
+          if (entry.type === 'user' && entry.message) {
+            const notification = parseTaskNotification(userContentText(entry.message.content))
+            if (notification) { this.backgroundSubagents.delete(notification.toolUseId) }
+          }
+          // Build dedup sets for tool_use blocks and messages + accumulate token counts
+          const isUser = entry.message?.role === 'user' || entry.message?.role === 'human'
+          if (entry.message && Array.isArray(entry.message.content)) {
+            for (const block of entry.message.content) {
+              if (block.type === 'tool_use' && (block as ToolUseBlock).id) {
+                const toolBlock = block as ToolUseBlock
+                session.seenToolUseIds.add(toolBlock.id)
+                // Track subagent names so startWatchingSubagentFile assigns correct names
+                // and handleToolResult can resolve the child name on completion
+                if (toolBlock.name === 'Agent' || toolBlock.name === 'Task') {
+                  const childName = resolveSubagentChildName(toolBlock.input)
+                  session.spawnedSubagents.add(childName)
+                  this.subagentChildNames.set(toolBlock.id, childName)
+                }
+                // Track pending tool calls so handleToolResult works after reconnect
+                const args = summarizeInput(toolBlock.name, toolBlock.input)
+                const rawPath = toolBlock.input.file_path || toolBlock.input.path
+                const filePath = typeof rawPath === 'string' ? rawPath : undefined
+                session.pendingToolCalls.set(toolBlock.id, { name: toolBlock.name, args, filePath, startTime: Date.now() })
+              } else if (block.type === 'tool_result') {
+                const resultBlock = block as ToolResultBlock
+                const childName = resultBlock.tool_use_id ? this.subagentChildNames.get(resultBlock.tool_use_id) : undefined
+                if (childName && parseAgentToolUseResult(entry.toolUseResult).isAsync) {
+                  this.backgroundSubagents.set(resultBlock.tool_use_id, { childName, parent: ORCHESTRATOR_NAME, sessionId: session.sessionId })
+                }
+                // Clear matched pending tool call
+                if (resultBlock.tool_use_id) {
+                  session.pendingToolCalls.delete(resultBlock.tool_use_id)
+                }
+                // Accumulate tool result tokens
+                session.contextBreakdown.toolResults += estimateTokensFromContent(resultBlock.content)
+              } else if (block.type === 'text' && 'text' in block) {
+                const text = safeText(block)
+                if (text) {
+                  const emitRole = isUser ? 'user' : 'assistant'
+                  const hashKey = entry.uuid ? `${emitRole}:${entry.uuid}` : `${emitRole}:${text.slice(0, HASH_PREFIX_MAX)}`
+                  session.seenMessageHashes.add(hashKey)
+                  // Accumulate text tokens
+                  if (isUser) { session.contextBreakdown.userMessages += estimateTokensFromText(text) }
+                  else { session.contextBreakdown.reasoning += estimateTokensFromText(text) }
+                }
+              } else if (block.type === 'thinking' && 'thinking' in block) {
+                const thinking = safeThinking(block)
+                const redactedSig = thinking ? null : redactedThinkingSignature(block)
+                if (thinking || redactedSig) {
+                  session.seenMessageHashes.add(thinkingHashKey(entry.uuid, thinking || redactedSig || ''))
+                  if (thinking) { session.contextBreakdown.reasoning += estimateTokensFromText(thinking) }
+                }
+              }
+            }
+          } else if (entry.type === 'user' && typeof entry.message?.content === 'string') {
+            const text = entry.message.content.trim()
+            if (text) {
+              const hashKey = entry.uuid ? `user:${entry.uuid}` : `user:${text.slice(0, HASH_PREFIX_MAX)}`
+              session.seenMessageHashes.add(hashKey)
+              session.contextBreakdown.userMessages += estimateTokensFromText(text)
+            }
+          }
+          // Extract model from first assistant message
+          if (entry.type === 'assistant' && isRealModelId(entry.message?.model) && !session.model) {
+            session.model = entry.message.model
+          }
+          // Collect emittable entries (user and assistant turns)
+          if (entry.type === 'user' || entry.type === 'assistant') {
+            catchUpEntries.push(entry)
+          }
+        } catch (err) { log.debug('Skipping unparseable transcript line:', err) }
+      }
+      log.info(`Pre-scanned ${session.seenToolUseIds.size} existing tool_use IDs, ${catchUpEntries.length} entries total`)
+
+      return catchUpEntries
+    } catch (err) {
+      log.error('Pre-scan failed:', err)
+      return []
+    }
+  }
+
+  /** Emit message events for pre-existing transcript entries (catch-up on session detection).
+   *  Only emits the last user message (the current turn), not the full history. */
+  emitCatchUpEntries(entries: TranscriptEntry[], session: WatchedSession, sessionId: string): void {
+    // Find the last user entry — that's the current turn
+    let lastUserIndex = -1
+    for (let i = entries.length - 1; i >= 0; i--) {
+      if (entries[i].type === 'user') { lastUserIndex = i; break }
+    }
+    if (lastUserIndex === -1) { return }
+    const recentEntries = entries.slice(lastUserIndex)
+
+    for (const entry of recentEntries) {
+      const role = entry.type === 'user' ? 'user' : 'assistant'
+      const msg = entry.message
+      if (!msg) { continue }
+
+      // String content (common for user messages)
+      if (typeof msg.content === 'string' && msg.content.trim()) {
+        const text = msg.content.trim()
+        if (this.isSystemInjectedContent(text)) { continue }
+        this.delegate.emit({
+          time: 0,
+          type: 'message',
+          payload: { agent: ORCHESTRATOR_NAME, role, content: text.slice(0, MESSAGE_MAX) },
+        }, sessionId)
+        continue
+      }
+
+      // Array content (text blocks, thinking blocks, tool_use blocks)
+      if (!Array.isArray(msg.content)) { continue }
+      for (const block of msg.content) {
+        if (block.type === 'text' && 'text' in block) {
+          const text = safeText(block)
+          if (text && !this.isSystemInjectedContent(text)) {
+            this.delegate.emit({
+              time: 0,
+              type: 'message',
+              payload: { agent: ORCHESTRATOR_NAME, role, content: text.slice(0, MESSAGE_MAX) },
+            }, sessionId)
+          }
+        }
+      }
+    }
+  }
+
+  /** Extract a human-readable label from the first user message in transcript entries */
+  extractSessionLabel(entries: TranscriptEntry[], session: WatchedSession): void {
+    if (session.labelSet) return
+    for (const entry of entries) {
+      if (entry.type !== 'user') continue
+      const text = this.extractUserMessageText(entry)
+      if (text) {
+        session.label = this.truncateLabel(text)
+        session.labelSet = true
+        return
+      }
+    }
+  }
+
+  /** Extract text content from a user transcript entry, skipping system-injected tags */
+  extractUserMessageText(entry: TranscriptEntry): string | null {
+    const msg = entry.message
+    if (!msg) return null
+    if (typeof msg.content === 'string' && msg.content.trim()) {
+      const text = msg.content.trim()
+      if (!this.isSystemInjectedContent(text)) return text
+      return null
+    }
+    if (Array.isArray(msg.content)) {
+      for (const block of msg.content) {
+        if (block.type === 'text' && 'text' in block) {
+          const text = safeText(block)
+          if (text
