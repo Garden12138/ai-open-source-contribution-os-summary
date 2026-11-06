@@ -1,0 +1,411 @@
+{
+  "version": "approved-missing-scheduler-replay-v1",
+  "classification": "real_saved_provider_input_deterministic_fixture_tools_synthetic_fresh_authority",
+  "tools_are_real_OCI": false,
+  "provider_requests": 0,
+  "live_business_database_used": false,
+  "historical_approval_reused": false,
+  "new_Plan14_created": false,
+  "original_response_artifact": "c111a4e2a155342f6ebcb3e13f731ef5db9bdbf44b1e588f8c69764d93a9d092",
+  "ordered_provider_ids": [
+    "call_00_6hMp94fXeKGfACUXgD1f9064",
+    "call_01_4TOIIsQcp3SpbcoIEcfs2260",
+    "call_02_YsOKBbWAMP123HT0Ptm92188",
+    "call_03_vxT0cgV1eqr4Zoi8DFuc2420",
+    "call_04_E82EWYCSob3AzE6LFA8u9419",
+    "call_05_hPPCUvQPlTy4AuFib9u62084",
+    "call_06_BpDUcfzQN20xYmFHc7WH0961",
+    "call_07_96KBUSYjqUV0obt3k3gJ7731"
+  ],
+  "ordered_results": [
+    {
+      "artifact_id": null,
+      "call_id": "tool-eaa0615f408d708a5afc624615bc4e6adb3933a8",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 8192,
+        "offset": 4096,
+        "path": "extension/src/transcript-parser.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "e796df99765f38945d1c6bd936fe3457fc62bfe83fbb4803421695434a4e3ed6",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "ce line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource l",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "cd86d8da41c96df90fad82e6abcd2c100d89a9a5d0458ffddd85623bd7d9a228",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-20b392f9a3afacce9f047958a3b02e994be8d1db",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 8192,
+        "offset": 4096,
+        "path": "extension/src/hook-server.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "e519ee42798766941816661e96a78e4b33ebd99490c8d95e73172450f7656002",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "ce line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource l",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "81aa68c591b1546ab229ff372ed028ac05006670f7b40ab3f117d54b0d9c4663",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-e98fe11690bbfbd32c71f45a0dde5f652b861c29",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 8192,
+        "offset": 4096,
+        "path": "web/hooks/simulation/handle-tool-events.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "b32569402a475f5da900348c7b3825f548616439b78e08a8a98aabcac41b6a5e",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "ce line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource l",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "7d72af71d084b042ebd9336adb81e6dd530d2a1cac5ee271825a27dfae31ba73",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-d5ed5960feaf3bf7cb457ca4e88973d6d9f77819",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 8192,
+        "offset": 4096,
+        "path": "web/hooks/simulation/types.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "a8d4772ff878c2eb58a2ff7e012171c372a8336c8eab4cfe0ee9d5ed3b9aaf8c",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "ce line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource l",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "afcd90c141d751875e8324811196758c936e87db0a37de7b4bc0c7e9fe2ba25d",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-b1433b0297cd34b49bfdf3f93b73708bbbe338a0",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 4096,
+        "offset": 0,
+        "path": "web/lib/agent-types.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "1eac2f587dd4fb2090a901bf61e44606123c1292e40a32feb5a772786eafaf3c",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "source line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsour",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "030d08f74211f190302e4c8981b84f53f4c5f9499c3de6071b964912f44b5071",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-675cade0a8c3c87966521f2b4c822b3992428633",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 4096,
+        "offset": 0,
+        "path": "web/hooks/simulation/process-event.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "f37761f6e529f015860baa2200b29d7f99bdd257e25cbbb1901f70d37464355a",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "source line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsour",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "298d8f063a11540c9972519eb074a6aa72c0a34548624c3b2af9c90549e00174",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-6222a9c6c0f2de4571b79d2be4a5bfadb67040b5",
+      "data": {
+        "content_hash": "d0fe8dd93450d1a7982637c3e14e319c3c22db86cc2b943e4fe431d966a1a731",
+        "execution_backend": "docker",
+        "next_offset": 4096,
+        "offset": 0,
+        "path": "extension/src/protocol.ts",
+        "source_read_progress": {
+          "instruction": "Follow the visible next_offset for further source bytes. Reuse the prior receipt with read_artifact when needed. Repeating an unchanged byte request after two visible duplicate receipts stops the session; no arguments, scope or budget are changed.",
+          "max_bytes": 4096,
+          "prior_receipt": null,
+          "prior_same_range_reads": 0,
+          "range_key": "c64bd9cc931a529bdcc484ba6014e6ed7d10374c941f964855cebeefbd2f8fe8",
+          "version": "source-read-progress-v1",
+          "visible_bytes": 0,
+          "visible_next_offset": null,
+          "warning_receipts_seen": []
+        },
+        "text": "source line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsource line\nsour",
+        "tool": "read_file",
+        "total_bytes": 14400
+      },
+      "failure": null,
+      "input_hash": "c5679128c66792f9adc18dca671b3861e5be0e7a20243e7db721f2839f6e759c",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "succeeded"
+    },
+    {
+      "artifact_id": null,
+      "call_id": "tool-07d05c4a26538041dd2b4175585a4c508bcbeb00",
+      "data": {
+        "availability": "not_found",
+        "binding_hash": "9df4d6a49c2314148bac6ed8b3db1f64678c18ae0a1a848d0f0183389c16cabd",
+        "creation_allowed": true,
+        "execution_backend": "fixture",
+        "inventory_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+        "path": "web/hooks/simulation/handle-tool-events.test.ts",
+        "reason_code": "source_not_found",
+        "tool": "read_file",
+        "version": "source-file-observation-v1"
+      },
+      "failure": null,
+      "input_hash": "b18f76f9d756a9070571f5fe4e3f3ecaacf72113791b31b51ce3eee0d5f9197d",
+      "output_source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "status": "not_found"
+    }
+  ],
+  "receipt_artifacts": [
+    "61220571b0a7b8d9d158f9dad96ca61936c66daea26eb998033e67584de81307",
+    "8bcd9f35633b9b121e9cc51ef07d0e7bea809e5bb127276d2d6878bb741de937",
+    "7fd1fec38aa355709597d981b186ee7b3ecf89756dda85ed9df2b17664e2ca89",
+    "7860a4dac5f36896f2e157df969295c6410285bd08d8baae83b31c6109c6c90b",
+    "8a095977b054f2fa7df3c0bd724396c288bb2948dffb176c1ca04c1c2a258493",
+    "2457b76616487f38a65555bb0642beb827edac6f961028a1fadd595a4a16f77f",
+    "5d113c3d1de6c32098b0cd2e2473cf1284fef30b79a2e4eaa012949604b403f4",
+    "b27658f4776e079fd9b6ab0723e2d164100e4aa27d35e65fa649955cc9e168e2"
+  ],
+  "child_receipts": [
+    {
+      "version": "agent-runtime-v2",
+      "session_id": "session-9df4d6a49c2314148bac6ed8b3db1f64",
+      "batch_artifact": "e94a86f9dd566b124ebeb9380c4fa173eb21114547be5ae29fe8e79a396f3396",
+      "sub_batch_id": "79d966090581db5bc846f893f0170d9ccf254a8c885575b34891ab0eb9216555",
+      "index": 0,
+      "status": "succeeded",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "binding_hash": "9df4d6a49c2314148bac6ed8b3db1f64678c18ae0a1a848d0f0183389c16cabd",
+      "call_ids": [
+        "tool-eaa0615f408d708a5afc624615bc4e6adb3933a8",
+        "tool-20b392f9a3afacce9f047958a3b02e994be8d1db",
+        "tool-e98fe11690bbfbd32c71f45a0dde5f652b861c29",
+        "tool-d5ed5960feaf3bf7cb457ca4e88973d6d9f77819"
+      ],
+      "receipts": [
+        "61220571b0a7b8d9d158f9dad96ca61936c66daea26eb998033e67584de81307",
+        "8bcd9f35633b9b121e9cc51ef07d0e7bea809e5bb127276d2d6878bb741de937",
+        "7fd1fec38aa355709597d981b186ee7b3ecf89756dda85ed9df2b17664e2ca89",
+        "7860a4dac5f36896f2e157df969295c6410285bd08d8baae83b31c6109c6c90b"
+      ],
+      "artifact_id": "2f60afdea9be4010488cdf9d490d4b3af47fa8544d74a563e0f529e952363309"
+    },
+    {
+      "version": "agent-runtime-v2",
+      "session_id": "session-9df4d6a49c2314148bac6ed8b3db1f64",
+      "batch_artifact": "e94a86f9dd566b124ebeb9380c4fa173eb21114547be5ae29fe8e79a396f3396",
+      "sub_batch_id": "6f78c19faade9d911ef7353c707051e6abeff901c6851aa2c03b139ce160088e",
+      "index": 1,
+      "status": "succeeded",
+      "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+      "binding_hash": "9df4d6a49c2314148bac6ed8b3db1f64678c18ae0a1a848d0f0183389c16cabd",
+      "call_ids": [
+        "tool-b1433b0297cd34b49bfdf3f93b73708bbbe338a0",
+        "tool-675cade0a8c3c87966521f2b4c822b3992428633",
+        "tool-6222a9c6c0f2de4571b79d2be4a5bfadb67040b5",
+        "tool-07d05c4a26538041dd2b4175585a4c508bcbeb00"
+      ],
+      "receipts": [
+        "8a095977b054f2fa7df3c0bd724396c288bb2948dffb176c1ca04c1c2a258493",
+        "2457b76616487f38a65555bb0642beb827edac6f961028a1fadd595a4a16f77f",
+        "5d113c3d1de6c32098b0cd2e2473cf1284fef30b79a2e4eaa012949604b403f4",
+        "b27658f4776e079fd9b6ab0723e2d164100e4aa27d35e65fa649955cc9e168e2"
+      ],
+      "artifact_id": "040749a4932419c8b8e6e1fe55986f01a83f9840ce72c63f6691201c5ac2baec"
+    }
+  ],
+  "aggregate_receipt": {
+    "version": "agent-runtime-v2",
+    "session_id": "session-9df4d6a49c2314148bac6ed8b3db1f64",
+    "batch_artifact": "e94a86f9dd566b124ebeb9380c4fa173eb21114547be5ae29fe8e79a396f3396",
+    "response_artifact": "912f31b6f8a3ba13e09987590b28d023f78d1f02f4aa31222c9cdae3d90be080",
+    "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+    "binding_hash": "9df4d6a49c2314148bac6ed8b3db1f64678c18ae0a1a848d0f0183389c16cabd",
+    "call_ids": [
+      "tool-eaa0615f408d708a5afc624615bc4e6adb3933a8",
+      "tool-20b392f9a3afacce9f047958a3b02e994be8d1db",
+      "tool-e98fe11690bbfbd32c71f45a0dde5f652b861c29",
+      "tool-d5ed5960feaf3bf7cb457ca4e88973d6d9f77819",
+      "tool-b1433b0297cd34b49bfdf3f93b73708bbbe338a0",
+      "tool-675cade0a8c3c87966521f2b4c822b3992428633",
+      "tool-6222a9c6c0f2de4571b79d2be4a5bfadb67040b5",
+      "tool-07d05c4a26538041dd2b4175585a4c508bcbeb00"
+    ],
+    "receipts": [
+      "61220571b0a7b8d9d158f9dad96ca61936c66daea26eb998033e67584de81307",
+      "8bcd9f35633b9b121e9cc51ef07d0e7bea809e5bb127276d2d6878bb741de937",
+      "7fd1fec38aa355709597d981b186ee7b3ecf89756dda85ed9df2b17664e2ca89",
+      "7860a4dac5f36896f2e157df969295c6410285bd08d8baae83b31c6109c6c90b",
+      "8a095977b054f2fa7df3c0bd724396c288bb2948dffb176c1ca04c1c2a258493",
+      "2457b76616487f38a65555bb0642beb827edac6f961028a1fadd595a4a16f77f",
+      "5d113c3d1de6c32098b0cd2e2473cf1284fef30b79a2e4eaa012949604b403f4",
+      "b27658f4776e079fd9b6ab0723e2d164100e4aa27d35e65fa649955cc9e168e2"
+    ],
+    "artifact_id": "5fd61b6357c6efa81c6be55c9756cfca8152162c575cc20326cc239b6ae5e58a"
+  },
+  "maximum_executable_checkpoint_calls": 4,
+  "model_decisions_between_children": 0,
+  "next_model_visible_statuses": [
+    "succeeded",
+    "succeeded",
+    "succeeded",
+    "succeeded",
+    "succeeded",
+    "succeeded",
+    "succeeded",
+    "not_found"
+  ],
+  "next_model_file_context": {
+    "version": "approved-file-context-v1",
+    "source_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+    "archive_hash": "378e4b62711dd7e3ceb2b0f5da55ba94df520dd5d0625d0dcfcc11239c2d9b31",
+    "frozen_inventory_artifact": "65a7ad1b34a57bc0531216e0c4cc726b91ea2a591082ec4eeb6677e81557478f",
+    "frozen_context_hash": "2da0a7babc48b9633151cb04b07cb48bea8f5f440450216e612044d798304878",
+    "snapshot_artifact": null,
+    "existing_relevant_paths": [
+      "app/planning.py",
+      "extension/src/hook-server.ts",
+      "extension/src/protocol.ts",
+      "extension/src/transcript-parser.ts",
+      "extension/test/hook-server.test.ts",
+      "extension/test/transcript-parser.test.ts",
+      "tests/test_planning.py",
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/process-event.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts"
+    ],
+    "planned_write_paths": [
+      "extension/src/transcript-parser.ts",
+      "extension/src/hook-server.ts",
+      "web/hooks/simulation/handle-tool-events.ts",
+      "web/hooks/simulation/types.ts",
+      "web/lib/agent-types.ts",
+      "web/hooks/simulation/handle-tool-events.test.ts",
+      "extension/test/transcript-parser.test.ts",
+      "extension/test/hook-server.test.ts"
+    ],
+    "approved_new_paths_currently_absent": [
+      "web/hooks/simulation/handle-tool-events.test.ts"
+    ],
+    "instruction": "Write permission does not prove existence. These facts come from frozen inventory and current snapshots. Confirm absence in OCI with read_file; not_found has no contents/hash. Create only approved absent paths using apply_patch with expected_hash null and old_text empty."
+  },
+  "next_model_input_bound": 31663,
+  "fixture_usage_after_reads": {
+    "model_calls": 1,
+    "input_tokens": 9444,
+    "output_tokens": 779,
+    "output_bytes": 41674,
+    "reads": 8
+  },
+  "coding_completed_by_reads": false,
+  "simulated_next_decision": "create_the_approved_absent_path_only_after_observing_not_found",
+  "fixture_usage_after_creation": {
+    "model_calls": 2,
+    "input_tokens": 9644,
+    "output_tokens": 859,
+    "output_bytes": 42700,
+    "reads": 8,
+    "writes": 1
+  },
+  "resulting_source_hash": "af8221a6751af57885f5637b248276179133b32aeacad1eff56611dcfae34ef0",
+  "snapshot_artifact": "0d2200656d39cf7ca07a5007d4da903e8dd57f071c370718bc946eccef7e1295",
+  "created_paths": [
+    "web/hooks/simulation/handle-tool-events.test.ts"
+  ],
+  "real_Coding_Verify_Review_acceptance_claim": false,
+  "report_hash": "edab5440f641a423dd5eb77e98e3d8f2698938ae80a8f5e24ed0dce95691fa62"
+}

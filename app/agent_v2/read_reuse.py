@@ -20,13 +20,24 @@ def reuse_read(journal: Any, checkpoint: Any, call: ToolCall, arguments: Any, in
             continue
         aid = event.payload["artifact_id"]
         result = ToolResult.model_validate(journal.wb.read(aid))
-        if (result.status != "succeeded" or result.failure is not None
+        if (result.status not in {"succeeded", "not_found"} or result.failure is not None
                 or result.output_source_hash != checkpoint.source_hash or result.data.get("reused_receipt")):
             continue
         data = result.data
         if (result.call_id != event.payload["call_id"] or result.source_hash != event.payload["source_hash"]
                 or data.get("tool") != call.name):
             continue
+        if result.status == "not_found":
+            if call.name != "read_file":
+                continue
+            from app.agent_v2.source_files import validate_missing_read
+            try:
+                validate_missing_read(journal.spec(), arguments, result)
+            except ValueError:
+                continue
+            return ToolResult(call_id=call.call_id, input_hash=input_hash, source_hash=checkpoint.source_hash,
+                output_source_hash=checkpoint.source_hash, status="not_found",
+                data={**data, "reused_receipt": aid, "execution_backend": "platform_receipt_reuse"})
         if (not isinstance(data.get("text"), str) or data.get("offset") != args.get("offset", 0)
                 or type(data.get("total_bytes")) is not int):
             continue

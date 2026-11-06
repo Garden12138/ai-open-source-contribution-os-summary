@@ -396,7 +396,7 @@ def test_baseline_migration_preserves_old_history_and_rejects_invalid_reference(
         db, settings, tid, *_ = seeded(tmp_path)
         with db.session() as session:
             before = [e.record_hash for e in PlanningService(session, settings.artifact_root).history(tid)]
-    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches")
+    assert db.create_schema().applied == ("0034_execution_baselines", "0035_workspace_scopes", "0036_verification_environment_recovery", "0037_baseline_feedback", "0038_agent_runtime_v2", "0039_environment_contracts", "0040_deepseek_reviews", "0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
     with db.session() as session:
         wb = PlanningService(session, settings.artifact_root)
         assert [e.record_hash for e in wb.history(tid)] == before

@@ -67,6 +67,7 @@ def test_actual_last_read_preflight_failure_rejects_every_application_read(tmp_p
         proof=await gateway.preflight_read_batch(spec,calls,source_hash=spec.binding.archive_hash,snapshot=None,input_hash='a'*64)
         assert proof['status']=='rejected' and proof['checked']==[]
         assert proof['source_hash']==proof['after_hash']
-        assert proof['failure_code'] in {'symlink_denied','source_unavailable','source_hash_conflict','page_offset_invalid'}
+        assert proof['failure_code'] == {'symlink':'symlink_denied','missing':'source_not_found',
+            'stale_hash':'source_hash_conflict','bad_offset':'page_offset_invalid'}[bad]
         assert 'text' not in proof and 'preview' not in proof
     asyncio.run(scenario())

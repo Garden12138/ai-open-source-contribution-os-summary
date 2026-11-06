@@ -1,0 +1,138 @@
+{
+  "version": "approved-missing-test-report-index-v1",
+  "reports": [
+    {
+      "file": "test-results/missing-source-initial-regression.xml",
+      "source_sha256": "9066cb0f43e4cba1352adaae02b181785c6854d5922dc84bd1ab44373123ff37",
+      "sha256": "4de73d571a3b19637519c77a4ecffc6cadc785416b42cc153c8ac01230f69e09",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 23,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 22
+    },
+    {
+      "file": "test-results/missing-source-initial.xml",
+      "source_sha256": "299d7be3a6026d0d85248bb990216fd7cacd80d34b662071508c1fa4f0d45bb3",
+      "sha256": "4f5168632fa090103f0ffdb6229c4f228e2920b9bc43498c1a2c77ab178bc8cb",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 8,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 7
+    },
+    {
+      "file": "test-results/missing-source-focused.xml",
+      "source_sha256": "5b0b91eb8b59802fb9bddb836b070e6034ca0a57dcf7d73110dcca2e84961219",
+      "sha256": "db5c1a43a1e1256ac4dd391f916767dc6ff730114c10940bb772b1a0071806ed",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 50,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 49
+    },
+    {
+      "file": "test-results/missing-source-runtime-regression.xml",
+      "source_sha256": "8c16f4c2b3a97c27fdf5fde86a6e7f912d843c3388a4b9830627683ecb455f07",
+      "sha256": "016d056a024321fbc1b307e183235a267363e6f59777e9977b88a1f94faf1a11",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 86,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 86
+    },
+    {
+      "file": "test-results/missing-source-final-focused.xml",
+      "source_sha256": "a2a114de14313d2c08aca9da2ce6f85e4717b96550623961af6996ad6e1130ba",
+      "sha256": "92f50c4bdd9dbbf61986ff73389e0ec302ff70468ec25d996e2a77cbaa98b8ea",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 9
+    },
+    {
+      "file": "test-results/missing-source-migration.xml",
+      "source_sha256": "e1f4f59ea19c17c9fce3df4d3620cc0e792ad2e92144a9a95a9c9790e89bc9ff",
+      "sha256": "7894c5c6dc3e0105b6a24e85e2e732289899b9e7680426143aebfc27dda80374",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1
+    },
+    {
+      "file": "test-results/missing-source-full-0.xml",
+      "source_sha256": "583b6585e8aed61e0489156e53d43f7c7f0856cec984c7565c3e4b35b1fb7289",
+      "sha256": "8be4713e9e26e315c1bb4fad0c54a80c808a755e96130c222f4552b5998be282",
+      "credential_like_test_or_skip_text_redacted": true,
+      "tests": 1085,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 37,
+      "passed": 1048
+    },
+    {
+      "file": "test-results/missing-source-full-1.xml",
+      "source_sha256": "a701a0511ed3e94e86a9ffe13c30055693180513981f56df020e45e024883f04",
+      "sha256": "53d1a63f92a803a6b263253c36292c5d04144ef810add3ed06c8cdcfcb9072c5",
+      "credential_like_test_or_skip_text_redacted": true,
+      "tests": 1017,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 40,
+      "passed": 976
+    },
+    {
+      "file": "test-results/missing-source-compatibility.xml",
+      "source_sha256": "3e30e6947dadcb7805459d081f7b65b68907f9c8f75b775626ec14be902e03c0",
+      "sha256": "90dfa7e66d43d55a3e433085df344dfb1fdde798289a8ca2dfcb069da29d2187",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 20
+    },
+    {
+      "file": "test-results/missing-source-final-full-0.xml",
+      "source_sha256": "82d17c4bb49caa8f2d7b1118b535ec2786a8c147483c3b2f534179b9b6ae6739",
+      "sha256": "2bcf314e353f91bffd48878592b577854b443f0693a1b741e17ecc6d81b86a74",
+      "credential_like_test_or_skip_text_redacted": true,
+      "tests": 1085,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 37,
+      "passed": 1048
+    },
+    {
+      "file": "test-results/missing-source-final-full-1.xml",
+      "source_sha256": "7bdc7802e27f32a713a52d9dbb100dfc7ea81e9e03a344725fa692e455ac5386",
+      "sha256": "bb414967d7070f413577cd0ef44c4ce0a2a5cfc7eef04c38c4ef524be4c77c6a",
+      "credential_like_test_or_skip_text_redacted": true,
+      "tests": 1017,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 40,
+      "passed": 977
+    },
+    {
+      "file": "test-results/missing-source-final2-real-oci.xml",
+      "source_sha256": "3199e61b418b3ba08e2ed0d349183835caaa4eb139bfd2030b690f5c86a76062",
+      "sha256": "de241ec7c8d180fb6a796b2d98a4dd7be619ba3ed57ac1f9a07fb728c05434e0",
+      "credential_like_test_or_skip_text_redacted": false,
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 24
+    }
+  ],
+  "final_source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f"
+}

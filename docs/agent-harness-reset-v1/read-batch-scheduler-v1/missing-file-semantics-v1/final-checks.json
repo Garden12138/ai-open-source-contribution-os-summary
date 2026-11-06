@@ -1,0 +1,27 @@
+{
+  "version": "approved-missing-final-checks-v1",
+  "recorded_at": "2026-11-05T08:33:51.140420+00:00",
+  "source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "all252_source_files_verified": true,
+  "compileall_app_and_helpers": "passed",
+  "internal_runtime_import_integrity": "passed",
+  "git_diff_check": "passed",
+  "implementation_diff_reverse_check": "passed_unidiff_zero",
+  "JSON_XML_credentials_and_report_hashes": "passed",
+  "old_previews_and_history_hashes": "unchanged",
+  "after_preview_counts": {
+    "active_jobs": 0,
+    "model_starts": 88,
+    "authorizations": 11,
+    "plans": 13,
+    "max_plan": 13,
+    "task_events": 2013
+  },
+  "old_Plan13_charged_reads": 12,
+  "new_model_calls": 0,
+  "Plan14_created": false,
+  "old_session_resumed": false,
+  "Push_PR_comments": false,
+  "future_preview_hash": "5c20cae76a88bdc5f06cf2cb819cf63aa1355993512f6f0f74b30cda47999376",
+  "report_hash": "52e1881a8c3deedceff2f9ac482b72e3b725e16d366c857db10b0b456350b2d0"
+}

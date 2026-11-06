@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="4.040" timestamp="2026-11-05T15:58:40.533705+08:00" hostname="MacBook-Air.local"><testcase classname="tests.test_missing_source_observations" name="test_forward_migration_keeps_old_journal_and_rejects_forged_absence" time="3.534" /></testsuite></testsuites>

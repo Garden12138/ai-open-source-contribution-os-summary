@@ -16,7 +16,7 @@ from uuid import uuid4
 from typing import Any, Callable
 from pydantic import BaseModel
 
-from app.agent_v2.contracts import Failure, TaskSpec, ToolCall, ToolResult
+from app.agent_v2.contracts import Failure, MissingSourceObservation, TaskSpec, ToolCall, ToolResult
 from app.archives import RepositoryArchiveStore
 from app.provenance import canonical_json, content_hash
 from app.sandbox_worker.implementation import (ChangeOperation, ChangeOperationKind,
@@ -69,7 +69,7 @@ class DockerAgentToolGateway:
             if (raw["before_hash"] != raw["after_hash"] or source_hash not in {
                     spec.binding.archive_hash, raw["before_hash"]}):
                 raise ValueError("agent_batch_source_mismatch")
-            return {"version": "native-read-batch-preflight-v1", "input_hash": input_hash,
+            return {"version": "native-read-batch-preflight-v2", "input_hash": input_hash,
                 "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": raw["before_hash"],
                 "after_hash": raw["after_hash"], "requests_hash": content_hash(requests),
                 "status": "rejected" if raw.get("error") else "succeeded", "failure_code": raw.get("error"),
@@ -108,11 +108,19 @@ class DockerAgentToolGateway:
                 "write_paths": spec.write_paths,
                 "originals": {p: v["original_content"] for p, v in files.items()}}
             raw = await self._source(workspace, policy, payload)
+            if source_hash not in {spec.binding.archive_hash, raw["before_hash"]}:
+                raise ValueError("agent_source_hash_mismatch")
             if snapshot and raw["before_hash"] != source_hash:
                 raise ValueError("agent_source_hash_mismatch")
             data = {"tool": call.name, "execution_backend": "docker", **raw.get("data", {})}
             output_hash = raw["after_hash"]
             reason = raw.get("error")
+            absent = call.name == "read_file" and raw.get("data", {}).get("availability") == "not_found" and not reason
+            if absent:
+                data = MissingSourceObservation(tool="read_file", path=arguments.path,
+                    availability="not_found", reason_code="source_not_found", creation_allowed=True,
+                    binding_hash=content_hash(spec.binding.model_dump()), inventory_hash=output_hash,
+                    execution_backend="docker").model_dump(exclude_none=True)
             new_snapshot = None
             if call.name == "apply_patch" and not reason:
                 change = raw["file"]
@@ -145,11 +153,15 @@ class DockerAgentToolGateway:
                 category = "environment" if reason == "agent_check_environment_blocked" else "protocol"
                 if reason in {"path_denied", "symlink_denied"}:
                     category = "security"
-                info = Failure(category=category, safe_reason_code=reason, retryable=category == "protocol",
+                if reason in {"source_unavailable", "special_file_denied"}:
+                    category = "platform" if reason == "source_unavailable" else "security"
+                if reason == "source_hash_conflict":
+                    category = "stale_upstream"
+                info = Failure(category=category, safe_reason_code=reason, retryable=False,
                     remaining_budget={}, next_allowed_action="read_current_source" if category == "protocol" else "inspect_diagnostic",
                     blocking_scope="tool" if category == "protocol" else "session")
             result = ToolResult(call_id=call.call_id, input_hash=input_hash, source_hash=source_hash,
-                output_source_hash=output_hash, status="rejected" if reason else "succeeded", data=data, failure=info)
+                output_source_hash=output_hash, status="rejected" if reason else "not_found" if absent else "succeeded", data=data, failure=info)
             return {"result": result.model_dump(), "snapshot": new_snapshot}
         finally:
             await self.materializer.destroy(workspace)
@@ -224,6 +236,20 @@ def page(data, arguments=None):
     end=offset+len(chunk)
     return {'text':text,'offset':offset,'next_offset':end if end<len(data) else None,'total_bytes':len(data),'content_hash':digest(data)}
 
+def read_source(arguments):
+    # path_for always runs first, including for absent leaves/parents. A broken
+    # link or escape cannot be converted into an allowed absence observation.
+    relative=arguments['path']; p=path_for(relative)
+    try: data=open(p,'rb').read(1000001)
+    except FileNotFoundError:
+        if arguments.get('expected_hash') is not None: raise ValueError('source_hash_conflict')
+        if any(e['path']==relative for e in before): raise ValueError('source_unavailable')
+        if relative not in request['write_paths']: raise ValueError('source_not_found')
+        return None, {'path':relative,'availability':'not_found','reason_code':'source_not_found','creation_allowed':True}
+    if len(data)>1000000: raise ValueError('source_file_limit')
+    if arguments.get('expected_hash') and digest(data)!=arguments['expected_hash']: raise ValueError('source_hash_conflict')
+    return data, page(data,arguments)
+
 before, before_hash=scan(); output={'before_hash':before_hash,'after_hash':before_hash}
 try:
     if name in ('list_paths','search_code'):
@@ -244,18 +270,14 @@ try:
     elif name=='read_batch_preflight':
         checked=[]
         for item in args['requests']:
-            p=path_for(item['path']); data=open(p,'rb').read(1000001)
-            if len(data)>1000000: raise ValueError('source_file_limit')
-            if item.get('expected_hash') and digest(data)!=item['expected_hash']: raise ValueError('source_hash_conflict')
-            observation=page(data,item)
-            checked.append({'path':item['path'],'content_hash':digest(data),'total_bytes':len(data),
-                'offset':observation['offset'],'max_bytes':item['max_bytes']})
+            data,observation=read_source(item)
+            check={'path':item['path'],'offset':item['offset'],'max_bytes':item['max_bytes']}
+            checked.append({**check,**observation} if data is None else {**check,'availability':'present',
+                'content_hash':digest(data),'total_bytes':len(data)})
         output['data']={'checked':checked}
     elif name=='read_file':
-        p=path_for(args['path']); data=open(p,'rb').read(1000001)
-        if len(data)>1000000: raise ValueError('source_file_limit')
-        if args.get('expected_hash') and digest(data)!=args['expected_hash']: raise ValueError('source_hash_conflict')
-        output['data']={'path':args['path'],**page(data)}
+        data,observation=read_source(args)
+        output['data']={'path':args['path'],**observation}
     elif name=='apply_patch':
         rel=args['path']
         if rel not in request['write_paths']: raise ValueError('path_denied')
@@ -291,12 +313,15 @@ try:
     else: raise ValueError('tool_unavailable')
 except (ValueError, OSError, UnicodeDecodeError) as error:
     code=str(error) if isinstance(error,ValueError) and str(error) in {
-        'path_denied','symlink_denied','source_limit','source_file_limit','source_hash_conflict',
+        'path_denied','symlink_denied','special_file_denied','source_limit','source_file_limit','source_hash_conflict',
+        'source_not_found','source_unavailable',
         'page_offset_invalid','patch_hash_conflict','patch_anchor_conflict','patch_no_change','tool_unavailable'} else 'source_unavailable'
     output['error']=code
     if name!='read_batch_preflight' and code in {'source_hash_conflict','patch_hash_conflict','patch_anchor_conflict'}:
-        p=path_for(args['path']); current=open(p,'rb').read(1000001)
-        if len(current)<=1000000:
+        p=path_for(args['path'])
+        try: current=open(p,'rb').read(1000001)
+        except OSError: current=None
+        if current is not None and len(current)<=1000000:
             output['data']={'path':args['path'],'current_content_hash':digest(current),
                 'preview':current[:512].decode('utf-8',errors='ignore'),'partial':len(current)>512,
                 'next_allowed_action':'read_file_without_expected_hash'}

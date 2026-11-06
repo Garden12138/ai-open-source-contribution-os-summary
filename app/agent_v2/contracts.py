@@ -190,10 +190,26 @@ class ToolResult(StrictModel):
     input_hash: Hash
     source_hash: Hash
     output_source_hash: Hash
-    status: Literal["succeeded", "rejected", "unknown"]
+    status: Literal["succeeded", "rejected", "unknown", "not_found"]
     artifact_id: Hash | None = None
     data: dict[str, Any] = Field(default_factory=dict)
     failure: Failure | None = None
+
+
+class MissingSourceObservation(StrictModel):
+    """An attested absence, with no invented contents, size or file hash."""
+    version: Literal["source-file-observation-v1"] = "source-file-observation-v1"
+    tool: Literal["read_file"]
+    path: str
+    availability: Literal["not_found"]
+    reason_code: Literal["source_not_found"]
+    creation_allowed: Literal[True]
+    binding_hash: Hash
+    inventory_hash: Hash
+    execution_backend: Literal["docker", "fixture", "platform_receipt_reuse"]
+    reused_receipt: Hash | None = None
+
+    _path = field_validator("path")(source_path)
 
 
 class AgentCheckpoint(StrictModel):

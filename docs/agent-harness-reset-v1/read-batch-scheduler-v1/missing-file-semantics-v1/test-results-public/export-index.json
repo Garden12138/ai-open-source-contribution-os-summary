@@ -1,0 +1,78 @@
+{
+  "version": "git-delivery-private-metadata-redaction-v1",
+  "recorded_at": "2026-11-06T02:24:15.516225+00:00",
+  "classification": "publication_projection_not_replacement_of_frozen_original_evidence",
+  "source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "original_evidence_files_modified": false,
+  "historical_indexes_or_report_hashes_modified": false,
+  "removed_metadata": [
+    "personal_home_path_component",
+    "email_including_test_parameters",
+    "local_temporary_path",
+    "local_hostname"
+  ],
+  "files": [
+    {
+      "original_file": "test-results/missing-source-full-0.xml",
+      "original_sha256": "8be4713e9e26e315c1bb4fad0c54a80c808a755e96130c222f4552b5998be282",
+      "public_file": "test-results-public/missing-source-full-0.xml",
+      "public_sha256": "c7b80c10ca02e135f8984d7b114323926b735bc9e4cb2530702a5ba5708fd1b1",
+      "original_preserved_locally": true,
+      "counts_unchanged": {
+        "tests": 1085,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 37
+      },
+      "testcases_in_original_order": true,
+      "testcase_metadata_changes_limited_to_privacy_redaction": true
+    },
+    {
+      "original_file": "test-results/missing-source-full-1.xml",
+      "original_sha256": "53d1a63f92a803a6b263253c36292c5d04144ef810add3ed06c8cdcfcb9072c5",
+      "public_file": "test-results-public/missing-source-full-1.xml",
+      "public_sha256": "748dc7f225c5953a60da706ea69c475463635935a0ade47170ad168dda76a2e0",
+      "original_preserved_locally": true,
+      "counts_unchanged": {
+        "tests": 1017,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 40
+      },
+      "testcases_in_original_order": true,
+      "testcase_metadata_changes_limited_to_privacy_redaction": true
+    },
+    {
+      "original_file": "test-results/missing-source-final-full-0.xml",
+      "original_sha256": "2bcf314e353f91bffd48878592b577854b443f0693a1b741e17ecc6d81b86a74",
+      "public_file": "test-results-public/missing-source-final-full-0.xml",
+      "public_sha256": "5388d1132b6c4701f4d6add442113d034dce75f969dd1fda110b3b9fe572b954",
+      "original_preserved_locally": true,
+      "counts_unchanged": {
+        "tests": 1085,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 37
+      },
+      "testcases_in_original_order": true,
+      "testcase_metadata_changes_limited_to_privacy_redaction": true
+    },
+    {
+      "original_file": "test-results/missing-source-final-full-1.xml",
+      "original_sha256": "bb414967d7070f413577cd0ef44c4ce0a2a5cfc7eef04c38c4ef524be4c77c6a",
+      "public_file": "test-results-public/missing-source-final-full-1.xml",
+      "public_sha256": "0334f8589be64c30b7ebf0a0e8fd06e0ba23b0009f5f4b2d181f66c29a6ec3e7",
+      "original_preserved_locally": true,
+      "counts_unchanged": {
+        "tests": 1017,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 40
+      },
+      "testcases_in_original_order": true,
+      "testcase_metadata_changes_limited_to_privacy_redaction": true
+    }
+  ],
+  "note": "Four original JUnit files remain unchanged and untracked locally. Frozen historical indexes describe those originals. Git readers should use the public_file projections and this hash mapping. Counts, order and pass/fail/skip results remain unchanged; private metadata/test parameters are redacted.",
+  "report_hash": "4e2386c3fc7656c59c208476a8264bc63900048375b89c4e235f0e12f6a747f4"
+}

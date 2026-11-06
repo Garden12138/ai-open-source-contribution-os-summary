@@ -215,6 +215,9 @@ def prompt_for(journal: AgentJournal) -> dict:
     }
     if correction is not None:
         prompt["native_protocol_correction"] = correction
+    if native:
+        from app.agent_v2.source_files import file_context
+        prompt["source_files"] = file_context(journal, snapshot, inputs["approved_plan"]["files_to_inspect"])
     from app.agent_v2.progress import prompt_progress
     progress = prompt_progress(journal)
     if progress is not None:
@@ -466,8 +469,8 @@ class AgentToolWorker(WorkbenchJobWorker):
         try:
             proof = await self.gateway.preflight_read_batch(spec, calls, source_hash=cp.source_hash,
                 snapshot=snapshot, input_hash=input_hash)
-            proof = read_batches.ReadBatchPreflight.model_validate(proof).model_dump()
-            if (proof["version"] != "native-read-batch-preflight-v1" or proof["input_hash"] != input_hash
+            proof = read_batches.parse_preflight(proof)
+            if (proof["input_hash"] != input_hash
                     or proof["binding_hash"] != content_hash(spec.binding.model_dump())
                     or proof["requests_hash"] != content_hash(requests)
                     or proof["source_hash"] != proof["after_hash"]
@@ -478,9 +481,7 @@ class AgentToolWorker(WorkbenchJobWorker):
                 if len(proof["checked"]) != len(requests):
                     raise ValueError("read_preflight_incomplete")
                 for check, args in zip(proof["checked"], requests, strict=True):
-                    if (any(check[k] != args[k] for k in ("path", "offset", "max_bytes"))
-                            or not 0 <= args["offset"] <= check["total_bytes"] <= 1000000
-                            or args["expected_hash"] not in {None, check["content_hash"]}):
+                    if not read_batches.checked_path_valid(check, args, spec.write_paths):
                         raise ValueError("read_preflight_path_invalid")
         except Exception:
             # No application call was dispatched. Preserve this distinction from
@@ -507,7 +508,8 @@ class AgentToolWorker(WorkbenchJobWorker):
                 schedule(journal)
             else:
                 code = proof["failure_code"]
-                info = failure(journal, "security", code, "inspect_diagnostic")
+                category = "platform" if code == "source_unavailable" else "stale_upstream" if code == "source_hash_conflict" else "security"
+                info = failure(journal, category, code, "inspect_diagnostic")
                 journal.append("blocked", {"failure": info.model_dump()}, key="read-preflight-block:" + job.id, job_id=job.id)
                 read_batches.stop(journal, root, code=code, job_id=job.id, evidence=aid)
                 journal.transition(current, state="blocked", pending_calls=[],
@@ -643,6 +645,25 @@ class AgentToolWorker(WorkbenchJobWorker):
             args = registry.validate(call, journal.spec())
         except (ValueError, WorkbenchError):
             args = None  # Preserve rejection receipts for invalid/unapproved requests.
+        if result.status == "not_found":
+            try:
+                from app.agent_v2.source_files import validate_missing_read
+                if call.name != "read_file" or args is None:
+                    raise ValueError("missing_result_tool_invalid")
+                validate_missing_read(journal.spec(), args, result)
+                if batch:
+                    proof_event = read_batches.preflight(journal, batch)
+                    proof = journal.wb.read(proof_event.payload["artifact_id"])
+                    original = read_batches.record(journal, batch)
+                    position = next(i for i, c in enumerate(original["calls"]) if c["call_id"] == call.call_id)
+                    if proof["checked"][position].get("availability") != "not_found":
+                        raise ValueError("missing_result_preflight_conflict")
+            except (ValueError, WorkbenchError, KeyError, IndexError):
+                observed = journal.wb.artifact(result.model_dump())
+                info = failure(journal, "security", "agent_missing_source_evidence_invalid", "inspect_diagnostic")
+                result = ToolResult(call_id=call.call_id, input_hash=result.input_hash,
+                    source_hash=cp.source_hash, output_source_hash=cp.source_hash, status="unknown",
+                    data={"observed_result_artifact": observed}, failure=info)
         if args is not None and call.name == "read_file" and journal.spec().model_transport is not None:
             from app.agent_v2.read_progress import source_read_progress
             progress = source_read_progress(journal, args, current=result)
@@ -665,10 +686,11 @@ class AgentToolWorker(WorkbenchJobWorker):
             "progress_phase": progress.phase if progress else None,
             **original_call(journal, result.call_id)},
             key="tool-result:" + job.id, job_id=job.id)
-        blocking = result.status == "unknown" or (result.failure and result.failure.category in {"security", "environment", "baseline", "budget", "platform"})
+        blocking = result.status == "unknown" or (result.failure and (result.failure.blocking_scope == "session"
+            or result.failure.category in {"security", "environment", "baseline", "budget", "platform"}))
         pending = cp.pending_calls[1:]
         index = read_batches.child_index(journal, batch, call.call_id) if batch else None
-        if batch and (result.status != "succeeded" or result.failure is not None):
+        if batch and (result.status not in {"succeeded", "not_found"} or result.failure is not None):
             blocking = True
         original_complete = not pending and (not batch or index + 1 == len(read_batches.record(journal, batch)["sub_batches"]))
         progress = record_tool(journal, cp, call, artifact, batch_complete=original_complete or bool(batch and blocking), job_id=job.id)

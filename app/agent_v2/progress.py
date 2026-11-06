@@ -111,7 +111,10 @@ def record_tool(journal: Any, checkpoint: Any, call: ToolCall, artifact: str, *,
         "page": {"offset": data.get("offset"), "text_hash": content_hash(text) if isinstance(text, str) else None},
         "outcome": data.get("outcome"),
         "tests_hash": verification.get("test_results_hash") if isinstance(verification, dict) else None})
-    meaningful = result.status == "succeeded" and not data.get("reused_receipt") and fingerprint not in old.seen_evidence
+    if result.status == "not_found":
+        fingerprint = content_hash({"tool": call.name, "path": data["path"],
+            "source_hash": result.output_source_hash, "availability": "not_found"})
+    meaningful = result.status in {"succeeded", "not_found"} and not data.get("reused_receipt") and fingerprint not in old.seen_evidence
     meaningful = meaningful and (read or call.name in {"apply_patch", "run_approved_checks"})
     steps = [s.model_dump() for s in old.steps]
     phase, action = old.phase, old.next_action
@@ -120,7 +123,7 @@ def record_tool(journal: Any, checkpoint: Any, call: ToolCall, artifact: str, *,
         step = steps[index]
         step["attempts"] += 1
         step["source_hash"] = result.output_source_hash
-        if result.status == "succeeded":
+        if result.status in {"succeeded", "not_found"}:
             step["evidence_refs"] = list(dict.fromkeys([*step["evidence_refs"], artifact]))
             # Investigation remains in progress until an approved patch proves action.
             step["status"] = "in_progress" if read else "completed"
@@ -140,7 +143,7 @@ def record_tool(journal: Any, checkpoint: Any, call: ToolCall, artifact: str, *,
                     action = "apply_approved_patch"
                 step["blocker"] = None if data.get("outcome") == "passed" else "approved_checks_failed"
             else:
-                action = "use_existing_evidence_or_implement"
+                action = "create_approved_file_or_inspect_existing_source" if result.status == "not_found" else "use_existing_evidence_or_implement"
     seen = list(dict.fromkeys([*old.seen_evidence, fingerprint])) if meaningful else old.seen_evidence
     batch_progress = old.batch_progress or meaningful
     streak, correction = old.no_progress_streak, old.correction_issued
@@ -154,8 +157,8 @@ def record_tool(journal: Any, checkpoint: Any, call: ToolCall, artifact: str, *,
         elif streak >= POLICY["no_progress_turns_before_correction"]:
             correction, action = True, "use_existing_evidence_or_implement"
         batch_progress = False
-    if result.status == "unknown" or (result.failure and result.failure.category in {
-            "security", "environment", "baseline", "budget", "platform"}):
+    if result.status == "unknown" or (result.failure and (result.failure.blocking_scope == "session"
+            or result.failure.category in {"security", "environment", "baseline", "budget", "platform"})):
         phase = "blocked"
         blocker = result.failure.safe_reason_code if result.failure else "agent_step_outcome_unknown"
         action = result.failure.next_allowed_action if result.failure else "inspect_checkpoint"

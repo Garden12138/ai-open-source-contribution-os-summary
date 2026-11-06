@@ -1,0 +1,95 @@
+{
+  "version": "approved-missing-legacy-compatibility-v1",
+  "recorded_at": "2026-11-05T08:25:18.517737+00:00",
+  "source_hash": "e78f36d6fc6c16175da08ad77f38ce30ebcb0a8357e9262b1fef7231dc65474f",
+  "roles": {
+    "serve": {
+      "running": true,
+      "source_files_verified": 252,
+      "security_resources_mounts_environment_unchanged": true
+    },
+    "worker": {
+      "running": true,
+      "source_files_verified": 252,
+      "security_resources_mounts_environment_unchanged": true
+    },
+    "sandbox-worker": {
+      "running": true,
+      "source_files_verified": 252,
+      "security_resources_mounts_environment_unchanged": true
+    },
+    "provider-worker": {
+      "running": true,
+      "source_files_verified": 252,
+      "security_resources_mounts_environment_unchanged": true
+    },
+    "publisher": {
+      "running": true,
+      "source_files_verified": 252,
+      "security_resources_mounts_environment_unchanged": true
+    }
+  },
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 88,
+    "execution_authorizations": 11,
+    "plan_approvals": 11,
+    "task_events": 2013,
+    "artifacts": 1610
+  },
+  "all_44_business_table_hashes_unchanged": true,
+  "only_schema_migration_added": "0045_source_file_observations",
+  "all_old_checkpoints_unchanged": true,
+  "Plan11_Plan12_Plan13_terminal_and_usage_unchanged": true,
+  "Plan13_charged_reads": 12,
+  "planning_budget": {
+    "version": "planning-budget-v1",
+    "revision": "70f4bb550babf05c253fe17ffa89b975fe6365b127645354ea929b42e67a140d",
+    "record_hash": "a377b5d6ba7f0945842e695650caa4490c6d876253a7de9cb0e3be180aa50c42",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 250000
+    },
+    "usage": {
+      "calls": 64,
+      "input_tokens": 1639419,
+      "output_tokens": 166739
+    },
+    "remaining": {
+      "calls": 0,
+      "input_tokens": 1010581,
+      "output_tokens": 42301
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "old_native_binding_unchanged_and_stale_for_new_protocol": true,
+  "new_model_calls": 0,
+  "Plan14_created": false,
+  "old_session_resumed": false,
+  "credential_log_and_1610_artifact_scan": "passed",
+  "Push_PR_comments": false,
+  "Linux_amd64": "not_run_still_open",
+  "HR4_HR5": "not_passed_by_offline_tests",
+  "report_hash": "8d67bc24800786873f1386822d22b6d4c48ac0a4acabc26b3af6ae1c1aec175c"
+}

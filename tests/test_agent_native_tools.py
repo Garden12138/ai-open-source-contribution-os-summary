@@ -294,7 +294,7 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
         old = {t: list(raw.execute("SELECT * FROM " + t)) for t in tables}
         assert all(old.values())
         with sqlite3.connect(backup) as target: raw.backup(target)
-    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches")
+    assert db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
     with db.engine.connect() as conn:
         for table in tables: assert list(conn.connection.driver_connection.execute("SELECT * FROM " + table)) == old[table]
         assert conn.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
@@ -309,7 +309,7 @@ def test_upgrade_from_0040_preserves_events_reviews_and_restores_backup(tmp_path
     db.close()
     restored_db = Database("sqlite:///" + str(backup))
     assert restored_db.current_revision() == "0040_deepseek_reviews"
-    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches")
+    assert restored_db.create_schema().applied == ("0041_native_model_tools", "0042_agent_response_evidence", "0043_implementation_progress", "0044_native_read_batches", "0045_source_file_observations")
     with restored_db.engine.connect() as conn:
         for table in tables: assert list(conn.connection.driver_connection.execute("SELECT * FROM " + table)) == old[table]
         assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []

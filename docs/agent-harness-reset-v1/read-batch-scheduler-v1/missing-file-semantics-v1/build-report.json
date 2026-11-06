@@ -1,0 +1,18 @@
+{
+  "version": "harness-build-v1",
+  "source_hash": "a446ba3c3b1404c2eb6cc25825e7426f00714b6146445af80859ad2a272d6a6d",
+  "source_manifest_file": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/source-manifest.json",
+  "files_verified": 252,
+  "images": {
+    "app": "sha256:3b148a5473d6a49f23611b0f7640b5c999730a73b0c66289faf8426353b17cb8",
+    "worker": "sha256:202780e47f51abb668128ae4853f6fe7b82a557314ee30d97e82ad98602d8c0b"
+  },
+  "base_images": {
+    "app": "sha256:dc077908630ea565e1125709ff165a8a2001d37e7a26e02934ca4b86c9524313",
+    "worker": "sha256:8c90879c3a3724bf35f570fcf5858db9bae957e22adf19c30820d2d0f65558e2"
+  },
+  "build_network": "none",
+  "dependencies_changed": false,
+  "model_calls": 0,
+  "third_party_writes": 0
+}

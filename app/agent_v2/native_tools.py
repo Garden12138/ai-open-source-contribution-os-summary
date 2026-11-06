@@ -17,7 +17,7 @@ from app.security import SensitiveDataError, ensure_no_sensitive_data
 
 FINISH = "contribos_agent_finish"
 BLOCKED = "contribos_agent_blocked"
-NATIVE_PROMPT_VERSION = "native-read-batch-v7"
+NATIVE_PROMPT_VERSION = "native-source-observations-v8"
 NATIVE_HISTORY_WINDOW = 8
 NATIVE_INPUT_LIMIT = 32000
 NATIVE_FEEDBACK_PAGE_LIMITS = (4096, 2048, 1024, 512, 256, 128, 64, 0)
@@ -37,7 +37,7 @@ INSTRUCTION = (
 TOOL_DESCRIPTIONS = {
     "list_paths": "Discover source paths under a prefix. Returns a byte page of paths, source hash and next_offset. Reuse existing inventory; continue at next_offset for unseen paths.",
     "search_code": "Find literal text under a source prefix. Returns matching paths, line/byte offsets and file_content_hash. Use read_file at a returned byte_offset to inspect relevant code instead of repeating file prefixes.",
-    "read_file": "Read actual UTF-8 source bytes. Returns file content_hash, offset, text, total_bytes and next_offset. Offsets are bytes. If inline text is partial, continue at its visible next_offset or inspect receipt_artifact. Exact duplicate reads reuse evidence and count as no progress.",
+    "read_file": "Read actual UTF-8 source bytes. Existing files return content_hash, offset, text, total_bytes and next_offset. An OCI-confirmed absent approved creation path returns status not_found with no contents/hash. Planned writes do not prove file existence. Offsets are bytes; continue at visible next_offset. Exact duplicate observations reuse evidence and count as no progress.",
     "apply_patch": "Apply one exact atomic source edit within already approved write_paths. expected_hash is the FILE content_hash from a read or last patch; old_text must match once. Returns a new source hash and patch evidence. It invalidates previous Verify. Never request a new approval or expand scope through this tool.",
     "read_diff": "Inspect the actual current source diff as a byte page. Returns immutable evidence and next_offset. Review the diff after editing, then run approved checks on the same source hash.",
     "run_approved_checks": "Run every frozen approved command, offline in the sandbox. Accepts no commands or shell arguments. Returns current source hash, exit codes, test artifacts and outcome. On failure inspect the specific evidence before repairing. Run again after each repair.",
@@ -142,6 +142,8 @@ def _feedback_page(receipt: dict, limit: int) -> dict:
     if content_hash(original) != aid:
         raise ValueError("native_feedback_reference_mismatch")
     data = original["data"]
+    if original["status"] == "not_found":
+        return receipt  # Complete bounded absence proof is mandatory model feedback.
     text = data.get("text")
     if (isinstance(text, str) and type(data.get("offset")) is int
             and type(data.get("total_bytes")) is int
@@ -193,10 +195,16 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
     if task_input is not None:
         if content_hash(task_input) != prompt.get("task_context_artifact"):
             raise ValueError("native_task_input_reference_mismatch")
-        if projected.get("approved_task_input", {}).get("partial") is True:
-            complete = {**projected, "approved_task_input": task_input}
-            if native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
-                projected = complete
+        # Absence facts and every receipt stay mandatory. If their metadata
+        # makes a formerly small inline plan too large, retain its issued hash
+        # and paging instruction, exactly as for any other non-inline plan.
+        if projected.get("approved_task_input", {}).get("partial") is not True:
+            projected["approved_task_input"] = {"partial": True, "artifact_id": prompt["task_context_artifact"],
+                "total_bytes": len(canonical_json(task_input).encode()),
+                "instruction": "Read the approved plan and Issue using read_artifact before implementing; a goal alone is not the complete acceptance contract."}
+        complete = {**projected, "approved_task_input": task_input}
+        if native_input_bound(complete) <= NATIVE_INPUT_LIMIT:
+            projected = complete
     full = {**projected, "feedback": feedback}
     if native_input_bound(full) <= NATIVE_INPUT_LIMIT:
         return full

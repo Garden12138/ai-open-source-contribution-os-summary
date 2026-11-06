@@ -1,0 +1,101 @@
+{
+  "version": "approved-missing-source-forensics-v1",
+  "recorded_at": "2026-11-05T07:40:23.815273+00:00",
+  "original_response_artifact": "c111a4e2a155342f6ebcb3e13f731ef5db9bdbf44b1e588f8c69764d93a9d092",
+  "original_request_id": "20ba5800-0fea-4203-a601-e81fe16a69bd",
+  "audit_hash": "670274daa21e3f944cd4840adcaec4160bad4554a42f407e9f754666b4bc1ca7",
+  "Plan13_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280",
+  "Plan13_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+  "binding_hash": "bcbf07e445030ca723db34c272feecfb05776de94496cc7fe86a3f0e434ccbe2",
+  "calls": [
+    {
+      "index": 0,
+      "provider_id": "call_00_6hMp94fXeKGfACUXgD1f9064",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"extension/src/transcript-parser.ts\", \"offset\": 4096}",
+      "arguments": {
+        "path": "extension/src/transcript-parser.ts",
+        "offset": 4096
+      }
+    },
+    {
+      "index": 1,
+      "provider_id": "call_01_4TOIIsQcp3SpbcoIEcfs2260",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"extension/src/hook-server.ts\", \"offset\": 4096}",
+      "arguments": {
+        "path": "extension/src/hook-server.ts",
+        "offset": 4096
+      }
+    },
+    {
+      "index": 2,
+      "provider_id": "call_02_YsOKBbWAMP123HT0Ptm92188",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"web/hooks/simulation/handle-tool-events.ts\", \"offset\": 4096}",
+      "arguments": {
+        "path": "web/hooks/simulation/handle-tool-events.ts",
+        "offset": 4096
+      }
+    },
+    {
+      "index": 3,
+      "provider_id": "call_03_vxT0cgV1eqr4Zoi8DFuc2420",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"web/hooks/simulation/types.ts\", \"offset\": 4096}",
+      "arguments": {
+        "path": "web/hooks/simulation/types.ts",
+        "offset": 4096
+      }
+    },
+    {
+      "index": 4,
+      "provider_id": "call_04_E82EWYCSob3AzE6LFA8u9419",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"web/lib/agent-types.ts\"}",
+      "arguments": {
+        "path": "web/lib/agent-types.ts"
+      }
+    },
+    {
+      "index": 5,
+      "provider_id": "call_05_hPPCUvQPlTy4AuFib9u62084",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"web/hooks/simulation/process-event.ts\"}",
+      "arguments": {
+        "path": "web/hooks/simulation/process-event.ts"
+      }
+    },
+    {
+      "index": 6,
+      "provider_id": "call_06_BpDUcfzQN20xYmFHc7WH0961",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"extension/src/protocol.ts\"}",
+      "arguments": {
+        "path": "extension/src/protocol.ts"
+      }
+    },
+    {
+      "index": 7,
+      "provider_id": "call_07_96KBUSYjqUV0obt3k3gJ7731",
+      "name": "read_file",
+      "arguments_raw": "{\"path\": \"web/hooks/simulation/handle-tool-events.test.ts\"}",
+      "arguments": {
+        "path": "web/hooks/simulation/handle-tool-events.test.ts"
+      }
+    }
+  ],
+  "missing_path": "web/hooks/simulation/handle-tool-events.test.ts",
+  "missing_path_in_approved_write_paths": true,
+  "missing_path_in_frozen_inventory": false,
+  "frozen_context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+  "frozen_context_artifact": "0d43ba945939aecb9b34b4ec0d6f97ca70a3a5a48ed967b521804c666e5c4834",
+  "preflight_artifact": "fca28a42b142bea736c9bbe33575249ac3da23f5f1b094850add0a0997661042",
+  "stopped_batch_artifact": "94fac848c60f384f429700c0a4dfa3bced420cfcb19079b310d3d655e98d1604",
+  "failed_call_index": 7,
+  "failed_batch_applications_executed": 0,
+  "old_charged_reads": 12,
+  "old_checkpoint_revision": "abfebe97461aa4c4acecb446953902ba6d155dd5361b1a4ff1bdf7fe582e4f3c",
+  "new_provider_calls": 0,
+  "report_hash": "6a2ec7b72e937b9168fed9fa2d14006ecd4cb4ca0096529a06732cfe36f9604c"
+}

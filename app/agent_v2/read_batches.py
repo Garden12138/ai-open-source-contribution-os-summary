@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import Field, model_validator
 
@@ -15,6 +15,8 @@ POLICY = {"version": "native-read-batch-v1", "eligible_tool": "read_file",
     "original_calls_max": 8, "sub_batch_calls_max": 4, "admission": "whole_batch_before_execution",
     "sandbox_preflight": "all_paths_hashes_ranges_before_first_read", "failure": "stop_remaining_keep_receipts",
     "budget": "reserve_all_reads_no_refund", "observation": "after_original_batch_only"}
+POLICY.update(preflight_contract="native-read-batch-preflight-v2",
+    missing_source="OCI_attested_approved_new_path_not_found_v1")
 
 
 class NativeReadBatch(StrictModel):
@@ -56,6 +58,39 @@ class ReadBatchPreflight(StrictModel):
                 or self.status == "rejected" and (self.failure_code is None or self.checked)):
             raise ValueError("read_preflight_incoherent")
         return self
+
+
+class PresentReadPathCheck(ReadPathCheck):
+    availability: Literal["present"]
+
+
+class MissingReadPathCheck(StrictModel):
+    path: str = Field(max_length=500)
+    offset: int = Field(ge=0, le=8000000)
+    max_bytes: int = Field(ge=128, le=16000)
+    availability: Literal["not_found"]
+    reason_code: Literal["source_not_found"]
+    creation_allowed: Literal[True]
+
+
+class ReadBatchPreflightV2(ReadBatchPreflight):
+    version: Literal["native-read-batch-preflight-v2"]
+    checked: list[Annotated[PresentReadPathCheck | MissingReadPathCheck,
+        Field(discriminator="availability")]] = Field(max_length=8)
+
+
+def parse_preflight(value: dict) -> dict:
+    cls = ReadBatchPreflightV2 if value.get("version") == "native-read-batch-preflight-v2" else ReadBatchPreflight
+    return cls.model_validate(value).model_dump()
+
+
+def checked_path_valid(check: dict, args: dict, write_paths: list[str]) -> bool:
+    if any(check[k] != args[k] for k in ("path", "offset", "max_bytes")):
+        return False
+    if check.get("availability") == "not_found":
+        return args["path"] in write_paths and args["expected_hash"] is None
+    return (0 <= args["offset"] <= check["total_bytes"] <= 1000000
+        and args["expected_hash"] in {None, check["content_hash"]})
 
 
 def platform_calls(model_job: str, proposal: NativeReadBatch) -> list[ToolCall]:

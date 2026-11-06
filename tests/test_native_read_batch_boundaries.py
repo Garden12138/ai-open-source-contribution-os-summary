@@ -144,7 +144,7 @@ def test_migration_upgrade_and_lifecycle_guard_preserve_existing_rows(tmp_path,m
     db,s,task,sid=values[:4]
     with db.session() as session:
         before=[e.record_hash for e in AgentJournal(Workbench(session,s.artifact_root),task,sid).events()]
-    assert db.create_schema().applied==('0044_native_read_batches',)
+    assert db.create_schema().applied==('0044_native_read_batches', '0045_source_file_observations')
     with db.session() as session:
         j=AgentJournal(Workbench(session,s.artifact_root),task,sid)
         assert [e.record_hash for e in j.events()]==before
