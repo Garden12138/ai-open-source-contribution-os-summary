@@ -1,0 +1,148 @@
+{
+  "version": "plan15-preparation-git-delivery-v1",
+  "recorded_at": "2026-11-06T07:05:12.112734+00:00",
+  "authorization": "user explicitly requested commit and push of current Plan15 preparation work",
+  "branch": "refactor/agent-runtime-v2",
+  "remote": "origin",
+  "remote_branch": "refactor/agent-runtime-v2",
+  "base_HEAD": "6b335c173f2d76f0872d4776f3e5ab87334d5c5f",
+  "delivery_commit": "the commit containing this report",
+  "scope": "preparation documents and helper scripts plus roadmap evidence only",
+  "runtime_source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "production_source_files": 254,
+  "frozen_preview_hash": "f7c000560f1e2e1bb9bad33ba20b21c81ceb39bbcfd97f843f1c4e745bc41a6e",
+  "frozen_preview_and_final_audit_unchanged": true,
+  "frozen_git_HEAD_retained": "6b335c173f2d76f0872d4776f3e5ab87334d5c5f",
+  "execution_requires_fresh_frozen_input_recheck": true,
+  "verification": {
+    "archived_final_audit_files_hashes_verified": 20,
+    "offline_regression_cases_verified": 59,
+    "regression_rerun_for_documentation_delivery": false,
+    "compileall_app_and_preparation": "passed",
+    "git_diff_check": "passed",
+    "exact_configured_credentials_canaries_and_local_identity_scan": "passed",
+    "production_code_and_tests_unchanged": true
+  },
+  "files_before_commit": [
+    {
+      "path": "docs/tasks.md",
+      "bytes": 561095,
+      "sha256": "f4c62df6b2b09e0c53dcd98ec66c47f4c93d7707a2543b07c806294969aec0bd"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/README.md",
+      "bytes": 3997,
+      "sha256": "bffa82a78a423af3454e1fcfccc60b481d1b329fc939719f16dfd3e77a48fda2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/acceptance-report-contract.json",
+      "bytes": 9713,
+      "sha256": "c806dfdaf2e0e41a49356cb4defb906d7d01fc2f0cd4ac04c35de5bfa9f99772"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/acceptance-report-template.json",
+      "bytes": 917,
+      "sha256": "19d38dc3ca48e42f86a0ca009c080328ecfd9420cb19a8cdd2dc2701702dcca2"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/after-state.json",
+      "bytes": 846244,
+      "sha256": "d3a7768cd474a66008411fac5be0e08cb76c4817767e9e91d90cd866596cd07f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/after-view.json",
+      "bytes": 828598,
+      "sha256": "83b751ecea2cbd82f03837464b46d7dcfba4f5e7194f501b9bcd71d5ac7f9403"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/before-state.json",
+      "bytes": 844941,
+      "sha256": "6028ebc5dba674c2d01da6c4167b40cf972d035f92d10daa4906fffcc35017d4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/before-view.json",
+      "bytes": 827424,
+      "sha256": "f4ae9457cc3f0b473f7e7d4d8fb98bbf410a42141c50ff946b59591ae55fd5c4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/check_prerequisites.py",
+      "bytes": 13177,
+      "sha256": "edf76d54137a2c4423c4127eb8780163e7d3afc127c40a0b112f8b469d89787f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/check_upstream.py",
+      "bytes": 2538,
+      "sha256": "ad4bbc3ab7a3ebea4663bb327a94fc9cbd70ae2d2f594fa7a187932990a358b9"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/confirmation-text.txt",
+      "bytes": 1544,
+      "sha256": "e781abe83dc6711227d6a7e534f4d4ea7ddad02233ec9795d642fd8241e90488"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/execution-preview.json",
+      "bytes": 61761,
+      "sha256": "d230b6d2a900e4c9bff1bd8ba95e95e1c3e7b560694a763a48c30827291a26af"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/execution-preview.md",
+      "bytes": 9254,
+      "sha256": "db6bcf2c4f8028f86a8ab08137a8a228057d422e593ed1960165c77d30ba42e6"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/final-checks.json",
+      "bytes": 5864,
+      "sha256": "3489d557b8b1c2af8fefdae560465bd16811f9e9e23533146567562347ea1560"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/final_checks.py",
+      "bytes": 11437,
+      "sha256": "4804543bf45b1690c1e8669a566403db2073a5b5e56aee4fc0d4f5be44eb5192"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/initial-preview.json",
+      "bytes": 61209,
+      "sha256": "41702a8c64cc587786799a993777030f44345ba76dbb1a8b0d7364575b882104"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/model-and-archive-check.json",
+      "bytes": 1623,
+      "sha256": "b9dac224f036b6f15de3080e3b614d5a916b36e2735d508a1e682082e563d983"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/offline-regression.xml",
+      "bytes": 8905,
+      "sha256": "5a8129a9f31f2e60d9e32663ffc76c2aecbac39f91b4bc014c7fe6458b9ba49c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/plan.json",
+      "bytes": 6901,
+      "sha256": "e7d3a55bca6e704b2ab3f70f0244988296b22b64ebc782bb07317230482fdf11"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/prepare_plan.py",
+      "bytes": 17641,
+      "sha256": "b0ecd8498680c52d8ca3478fe79117c5b98c47c2796cdd1275c992417c690de3"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/prerequisite-check.json",
+      "bytes": 3733,
+      "sha256": "360e77984592434acbdb9342f88a54c93277dcf6d75103c4a2ce20116c429e2e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/upstream-check.json",
+      "bytes": 982,
+      "sha256": "fad68741ff7e570883fc2b76f87752bd1f00cbe4858b2856130987fffd3c19fb"
+    }
+  ],
+  "unrelated_existing_untracked_files": "preserved and excluded",
+  "new_paid_model_calls": 0,
+  "new_execution_approvals": 0,
+  "new_execution_jobs": 0,
+  "new_ReviewRuns": 0,
+  "execution_request_sent": false,
+  "production_redeployment": "not_needed_source_and_configuration_unchanged",
+  "PR_or_comment_authorized": false,
+  "push_authorized": true,
+  "report_hash": "a553ac71a0f38aaa0fd9f346d4a912374095861a8b5fc37f2e6a4621bdf0307d"
+}
