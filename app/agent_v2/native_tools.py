@@ -17,7 +17,7 @@ from app.security import SensitiveDataError, ensure_no_sensitive_data
 
 FINISH = "contribos_agent_finish"
 BLOCKED = "contribos_agent_blocked"
-NATIVE_PROMPT_VERSION = "native-coding-loop-recovery-v10"
+NATIVE_PROMPT_VERSION = "native-coding-loop-recovery-v11"
 NATIVE_HISTORY_WINDOW = 8
 NATIVE_INPUT_LIMIT = 32000
 NATIVE_FEEDBACK_PAGE_LIMITS = (8192, 4096, 2048, 1024, 512, 256, 128, 64, 0)
@@ -183,7 +183,8 @@ def _feedback_page(receipt: dict, limit: int) -> dict:
 
 
 def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str | None = None,
-                         task_input: dict | None = None, source_pages: list[dict] | None = None) -> dict:
+                         task_input: dict | None = None, source_pages: list[dict] | None = None,
+                         journal: Any | None = None) -> dict:
     """Reference registered schemas and full immutable receipts without duplication."""
     if spec.model_transport is None:
         return prompt
@@ -234,7 +235,10 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
         # space on verified source rather than duplicated Plan/progress JSON.
         projected["history_index"] = [{k: v for k, v in row.items() if k != "content_hash"}
             for row in projected["history_index"]]
-        projected["recent_decisions"] = projected.get("recent_decisions", [])[-1:]
+        # Tool names/paths already exist in ordered feedback/history references.
+        # Keep the last outcome/reply, spending duplicated path bytes on source.
+        projected["recent_decisions"] = [{k: v for k, v in row.items() if k != "tools"}
+            for row in projected.get("recent_decisions", [])[-1:]]
         if projected.get("implementation_progress"):
             projected["implementation_progress"] = {**projected["implementation_progress"],
                 "instruction": "Follow next_action and coding. Patch only with source evidence; otherwise recover specific missing evidence or report a blocker. No new scope or budget."}
@@ -259,20 +263,15 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
         # One recently observed page per path/range, preferring approved paths.
         # Start at a not-yet-delivered byte when available; all excerpts remain
         # byte-exact, including UTF-8 boundaries. No new tool read is invented.
-        index = prompt.get("implementation_progress", {}).get("coding", {}).get("source_index", [])
-        selected, paths = [], set()
-        from app.agent_v2.coding_context import POLICY as coding_policy
-        for page in source_pages:
-            if page["path"] in paths:
-                continue
-            if len(paths) >= coding_policy["working_set_max_files"]:
-                break
-            paths.add(page["path"])
-            ranges = next((r["delivered"] for r in index if r["path"] == page["path"] and r["content_hash"] == page["content_hash"]), [])
-            start = page["offset"]
-            for lo, hi in ranges:
-                if lo <= start < hi:
-                    start = hi
+        from app.agent_v2.coding_context import POLICY as coding_policy, select_working_set
+        required = prompt.get("coding_handoff", {}).get("evidence")
+        inspection = (task_input or {}).get("approved_plan", {}).get("files_to_inspect", [])
+        chosen = select_working_set(source_pages, prompt.get("write_paths", spec.write_paths if hasattr(spec, "write_paths") else []),
+            inspection, journal, required)
+        selected = []
+        for page in chosen:
+            pending = page.get("pending_ranges", [])
+            start = pending[0][0] if pending else page["offset"]
             raw = page["text"].encode()
             if start >= page["offset"] + len(raw):
                 start = page["offset"]
@@ -282,20 +281,30 @@ def project_native_prompt(prompt: dict, spec: TaskSpec, *, history_artifact: str
             while local < len(raw) and raw[local] & 0xC0 == 0x80:
                 local += 1
             selected.append((page, local))
-        for limit in coding_policy["source_page_limits"]:
-            working = []
-            for page, local in selected:
-                text = page["text"].encode()[local:local + limit].decode("utf-8", errors="ignore")
-                end = page["offset"] + local + len(text.encode())
-                working.append({"receipt_artifact": page["receipt_artifact"], "path": page["path"],
-                    "offset": page["offset"] + local, "text": text, "total_bytes": page["total_bytes"],
-                    "next_offset": end if end < page["total_bytes"] else None})
-                note = page.get("read_progress_note")
-                if note and note["prior_same_range_reads"] > 0:
-                    working[-1].update(source_read_progress=note, output_source_hash=page["source_hash"])
-            candidate = {**projected, "source_working_set": working}
-            if native_input_bound(candidate) <= NATIVE_INPUT_LIMIT:
-                return candidate
+        for count in range(len(selected), 0, -1):
+            for limit in coding_policy["source_page_limits"]:
+                working = []
+                for page, local in selected[:count]:
+                    text = page["text"].encode()[local:local + limit].decode("utf-8", errors="ignore")
+                    end = page["offset"] + local + len(text.encode())
+                    working.append({"receipt_artifact": page["receipt_artifact"], "path": page["path"],
+                        "source_hash": page["source_hash"], "content_hash": page["content_hash"],
+                        "source_page_artifact": page["source_page_artifact"], "module": page["module"], "priority": page["priority"],
+                        "offset": page["offset"] + local, "text": text, "total_bytes": page["total_bytes"],
+                        "next_offset": end if end < page["total_bytes"] else None})
+                    note = page.get("read_progress_note")
+                    if note and note["prior_same_range_reads"] > 0:
+                        working[-1].update(source_read_progress=note, output_source_hash=page["source_hash"])
+                candidate = {**projected, "source_working_set": working}
+                if required:
+                    from app.agent_v2.coding_context import merge
+                    intersections = [[max(p["offset"], lo), min(p["offset"] + len(p["text"].encode()), hi)]
+                        for p in working if p["receipt_artifact"] == required["receipt_artifact"]
+                        for lo, hi in required["ranges"]
+                        if max(p["offset"], lo) < min(p["offset"] + len(p["text"].encode()), hi)]
+                    candidate["coding_handoff"] = {**projected["coding_handoff"], "inline_ranges": merge(intersections)}
+                if native_input_bound(candidate) <= NATIVE_INPUT_LIMIT:
+                    return candidate
         # Metadata can itself fill the bound. Keep exact mandatory facts and
         # let the worker fail closed; never silently lose authority or absence.
         return {**projected, "source_working_set": []}

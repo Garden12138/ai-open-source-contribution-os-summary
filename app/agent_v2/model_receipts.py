@@ -12,6 +12,47 @@ from app.workbench import WorkbenchError
 VERSION = "agent-model-response-v1"
 
 
+def confirmed_prompts(journal: Any) -> list[tuple[Any, dict]]:
+    """One shared delivery witness for source bytes and read warnings.
+
+    Dispatch without a response is unknown, never observed. Malformed or
+    ambiguous witnesses fail closed; no choice of the last duplicate record.
+    This does not authorize recovery/retry of an unknown model operation.
+    """
+    events = journal.events()
+    starts, responses = {}, {}
+    def invalid() -> None:
+        raise WorkbenchError("模型送达证据身份无效。", code="agent_model_delivery_invalid")
+    for event in events:
+        if event.kind not in {"agent_v2_model_started", "agent_v2_model_response"}:
+            continue
+        rows = starts if event.kind == "agent_v2_model_started" else responses
+        if event.actor_id != "orchestrator" or not event.job_id or event.job_id in rows:
+            invalid()
+        rows[event.job_id] = event
+    if set(responses) - set(starts):
+        invalid()
+    expected = content_hash(journal.spec().binding.model_dump())
+    result = []
+    for job, start in starts.items():
+        response = responses.get(job)
+        if response is None:
+            continue
+        prompt = journal.wb.read(start.payload["prompt_artifact"])
+        raw = journal.wb.read(response.payload["artifact_id"])
+        if (response.sequence <= start.sequence
+                or content_hash(prompt) != start.payload["prompt_artifact"]
+                or content_hash(raw) != response.payload["artifact_id"]
+                or response.payload.get("prompt_artifact") != start.payload["prompt_artifact"]
+                or response.payload.get("binding_hash") != expected
+                or content_hash(prompt.get("binding")) != expected
+                or raw.get("version") != VERSION or raw.get("request_id") != job
+                or raw.get("binding_hash") != expected):
+            invalid()
+        result.append((start, prompt))
+    return result
+
+
 def response_evidence(value: Mapping[str, Any], *, request_id: str, binding_hash: str) -> dict:
     """Keep exact call envelopes/order, excluding assistant text and private reasoning.
 

@@ -95,8 +95,9 @@ def archived_journal(round_number):
     events = [SimpleNamespace(**{**e, "actor_id": "orchestrator"}) for e in index["events"]
         if e["sequence"] < start["sequence"]]
     prompt = read(start["payload"]["prompt_artifact"])
+    from app.agent_v2.contracts import Binding
     j = SimpleNamespace(events=lambda: events, checkpoint=lambda: SimpleNamespace(source_hash=prompt["source_hash"]),
-        spec=lambda: SimpleNamespace(write_paths=prompt["write_paths"]),
+        spec=lambda: SimpleNamespace(write_paths=prompt["write_paths"], binding=Binding.model_validate(prompt["binding"])),
         wb=SimpleNamespace(read=read, artifacts=SimpleNamespace(read_bytes=read_bytes)))
     return j, prompt, read
 
@@ -113,8 +114,9 @@ def test_saved_plan15_source_is_delivered_instead_of_repeating_full_plan(round_n
         history_artifact=prompt.get("history_evidence", {}).get("artifact_id"),
         task_input=read(prompt["task_context_artifact"]), source_pages=pages)
     assert native_input_bound(projected) <= 32000
-    # Four useful excerpts, at least 3x the old uniform 128-byte/8-call projection.
-    assert sum(len(p["text"].encode()) for p in projected["source_working_set"]) >= 3072
+    # v1.1 also carries explicit workspace/file/page hashes and module provenance.
+    assert sum(len(p["text"].encode()) for p in projected["source_working_set"]) >= 2048
+    assert len({p["module"] for p in projected["source_working_set"]}) >= 2
     assert projected["approved_task_input"]["brief"]["acceptance_criteria"] == read(prompt["task_context_artifact"])["approved_plan"]["acceptance_criteria"]
     for page in projected["source_working_set"]:
         original = read(page["receipt_artifact"])["data"]

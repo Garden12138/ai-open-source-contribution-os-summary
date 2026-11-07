@@ -28,6 +28,7 @@ class FixtureGateway:
         value=None
         output=source_hash
         if call.name=='apply_patch':
+            data['execution_backend']='docker'  # Deterministic simulation of the trusted OCI receipt shape.
             previous=(snapshot or {}).get('files',{}).get(arguments.path)
             original=previous['original_content'] if previous else 'content'
             current=previous['content'] if previous else original

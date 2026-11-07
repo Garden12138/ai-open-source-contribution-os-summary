@@ -11,10 +11,14 @@ from typing import Any
 
 from app.provenance import canonical_json, content_hash
 
-POLICY = {"version": "coding-loop-recovery-v1", "correction_after_unpatched_rounds": 6,
+POLICY = {"version": "coding-loop-recovery-v1.1", "correction_after_unpatched_rounds": 6,
     "stop_after_unpatched_rounds": 8, "delivery": "committed_response_and_exact_source_bytes",
     "projection": "exact_task_brief_and_source_working_set", "working_set_max_files": 4,
-    "source_page_limits": [4096, 2048, 1024, 768, 512, 256, 128]}
+    "source_page_limits": [4096, 2048, 1024, 768, 512, 256, 128],
+    "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+    "selection": "related_module_least_served_round_robin_unseen_ranges",
+    "module": "directory_after_common_related_parent"}
+HANDOFF_VERSION = "coding-evidence-handoff-v1.1"
 
 
 def merge(ranges: list[list[int]]) -> list[list[int]]:
@@ -33,6 +37,43 @@ def size(ranges: list[list[int]]) -> int:
     return sum(end - start for start, end in merge(ranges))
 
 
+def unseen(ranges: list[list[int]], covered: list[list[int]]) -> list[list[int]]:
+    result = []
+    for start, end in merge(ranges):
+        for lo, hi in merge(covered):
+            if hi <= start or lo >= end:
+                continue
+            if lo > start:
+                result.append([start, lo])
+            start = max(start, hi)
+            if start >= end:
+                break
+        if start < end:
+            result.append([start, end])
+    return result
+
+
+def handoff_used(journal: Any) -> bool:
+    """The pre-dispatch prompt is the durable consumption record, even on loss.
+
+    Scan the task's existing sessions so a repair session under the same exact
+    authorization cannot obtain another exception. No new budget/state store.
+    """
+    auth = journal.spec().binding.authorization_hash
+    events = journal.wb.history(journal.task_id) if hasattr(journal.wb, "history") else journal.events()
+    for event in events:
+        if event.kind != "agent_v2_model_started":
+            continue
+        prompt = journal.wb.read(event.payload["prompt_artifact"])
+        witness = prompt.get("coding_handoff")
+        if witness is not None and prompt.get("binding", {}).get("authorization_hash") == auth:
+            if (not isinstance(witness, dict) or event.actor_id != "orchestrator" or witness.get("version") != HANDOFF_VERSION
+                    or witness.get("authorization_hash") != auth):
+                raise ValueError("coding_handoff_record_invalid")
+            return True
+    return False
+
+
 def source_page(receipt: dict, aid: str) -> dict | None:
     """Only typed, source-bound byte pages qualify; no inferred file contents."""
     data = receipt.get("data", {})
@@ -40,7 +81,8 @@ def source_page(receipt: dict, aid: str) -> dict | None:
     if (receipt.get("status") != "succeeded" or data.get("tool") != "read_file"
             or not isinstance(text, str) or type(offset) is not int or type(total) is not int
             or not isinstance(data.get("path"), str) or not isinstance(data.get("content_hash"), str)
-            or len(data["content_hash"]) != 64 or not 0 <= offset <= total
+            or len(data["content_hash"]) != 64 or any(c not in "0123456789abcdef" for c in data["content_hash"])
+            or data.get("execution_backend") not in {"docker", "platform_receipt_reuse"} or not 0 <= offset <= total
             or offset + len(text.encode()) > total
             or data.get("next_offset") != (offset + len(text.encode()) if offset + len(text.encode()) < total else None)
             or data.get("source_page_artifact") != sha256(text.encode()).hexdigest()):
@@ -72,6 +114,7 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
         for e in events if e.kind == "agent_v2_model_started"}
     last_patch = last_patch_attempt = -1
     patch_sequences = []
+    novelty = {}
     for event in events:
         if event.kind != "agent_v2_tool_result":
             continue
@@ -83,7 +126,9 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
         data = receipt.get("data", {})
         if data.get("tool") == "apply_patch":
             last_patch_attempt = event.sequence
-            if receipt["status"] == "succeeded" and receipt["source_hash"] != receipt["output_source_hash"]:
+            if (receipt["status"] == "succeeded" and not receipt.get("failure")
+                    and data.get("execution_backend") == "docker"
+                    and receipt["source_hash"] != receipt["output_source_hash"]):
                 last_patch = event.sequence
                 patch_sequences.append(event.sequence)
         page = source_page(receipt, aid)
@@ -94,27 +139,20 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
             pages[aid] = page
             if page["source_hash"] == cp.source_hash:
                 ranges = available[key(page)]
-                before = size(ranges)
-                ranges.append([page["offset"], page["offset"] + len(page["text"].encode())])
-                repeated_reads += size(ranges) - before < len(page["text"].encode())
+                interval = [page["offset"], page["offset"] + len(page["text"].encode())]
+                novelty[aid] = unseen([interval], ranges)
+                repeated_reads += size(novelty[aid]) < len(page["text"].encode())
+                ranges.append(interval)
         if data.get("tool") == "read_artifact" and data.get("artifact_id") in task_refs and isinstance(data.get("text"), str):
             ranges = plan_ranges[data["artifact_id"]]
             before = size(ranges)
             ranges.append([data["offset"], data["offset"] + len(data["text"].encode())])
             repeated_plan += size(ranges) - before < len(data["text"].encode())
-    responses = {e.job_id: e for e in events if e.kind == "agent_v2_model_response" and e.actor_id == "orchestrator"}
+    from app.agent_v2.model_receipts import confirmed_prompts
     starts = [e for e in events if e.kind == "agent_v2_model_started"]
+    confirmed = confirmed_prompts(journal)
     no_context = 0
-    for event in starts:
-        if event.job_id not in responses:
-            continue
-        prompt = journal.wb.read(event.payload["prompt_artifact"])
-        response = responses[event.job_id]
-        raw_response = journal.wb.read(response.payload["artifact_id"])
-        if (event.actor_id != "orchestrator" or response.payload.get("prompt_artifact") != event.payload["prompt_artifact"]
-                or raw_response.get("request_id") != event.job_id
-                or raw_response.get("binding_hash") != content_hash(prompt["binding"])):
-            raise ValueError("coding_delivery_identity_invalid")
+    for event, prompt in confirmed:
         before = sum(size(r) for r in delivered.values())
         candidates = list(prompt.get("source_working_set", []))
         for feedback in prompt.get("feedback", []):
@@ -165,6 +203,36 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
     rounds = sum(e.sequence > last_patch for e in starts)
     since_attempt = sum(e.sequence > last_patch_attempt for e in starts)
     correction = rounds >= POLICY["correction_after_unpatched_rounds"]
+    used = handoff_used(journal)
+    related = set(journal.spec().write_paths)
+    if rounds == 8 and confirmed:
+        task = journal.wb.read(confirmed[-1][1]["task_context_artifact"])
+        binding = journal.spec().binding
+        if (task.get("binding_hash") == content_hash(binding.model_dump())
+                and content_hash(task.get("approved_plan")) == binding.plan_content_hash):
+            related.update(task["approved_plan"].get("files_to_inspect", []))
+    candidates = []
+    current_starts = [e for e in starts if e.sequence > last_patch]
+    if rounds == 8 and not used and {e.job_id for e in current_starts} <= {e.job_id for e, _ in confirmed}:
+        origin = current_starts[-1]
+        response = next(e for e in events if e.kind == "agent_v2_model_response" and e.job_id == origin.job_id)
+        accepted = any(e.kind in {"agent_v2_turn", "agent_v2_read_batch"} and e.job_id == origin.job_id for e in events)
+        if accepted:
+            for e in events:
+                if (e.kind != "agent_v2_tool_result" or e.sequence <= origin.sequence
+                        or e.payload.get("response_artifact") != response.payload["artifact_id"]):
+                    continue
+                aid = e.payload["artifact_id"]
+                page = pages.get(aid)
+                if (page is None or page["source_hash"] != cp.source_hash or page["path"] not in related
+                        or receipts[aid]["data"].get("execution_backend") != "docker" or receipts[aid].get("failure")):
+                    continue
+                pending = unseen(novelty.get(aid, []), delivered[key(page)])
+                if pending:
+                    candidates.append({"receipt_artifact": aid, "path": page["path"], "content_hash": page["content_hash"],
+                        "source_hash": cp.source_hash, "ranges": pending, "origin_job_id": origin.job_id})
+    candidates.sort(key=lambda p: (p["path"] not in journal.spec().write_paths, p["path"], p["ranges"]))
+    candidate = candidates[0] if candidates else None
     ledger = next((e.payload["progress"] for e in reversed(events) if e.kind == "agent_v2_progress"), None)
     metrics = {"version": POLICY["version"], "source_hash": cp.source_hash,
         "model_rounds": len(starts), "rounds_without_applied_patch": rounds,
@@ -174,7 +242,8 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
         "available_source_bytes": sum(size(r) for r in available.values()),
         "delivered_source_bytes": sum(size(r) for r in delivered.values()),
         "overlapping_source_reads": repeated_reads, "repeated_task_artifact_reads": repeated_plan,
-        "correction_issued": correction, "stop_required": rounds >= POLICY["stop_after_unpatched_rounds"],
+        "correction_issued": correction, "stop_required": rounds > 8 or (rounds == 8 and candidate is None),
+        "handoff_used": used, "handoff_candidate": candidate,
         "next_action": (ledger["next_action"] if ledger and ledger["phase"] != "investigating" else
             "use_source_evidence_for_exact_patch_or_report_specific_missing_evidence" if correction else "collect_missing_source_or_implement"),
         "absence_evidence": [{"path": r["data"]["path"], "receipt_artifact": aid}
@@ -185,9 +254,89 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
     unique = {}
     for page in reversed(list(pages.values())):
         if page["source_hash"] == cp.source_hash:
-            unique.setdefault((*key(page), page["offset"], len(page["text"].encode())), page)
+            interval = [page["offset"], page["offset"] + len(page["text"].encode())]
+            unique.setdefault((*key(page), page["offset"], len(page["text"].encode())), {**page,
+                "pending_ranges": unseen([interval], delivered[key(page)]),
+                "delivered_ranges": merge(delivered[key(page)])})
     working = sorted(unique.values(), key=lambda p: p["path"] not in journal.spec().write_paths)
     return metrics, working
+
+
+def select_working_set(pages: list[dict], write_paths: list[str], inspection: list[str], journal: Any | None = None,
+                       required: dict | None = None) -> list[dict]:
+    """Path-derived module fairness; only observed bytes, never a repository read."""
+    from posixpath import commonpath, dirname
+    relevant = set(write_paths) | set(inspection)
+    parents = [dirname(p["path"]) for p in pages if p["path"] in relevant] or [dirname(p["path"]) for p in pages]
+    base = commonpath(parents) if parents else ""
+    def module(path: str) -> str:
+        tail = path[len(base) + 1:] if base and path.startswith(base + "/") else path
+        return (base + "/" if base else "") + (tail.split("/", 1)[0] if "/" in tail else ".")
+    services: dict[str, int] = defaultdict(int)
+    if journal is not None:
+        from app.agent_v2.model_receipts import confirmed_prompts
+        known = {key(p) for p in pages}
+        for _, prompt in confirmed_prompts(journal):
+            for row in prompt.get("source_working_set", []):
+                aid = row.get("receipt_artifact")
+                if aid:
+                    prior = source_page(journal.wb.read(aid), aid)
+                    if prior is not None and key(prior) in known:
+                        services[module(prior["path"])] += 1
+    best = {}
+    for i, page in enumerate(pages):
+        tier = 0 if page["path"] in write_paths else 1 if page["path"] in inspection else 2
+        rank = (tier, not bool(page.get("pending_ranges")), i, page["path"])
+        value = {**page, "module": module(page["path"]), "priority": tier}
+        if page["path"] not in best or rank < best[page["path"]][0]:
+            best[page["path"]] = (rank, value)
+    selected = []
+    if required:
+        page = next((p for p in pages if p["receipt_artifact"] == required["receipt_artifact"]), None)
+        if page is not None:
+            selected.append({**page, "module": module(page["path"]), "priority": 0 if page["path"] in write_paths else 1,
+                "pending_ranges": required["ranges"]})
+            best.pop(page["path"], None)
+    while best and len(selected) < POLICY["working_set_max_files"]:
+        pool = [(rank, p) for rank, p in best.values() if p["priority"] < 2] or list(best.values())
+        modules = {p["module"] for _, p in pool}
+        choice = min(modules, key=lambda m: (sum(p["module"] == m for p in selected), services[m],
+            min(rank for rank, p in pool if p["module"] == m), m))
+        _, page = min((rank, p) for rank, p in pool if p["module"] == choice)
+        selected.append(page); best.pop(page["path"])
+    return selected
+
+
+def handoff_is_inline(journal: Any, prompt: dict, candidate: dict) -> bool:
+    """Admission requires actual new source bytes in this exact bounded prompt."""
+    witness = prompt.get("coding_handoff", {})
+    if (witness.get("version") != HANDOFF_VERSION or witness.get("evidence") != candidate
+            or witness.get("authorization_hash") != journal.spec().binding.authorization_hash
+            or content_hash(prompt.get("binding")) != content_hash(journal.spec().binding.model_dump())):
+        return False
+    original = source_page(journal.wb.read(candidate["receipt_artifact"]), candidate["receipt_artifact"])
+    if original is None:
+        return False
+    for page in prompt.get("source_working_set", []):
+        if (page.get("receipt_artifact") == candidate["receipt_artifact"]
+                and page.get("path") == candidate["path"]
+                and page.get("source_hash") == candidate["source_hash"]
+                and page.get("content_hash") == candidate["content_hash"]
+                and page.get("source_page_artifact") == original["source_page_artifact"]
+                and page.get("total_bytes") == original["total_bytes"] and isinstance(page.get("text"), str)):
+            if type(page.get("offset")) is not int:
+                return False
+            start, end = page["offset"], page["offset"] + len(page["text"].encode())
+            if page.get("next_offset") != (end if end < original["total_bytes"] else None):
+                return False
+            local = start - original["offset"]
+            if local < 0 or original["text"].encode()[local:local + end - start] != page["text"].encode():
+                return False
+            actual = merge([[max(start, lo), min(end, hi)] for lo, hi in candidate["ranges"]
+                if max(start, lo) < min(end, hi)])
+            if actual and witness.get("inline_ranges") == actual:
+                return True
+    return False
 
 
 def task_brief(task: dict, artifact: str) -> dict:

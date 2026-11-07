@@ -225,6 +225,11 @@ def prompt_for(journal: AgentJournal) -> dict:
         from app.agent_v2.coding_context import observe
         coding, source_pages = observe(journal)
         progress["coding"] = coding
+        if coding["handoff_candidate"]:
+            from app.agent_v2.coding_context import HANDOFF_VERSION
+            prompt["coding_handoff"] = {"version": HANDOFF_VERSION,
+                "authorization_hash": spec.binding.authorization_hash, "evidence": coding["handoff_candidate"],
+                "instruction": "One final evidence-based decision, within existing budgets. Further reads do not extend investigation. Apply an exact supported patch or report a concrete blocker; never guess a patch."}
     if progress is not None:
         prompt["implementation_progress"] = progress
     batch_result = next((e for e in reversed(journal.events()) if e.kind in {
@@ -239,7 +244,7 @@ def prompt_for(journal: AgentJournal) -> dict:
         history_artifact = journal.wb.artifact({"version": "agent-tool-history-index-v1", "session_id": journal.session_id,
             "binding_hash": content_hash(spec.binding.model_dump()), "source_hash": cp.source_hash, "rows": index})
     return project_native_prompt(prompt, spec, history_artifact=history_artifact, task_input=inputs,
-        source_pages=source_pages)
+        source_pages=source_pages, journal=journal)
 
 
 def issued_artifacts(journal: AgentJournal) -> set[str]:
@@ -280,6 +285,7 @@ class AgentModelWorker(WorkbenchJobWorker):
             cp = journal.checkpoint()
             if cp.state != "ready" or cp.revision != job.payload["checkpoint_hash"]:
                 raise WorkbenchError("模型回合已过期。", code="agent_checkpoint_stale")
+            coding = None
             if spec.model_transport is not None:
                 from app.agent_v2.coding_context import observe
                 coding, _ = observe(journal)
@@ -290,6 +296,18 @@ class AgentModelWorker(WorkbenchJobWorker):
                     journal.transition(cp, state="blocked", key="coding-stall-cp:" + job.id, job_id=job.id)
                     return self.finish(s, job, {"state": "blocked", "reason_code": info.safe_reason_code})
             prompt = prompt_for(journal)
+            if coding and coding["handoff_candidate"]:
+                from app.agent_v2.coding_context import handoff_is_inline
+                from app.agent_v2.native_tools import native_input_bound
+                remaining = journal.remaining()
+                if (not handoff_is_inline(journal, prompt, coding["handoff_candidate"]) or native_input_bound(prompt) > 32000
+                        or remaining["model_calls"] < 1 or remaining["input_tokens"] < native_input_bound(prompt)
+                        or remaining["output_tokens"] < 128 or remaining["seconds"] <= 0):
+                    info = failure(journal, "budget", "agent_coding_handoff_unavailable", "inspect_coding_evidence_and_replan")
+                    journal.append("blocked", {"failure": info.model_dump(), "coding_progress": coding},
+                        key="coding-handoff-stop:" + job.id, job_id=job.id)
+                    journal.transition(cp, state="blocked", key="coding-handoff-stop-cp:" + job.id, job_id=job.id)
+                    return self.finish(s, job, {"state": "blocked", "reason_code": info.safe_reason_code})
             adapter = self.adapter_factory(s, spec)
             bound = (adapter.input_bound(prompt) if hasattr(adapter, "input_bound") else
                 len(canonical_json(prompt).encode()) + 2 * len(canonical_json(Decision.model_json_schema()).encode()) + 512)

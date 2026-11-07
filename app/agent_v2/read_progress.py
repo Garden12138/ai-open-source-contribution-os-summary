@@ -17,7 +17,7 @@ VERSION = 'source-read-progress-v1'
 VISIBLE_WARNING_LIMIT = 2
 POLICY = {'version': VERSION, 'visible_duplicate_receipt_limit': VISIBLE_WARNING_LIMIT,
     'binding': 'workspace_file_hash_path_exact_byte_request',
-    'warning_source': 'distinct_receipts_in_committed_native_prompts',
+    'warning_source': 'distinct_receipts_in_identity_confirmed_native_prompts',
     'action': 'block_before_repeating_gateway_keep_all_charges'}
 
 
@@ -105,10 +105,8 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
     by_id = {aid: (result, note) for aid, result, note in rows}
     warnings: list[str] = []
     visible_bytes, visible_next = 0, None
-    for event in journal.events():
-        if event.kind != 'agent_v2_model_started':
-            continue
-        prompt = journal.wb.read(event.payload['prompt_artifact'])
+    from app.agent_v2.model_receipts import confirmed_prompts
+    for _, prompt in confirmed_prompts(journal):
         shown = list(prompt.get('feedback', []))
         for page in prompt.get('source_working_set', []):
             aid = page.get('receipt_artifact')
