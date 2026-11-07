@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="4.277" timestamp="2026-11-07T10:48:44.946933+08:00" hostname="local-test-host"><testcase classname="tests.test_sandbox_implementation" name="test_real_plan_bound_implementation_in_disposable_volume" time="3.385" /></testsuite></testsuites>

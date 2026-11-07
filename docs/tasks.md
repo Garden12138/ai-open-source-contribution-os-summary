@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | Coding Loop Recovery v1 local diagnosis/fix passed offline regression (2056 passed/79 skipped) and 24 actual OCI cases; awaiting user code review. Plan15 remains blocked; no paid retry, Plan16, deployment or publication authorized. HR4/5 and P5-G06 remain open |
+| First current task | Coding Loop Recovery v1.1 offline review delivery complete: approved 6+8+1 and deterministic module fairness; 50 focused passed, full default 2099 passed / 83 skipped, 28 real offline OCI plus 2 unit cases passed. Waiting for code review; deployment NO-GO. Plan15 remains blocked; no paid retry, Plan16, deployment or publication authorized. HR4/5 and P5-G06 remain open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6769,7 +6769,22 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   本条仅记单次授权执行和证据归档完成，不代表HR4/5验收通过；真实Patch/最新源码Verify/独立Review及原生Linux amd64门禁仍开放。
   以上为真实执行归档时点。之后用户另行授权将本轮材料提交并推送；Git交付记录见该目录git-delivery-check.json。
   原预览、响应、源码页及终态审计保留原字节和时点字段；该Git操作不授权恢复Plan15或新增付费调用。
-- [x] **HR3-CLR** Coding Loop Recovery v1 仅本地/离线诊断与最小修复完成，等待用户代码审查。
+- [x] **HR3-CLR** Coding Loop Recovery v1.1 本地离线修复与审查交付完成：定向50、全量2099通过/83跳过、真实离线OCI28（另2unit）通过；等待代码审查，部署NO-GO。
+  [v1.1交付](agent-harness-reset-v1/coding-loop-recovery-v1.1/README.md)保留共享送达修复；第8轮必须新观察相关源码且实际进入第9轮Prompt才允许一次条件机会。
+  第9轮未实际成功OCI Patch则第10次前停止；同一执行授权跨Worker/修复Session不得再次领取，未知调用保留预留并停止。
+  最多4文件按路径派生模块、历史可信服务次数和未送达区间选择；单模块可填满，不新读源码、不编造内容。
+  候选255源码Hash627a3689，high/4096与全部原预算保持；新源码/协议不兼容原Plan15，未来必须新冻结绑定及独立精确授权。
+  保存Plan12–15七信封保持原子批次/ID与计费；query_only再核验45表、11检查点及Plan11–15事件/终态/审批/预算不变，五线上角色仍为原254源码。
+  条件机会最多额外1次调用/输入32000/输出4096且从原总预算扣除；保存第7轮投影因逐页来源字段从3072降至2048字节，明确保留容量风险与原始页恢复路径。
+  本条仅关闭离线修复交付，真实自主Coding、真实独立Review及Linux amd64门禁仍开放；未部署、付费调用、新建Plan、恢复终态或Commit/Push/PR/评论。
+  以上为离线验收快照。之后用户另行授权本地Git交付：可信送达修复与v1.1源码/测试Commit为bd3f8927，审查文档单独提交；
+  [Git交付记录](agent-harness-reset-v1/coding-loop-recovery-v1.1/git-delivery.md)保存逐文件清单及归档复核结果，不回写原报告Hash，不授权Push或新执行。
+  以下为上一轮closeout及原v1的冻结离线记录，不回写这些原报告Hash。
+  [审查收尾](agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/README.md)：3个生产模块共享请求/响应/Prompt/Binding校验；
+  相关179、最终边界24（重叠）、真实离线OCI2通过。仅model_started不再记为已送达；未知模型操作有无响应均保持阻断和原预留。
+  第8轮新源码尚未送达就被第9次前硬停，且四文件工作集可持续偏向近期模块；原6/8及选择算法未擅改，方案与费用影响已交付。
+  query_only再核验45表、Plan11–15事件/终态/审批/预算与旧11检查点完全不变。无真实模型/部署/新Plan/预算变更/Commit/Push/PR/评论。
+  以下为原离线快照记录，不回写原报告Hash；真实Coding/独立Review及Linux门禁仍开放。
   [交付与限制](agent-harness-reset-v1/coding-loop-recovery-v1/README.md)记录15轮实际Prompt/响应及161 Artifact Hash核验、事实/根因/假设区分；
   新增独立Coding度量，区分工具可用/响应确认送达源码，6轮纠偏、8轮后停止，不强制无依据Patch、不增加原预算。
   精确Task Brief/最多4文件工作集保留原始Artifact恢复；旧重复读取警告可见性兼容修复，阈值不变。

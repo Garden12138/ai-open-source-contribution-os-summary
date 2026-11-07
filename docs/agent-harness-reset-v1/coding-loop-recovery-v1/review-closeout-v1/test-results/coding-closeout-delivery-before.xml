@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="13" skipped="0" tests="16" time="0.772" timestamp="2026-11-06T23:10:41.861834+08:00" hostname="local-test-host"><testcase classname="tests.test_coding_delivery_boundaries" name="test_dispatch_without_response_does_not_claim_warning_delivery[feedback]" time="0.005"><failure message="AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []&#10;  &#10;  Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'&#10;  Use -v to get more diff">placement = 'feedback'
+
+    @pytest.mark.parametrize("placement", ["feedback", "working_set", "both"])
+    def test_dispatch_without_response_does_not_claim_warning_delivery(placement):
+        journal, args, _ = delivery_journal(responded=False, placement=placement)
+        note = source_read_progress(journal, args).note
+&gt;       assert note.warning_receipts_seen == []
+E       AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []
+E         
+E         Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'
+E         Use -v to get more diff
+
+tests/test_coding_delivery_boundaries.py:66: AssertionError</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_dispatch_without_response_does_not_claim_warning_delivery[working_set]" time="0.002"><failure message="AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []&#10;  &#10;  Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'&#10;  Use -v to get more diff">placement = 'working_set'
+
+    @pytest.mark.parametrize("placement", ["feedback", "working_set", "both"])
+    def test_dispatch_without_response_does_not_claim_warning_delivery(placement):
+        journal, args, _ = delivery_journal(responded=False, placement=placement)
+        note = source_read_progress(journal, args).note
+&gt;       assert note.warning_receipts_seen == []
+E       AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []
+E         
+E         Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'
+E         Use -v to get more diff
+
+tests/test_coding_delivery_boundaries.py:66: AssertionError</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_dispatch_without_response_does_not_claim_warning_delivery[both]" time="0.002"><failure message="AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []&#10;  &#10;  Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'&#10;  Use -v to get more diff">placement = 'both'
+
+    @pytest.mark.parametrize("placement", ["feedback", "working_set", "both"])
+    def test_dispatch_without_response_does_not_claim_warning_delivery(placement):
+        journal, args, _ = delivery_journal(responded=False, placement=placement)
+        note = source_read_progress(journal, args).note
+&gt;       assert note.warning_receipts_seen == []
+E       AssertionError: assert ['8ec3ddc09ee...99a4e820faab'] == []
+E         
+E         Left contains one more item: '8ec3ddc09ee875a90631b24e27393954bd1d9c9a694aac71632499a4e820faab'
+E         Use -v to get more diff
+
+tests/test_coding_delivery_boundaries.py:66: AssertionError</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_matching_delivery_deduplicates_warning_across_both_projections[feedback]" time="0.003" /><testcase classname="tests.test_coding_delivery_boundaries" name="test_matching_delivery_deduplicates_warning_across_both_projections[working_set]" time="0.003" /><testcase classname="tests.test_coding_delivery_boundaries" name="test_matching_delivery_deduplicates_warning_across_both_projections[both]" time="0.003" /><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[response_actor]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'response_actor'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[start_actor]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'start_actor'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[prompt_reference]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'prompt_reference'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[event_binding]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'event_binding'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[raw_binding]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'raw_binding'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[raw_request]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'raw_request'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[prompt_binding]" time="0.027"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'prompt_binding'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[before_start]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'before_start'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[duplicate_response]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'duplicate_response'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase><testcase classname="tests.test_coding_delivery_boundaries" name="test_identity_mismatch_is_fail_closed_in_both_consumers[response_job]" time="0.002"><failure message="Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;">fault = 'response_job'
+
+    @pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
+        "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
+    def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
+        journal, args, objects = delivery_journal()
+        events = journal.events(); start, reply = events[-2:]
+        if fault == "response_actor": reply.actor_id = "model"
+        elif fault == "start_actor": start.actor_id = "model"
+        elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
+        elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
+        elif fault in {"raw_binding", "raw_request"}:
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
+            raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
+            aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
+        elif fault == "prompt_binding":
+            prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
+            aid = content_hash(prompt); objects[aid] = prompt
+            start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
+            raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
+            rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
+        elif fault == "before_start": reply.sequence = start.sequence - 1
+        elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
+        elif fault == "response_job": reply.job_id = "unrelated-job"
+        for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
+&gt;           with pytest.raises(WorkbenchError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE &lt;class 'app.workbench.WorkbenchError'&gt;
+
+tests/test_coding_delivery_boundaries.py:106: Failed</failure></testcase></testsuite></testsuites>

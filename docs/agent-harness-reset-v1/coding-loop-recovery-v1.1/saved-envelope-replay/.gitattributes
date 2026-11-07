@@ -1,0 +1,3 @@
+# Preserve the exact final newlines of these content-addressed source pages.
+artifacts/0fe6312e23c3793d1fd91e2d337eac64d857362df6b8ec577d89a20bf46cea48.txt whitespace=-blank-at-eol,-blank-at-eof
+artifacts/3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5.txt whitespace=-blank-at-eol,-blank-at-eof

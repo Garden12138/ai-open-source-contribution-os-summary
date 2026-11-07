@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2" time="24.813" timestamp="2026-11-06T23:24:43.762165+08:00" hostname="local-test-host"><testcase classname="tests.test_coding_stop_boundaries_oci" name="test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not[False]" time="11.783" /><testcase classname="tests.test_coding_stop_boundaries_oci" name="test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not[True]" time="12.556" /></testsuite></testsuites>

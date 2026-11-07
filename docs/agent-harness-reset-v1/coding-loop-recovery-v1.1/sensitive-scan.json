@@ -1,0 +1,9 @@
+{
+  "scanned_files": 239,
+  "local_secret_variants_checked": 6,
+  "matched_credentials": 0,
+  "raw_databases_in_delivery": 0,
+  "unredacted_Provider_response_or_runtime_logs": 0,
+  "fixture_source_pages": "exact_previously_sanitized_source_only",
+  "report_hash": "7edd6b381b2d9e55f7717f9b485aa437e31d014236224196f84ae6c92a622516"
+}

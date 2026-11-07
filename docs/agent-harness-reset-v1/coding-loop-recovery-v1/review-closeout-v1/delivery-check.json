@@ -1,0 +1,130 @@
+{
+  "source_hash": "621dababd1e82960c668b7580ef6a591e7bdd0c18d758481c582dc7e31a01d9e",
+  "files": [
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/compatibility-after.json",
+      "sha256": "95154443d8c3103d67e237bf3b8fd766d3defe47a1f6cdc65a6cf0dc0817fc2a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/source-manifest.json",
+      "sha256": "a17cfc438a220239790af2aa01c703410ece0de15eb7ed2173691b9531c04976"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/policy-options.md",
+      "sha256": "5f7b6e9feb4d88eab88348897e9f62910a1cf2ca881b39b1699b77f37377ef3a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/saved-plan15-selection.json",
+      "sha256": "1521ebd5e478e0e84c63f719e23dc694b73049a5703d79970163b62b3a88528e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/validation-report.json",
+      "sha256": "ef6fee5f8f9ab5516abfb168223463a576c1e7480dd78e6396e4e2dd490c7173"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/check_history.py",
+      "sha256": "e5d3a62f0aa94663eece61b851eba8e0243121adc0d2db39354202cebd8ffd0c"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/finalize.py",
+      "sha256": "f1b50b59110a9cccfd1c0f669c5e06ccc4d7ef8932dc018a9558628516693553"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-report-index.json",
+      "sha256": "487550554c6a07b420864f80a1d2ddf20459104cba90cf897bf3cce90101d865"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/README.md",
+      "sha256": "cac5777d28e009f3366ad3b886eb549a2ff166d2e43946dc40e364c672dda667"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/history-plan11-15.json",
+      "sha256": "a21bfb1e06e9a7e6629b9758cfeb5a8ed2fb789c2f00b876fb75c2a5db9f8b5a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/.gitattributes",
+      "sha256": "a9f6ba9e98fd416b04635a27d3c3975a6b9c6eec7f32c629f96a3f0b2953da45"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/code.diff",
+      "sha256": "fe094a3c539b3cf06466136bbd21b9d34812bb013fa610c03f157786d8dc6f2d"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/scenarios.json",
+      "sha256": "6bb6a4f79f85623ed7f8f51696a97587bc0acf69750278d8ba978bf77d58b412"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/compatibility-before.json",
+      "sha256": "95154443d8c3103d67e237bf3b8fd766d3defe47a1f6cdc65a6cf0dc0817fc2a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-delivery-before.xml",
+      "sha256": "3cb8875d07255287f31b932e95a34726cd6f8d9096f0396433f2643c1bbf7dbe"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-stops-oci.xml",
+      "sha256": "838188831d4029d0cf7a205cfbcc07ca77b7ca083eaf21f71780283f6c42b337"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-final-boundaries.xml",
+      "sha256": "18bcfc9bc86d2bd4afddbef61d0b5f3ef2cc2e787f3b50f16b129cf894aa1d4f"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-stops-oci-final.xml",
+      "sha256": "b1350d325c904bffebb5fa2c5ffd4ca73b4c12e0626793f45575ddc514eec11a"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-regression.xml",
+      "sha256": "3ca2600a3298081da8455c240abc2932f25f124a471cc67fef83af91e1646ec4"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-stops.xml",
+      "sha256": "ef61c686f023eef8b930cb9b498d4b78c94edfa8b4e4348911ebef54a6024a9e"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-delivery-after.xml",
+      "sha256": "7a5906504b0bd86bf055f32432daa81457d3d4df3ca9b54e23fc53dbea0bbe72"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/test-results/coding-closeout-projection.xml",
+      "sha256": "29b8add66f6d89f62faaa6f41cef1d9b62f410b084034ceb976855688f4e412c"
+    },
+    {
+      "path": "tests/test_coding_delivery_boundaries.py",
+      "sha256": "080117336c30bbd5e551f418a2adfeb8bdd779a253cee86f35b9a13823f6bf95"
+    },
+    {
+      "path": "tests/test_coding_stop_boundaries.py",
+      "sha256": "13b70cad06f075ce0044e396ad28d2f61b6425f78f7bd700710dd790259fed30"
+    },
+    {
+      "path": "tests/test_coding_stop_boundaries_oci.py",
+      "sha256": "781fd7527a080e82b56475a53b0ee1a18a690ee03eb59fab5f642a0c742a04cc"
+    },
+    {
+      "path": "tests/test_coding_working_set_boundaries.py",
+      "sha256": "ad6f4e7fd9ba5ead27a4bafcb35d19e9eee1be37b27daff7a8b51c2b7060f3b2"
+    },
+    {
+      "path": "app/agent_v2/coding_context.py",
+      "sha256": "c0de35dc8fe381dcc10ff43bbd8b6e9fdcc50148a931a62cb6efaf806026283b"
+    },
+    {
+      "path": "app/agent_v2/model_receipts.py",
+      "sha256": "f8832d6c184dc15a1e52baadab048de5ab006b5049ceb8733f8aae93322f4ece"
+    },
+    {
+      "path": "app/agent_v2/read_progress.py",
+      "sha256": "ac847f31dfadc00682babab1f1425b0c863ccb4f48f8f9f018e687436723f37c"
+    },
+    {
+      "path": "tests/test_coding_loop_recovery.py",
+      "sha256": "13cb00533f187de71ebc0ad60383e76c65cea063a9e311bbd01c5193838d5ec9"
+    }
+  ],
+  "configured_secret_and_variant_scan": "passed",
+  "credential_patterns": "passed",
+  "raw_DB_or_private_Provider_bodies_exported": false,
+  "source_remains_uncommitted": true,
+  "report_hash": "6907b79b25488dfcea76d81ea4baa600d96671f7a03987e84e3a06b0c13b2172"
+}

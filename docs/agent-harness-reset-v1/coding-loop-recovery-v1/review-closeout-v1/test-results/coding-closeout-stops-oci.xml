@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="4.667" timestamp="2026-11-06T23:21:27.489293+08:00" hostname="local-test-host"><testcase classname="tests.test_coding_stop_boundaries_oci" name="test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not[False]" time="2.207"><failure message="AssertionError: assert 'failed' == 'succeeded'&#10;  &#10;  - succeeded&#10;  + failed">tmp_path = PosixPath('/tmp/pytest-of-local-user/pytest-1354/test_real_oci_sixth_patch_rese0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x109e194c0&gt;
+rejected = False
+
+    @pytest.mark.parametrize("rejected", [False, True])
+    def test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not(tmp_path, monkeypatch, rejected):
+        values, source = real_session(tmp_path, monkeypatch)
+        db, config, task, sid, model, tool, runner, _ = values
+        reads = 7 if rejected else 5
+        runner.responses.extend(response("read_file", {"path": "app/plans.py", "offset": 128 * i, "max_bytes": 128}) for i in range(reads))
+        runner.responses.append(response("apply_patch", {"path": "app/plans.py",
+            "expected_hash": "0" * 64 if rejected else hashlib.sha256(source.encode()).hexdigest(),
+            "old_text": "return True", "new_text": "return True  # exact offline edit"}))
+        for _ in range(reads + 1):
+&gt;           run_round(model, tool)
+
+tests/test_coding_stop_boundaries_oci.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = &lt;app.agent_v2.loop.AgentModelWorker object at 0x10a6cd040&gt;
+tool = &lt;app.agent_v2.loop.AgentToolWorker object at 0x10a9c0920&gt;
+
+    def run_round(model, tool):
+        assert asyncio.run(model.run_once()).state == 'succeeded'
+&gt;       assert asyncio.run(tool.run_once()).state == 'succeeded'
+E       AssertionError: assert 'failed' == 'succeeded'
+E         
+E         - succeeded
+E         + failed
+
+tests/test_native_read_progress.py:44: AssertionError</failure></testcase><testcase classname="tests.test_coding_stop_boundaries_oci" name="test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not[True]" time="1.809"><failure message="AssertionError: assert 'failed' == 'succeeded'&#10;  &#10;  - succeeded&#10;  + failed">tmp_path = PosixPath('/tmp/pytest-of-local-user/pytest-1354/test_real_oci_sixth_patch_rese1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x10aa47350&gt;
+rejected = True
+
+    @pytest.mark.parametrize("rejected", [False, True])
+    def test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not(tmp_path, monkeypatch, rejected):
+        values, source = real_session(tmp_path, monkeypatch)
+        db, config, task, sid, model, tool, runner, _ = values
+        reads = 7 if rejected else 5
+        runner.responses.extend(response("read_file", {"path": "app/plans.py", "offset": 128 * i, "max_bytes": 128}) for i in range(reads))
+        runner.responses.append(response("apply_patch", {"path": "app/plans.py",
+            "expected_hash": "0" * 64 if rejected else hashlib.sha256(source.encode()).hexdigest(),
+            "old_text": "return True", "new_text": "return True  # exact offline edit"}))
+        for _ in range(reads + 1):
+&gt;           run_round(model, tool)
+
+tests/test_coding_stop_boundaries_oci.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = &lt;app.agent_v2.loop.AgentModelWorker object at 0x10ae28b90&gt;
+tool = &lt;app.agent_v2.loop.AgentToolWorker object at 0x10ae28e30&gt;
+
+    def run_round(model, tool):
+        assert asyncio.run(model.run_once()).state == 'succeeded'
+&gt;       assert asyncio.run(tool.run_once()).state == 'succeeded'
+E       AssertionError: assert 'failed' == 'succeeded'
+E         
+E         - succeeded
+E         + failed
+
+tests/test_native_read_progress.py:44: AssertionError</failure></testcase></testsuite></testsuites>

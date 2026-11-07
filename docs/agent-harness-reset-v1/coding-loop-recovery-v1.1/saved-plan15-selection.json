@@ -1,0 +1,113 @@
+{
+  "classification": "saved_prompt_projection_only",
+  "frames": [
+    {
+      "round": 7,
+      "actual_model_dispatched": false,
+      "input_bound": 31522,
+      "inline_source_bytes": 2048,
+      "selection": [
+        {
+          "path": "extension/test/transcript-parser.test.ts",
+          "module": "extension",
+          "priority": 0,
+          "receipt_artifact": "e7d9e7d68469cb1b28b19d60d886d5cde09d7d9aca326c6f6356bf533547edad",
+          "offset": 0,
+          "next_offset": 512
+        },
+        {
+          "path": "web/lib/agent-types.ts",
+          "module": "web",
+          "priority": 0,
+          "receipt_artifact": "a341c93e66fe24ca7558b1a579a94724153459cbec74fcb4d643272e52b17d76",
+          "offset": 2048,
+          "next_offset": 2560
+        },
+        {
+          "path": "extension/src/hook-server.ts",
+          "module": "extension",
+          "priority": 0,
+          "receipt_artifact": "3182481f4d035647039c584cabd67a10fe4d805ca4f51a4d771b61da6db6994d",
+          "offset": 0,
+          "next_offset": 512
+        },
+        {
+          "path": "web/hooks/simulation/types.ts",
+          "module": "web",
+          "priority": 0,
+          "receipt_artifact": "e5dbbf99dd0f4519ca2ccf322ff0ed8016a87657769fcb2dfe430de7d2b75587",
+          "offset": 2048,
+          "next_offset": 2560
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "actual_model_dispatched": false,
+      "input_bound": 31817,
+      "inline_source_bytes": 3072,
+      "selection": [
+        {
+          "path": "extension/src/transcript-parser.ts",
+          "module": "extension",
+          "priority": 0,
+          "receipt_artifact": "4303d84c512a2afcc71b4859afd3fab98db7fa7914f205312104ded07a49bba1",
+          "offset": 1024,
+          "next_offset": 1792
+        },
+        {
+          "path": "web/lib/agent-types.ts",
+          "module": "web",
+          "priority": 0,
+          "receipt_artifact": "55d312ea1efcbc14baccb5932aac8038389c3a3968f4a119bfcdaaf89eff2ac8",
+          "offset": 2048,
+          "next_offset": 2816
+        },
+        {
+          "path": "extension/test/transcript-parser.test.ts",
+          "module": "extension",
+          "priority": 0,
+          "receipt_artifact": "afaa8f28ec01f749e0175531a4979cc8adcf77477f31ba43411b38f4f441cae6",
+          "offset": 128,
+          "next_offset": 896
+        },
+        {
+          "path": "web/hooks/simulation/types.ts",
+          "module": "web",
+          "priority": 0,
+          "receipt_artifact": "500e82a7a7935f199ed0cbae40dfffa36493afe00b6b586808e015e2abf1fe4d",
+          "offset": 2048,
+          "next_offset": 2816
+        }
+      ]
+    }
+  ],
+  "previous_closeout": [
+    {
+      "saved_round": 7,
+      "classification": "diagnostic_only_no_dispatch",
+      "paths": [
+        "extension/test/transcript-parser.test.ts",
+        "extension/src/hook-server.ts",
+        "extension/src/transcript-parser.ts",
+        "web/lib/agent-types.ts"
+      ],
+      "input_bound": 31423,
+      "inline_source_bytes": 3072
+    },
+    {
+      "saved_round": 13,
+      "classification": "diagnostic_only_no_dispatch",
+      "paths": [
+        "extension/src/transcript-parser.ts",
+        "extension/test/transcript-parser.test.ts",
+        "web/lib/agent-types.ts",
+        "web/hooks/simulation/types.ts"
+      ],
+      "input_bound": 31158,
+      "inline_source_bytes": 3072
+    }
+  ],
+  "capacity_tradeoff": "per_page_provenance_and_fairness_within_unchanged_32000",
+  "report_hash": "20044113cf492e6b1178aee106661c672477cfad1f1117d39860b7ba26169a5f"
+}

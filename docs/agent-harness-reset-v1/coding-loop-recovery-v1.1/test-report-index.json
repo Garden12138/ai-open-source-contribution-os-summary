@@ -1,0 +1,72 @@
+{
+  "reports": [
+    {
+      "file": "test-results/coding-v11-focused-final.xml",
+      "classification": "deterministic_offline",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "raw_sha256": "85dd57919a6dac16317ee940ed9d9626898b7ae243c3837dc12314a443fe7c57",
+      "public_sha256": "81f5a479906f2a2ab835f5ddeaf9ba941a7bc3128522f280a917af13a3269e11",
+      "outcomes_order_preserved": true,
+      "tests": 50,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 50
+    },
+    {
+      "file": "test-results/coding-v11-oci-final.xml",
+      "classification": "real_OCI_with_two_pure_units",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "raw_sha256": "98629f3c25daee9b3d8a59173b02354514b156c9378ae65404c8f35379ab4907",
+      "public_sha256": "fba0c8a2c3e5c7b99ec7f136d038746539f5294be2e734cace9777645a408f7a",
+      "outcomes_order_preserved": true,
+      "tests": 29,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 29
+    },
+    {
+      "file": "test-results/coding-v11-oci-compatibility.xml",
+      "classification": "real_OCI_plan_bound_volume",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "raw_sha256": "a3c60dcf9cdf6924290c99560e02b7a960ea27ed35698e24fbc6d011736ed3c5",
+      "public_sha256": "ef7dbcc3ae0dc4eae5d9a0d2df2d971d4053c14fb608a42e0a1a1bae12228cd1",
+      "outcomes_order_preserved": true,
+      "tests": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1
+    },
+    {
+      "file": "test-results/coding-v11-final-full-0.xml",
+      "classification": "default_suite_shard",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "raw_sha256": "5413797376a0699a90138e29b2e92da56338082f68d2d05b452f0487a3c74a5e",
+      "public_sha256": "8a68090d0baa893618ea1aeb5ff4dbb38719a2f32d604610b1bdebf7a8df641f",
+      "outcomes_order_preserved": true,
+      "tests": 1091,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 34,
+      "passed": 1057
+    },
+    {
+      "file": "test-results/coding-v11-final-full-1.xml",
+      "classification": "default_suite_shard",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "raw_sha256": "ab76d053eeee77e7aa953f7fe12a3ef2a6fb63205242d05d6614d8370808c4f3",
+      "public_sha256": "f679a368eb0893d1046315d65f74ecc9c714dd48fdd238f9f91a706b9a2976b1",
+      "outcomes_order_preserved": true,
+      "tests": 1091,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 49,
+      "passed": 1042
+    }
+  ],
+  "overlapping_not_summed": true,
+  "paid_model_calls": 0,
+  "report_hash": "0c118a39bbd899402d85ce055a38752df1c7bfd9024f4b610601b06d6406b13e"
+}

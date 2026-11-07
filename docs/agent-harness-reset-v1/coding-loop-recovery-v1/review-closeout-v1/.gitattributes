@@ -1,0 +1,3 @@
+# Preserve redacted pytest traceback and patch evidence bytes.
+test-results/*.xml whitespace=-blank-at-eol
+code.diff whitespace=-blank-at-eol

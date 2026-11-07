@@ -1,0 +1,602 @@
+diff --git a/app/agent_v2/coding_context.py b/app/agent_v2/coding_context.py
+index 777f3b5..6976a5e 100644
+--- a/app/agent_v2/coding_context.py
++++ b/app/agent_v2/coding_context.py
+@@ -102,19 +102,10 @@ def observe(journal: Any) -> tuple[dict, list[dict]]:
+             before = size(ranges)
+             ranges.append([data["offset"], data["offset"] + len(data["text"].encode())])
+             repeated_plan += size(ranges) - before < len(data["text"].encode())
+-    responses = {e.job_id: e for e in events if e.kind == "agent_v2_model_response" and e.actor_id == "orchestrator"}
++    from app.agent_v2.model_receipts import confirmed_prompts
+     starts = [e for e in events if e.kind == "agent_v2_model_started"]
+     no_context = 0
+-    for event in starts:
+-        if event.job_id not in responses:
+-            continue
+-        prompt = journal.wb.read(event.payload["prompt_artifact"])
+-        response = responses[event.job_id]
+-        raw_response = journal.wb.read(response.payload["artifact_id"])
+-        if (event.actor_id != "orchestrator" or response.payload.get("prompt_artifact") != event.payload["prompt_artifact"]
+-                or raw_response.get("request_id") != event.job_id
+-                or raw_response.get("binding_hash") != content_hash(prompt["binding"])):
+-            raise ValueError("coding_delivery_identity_invalid")
++    for event, prompt in confirmed_prompts(journal):
+         before = sum(size(r) for r in delivered.values())
+         candidates = list(prompt.get("source_working_set", []))
+         for feedback in prompt.get("feedback", []):
+diff --git a/app/agent_v2/model_receipts.py b/app/agent_v2/model_receipts.py
+index 7b11db9..4dfefc8 100644
+--- a/app/agent_v2/model_receipts.py
++++ b/app/agent_v2/model_receipts.py
+@@ -12,6 +12,47 @@ from app.workbench import WorkbenchError
+ VERSION = "agent-model-response-v1"
+ 
+ 
++def confirmed_prompts(journal: Any) -> list[tuple[Any, dict]]:
++    """One shared delivery witness for source bytes and read warnings.
++
++    Dispatch without a response is unknown, never observed. Malformed or
++    ambiguous witnesses fail closed; no choice of the last duplicate record.
++    This does not authorize recovery/retry of an unknown model operation.
++    """
++    events = journal.events()
++    starts, responses = {}, {}
++    def invalid() -> None:
++        raise WorkbenchError("模型送达证据身份无效。", code="agent_model_delivery_invalid")
++    for event in events:
++        if event.kind not in {"agent_v2_model_started", "agent_v2_model_response"}:
++            continue
++        rows = starts if event.kind == "agent_v2_model_started" else responses
++        if event.actor_id != "orchestrator" or not event.job_id or event.job_id in rows:
++            invalid()
++        rows[event.job_id] = event
++    if set(responses) - set(starts):
++        invalid()
++    expected = content_hash(journal.spec().binding.model_dump())
++    result = []
++    for job, start in starts.items():
++        response = responses.get(job)
++        if response is None:
++            continue
++        prompt = journal.wb.read(start.payload["prompt_artifact"])
++        raw = journal.wb.read(response.payload["artifact_id"])
++        if (response.sequence <= start.sequence
++                or content_hash(prompt) != start.payload["prompt_artifact"]
++                or content_hash(raw) != response.payload["artifact_id"]
++                or response.payload.get("prompt_artifact") != start.payload["prompt_artifact"]
++                or response.payload.get("binding_hash") != expected
++                or content_hash(prompt.get("binding")) != expected
++                or raw.get("version") != VERSION or raw.get("request_id") != job
++                or raw.get("binding_hash") != expected):
++            invalid()
++        result.append((start, prompt))
++    return result
++
++
+ def response_evidence(value: Mapping[str, Any], *, request_id: str, binding_hash: str) -> dict:
+     """Keep exact call envelopes/order, excluding assistant text and private reasoning.
+ 
+diff --git a/app/agent_v2/read_progress.py b/app/agent_v2/read_progress.py
+index 1b49bde..07f50d0 100644
+--- a/app/agent_v2/read_progress.py
++++ b/app/agent_v2/read_progress.py
+@@ -17,7 +17,7 @@ VERSION = 'source-read-progress-v1'
+ VISIBLE_WARNING_LIMIT = 2
+ POLICY = {'version': VERSION, 'visible_duplicate_receipt_limit': VISIBLE_WARNING_LIMIT,
+     'binding': 'workspace_file_hash_path_exact_byte_request',
+-    'warning_source': 'distinct_receipts_in_committed_native_prompts',
++    'warning_source': 'distinct_receipts_in_identity_confirmed_native_prompts',
+     'action': 'block_before_repeating_gateway_keep_all_charges'}
+ 
+ 
+@@ -105,10 +105,8 @@ def source_read_progress(journal: AgentJournal, args: ReadFile, *, current: Tool
+     by_id = {aid: (result, note) for aid, result, note in rows}
+     warnings: list[str] = []
+     visible_bytes, visible_next = 0, None
+-    for event in journal.events():
+-        if event.kind != 'agent_v2_model_started':
+-            continue
+-        prompt = journal.wb.read(event.payload['prompt_artifact'])
++    from app.agent_v2.model_receipts import confirmed_prompts
++    for _, prompt in confirmed_prompts(journal):
+         shown = list(prompt.get('feedback', []))
+         for page in prompt.get('source_working_set', []):
+             aid = page.get('receipt_artifact')
+diff --git a/tests/test_coding_loop_recovery.py b/tests/test_coding_loop_recovery.py
+index 40ac795..7560eac 100644
+--- a/tests/test_coding_loop_recovery.py
++++ b/tests/test_coding_loop_recovery.py
+@@ -95,8 +95,9 @@ def archived_journal(round_number):
+     events = [SimpleNamespace(**{**e, "actor_id": "orchestrator"}) for e in index["events"]
+         if e["sequence"] < start["sequence"]]
+     prompt = read(start["payload"]["prompt_artifact"])
++    from app.agent_v2.contracts import Binding
+     j = SimpleNamespace(events=lambda: events, checkpoint=lambda: SimpleNamespace(source_hash=prompt["source_hash"]),
+-        spec=lambda: SimpleNamespace(write_paths=prompt["write_paths"]),
++        spec=lambda: SimpleNamespace(write_paths=prompt["write_paths"], binding=Binding.model_validate(prompt["binding"])),
+         wb=SimpleNamespace(read=read, artifacts=SimpleNamespace(read_bytes=read_bytes)))
+     return j, prompt, read
+ 
+diff --git a/tests/test_coding_delivery_boundaries.py b/tests/test_coding_delivery_boundaries.py
+new file mode 100644
+index 0000000..3a8d61f
+--- /dev/null
++++ b/tests/test_coding_delivery_boundaries.py
+@@ -0,0 +1,108 @@
++"""Delivery witnesses, not dispatch intents, establish observed read warnings."""
++import copy
++from hashlib import sha256
++from types import SimpleNamespace
++
++import pytest
++
++from app.agent_v2.contracts import ReadFile, ToolResult
++from app.agent_v2.coding_context import observe
++from app.agent_v2.model_receipts import response_evidence
++from app.agent_v2.read_progress import ReadProgressNote, _key, source_read_progress
++from app.provenance import content_hash
++from app.workbench import WorkbenchError
++from tests.test_agent_native_tools import response
++from tests.test_agent_v2_tools import tool_spec
++
++
++def delivery_journal(*, responded=True, placement="both"):
++    spec = tool_spec().model_copy(update={"model_transport": __import__(
++        "app.agent_v2.native_tools", fromlist=["native_model_transport"]).native_model_transport()})
++    source, text, args = spec.binding.archive_hash, "observed source\n", ReadFile(path="calc.py", max_bytes=128)
++    file_hash = sha256(text.encode()).hexdigest()
++    objects = {}
++    def save(value):
++        aid = content_hash(value); objects[aid] = value; return aid
++    events = []
++    for i in range(2):
++        note = ReadProgressNote(range_key=_key(source, file_hash, args), max_bytes=128,
++            prior_same_range_reads=i, prior_receipt=events[-1].payload["artifact_id"] if events else None,
++            warning_receipts_seen=[], visible_bytes=0, visible_next_offset=None)
++        receipt = ToolResult(call_id="read-" + str(i), input_hash="b" * 64,
++            source_hash=source, output_source_hash=source, status="succeeded", data={
++                "tool": "read_file", "execution_backend": "docker", "path": "calc.py", "text": text,
++                "offset": 0, "next_offset": None, "total_bytes": len(text.encode()), "content_hash": file_hash,
++                "source_page_artifact": file_hash, "source_read_progress": note.model_dump()}).model_dump()
++        aid = save(receipt)
++        events.append(SimpleNamespace(kind="agent_v2_tool_result", sequence=i + 1, actor_id="orchestrator",
++            payload={"name": "read_file", "artifact_id": aid}, job_id="tool-" + str(i)))
++    prompt = {"binding": spec.binding.model_dump(), "task_context_artifact": "c" * 64,
++        "feedback": [{**receipt, "receipt_artifact": aid}] if placement in {"feedback", "both"} else [],
++        "source_working_set": [{"receipt_artifact": aid, "path": "calc.py", "offset": 0, "text": text,
++            "next_offset": None, "total_bytes": len(text.encode()), "output_source_hash": source,
++            "source_read_progress": {k: v for k, v in note.model_dump().items() if k != "instruction"}}]
++            if placement in {"working_set", "both"} else []}
++    start = SimpleNamespace(kind="agent_v2_model_started", sequence=3, actor_id="orchestrator", job_id="model-3",
++        payload={"prompt_artifact": save(prompt)})
++    events.append(start)
++    if responded:
++        raw = response_evidence(response("list_paths", {}), request_id=start.job_id,
++            binding_hash=content_hash(spec.binding.model_dump()))
++        events.append(SimpleNamespace(kind="agent_v2_model_response", sequence=4, actor_id="orchestrator",
++            job_id=start.job_id, payload={"artifact_id": save(raw), "prompt_artifact": start.payload["prompt_artifact"],
++                "binding_hash": raw["binding_hash"]}))
++    def read(aid):
++        value = objects[aid]; assert content_hash(value) == aid; return value
++    journal = SimpleNamespace(spec=lambda: spec, events=lambda: events,
++        checkpoint=lambda: SimpleNamespace(source_hash=source), wb=SimpleNamespace(read=read,
++            artifacts=SimpleNamespace(read_bytes=lambda _: text.encode())))
++    return journal, args, objects
++
++
++@pytest.mark.parametrize("placement", ["feedback", "working_set", "both"])
++def test_dispatch_without_response_does_not_claim_warning_delivery(placement):
++    journal, args, _ = delivery_journal(responded=False, placement=placement)
++    note = source_read_progress(journal, args).note
++    assert note.warning_receipts_seen == []
++    assert note.visible_bytes == 0
++    assert observe(journal)[0]["delivered_source_bytes"] == 0
++
++
++@pytest.mark.parametrize("placement", ["feedback", "working_set", "both"])
++def test_matching_delivery_deduplicates_warning_across_both_projections(placement):
++    journal, args, _ = delivery_journal(placement=placement)
++    note = source_read_progress(journal, args).note
++    assert len(note.warning_receipts_seen) == 1
++    assert note.visible_bytes == len("observed source\n".encode())
++    # A reconstructed reader has no private counter to restore or double-count.
++    restarted = SimpleNamespace(**journal.__dict__)
++    assert source_read_progress(restarted, args).note == note
++    assert observe(restarted)[0]["delivered_source_bytes"] == note.visible_bytes
++
++
++@pytest.mark.parametrize("fault", ["response_actor", "start_actor", "prompt_reference", "event_binding",
++    "raw_binding", "raw_request", "prompt_binding", "before_start", "duplicate_response", "response_job"])
++def test_identity_mismatch_is_fail_closed_in_both_consumers(fault):
++    journal, args, objects = delivery_journal()
++    events = journal.events(); start, reply = events[-2:]
++    if fault == "response_actor": reply.actor_id = "model"
++    elif fault == "start_actor": start.actor_id = "model"
++    elif fault == "prompt_reference": reply.payload["prompt_artifact"] = "f" * 64
++    elif fault == "event_binding": reply.payload["binding_hash"] = "f" * 64
++    elif fault in {"raw_binding", "raw_request"}:
++        raw = copy.deepcopy(objects[reply.payload["artifact_id"]])
++        raw["binding_hash" if fault == "raw_binding" else "request_id"] = "f" * 64
++        aid = content_hash(raw); objects[aid] = raw; reply.payload["artifact_id"] = aid
++    elif fault == "prompt_binding":
++        prompt = copy.deepcopy(objects[start.payload["prompt_artifact"]]); prompt["binding"]["plan_id"] = "other-plan"
++        aid = content_hash(prompt); objects[aid] = prompt
++        start.payload["prompt_artifact"] = reply.payload["prompt_artifact"] = aid
++        raw = copy.deepcopy(objects[reply.payload["artifact_id"]]); raw["binding_hash"] = content_hash(prompt["binding"])
++        rid = content_hash(raw); objects[rid] = raw; reply.payload.update(artifact_id=rid, binding_hash=raw["binding_hash"])
++    elif fault == "before_start": reply.sequence = start.sequence - 1
++    elif fault == "duplicate_response": events.append(copy.deepcopy(reply))
++    elif fault == "response_job": reply.job_id = "unrelated-job"
++    for reader in (lambda: source_read_progress(journal, args), lambda: observe(journal)):
++        with pytest.raises(WorkbenchError) as error:
++            reader()
++        assert error.value.code == "agent_model_delivery_invalid"
+diff --git a/tests/test_coding_stop_boundaries.py b/tests/test_coding_stop_boundaries.py
+new file mode 100644
+index 0000000..02a1a79
+--- /dev/null
++++ b/tests/test_coding_stop_boundaries.py
+@@ -0,0 +1,132 @@
++"""Characterize the frozen 6/8 policy without increasing any allowance."""
++import asyncio
++import hashlib
++import json
++from pathlib import Path
++
++import pytest
++
++from app.agent_v2.coding_context import observe
++from app.agent_v2.journal import AgentJournal
++from app.agent_v2.loop import schedule
++from app.workbench import Workbench
++from tests.test_native_read_progress import setup, run_round
++
++
++def snapshot(values):
++    db, settings, task, sid = values[:4]
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        cp = j.checkpoint()
++        return {"state": cp.state, "usage": cp.usage, "remaining": j.remaining(), "coding": observe(j)[0],
++            "blocker": next((e.payload["failure"]["safe_reason_code"] for e in reversed(j.events())
++                if isinstance(e.payload.get("failure"), dict)), None)}
++
++
++def export(name, report):
++    import os
++    if folder := os.environ.get("CONTRIBOS_CODING_BOUNDARY_EVIDENCE"):
++        from app.provenance import content_hash
++        from app.security import ensure_no_sensitive_data
++        value = {"classification": "deterministic_substitute_not_real_model_success", "case": name,
++            "paid_model_calls": 0, **report}
++        ensure_no_sensitive_data(value, context="stop boundary evidence")
++        value["report_hash"] = content_hash(value)
++        Path(folder).mkdir(parents=True, exist_ok=True)
++        (Path(folder) / (name + ".json")).write_text(json.dumps(value, indent=2) + "\n")
++
++
++def test_eight_attempted_identical_read_rounds_stop_at_existing_four_round_guard(tmp_path):
++    values = setup(tmp_path, *[{} for _ in range(8)])
++    model, tool, runner = values[4:7]
++    for _ in range(4):
++        run_round(model, tool)
++    for _ in range(4):
++        assert asyncio.run(model.run_once()) is None
++    result = snapshot(values)
++    assert result["state"] == "blocked" and result["usage"]["model_calls"] == 4
++    assert result["blocker"] == "agent_no_progress" and len(runner.prompts) == 4
++    export("identical_reads", result)
++
++
++@pytest.mark.parametrize("critical_last", [False, True])
++def test_eighth_new_page_cannot_receive_a_following_patch_decision(tmp_path, critical_last):
++    values = setup(tmp_path, *[{"offset": 128 * i, "max_bytes": 128} for i in range(8)])
++    model, tool, runner, gateway = values[4:]
++    gateway.text = "x" * 896 + "y" * 230
++    if critical_last:
++        # A valid Python file, with the only implementation anchor in page 8.
++        # Reads target a genuinely approved write path, not the generic calc.py.
++        gateway.text = "#" + "x" * 894 + "\n" + "def preserved_api():\n    return False\n" + "# padding\n" * 30
++        db, settings, task, sid = values[:4]
++        with db.session() as session:
++            path = AgentJournal(Workbench(session, settings.artifact_root), task, sid).spec().write_paths[0]
++        for value in runner.responses:
++            call = value["choices"][0]["message"]["tool_calls"][0]
++            call["function"]["arguments"] = json.dumps({**json.loads(call["function"]["arguments"]), "path": path})
++    for _ in range(8):
++        run_round(model, tool)
++    before = snapshot(values)
++    assert before["coding"]["available_source_bytes"] == 1024
++    assert before["coding"]["delivered_source_bytes"] == 896
++    assert runner.prompts[6]["implementation_progress"]["coding"]["correction_issued"]
++    if critical_last:
++        assert all("return False" not in json.dumps(p) for p in runner.prompts)
++        with db.session() as session:
++            j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++            last = j.wb.read(next(e.payload["artifact_id"] for e in reversed(j.events()) if e.kind == "agent_v2_tool_result"))
++            assert "return False" in last["data"]["text"]
++            from app.agent_v2.contracts import ToolCall
++            from app.agent_v2.tools import RestrictedToolRegistry
++            candidate = ToolCall(call_id="planned-ninth-patch", name="apply_patch", arguments={"path": path,
++                "expected_hash": last["data"]["content_hash"], "old_text": "return False", "new_text": "return True"})
++            RestrictedToolRegistry().validate(candidate, j.spec())
++            assert candidate.arguments["expected_hash"] == hashlib.sha256(gateway.text.encode()).hexdigest()
++            assert gateway.text.count(candidate.arguments["old_text"]) == 1
++            from tests.test_agent_native_tools import response
++            runner.responses.append(response("apply_patch", candidate.arguments))
++    assert asyncio.run(model.run_once()).state == "succeeded"  # Platform stop, no model invocation.
++    after = snapshot(values)
++    assert after["state"] == "blocked" and after["blocker"] == "agent_coding_stalled"
++    assert after["usage"] == before["usage"] and len(runner.prompts) == 8
++    assert after["remaining"]["model_calls"] == 16
++    if critical_last:
++        assert len(runner.responses) == 1  # Valid scripted patch never dispatched.
++    export("critical_eighth_page" if critical_last else "continuous_new_pages", {"before_stop": before, "after_stop": after})
++
++
++@pytest.mark.parametrize("responded", [False, True])
++def test_unknown_model_dispatch_after_worker_loss_remains_blocked_and_charged(tmp_path, responded):
++    from app.jobs import JobService
++    values = setup(tmp_path, {})
++    db, settings, task, sid, model, tool, runner, _ = values
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        jobs = JobService(session)
++        job = jobs.lease_next(worker_id="lost-model", kinds=("agent_v2_model",))
++        jobs.start(job.id, worker_id="lost-model")
++        from app.agent_v2.loop import prompt_for
++        prompt = prompt_for(j)
++        j.append("model_started", {"prompt_artifact": j.wb.artifact(prompt)}, key="lost-native-start", job_id=job.id)
++        cp = j.checkpoint()
++        usage = j.charge(cp, {"model_calls": 1, "input_tokens": 1000, "output_tokens": 4096})
++        j.transition(cp, state="model", usage=usage, key="lost-native-charge", job_id=job.id)
++        if responded:
++            from app.agent_v2.model_receipts import response_evidence
++            from app.provenance import content_hash
++            from tests.test_agent_native_tools import response
++            binding = content_hash(j.spec().binding.model_dump())
++            raw = response_evidence(response("list_paths", {}), request_id=job.id, binding_hash=binding)
++            j.append("model_response", {"artifact_id": j.wb.artifact(raw), "prompt_artifact": content_hash(prompt),
++                "binding_hash": binding}, key="lost-native-reply", job_id=job.id)
++        jobs.fail(job.id, worker_id="lost-model", error_code="worker_lost", error_message="lost", commit=False)
++        session.commit()
++    # A fresh Journal is the same recovery path used by a restarted worker.
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, settings.artifact_root), task, sid)
++        assert schedule(j) is None
++        assert j.checkpoint().state == "blocked" and j.checkpoint().usage == usage
++        session.commit()
++    assert asyncio.run(model.run_once()) is None and asyncio.run(tool.run_once()) is None
++    assert runner.prompts == []
++    export("unknown_dispatch_with_response" if responded else "unknown_dispatch", snapshot(values))
+diff --git a/tests/test_coding_stop_boundaries_oci.py b/tests/test_coding_stop_boundaries_oci.py
+new file mode 100644
+index 0000000..b40ba80
+--- /dev/null
++++ b/tests/test_coding_stop_boundaries_oci.py
+@@ -0,0 +1,102 @@
++"""Real offline OCI operations with synthetic authority and scripted decisions."""
++import asyncio
++from dataclasses import replace
++import hashlib
++import io
++import os
++import tarfile
++
++import pytest
++
++from app.agent_v2.journal import AgentJournal
++from app.agent_v2.loop import AgentToolWorker
++from app.agent_v2.native_tools import FINISH
++from app.agent_v2.coding_context import observe
++from app.plans import PlanCommand
++from app.sandbox_worker.agent_tools import DockerAgentToolGateway
++from app.workbench import Workbench
++from tests.test_agent_native_tools import response
++from tests.test_coding_stop_boundaries import snapshot, export
++from tests.test_native_protocol_repairs import fixture
++from tests.test_native_read_progress import run_round
++
++pytestmark = pytest.mark.skipif(os.getenv("CONTRIBOS_RUN_DOCKER_ACCEPTANCE") != "1",
++    reason="Requires fixed local OCI image; never real model success")
++
++
++def real_session(tmp_path, monkeypatch):
++    import tests.test_workbench as workbench
++    import tests.test_execution_pipeline as pipeline
++    original_settings, original_plan = workbench.Settings, workbench._plan_content
++    def settings(*args, **kwargs):
++        return original_settings(*args, **{**kwargs, "workbench_runner_image": os.environ["CONTRIBOS_SANDBOX_RUNNER_IMAGE"]})
++    def plan(*args, **kwargs):
++        return replace(original_plan(*args, **kwargs), commands_to_run=(PlanCommand(command_id="unit",
++            purpose="offline fixture contract", argv=("python3", "-m", "unittest", "discover", "-s", "tests")),))
++    monkeypatch.setattr(workbench, "Settings", settings)
++    monkeypatch.setattr(workbench, "_plan_content", plan)
++    source = "def preserved_api():\n    return True\n" + "# offline source evidence\n" * 150
++    stream = io.BytesIO()
++    with tarfile.open(fileobj=stream, mode="w:gz") as archive:
++        for path, text in {"app/__init__.py": "", "app/plans.py": source,
++            "app/planning.py": "# inspection fixture\n",
++            "tests/test_planning.py": "import unittest\nfrom app.plans import preserved_api\nclass Contract(unittest.TestCase):\n    def test_contract(self): self.assertTrue(preserved_api())\n"}.items():
++            member = tarfile.TarInfo("fixture-" + pipeline.BASE_SHA + "/" + path)
++            member.size, member.mode = len(text.encode()), 0o644
++            archive.addfile(member, io.BytesIO(text.encode()))
++    monkeypatch.setattr(pipeline, "ARCHIVE_BYTES", stream.getvalue())
++    values = list(fixture(tmp_path))
++    db, config, task, sid = values[:4]
++    environment = {k: os.environ[k] for k in ("HOME", "PATH", "TMPDIR", "DOCKER_CONTEXT", "DOCKER_HOST") if k in os.environ}
++    gateway = DockerAgentToolGateway(artifact_root=config.artifact_root, docker_environment=environment,
++        repository_for_attempt=lambda _: "fixture/fixture")
++    values[5] = AgentToolWorker(db, config, gateway, worker_id="real-offline-boundary")
++    values[7] = gateway
++    return values, source
++
++
++@pytest.mark.parametrize("rejected", [False, True])
++def test_real_oci_sixth_patch_resets_guard_but_rejected_eighth_patch_does_not(tmp_path, monkeypatch, rejected):
++    values, source = real_session(tmp_path, monkeypatch)
++    db, config, task, sid, model, tool, runner, _ = values
++    reads = 7 if rejected else 5
++    runner.responses.extend(response("read_file", {"path": "app/plans.py", "offset": 128 * i, "max_bytes": 128}) for i in range(reads))
++    runner.responses.append(response("apply_patch", {"path": "app/plans.py",
++        "expected_hash": "0" * 64 if rejected else hashlib.sha256(source.encode()).hexdigest(),
++        "old_text": "return True", "new_text": "return True  # exact offline edit"}))
++    for _ in range(reads + 1):
++        run_round(model, tool)
++    result = snapshot(values)
++    with db.session() as session:
++        j = AgentJournal(Workbench(session, config.artifact_root), task, sid)
++        latest = j.wb.read(next(e.payload["artifact_id"] for e in reversed(j.events()) if e.kind == "agent_v2_tool_result"))
++        assert latest["data"].get("execution_backend") == "docker"
++        if rejected:
++            assert latest["status"] == "rejected" and latest["failure"]["safe_reason_code"] == "patch_hash_conflict"
++            assert latest["source_hash"] == latest["output_source_hash"] and j.checkpoint().snapshot_artifact is None
++            assert result["coding"]["first_patch_round"] is None
++        else:
++            assert latest["status"] == "succeeded" and latest["source_hash"] != latest["output_source_hash"]
++            assert j.wb.read(j.checkpoint().snapshot_artifact)["files"]["app/plans.py"]["content"] == source.replace("return True", "return True  # exact offline edit")
++            assert result["coding"]["first_patch_round"] == 6
++            assert result["coding"]["rounds_without_applied_patch"] == 0 and not result["coding"]["stop_required"]
++    if rejected:
++        assert asyncio.run(model.run_once()).state == "succeeded"
++        stopped = snapshot(values)
++        assert stopped["state"] == "blocked" and stopped["blocker"] == "agent_coding_stalled"
++        assert stopped["usage"]["model_calls"] == 8 and stopped["usage"]["writes"] == 1
++        assert len(runner.prompts) == 8
++        export("oci_rejected_patch", {"before_stop": result, "after_stop": stopped, "actual_OCI": True})
++    else:
++        runner.responses.extend([response("run_approved_checks", {}), response(FINISH, {"reply": "request independent review"})])
++        run_round(model, tool)
++        assert snapshot(values)["coding"]["next_action"] == "request_finish_for_independent_review"
++        assert asyncio.run(model.run_once()).state == "succeeded"
++        finished = snapshot(values)
++        assert finished["state"] == "finished" and len(runner.prompts) == 8
++        with db.session() as session:
++            j = AgentJournal(Workbench(session, config.artifact_root), task, sid)
++            check = j.wb.read(next(e.payload["artifact_id"] for e in reversed(j.events()) if e.kind == "agent_v2_tool_result"))
++            assert check["data"]["outcome"] == "passed" and check["output_source_hash"] == j.checkpoint().source_hash
++        export("oci_sixth_patch_verify_review_gate", {"after_patch": result, "after_finish": finished,
++            "actual_OCI": True, "independent_model_review": "not_run_separate_deterministic_gate_regressions"})
+diff --git a/tests/test_coding_working_set_boundaries.py b/tests/test_coding_working_set_boundaries.py
+new file mode 100644
+index 0000000..ef3f9e0
+--- /dev/null
++++ b/tests/test_coding_working_set_boundaries.py
+@@ -0,0 +1,117 @@
++"""Projection stress cases; no model, job, approval or target repository execution."""
++from hashlib import sha256
++from types import SimpleNamespace
++
++import pytest
++
++from app.agent_v2.coding_context import observe
++from app.agent_v2.contracts import ToolCall, ToolResult
++from app.agent_v2.model_receipts import response_evidence
++from app.agent_v2.native_tools import native_input_bound, native_model_transport, project_native_prompt
++from app.agent_v2.tools import RestrictedToolRegistry, artifact_page
++from app.provenance import canonical_json, content_hash
++from tests.test_agent_native_tools import response
++from tests.test_agent_v2_tools import tool_spec
++from tests.test_coding_stop_boundaries import export
++
++
++def projection_fixture(latest="extension"):
++    older = "web" if latest == "extension" else "extension"
++    paths = [f"{module}/file{i}.ts" for module in (older, latest) for i in range(4)]
++    spec = tool_spec().model_copy(update={"write_paths": paths, "model_transport": native_model_transport()})
++    objects, raw, events = {}, {}, []
++    def save(value):
++        aid = content_hash(value); objects[aid] = value; raw[aid] = canonical_json(value).encode(); return aid
++    def receipt(tool, data):
++        value = ToolResult(call_id="call-" + str(len(events)), input_hash="a" * 64, status="succeeded",
++            source_hash=spec.binding.archive_hash, output_source_hash=spec.binding.archive_hash,
++            data={"tool": tool, **data}).model_dump()
++        aid = save(value)
++        events.append(SimpleNamespace(kind="agent_v2_tool_result", sequence=len(events) + 1,
++            actor_id="orchestrator", job_id="tool-" + str(len(events)), payload={"name": tool, "artifact_id": aid}))
++        return {**value, "receipt_artifact": aid}
++    originals = []
++    for path in paths:
++        body = ("// " + path + " exact observed source\n") * 300
++        page = body.encode()[:4096].decode()
++        page_id = sha256(page.encode()).hexdigest(); raw[page_id] = page.encode()
++        originals.append(receipt("read_file", {"execution_backend": "docker", "path": path, "text": page,
++            "content_hash": sha256(body.encode()).hexdigest(), "source_page_artifact": page_id,
++            "offset": 0, "next_offset": len(page.encode()), "total_bytes": len(body.encode())}))
++    task = {"binding_hash": content_hash(spec.binding.model_dump()), "approved_plan": {
++        "goal": spec.goal, "acceptance_criteria": ["Preserve both modules and exact provenance"],
++        "implementation_steps": ["Inspect exact code and implement within scope"]}, "issue": {"title": "Fixture"}}
++    task_id = save(task)
++    j = SimpleNamespace(events=lambda: events, spec=lambda: spec,
++        checkpoint=lambda: SimpleNamespace(source_hash=spec.binding.archive_hash),
++        wb=SimpleNamespace(read=lambda aid: objects[aid], artifacts=SimpleNamespace(read_bytes=lambda aid: raw[aid])))
++    def render(feedback):
++        coding, pages = observe(j)
++        index = [{"tool": objects[e.payload["artifact_id"]]["data"]["tool"],
++            "path": objects[e.payload["artifact_id"]]["data"].get("path"), "artifact_id": e.payload["artifact_id"]}
++            for e in events if e.kind == "agent_v2_tool_result"]
++        frame = {"binding": spec.binding.model_dump(), "goal": spec.goal, "write_paths": paths,
++            "approved_checks": spec.commands, "history_index": index, "feedback": feedback,
++            "implementation_progress": {"coding": coding}, "task_context_artifact": task_id,
++            "approved_task_input": {"partial": True, "artifact_id": task_id}}
++        result = project_native_prompt(frame, spec, task_input=task, source_pages=pages,
++            history_artifact=save({"rows": index}))
++        assert native_input_bound(result) <= 32000
++        ordinal = len(events)
++        job = "model-" + str(ordinal); prompt_id = save(result)
++        events.append(SimpleNamespace(kind="agent_v2_model_started", sequence=ordinal + 1,
++            actor_id="orchestrator", job_id=job, payload={"prompt_artifact": prompt_id}))
++        reply = response_evidence(response("list_paths", {}), request_id=job,
++            binding_hash=content_hash(spec.binding.model_dump()))
++        events.append(SimpleNamespace(kind="agent_v2_model_response", sequence=ordinal + 2,
++            actor_id="orchestrator", job_id=job, payload={"artifact_id": save(reply),
++                "prompt_artifact": prompt_id, "binding_hash": reply["binding_hash"]}))
++        return result
++    return j, originals, render, receipt, raw
++
++
++@pytest.mark.parametrize("latest", ["extension", "web"])
++def test_recency_can_persistently_exclude_the_other_authorized_module(latest):
++    journal, originals, render, _, _ = projection_fixture(latest)
++    frames = [render(originals) for _ in range(4)]
++    assert all({p["path"].split("/")[0] for p in f["source_working_set"]} == {latest} for f in frames)
++    metrics = observe(journal)[0]
++    older = "web" if latest == "extension" else "extension"
++    assert all(row["delivered"] == [] for row in metrics["source_index"] if row["path"].startswith(older + "/"))
++    export("selection_latest_" + latest, {"latest_read_module": latest,
++        "selected_paths_per_frame": [[p["path"] for p in f["source_working_set"]] for f in frames],
++        "module_fairness_guaranteed": False, "coding": metrics})
++
++
++def test_excluded_module_receipt_and_raw_source_pages_are_recoverable():
++    journal, originals, render, receipt, raw = projection_fixture()
++    frame = render(originals)
++    missing = originals[0]
++    assert missing["data"]["path"].startswith("web/")
++    assert missing["receipt_artifact"] in {r["artifact_id"] for r in frame["history_index"]}
++    metadata = receipt("read_artifact", {"artifact_id": missing["receipt_artifact"],
++        **artifact_page(raw[missing["receipt_artifact"]], 0, 16000)})
++    recovered_metadata = render([metadata])
++    page_id = missing["data"]["source_page_artifact"]
++    assert page_id in recovered_metadata["feedback"][0]["data"]["text"]
++    full_page = raw[page_id]
++    calls = [receipt("read_artifact", {"artifact_id": page_id,
++        **artifact_page(full_page, start, 1024)}) for start in range(0, len(full_page), 1024)]
++    recovered = render(calls)
++    pieces = [row["data"] for row in recovered["feedback"]]
++    assert len(pieces) == 4 and b"".join(p["text"].encode() for p in pieces) == full_page
++    assert [p["offset"] for p in pieces] == [0, 1024, 2048, 3072]
++    assert pieces[-1]["next_offset"] is None and sha256(full_page).hexdigest() == page_id
++    assert observe(journal)[0]["source_index"][4]["path"] == "web/file0.ts"
++    web = next(r for r in observe(journal)[0]["source_index"] if r["path"] == "web/file0.ts")
++    assert web["delivered"] == [[0, 4096]]
++    # A complete raw page is still not the complete file. Its remaining bytes
++    # require an ordinary budgeted source read, never fabricated content.
++    args = RestrictedToolRegistry().validate(ToolCall(call_id="tail", name="read_file", arguments={
++        "path": missing["data"]["path"], "offset": missing["data"]["next_offset"],
++        "expected_hash": missing["data"]["content_hash"]}), journal.spec())
++    assert args.offset == 4096 and missing["data"]["total_bytes"] > args.offset
++    export("module_page_recovery", {"path": missing["data"]["path"], "recovered_raw_page_bytes": 4096,
++        "full_file_recovered": False, "next_source_offset": args.offset,
++        "selected_paths_still_recent_module": [p["path"] for p in recovered["source_working_set"]],
++        "input_bound": native_input_bound(recovered), "coding": observe(journal)[0]})
