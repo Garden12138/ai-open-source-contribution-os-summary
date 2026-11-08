@@ -1,0 +1,66 @@
+{
+  "local": {
+    "git_HEAD": "0e6d43f8c6d32034d5af5fc2407c08c3d5d430bb",
+    "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+    "production_files": 255,
+    "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+    "native_transport": {
+      "version": "agent-native-tools-v1",
+      "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+    },
+    "native_transport_hash": "b661a6b2bc3b7c5e6bd83a307024e26e529f82625bd9aba263c95cb2b48d9174",
+    "prompt_version": "native-coding-loop-recovery-v11",
+    "policy": {
+      "version": "coding-loop-recovery-v1.1",
+      "correction_after_unpatched_rounds": 6,
+      "stop_after_unpatched_rounds": 8,
+      "delivery": "committed_response_and_exact_source_bytes",
+      "projection": "exact_task_brief_and_source_working_set",
+      "working_set_max_files": 4,
+      "source_page_limits": [
+        4096,
+        2048,
+        1024,
+        768,
+        512,
+        256,
+        128
+      ],
+      "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+      "selection": "related_module_least_served_round_robin_unseen_ranges",
+      "module": "directory_after_common_related_parent"
+    },
+    "limits_unchanged": {
+      "model_calls": 24,
+      "reads": 64,
+      "writes": 24,
+      "checks": 6,
+      "protocol_repairs": 2,
+      "provider_retries": 2,
+      "code_repairs": 2,
+      "input_tokens": 200000,
+      "output_tokens": 32000,
+      "output_bytes": 500000,
+      "seconds": 1800
+    },
+    "source_and_test_blobs_equal_reviewed_commit": true,
+    "complete_diff_matches": true,
+    "source_uncommitted_changes": false
+  },
+  "old_source_hash": "31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95",
+  "old_images": {
+    "app": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a",
+    "worker": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+  },
+  "plans_and_all_45_tables_11_checkpoints_unchanged": true,
+  "artifacts_verified": 1802,
+  "active_jobs": 0,
+  "migration_files_unchanged": true,
+  "expected_migrations": 0,
+  "role_security_networks_volumes_verified": true,
+  "rollback_smoke_passed": true,
+  "runner_unchanged": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "new_paid_calls": 0,
+  "ready_for_controlled_local_deployment": true,
+  "report_hash": "7313809779342a90b652cb4e3af12b53e6e190f97cd813564c0037f6b5f0e8c9"
+}

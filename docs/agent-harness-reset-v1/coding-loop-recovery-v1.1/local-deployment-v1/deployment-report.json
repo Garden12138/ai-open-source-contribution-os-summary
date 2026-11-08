@@ -1,0 +1,249 @@
+{
+  "recorded_at": "2026-11-08T02:38:33.949901+00:00",
+  "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "new_images": {
+    "app": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+    "worker": "sha256:1c82d9a6e0a0143d13a1ba3ab2728cec19472130f28a346172c87daacbbe9476"
+  },
+  "old_images": {
+    "app": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a",
+    "worker": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+  },
+  "roles": {
+    "serve": {
+      "container": {
+        "id": "9851c12d626737a11813eae526bffc3e156ffd56129cb141bbe47e1e4cbebe52",
+        "name": "coding-v11-api-627a3689ca66"
+      },
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_files": 255,
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "runtime": {
+        "pid1_alive": true,
+        "runtime_imports": "passed",
+        "policy": {
+          "version": "coding-loop-recovery-v1.1",
+          "correction_after_unpatched_rounds": 6,
+          "stop_after_unpatched_rounds": 8,
+          "delivery": "committed_response_and_exact_source_bytes",
+          "projection": "exact_task_brief_and_source_working_set",
+          "working_set_max_files": 4,
+          "source_page_limits": [
+            4096,
+            2048,
+            1024,
+            768,
+            512,
+            256,
+            128
+          ],
+          "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+          "selection": "related_module_least_served_round_robin_unseen_ranges",
+          "module": "directory_after_common_related_parent"
+        },
+        "transport": {
+          "version": "agent-native-tools-v1",
+          "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+        },
+        "prompt_version": "native-coding-loop-recovery-v11"
+      },
+      "HTTP_health": {
+        "status": "ok",
+        "database": "ok"
+      },
+      "docker_healthcheck_configured": false,
+      "health_basis": "HTTP and runtime/process",
+      "environment_security_limits_network_mounts_unchanged": true
+    },
+    "worker": {
+      "container": {
+        "id": "477c3f29cb36fe8ce39f2bda9c2049c022ec81bf08e8c8549a2d251993295177",
+        "name": "coding-v11-worker-627a3689ca66"
+      },
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_files": 255,
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "runtime": {
+        "pid1_alive": true,
+        "runtime_imports": "passed",
+        "policy": {
+          "version": "coding-loop-recovery-v1.1",
+          "correction_after_unpatched_rounds": 6,
+          "stop_after_unpatched_rounds": 8,
+          "delivery": "committed_response_and_exact_source_bytes",
+          "projection": "exact_task_brief_and_source_working_set",
+          "working_set_max_files": 4,
+          "source_page_limits": [
+            4096,
+            2048,
+            1024,
+            768,
+            512,
+            256,
+            128
+          ],
+          "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+          "selection": "related_module_least_served_round_robin_unseen_ranges",
+          "module": "directory_after_common_related_parent"
+        },
+        "transport": {
+          "version": "agent-native-tools-v1",
+          "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+        },
+        "prompt_version": "native-coding-loop-recovery-v11"
+      },
+      "HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "health_basis": "PID1 and runtime/import checks; no Docker HTTP healthcheck configured",
+      "environment_security_limits_network_mounts_unchanged": true
+    },
+    "sandbox-worker": {
+      "container": {
+        "id": "55af7740964733f71fdf2bbc0cf6573dab09d1d4330b2a09120073bbbe8843cb",
+        "name": "coding-v11-sandbox-worker-627a3689ca66"
+      },
+      "image": "sha256:1c82d9a6e0a0143d13a1ba3ab2728cec19472130f28a346172c87daacbbe9476",
+      "source_files": 255,
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "runtime": {
+        "pid1_alive": true,
+        "runtime_imports": "passed",
+        "policy": {
+          "version": "coding-loop-recovery-v1.1",
+          "correction_after_unpatched_rounds": 6,
+          "stop_after_unpatched_rounds": 8,
+          "delivery": "committed_response_and_exact_source_bytes",
+          "projection": "exact_task_brief_and_source_working_set",
+          "working_set_max_files": 4,
+          "source_page_limits": [
+            4096,
+            2048,
+            1024,
+            768,
+            512,
+            256,
+            128
+          ],
+          "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+          "selection": "related_module_least_served_round_robin_unseen_ranges",
+          "module": "directory_after_common_related_parent"
+        },
+        "transport": {
+          "version": "agent-native-tools-v1",
+          "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+        },
+        "prompt_version": "native-coding-loop-recovery-v11"
+      },
+      "HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "health_basis": "PID1 and runtime/import checks; no Docker HTTP healthcheck configured",
+      "environment_security_limits_network_mounts_unchanged": true
+    },
+    "provider-worker": {
+      "container": {
+        "id": "10e3bd923e0896bb95a41ac5d8228c20af8f311c673af8b5d0ecb4497dcf7296",
+        "name": "coding-v11-provider-worker-627a3689ca66"
+      },
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_files": 255,
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "runtime": {
+        "pid1_alive": true,
+        "runtime_imports": "passed",
+        "policy": {
+          "version": "coding-loop-recovery-v1.1",
+          "correction_after_unpatched_rounds": 6,
+          "stop_after_unpatched_rounds": 8,
+          "delivery": "committed_response_and_exact_source_bytes",
+          "projection": "exact_task_brief_and_source_working_set",
+          "working_set_max_files": 4,
+          "source_page_limits": [
+            4096,
+            2048,
+            1024,
+            768,
+            512,
+            256,
+            128
+          ],
+          "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+          "selection": "related_module_least_served_round_robin_unseen_ranges",
+          "module": "directory_after_common_related_parent"
+        },
+        "transport": {
+          "version": "agent-native-tools-v1",
+          "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+        },
+        "prompt_version": "native-coding-loop-recovery-v11"
+      },
+      "HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "health_basis": "PID1 and runtime/import checks; no Docker HTTP healthcheck configured",
+      "environment_security_limits_network_mounts_unchanged": true
+    },
+    "publisher": {
+      "container": {
+        "id": "8e05a5850d5d6ab9a96de8fc17cf34f597ecc0ebc64f67b2b567412fa9f88ab3",
+        "name": "coding-v11-publisher-627a3689ca66"
+      },
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_files": 255,
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "runtime": {
+        "pid1_alive": true,
+        "runtime_imports": "passed",
+        "policy": {
+          "version": "coding-loop-recovery-v1.1",
+          "correction_after_unpatched_rounds": 6,
+          "stop_after_unpatched_rounds": 8,
+          "delivery": "committed_response_and_exact_source_bytes",
+          "projection": "exact_task_brief_and_source_working_set",
+          "working_set_max_files": 4,
+          "source_page_limits": [
+            4096,
+            2048,
+            1024,
+            768,
+            512,
+            256,
+            128
+          ],
+          "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+          "selection": "related_module_least_served_round_robin_unseen_ranges",
+          "module": "directory_after_common_related_parent"
+        },
+        "transport": {
+          "version": "agent-native-tools-v1",
+          "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+        },
+        "prompt_version": "native-coding-loop-recovery-v11"
+      },
+      "HTTP_health": {
+        "status": "ok"
+      },
+      "docker_healthcheck_configured": false,
+      "health_basis": "HTTP and runtime/process",
+      "environment_security_limits_network_mounts_unchanged": true
+    }
+  },
+  "old_roles_preserved_stopped": {
+    "serve": "5530016ccb6dadc81e5bcecf1517878c2dccdcebe521881af9528ae612bd15f7",
+    "worker": "f3a8a992f0c8d69c637e4a9976918ce5459059d8c7891093dc5580f6b2cff5bc",
+    "sandbox-worker": "52f530609caa168dbddf4a2863e3bade7060117e2da9d4e60a81766a93102c98",
+    "provider-worker": "4a2b2ed04129d3f650b9e3ce82fd6e99525ce924ba13f2d7513484e32ab9502c",
+    "publisher": "fda961e37e0221859f2c21f24813ddb05c5fabe12d427e09b646e7eb3ddc713d"
+  },
+  "old_state_record_retained": "/tmp/upeve-isolated-20261029-v2/container-roles.before-coding-v11-627a3689ca66.json",
+  "business_volume": "upeve-isolated-business-20261103",
+  "publisher_private_volume": "upeve-isolated-publisher-private-20261103",
+  "persistent_volumes_unchanged": true,
+  "migration_count": 0,
+  "all_45_tables_11_checkpoints_and_1802_artifacts_unchanged": true,
+  "new_active_jobs": 0,
+  "new_model_calls": 0,
+  "new_plans_approvals_or_budget_changes": 0,
+  "host_Gateway_and_read_proxy_not_restarted": true,
+  "automatic_DB_restore": false,
+  "report_hash": "da84c67e6361c62f70cf0def8b5e5fe36e34bcc305ee825b62574357b2f62dcc"
+}

@@ -1,0 +1,177 @@
+{
+  "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "roles": {
+    "serve": {
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "source_files": 255,
+      "process_and_runtime_imports": "passed",
+      "configured_HTTP_health": {
+        "status": "ok",
+        "database": "ok"
+      },
+      "docker_healthcheck_configured": false,
+      "container_running": true,
+      "restarting": false,
+      "security_limits_networks_environment_mounts_unchanged": true,
+      "logs_scanned_in_memory_only": true,
+      "credential_matches": 0,
+      "runtime_errors": 0,
+      "log_digest": "94d8dd6dee70878a7d086e5796c547764c44672a4b59e96734ad95ca75cb3a57",
+      "old_container_preserved_stopped": true,
+      "old_image_available": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a"
+    },
+    "worker": {
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "source_files": 255,
+      "process_and_runtime_imports": "passed",
+      "configured_HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "container_running": true,
+      "restarting": false,
+      "security_limits_networks_environment_mounts_unchanged": true,
+      "logs_scanned_in_memory_only": true,
+      "credential_matches": 0,
+      "runtime_errors": 0,
+      "log_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "old_container_preserved_stopped": true,
+      "old_image_available": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a"
+    },
+    "sandbox-worker": {
+      "image": "sha256:1c82d9a6e0a0143d13a1ba3ab2728cec19472130f28a346172c87daacbbe9476",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "source_files": 255,
+      "process_and_runtime_imports": "passed",
+      "configured_HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "container_running": true,
+      "restarting": false,
+      "security_limits_networks_environment_mounts_unchanged": true,
+      "logs_scanned_in_memory_only": true,
+      "credential_matches": 0,
+      "runtime_errors": 0,
+      "log_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "old_container_preserved_stopped": true,
+      "old_image_available": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+    },
+    "provider-worker": {
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "source_files": 255,
+      "process_and_runtime_imports": "passed",
+      "configured_HTTP_health": null,
+      "docker_healthcheck_configured": false,
+      "container_running": true,
+      "restarting": false,
+      "security_limits_networks_environment_mounts_unchanged": true,
+      "logs_scanned_in_memory_only": true,
+      "credential_matches": 0,
+      "runtime_errors": 0,
+      "log_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "old_container_preserved_stopped": true,
+      "old_image_available": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a"
+    },
+    "publisher": {
+      "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "source_files": 255,
+      "process_and_runtime_imports": "passed",
+      "configured_HTTP_health": {
+        "status": "ok"
+      },
+      "docker_healthcheck_configured": false,
+      "container_running": true,
+      "restarting": false,
+      "security_limits_networks_environment_mounts_unchanged": true,
+      "logs_scanned_in_memory_only": true,
+      "credential_matches": 0,
+      "runtime_errors": 0,
+      "log_digest": "297600584fed0631837e8e0cc798f4204661cbee3c1911a8ca157a5666ec13a0",
+      "old_container_preserved_stopped": true,
+      "old_image_available": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a"
+    }
+  },
+  "native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+  },
+  "native_transport_hash": "b661a6b2bc3b7c5e6bd83a307024e26e529f82625bd9aba263c95cb2b48d9174",
+  "prompt_version": "native-coding-loop-recovery-v11",
+  "policy": {
+    "version": "coding-loop-recovery-v1.1",
+    "correction_after_unpatched_rounds": 6,
+    "stop_after_unpatched_rounds": 8,
+    "delivery": "committed_response_and_exact_source_bytes",
+    "projection": "exact_task_brief_and_source_working_set",
+    "working_set_max_files": 4,
+    "source_page_limits": [
+      4096,
+      2048,
+      1024,
+      768,
+      512,
+      256,
+      128
+    ],
+    "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+    "selection": "related_module_least_served_round_robin_unseen_ranges",
+    "module": "directory_after_common_related_parent"
+  },
+  "limits_unchanged": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "runner_unchanged": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 106,
+    "execution_authorizations": 13,
+    "plan_approvals": 13,
+    "task_events": 2551,
+    "artifacts": 1802
+  },
+  "all_business_rows_approvals_fees_budgets_unknown_holds_unchanged": true,
+  "audit_chain_and_all_Artifact_hashes_valid": true,
+  "migrations": 0,
+  "other_host_services_not_restarted": {
+    "host_model_gateway": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "host_read_proxy": {
+      "status": "ok"
+    }
+  },
+  "live_model_identities": {
+    "implementation": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    },
+    "review": {
+      "provider": "deepseek",
+      "adapter_version": "studio-deepseek-thinking-v1",
+      "model": "deepseek-v4-pro",
+      "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+    }
+  },
+  "paid_provider_calls": 0,
+  "Plan16": false,
+  "old_Plans_resumed": false,
+  "new_approvals_or_business_jobs": 0,
+  "cross_platform_Linux_amd64": "NOT_RUN",
+  "report_hash": "de8f357208408cd0fc6f4921c210efaa0725351cba86218550d4970114602398"
+}

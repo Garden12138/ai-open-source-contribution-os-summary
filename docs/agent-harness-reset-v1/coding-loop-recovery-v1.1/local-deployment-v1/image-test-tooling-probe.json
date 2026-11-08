@@ -1,0 +1,10 @@
+{
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "classification": "test_tooling_bootstrap_not_application_failure",
+  "first_probe_executed_test_cases": 0,
+  "reason": "pytest top-level py.py shim was not included in cached test-tool export",
+  "correction": "copy the same cached pytest distribution shim; no installation or production-image change",
+  "paid_model_calls": 0,
+  "production_data_access": false,
+  "report_hash": "67f455edf02502b08449dad9fac839b6b365aa8a0cc34b35f8b33608777ae739"
+}

@@ -1,0 +1,79 @@
+{
+  "version": "coding-v11-deploy-git-query-only-verification",
+  "read_only": true,
+  "roles": {
+    "serve": {
+      "container_id": "9851c12d626737a11813eae526bffc3e156ffd56129cb141bbe47e1e4cbebe52",
+      "image_digest": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "image_digest_kind": "local Docker immutable configuration digest",
+      "production_files": 255,
+      "production_source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "all_source_file_hashes_equal_reviewed_manifest": true,
+      "running": true,
+      "security_network_limits_environment_mounts_unchanged": true,
+      "old_container_preserved_stopped": true
+    },
+    "worker": {
+      "container_id": "477c3f29cb36fe8ce39f2bda9c2049c022ec81bf08e8c8549a2d251993295177",
+      "image_digest": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "image_digest_kind": "local Docker immutable configuration digest",
+      "production_files": 255,
+      "production_source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "all_source_file_hashes_equal_reviewed_manifest": true,
+      "running": true,
+      "security_network_limits_environment_mounts_unchanged": true,
+      "old_container_preserved_stopped": true
+    },
+    "sandbox-worker": {
+      "container_id": "55af7740964733f71fdf2bbc0cf6573dab09d1d4330b2a09120073bbbe8843cb",
+      "image_digest": "sha256:1c82d9a6e0a0143d13a1ba3ab2728cec19472130f28a346172c87daacbbe9476",
+      "image_digest_kind": "local Docker immutable configuration digest",
+      "production_files": 255,
+      "production_source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "all_source_file_hashes_equal_reviewed_manifest": true,
+      "running": true,
+      "security_network_limits_environment_mounts_unchanged": true,
+      "old_container_preserved_stopped": true
+    },
+    "provider-worker": {
+      "container_id": "10e3bd923e0896bb95a41ac5d8228c20af8f311c673af8b5d0ecb4497dcf7296",
+      "image_digest": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "image_digest_kind": "local Docker immutable configuration digest",
+      "production_files": 255,
+      "production_source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "all_source_file_hashes_equal_reviewed_manifest": true,
+      "running": true,
+      "security_network_limits_environment_mounts_unchanged": true,
+      "old_container_preserved_stopped": true
+    },
+    "publisher": {
+      "container_id": "8e05a5850d5d6ab9a96de8fc17cf34f597ecc0ebc64f67b2b567412fa9f88ab3",
+      "image_digest": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+      "image_digest_kind": "local Docker immutable configuration digest",
+      "production_files": 255,
+      "production_source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+      "all_source_file_hashes_equal_reviewed_manifest": true,
+      "running": true,
+      "security_network_limits_environment_mounts_unchanged": true,
+      "old_container_preserved_stopped": true
+    }
+  },
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "runner_unchanged": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "business_snapshot_hash": "2a084eae3d0c3fb7ab52d88d51e98a40066efb949bf8b5b9ea15b713e4602d73",
+  "all_45_tables_11_checkpoints_1802_Artifacts_unchanged": true,
+  "Plan11_15_event_chains_terminal_approvals_fees_budgets_unknown_holds_unchanged": true,
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 106,
+    "execution_authorizations": 13,
+    "plan_approvals": 13,
+    "task_events": 2551,
+    "artifacts": 1802
+  },
+  "backup_readability_previously_tested": true,
+  "full_live_rollback_restore_executed": false,
+  "new_deployments_jobs_approvals_models_or_budget_changes": 0,
+  "report_hash": "91f1c97d3aa8e367f7054100d8dee481656ccbabd0d60f826518d186e87bff91"
+}

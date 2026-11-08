@@ -1,0 +1,32 @@
+{
+  "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "tracked_fixture_commit": "0e6d43f8c6d32034d5af5fc2407c08c3d5d430bb",
+  "pytest_tools_from_existing_local_cache": {
+    "pytest": "8.4.2",
+    "pluggy": "1.6.0",
+    "iniconfig": "2.3.0",
+    "packaging": "26.3",
+    "pygments": "2.21.0"
+  },
+  "production_image_or_dependencies_modified": false,
+  "network": "none",
+  "test_code_and_tools_read_only": true,
+  "writable_mount": "dedicated_empty_temporary_evidence_directory_only",
+  "production_volumes_credentials_Docker_socket_or_HOME_mounted": false,
+  "native_architecture": "arm64",
+  "python_runtime": "deployed image Python 3.11",
+  "exit_code": 1,
+  "paid_model_calls": 0,
+  "temporary_fixture_databases_only": true,
+  "group": "recovery",
+  "test_paths": [
+    "tests/test_native_read_batch_boundaries.py",
+    "tests/test_native_protocol_repairs.py",
+    "tests/test_harness_coding_journey.py",
+    "tests/test_agent_v2_loop.py",
+    "tests/test_execution_scheduling_recovery.py"
+  ],
+  "export_raw_sha256": "b326d9b275dbc6476da1c67c9e1ed7a473a26fc968b330bcec538eadea35f13c",
+  "report_hash": "9c4e51415537743bd9a62f1140ee3a43cb4e104c1d45e70f7234a74772829c4a"
+}

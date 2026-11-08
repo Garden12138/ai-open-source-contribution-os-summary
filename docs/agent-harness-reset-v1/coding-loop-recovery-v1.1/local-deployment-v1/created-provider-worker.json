@@ -1,0 +1,7 @@
+{
+  "role": "provider-worker",
+  "id": "10e3bd923e0896bb95a41ac5d8228c20af8f311c673af8b5d0ecb4497dcf7296",
+  "name": "coding-v11-provider-worker-627a3689ca66",
+  "image": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+  "report_hash": "2eff1d6f83975bb79e2c33be28df6c446be4ae618316f3cfdc6930494e697dcc"
+}

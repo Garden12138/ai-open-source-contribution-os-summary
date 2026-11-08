@@ -1,0 +1,69 @@
+{
+  "scope": "local_isolated_deployment_only",
+  "git_HEAD": "0e6d43f8c6d32034d5af5fc2407c08c3d5d430bb",
+  "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "production_files": 255,
+  "old_images": {
+    "app": "sha256:ba41b3d68e9281a7e5ce965a2d2780fd30b4f997f1ac6b2bc1ffed52b541313a",
+    "worker": "sha256:2b0e9e989c01562706169f2f5fe6e856f558c8b251ddc3c8926ca9371919f2d2"
+  },
+  "deployed_images": {
+    "app": "sha256:c9c07093cc6d8cd001c3fbd3d39a819580da5ab4e16b7c0990bfcd0f13d7917f",
+    "worker": "sha256:1c82d9a6e0a0143d13a1ba3ab2728cec19472130f28a346172c87daacbbe9476"
+  },
+  "runner_unchanged": "sha256:923d81e41243ce593159fc395de63b548f19cac29df678cf6650d4aa5e9b02e6",
+  "image_digest_kind": "local immutable image configuration digest; no registry publication",
+  "five_roles_health": "HTTP for serve/publisher; PID1 and runtime/module checks for all; Docker HEALTHCHECK not configured",
+  "native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+  },
+  "native_transport_hash": "b661a6b2bc3b7c5e6bd83a307024e26e529f82625bd9aba263c95cb2b48d9174",
+  "prompt_version": "native-coding-loop-recovery-v11",
+  "image_focus_passed": 50,
+  "image_recovery_passed": 53,
+  "real_OCI_passed": 28,
+  "OCI_pure_unit_passed": 2,
+  "saved_envelopes": 7,
+  "replay_Artifact_hashes_verified": 201,
+  "real_model_autonomous_Coding_success_proven": false,
+  "independent_Review": "deterministic_substitute_only",
+  "limits_unchanged": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "profile_reasoning_effort_unchanged": "high",
+  "native_output_per_call_unchanged": 4096,
+  "historical_45_tables_11_checkpoints_1802_Artifacts_unchanged": true,
+  "history_counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 106,
+    "execution_authorizations": 13,
+    "plan_approvals": 13,
+    "task_events": 2551,
+    "artifacts": 1802
+  },
+  "migrations": 0,
+  "persistent_volumes_retained": true,
+  "rollback_evidence": "old containers/images retained; protected backup tested by old image in network-none bounded tmpfs",
+  "initial_harness_probes": "recorded separately; SQLite memory deserialize/WAL and pytest fixture environment corrected without application or production policy changes",
+  "new_Provider_calls_Plans_approvals_jobs_or_budget_changes": 0,
+  "Push_PR_comments_or_external_publication": 0,
+  "Linux_amd64": "NOT_RUN_gate_open",
+  "local_deployment_acceptance": "GO_for_human_review",
+  "next_paid_execution": "NO_GO_new_freeze_binding_and_separate_exact_consent_required",
+  "automatic_next_stage": false,
+  "security_and_log_audit_report_hash": "de8f357208408cd0fc6f4921c210efaa0725351cba86218550d4970114602398",
+  "report_hash": "93ae87412c6a7189c9ac19db47f2a5caed3304feeb34cb38bb3098b5713fb344"
+}

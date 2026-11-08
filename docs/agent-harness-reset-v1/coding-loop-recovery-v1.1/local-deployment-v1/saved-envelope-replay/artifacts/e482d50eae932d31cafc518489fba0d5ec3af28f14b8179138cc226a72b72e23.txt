@@ -1,0 +1,100 @@
+/**
+ * Transcript parsing logic extracted from SessionWatcher.
+ *
+ * Parses JSONL transcript lines and emits AgentEvents via a delegate,
+ * keeping the parsing logic decoupled from file-watching concerns.
+ */
+
+import * as path from 'path'
+import {
+  AgentEvent, PendingToolCall, WatchedSession,
+  TranscriptEntry, ToolUseBlock, ToolResultBlock,
+  emitSubagentSpawn,
+} from './protocol'
+import { readFileChunk } from './fs-utils'
+import {
+  PREVIEW_MAX, ARGS_MAX, RESULT_MAX, MESSAGE_MAX,
+  SESSION_LABEL_MAX, SESSION_LABEL_TRUNCATED,
+  CHILD_NAME_MAX,
+  HASH_PREFIX_MAX,
+  ORCHESTRATOR_NAME,
+  FAILED_RESULT_MAX,
+  SYSTEM_CONTENT_PREFIXES,
+  generateSubagentFallbackName,
+  resolveSubagentChildName,
+} from './constants'
+import { summarizeInput, summarizeResult, extractInputData, detectError, buildDiscovery } from './tool-summarizer'
+import { estimateTokensFromContent, estimateTokensFromText } from './token-estimator'
+import { createLogger } from './logger'
+
+const log = createLogger('TranscriptParser')
+
+export interface TranscriptParserDelegate {
+  emit(event: AgentEvent, sessionId?: string): void
+  elapsed(sessionId?: string): number
+  getSession(sessionId: string): WatchedSession | undefined
+  fireSessionLifecycle(event: { type: 'started' | 'ended' | 'updated'; sessionId: string; label: string }): void
+  emitContextUpdate(agentName: string, session: WatchedSession, sessionId?: string): void
+  /** Re-scan the session's subagents directory for not-yet-tailed transcripts.
+   *  Used when a Workflow tool_result arrives, so nested files written after
+   *  the last scan are picked up before their nodes are completed. */
+  scanSubagents?(sessionId: string): void
+}
+
+/** Type guard: check if a value is a non-null object */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return v !== null && typeof v === 'object'
+}
+
+/** Safely extract trimmed text from a text block */
+function safeText(block: unknown): string {
+  if (!isRecord(block)) return ''
+  return String(block.text || '').trim()
+}
+
+/** Safely extract trimmed thinking content from a thinking block */
+function safeThinking(block: unknown): string {
+  if (!isRecord(block)) return ''
+  return String(block.thinking || '').trim()
+}
+
+/** Returns the signature string if a thinking block is redacted
+ *  (plaintext stripped but signature present, as Opus 4.7+ does), else null. */
+function redactedThinkingSignature(block: unknown): string | null {
+  if (!isRecord(block)) return null
+  if (String(block.thinking || '').trim()) return null
+  const sig = block.signature
+  return typeof sig === 'string' && sig.length > 0 ? sig : null
+}
+
+/** Build the dedup hash key for a thinking block. Prefers the transcript entry
+ *  UUID; falls back to a prefix of the content (or signature, for redacted blocks). */
+function thinkingHashKey(entryUuid: string | undefined, fallbackSource: string): string {
+  return entryUuid
+    ? `thinking:${entryUuid}`
+    : `thinking:${fallbackSource.slice(0, HASH_PREFIX_MAX)}`
+}
+
+/** Placeholder shown for redacted thinking blocks (matches Claude Code's UI label). */
+const REDACTED_THINKING_LABEL = 'Thinking...'
+
+/** Claude Code writes placeholder model ids such as `<synthetic>` on locally
+ *  generated assistant messages (API errors, interrupts). They are not models. */
+function isRealModelId(model: unknown): model is string {
+  return typeof model === 'string' && model.length > 0 && !model.startsWith('<')
+}
+
+/** What the parent transcript records about an Agent/Task launch in the
+ *  entry-level `toolUseResult` field of the user entry carrying its tool_result. */
+function parseAgentToolUseResult(toolUseResult: unknown): { isAsync: boolean; model?: string } {
+  if (!isRecord(toolUseResult)) return { isAsync: false }
+  return {
+    isAsync: toolUseResult.status === 'async_launched' || toolUseResult.isAsync === true,
+    model: isRealModelId(toolUseResult.resolvedModel) ? toolUseResult.resolvedModel : undefined,
+  }
+}
+
+const TASK_NOTIFICATION_PREFIX = '<task-notification'
+
+/** Text of a user entry's content, whether a plain string or text blocks. */
+function user

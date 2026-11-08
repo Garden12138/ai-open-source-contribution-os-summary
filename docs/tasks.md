@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | Coding Loop Recovery v1.1 offline review delivery complete: approved 6+8+1 and deterministic module fairness; 50 focused passed, full default 2099 passed / 83 skipped, 28 real offline OCI plus 2 unit cases passed. Waiting for code review; deployment NO-GO. Plan15 remains blocked; no paid retry, Plan16, deployment or publication authorized. HR4/5 and P5-G06 remain open |
+| First current task | Coding Loop Recovery v1.1 controlled local deployment and offline acceptance complete after independent source review: five roles/255 files verified, same-image 50 focused and 53 recovery cases passed, 28 real OCI plus 2 unit cases and 7 saved envelopes passed; zero migrations, historical changes or paid calls. Waiting for deployment-report review; any new paid execution is NO-GO without fresh freeze/binding and separate exact consent. Plan15 remains blocked; HR4/5, Linux amd64 and P5-G06 stay open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6779,6 +6779,13 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   本条仅关闭离线修复交付，真实自主Coding、真实独立Review及Linux amd64门禁仍开放；未部署、付费调用、新建Plan、恢复终态或Commit/Push/PR/评论。
   以上为离线验收快照。之后用户另行授权本地Git交付：可信送达修复与v1.1源码/测试Commit为bd3f8927，审查文档单独提交；
   [Git交付记录](agent-harness-reset-v1/coding-loop-recovery-v1.1/git-delivery.md)保存逐文件清单及归档复核结果，不回写原报告Hash，不授权Push或新执行。
+  2026-11-08另获原本地隔离环境部署授权：[本地部署验收](agent-harness-reset-v1/coding-loop-recovery-v1.1/local-deployment-v1/README.md)完成。
+  五角色255源码Hash627a3689，app镜像c9c07093、Sandbox Worker镜像1c82d9a6，Runner923d81e4不变；原卷/配置/权限/网络/资源保持，新增迁移0。
+  同部署镜像Python3.11内定向50和恢复53通过；真实离线OCI28（另2unit）和保存Plan12–15七信封通过，含实际第9轮Patch/Verify及确定性独立Review门禁。
+  query_only最终核验45表全部行、11检查点、Plan11–15终态/事件链/审批/费用/预算/未知占用、1802 Artifact不变；活动Job0、模型启动仍106。
+  旧容器/镜像保留，仓库外私有备份已由旧镜像无网络受限读取核验；仅证明备份可读取，未实际执行完整回滚恢复。测试工具的WAL读取、离线pytest和子进程环境探针纠正单独留证，不改生产代码或策略。
+  本地隔离验收Go供人工审查；新付费执行No-Go，须新冻结绑定及独立精确授权。Linux amd64未运行，未宣称跨架构生产就绪；未建Plan16、恢复Plan15、加预算、付费调用、Commit/Push/PR/评论或外部发布。
+  之后另获本地验收文档Commit授权：[最终Git交付](agent-harness-reset-v1/coding-loop-recovery-v1.1/local-deployment-v1/git-delivery.md)逐角色列出实际镜像/255源码Hash，明确各套件不相加、2099/83为此前归档复核，并区分备份可读取与完整回滚未执行；不再次部署或自动Push。
   以下为上一轮closeout及原v1的冻结离线记录，不回写这些原报告Hash。
   [审查收尾](agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/README.md)：3个生产模块共享请求/响应/Prompt/Binding校验；
   相关179、最终边界24（重叠）、真实离线OCI2通过。仅model_started不再记为已送达；未知模型操作有无响应均保持阻断和原预留。

@@ -1,0 +1,14 @@
+{
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "classification": "isolated_child_test_dependency_missing",
+  "prior_group_tests": 53,
+  "prior_passed": 51,
+  "prior_failed": 2,
+  "cause": "child fixtures strip all environment except PATH/LANG and therefore lose externally mounted pytest tooling",
+  "crash_checkpoint_was_reached": false,
+  "correction": "read-only cwd aliases to same deployed app and same cached pytest; default data redirected only to private tmpfs",
+  "assertions_or_reviewed_source_changed": false,
+  "production_dependencies_or_configuration_changed": false,
+  "paid_model_calls": 0,
+  "report_hash": "5ff41a4a3d3081e2b7ce8369028dc70df11f5ed4b4a74a1f1531d61db62a5d1b"
+}

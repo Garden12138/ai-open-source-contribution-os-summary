@@ -1,0 +1,12 @@
+{
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "classification": "test_fixture_environment_collection_error_not_runtime_service_failure",
+  "executed_test_cases": 0,
+  "collection_errors": 3,
+  "cause": "default API import attempted relative data directory on read-only test source mount",
+  "correction": "explicit ephemeral DATABASE_URL and ARTIFACT_ROOT; keep production volumes absent and root filesystem readonly",
+  "evidence_export_correction": "dedicated empty test-evidence directory because tmpfs contents disappear when test container stops",
+  "production_configuration_or_dependencies_changed": false,
+  "paid_model_calls": 0,
+  "report_hash": "9421b8261c78ef41ae3de6f1be855a4d96408d2cf3588f120e07495df1e7639a"
+}
