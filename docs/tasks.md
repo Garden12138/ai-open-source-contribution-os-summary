@@ -29,7 +29,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | Coding Loop Recovery v1.1 controlled local deployment and offline acceptance complete after independent source review: five roles/255 files verified, same-image 50 focused and 53 recovery cases passed, 28 real OCI plus 2 unit cases and 7 saved envelopes passed; zero migrations, historical changes or paid calls. Waiting for deployment-report review; any new paid execution is NO-GO without fresh freeze/binding and separate exact consent. Plan15 remains blocked; HR4/5, Linux amd64 and P5-G06 stay open |
+| First current task | Plan16 independent freeze preparation complete after source/deployment review: HEAD b33349d6, five roles/255 files and original images/policy/budgets verified; fresh Plan16/Binding and exact preview dab07066 await independent review and separate one-time execution consent. New paid calls/approvals/jobs/budget allocation0; Plan11–15 terminal states, fees and holds unchanged. Any paid execution is NO-GO now; HR4/5, Linux amd64 and P5-G06 stay open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -6801,6 +6801,25 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   query_only比对原45表全部行、11个Checkpoint、106次模型启动、13审批及全部预算/未知占用完全不变；五线上角色仍为原254源码。
   本轮未真实调用模型、未建Plan16、未恢复Plan15、未新增真实审批/Job、未部署、Commit/Push/PR/评论；Linux amd64仍未验证。
   旧失败全量报告保留，最终源码独立分片全量重跑通过。下一真实验收NO-GO，须先审查，再另行指示新的冻结与精确授权。
+- [x] **HR4-P16-PREP** 2026-11-08用户仅授权只读核验、全部通过后独立Plan16/Binding冻结及精确预览；交付后立即停止。
+  [完整准备材料](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/README.md)：
+  HEAD b33349d6、生产源码提交bd3f8927、255文件Hash627a3689与五角色逐文件一致；app c9c07093、Sandbox Worker1c82d9a6、Runner923d81e4、原权限/网络/资源/沙箱策略保持。
+  Native transport b661a6b2、Schema52999661、Prompt native-coding-loop-recovery-v11匹配；Issue#107标题/正文/更新时间/main3489e17c、877322字节归档d269dc46、8路径/4命令及原验收目标均一致。
+  新Plan16 `6944ba99-2de3-492f-a687-0c71e804d94a`，Plan Hash `aa03690633bcebc8e9c5346f5e930aa2c09a56aa9636a14b2528bb7fabeb74ca`，
+  新Binding `e97e605fc33502b47241c13e0930865dc8a0ffe33fd76a31ec26d1a989dc7b38`，冻结输入 `9ba3758151c2cae54c2ce85bc86111ec57c72bc9add3cb1abcb22e3eaf2154cb`。
+  [精确预览](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/execution-preview.md)
+  Hash `dab070664ebed9d0451414078c1648ffa0fed5c64e63242dec2ed9a0e33504ce`；revision c34e29ef、preflight ed34d5d1。
+  保持deepseek-v4-pro/high/4096和全部原上限，6+8+1只从原预算扣除；明确9次全额输入/输出不能由原总额保证，派发前不足即停止，high截断及独立Review额外费用均明示。
+  首次真实Patch提案/OCI应用、当前源码唯一读取/实际Prompt送达、重复/Artifact恢复、6+8+1、最新4项Verify、独立真实Review及最终人工验收契约已冻结；Plan16实际结果全部not_run/null。
+  [最终只读审计](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/final-checks.json)
+  Hash `0743f9a5c2d4b9e0fe90f09999f470637d4a43babbbccbdcfedc8790b066f11e`核验45表旧行、11检查点、Plan11–15终态/审批/费用/未知占用和1802 Artifact保持。
+  仅追加Plan、必要状态版本与4条准备事件2551→2555；模型启动106、执行授权13、Plan审批13、活动Job0不变。新Provider调用/执行审批/Job/Attempt/ReviewRun/预算分配均0。
+  原备份Hash/权限/完整性/外键/45表读取通过，旧五容器stopped和旧镜像保留；完整回滚未执行，不得用旧备份覆盖新准备记录。
+  当前只读复算归档容量证明及复核原JUnit，不重跑真实OCI/模型；源码未改/未重部署，凭据/日志扫描、compileall及diff检查通过，6个既存未跟踪文件保留。
+  新一次性确认文本Hash `2094a95350379342560db1cd42984610e5c134f2c893730bbf45926f38d9fb30`仅供独立审查，未发送/消费；原Plan15文本不可复用。
+  准备Go，任何付费执行No-Go；停止等待用户独立审查和精确授权。未恢复Plan15、加预算、Push/PR/评论/发布；HR4/5、P5-G06与Linux amd64门禁仍开放。
+  之后另获仅本地Git交付授权：[Git交付说明与逐文件清单](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/git-delivery.md)保留原27文件和全部冻结Hash；当前只读核验未追加业务记录。
+  冻结HEAD仍b33349d6，文档提交后的HEAD另报；业务Revision/Preflight不依赖宿主HEAD，但归档脚本的逐字HEAD断言仍保留，后续执行不得静默绕过此差异，仍须独立精确授权。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
   [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、

@@ -1,0 +1,30 @@
+{
+  "version": "plan16-not-executed-template-v1",
+  "classification": "not_real_execution_evidence",
+  "contract_hash": "be6425dcf778a436423bff76dcda56590c6cda640841573e8a8b35bf812a9f9d",
+  "read_batches": [],
+  "not_found_observation": "not_run",
+  "patch": "not_run",
+  "latest_source_verify": "not_run",
+  "independent_review": "not_run",
+  "blocker": null,
+  "paid_model_calls": 0,
+  "execution_authorization_hash": "not_created",
+  "attempt_id": "not_created",
+  "coding_metrics": {
+    "status": "not_run",
+    "model_calls": 0,
+    "effective_reads": null,
+    "repeated_reads": null,
+    "first_patch_proposal_round": null,
+    "first_patch_application_round": null,
+    "prompt_inline_source_coverage": [],
+    "artifact_pagination_recovery": [],
+    "Verify": "not_run",
+    "independent_Review": "not_run",
+    "coding_recovery_6_8_1": "not_run",
+    "high_reasoning_truncation": "not_observed",
+    "human_acceptance": "not_run"
+  },
+  "record_hash": "3bc7848f2cbf5a51a2f4c6e07062b8d8038b89a6ee47164fadbe4eb0aceb2e85"
+}

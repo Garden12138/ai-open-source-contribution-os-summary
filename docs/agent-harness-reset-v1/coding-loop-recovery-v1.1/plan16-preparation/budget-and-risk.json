@@ -1,0 +1,102 @@
+{
+  "version": "plan16-original-caps-fee-risk-v1",
+  "budget_allocated": false,
+  "coding_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "single_call": {
+    "native_model_output_tokens_per_call": 4096,
+    "native_step_max_job_attempts": 1,
+    "native_step_timeout_seconds": 300,
+    "native_input_bound": 32000,
+    "page_max_bytes": 16000,
+    "original_read_batch_max_calls": 8,
+    "sub_batch_and_Decision_max_calls": 4,
+    "bounded_failure_envelope_bytes": 8192,
+    "note": "Existing enforced ceilings, no new allowance; subject to remaining per-run budgets."
+  },
+  "review": {
+    "max_input_bytes": 1800000,
+    "max_job_attempts": 3,
+    "job_timeout_seconds": 300,
+    "per_call_output_tokens": 16384,
+    "note": "Independent Review retains its separate evidence-bound job/Profile. At most two code repairs under this exact authorization; original per-stage limits remain."
+  },
+  "historical_planning_budget": {
+    "version": "planning-budget-v1",
+    "revision": "903cfdde3f48c70bd7d26a2a11be152a40d66948e30ec79f01957e212d86d00e",
+    "record_hash": "a377b5d6ba7f0945842e695650caa4490c6d876253a7de9cb0e3be180aa50c42",
+    "limits": {
+      "calls": 64,
+      "input_tokens": 4000000,
+      "output_tokens": 250000
+    },
+    "usage": {
+      "calls": 64,
+      "input_tokens": 1639419,
+      "output_tokens": 166739
+    },
+    "remaining": {
+      "calls": 0,
+      "input_tokens": 1010581,
+      "output_tokens": 42301
+    },
+    "reserved": {
+      "input_tokens": 1350000,
+      "output_tokens": 40960
+    },
+    "unknown_calls": 3,
+    "bounds": {
+      "calls": {
+        "min": 1,
+        "max": 256
+      },
+      "input_tokens": {
+        "min": 1000,
+        "max": 20000000
+      },
+      "output_tokens": {
+        "min": 1000,
+        "max": 1000000
+      }
+    },
+    "configurable": true
+  },
+  "conditional_opportunity": {
+    "additional_capacity": 0,
+    "max_calls_from_original_cap": 1,
+    "max_input_bound": 32000,
+    "max_output_tokens": 4096,
+    "minimum_remaining_output_to_dispatch": 128,
+    "full_4096_headroom_requires_prior_output_at_most": 27904,
+    "full_32000_headroom_requires_prior_input_at_most": 168000,
+    "guard": "Exact prompt must fit actual remaining input/calls/time; output is min(4096, remaining). All tool/evidence/read/write/check caps still apply."
+  },
+  "feasibility": "Original caps admit a bounded attempt, not a guaranteed successful ninth request or full pipeline. Insufficient capacity blocks before dispatch.",
+  "worst_case_not_guaranteed": {
+    "nine_full_output_calls": 36864,
+    "original_output_cap": 32000,
+    "nine_max_input_prompts": 288000,
+    "original_input_cap": 200000
+  },
+  "high_reasoning_risk": "Reasoning consumes the same 4096 output cap; finish_reason=length can yield zero final_text/tool_calls, as Plan15 did. No configuration experiment or capacity increase.",
+  "unknown_fee_risk": "Uncertain calls retain full reservations and block; do not reset/refund/retry the unknown operation.",
+  "independent_review_cost": "Separate real evidence-bound ProviderReview Job, at most 3 attempts, 300 seconds, 1800000 input bytes and profile output 16384 per attempt. It is additional billable usage outside Coding 24-call count. At most two authorized repairs may lead to fresh Review inputs; no unbounded retries.",
+  "currency_amount": null,
+  "currency_reason": "Frozen model configuration has no verified monetary tariff or currency hard cap. Token/byte/attempt ceilings are precise; currency cost is provider billing, not fabricated here.",
+  "fee_formula": "Coding actual_input_tokens * input_rate + actual_output_tokens * output_rate; add each independent Review actual input/output at its rates, plus any provider-billed failed/unknown work. Rates must be read in the same units. No guarantee of nonzero Patch or acceptance for these charges.",
+  "historical_fees_and_holds": "Plan11–15 and Planning64/64 unchanged; new budgets require separate consent, none allocated now",
+  "preparation_paid_calls": 0,
+  "original_caps_increased": false,
+  "report_hash": "38bece48c114352e382b71781ac57a98286e0ababdb6143fa9cb895296f91688"
+}

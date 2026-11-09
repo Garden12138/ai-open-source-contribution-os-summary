@@ -1,0 +1,293 @@
+{
+  "version": "plan16-selective-git-delivery-manifest-v1",
+  "recorded_at": "2026-11-09T02:20:31.957861+00:00",
+  "branch": "refactor/agent-runtime-v2",
+  "freeze_HEAD": "b33349d684b1705cc9e1d30ee4aa7d71fd32e740",
+  "precommit_HEAD": "b33349d684b1705cc9e1d30ee4aa7d71fd32e740",
+  "document_commit": "direct successor of precommit_HEAD; actual SHA reported after normal git commit",
+  "production_source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "plan_id": "6944ba99-2de3-492f-a687-0c71e804d94a",
+  "preview_hash": "dab070664ebed9d0451414078c1648ffa0fed5c64e63242dec2ed9a0e33504ce",
+  "plan_hash": "aa03690633bcebc8e9c5346f5e930aa2c09a56aa9636a14b2528bb7fabeb74ca",
+  "binding_hash": "e97e605fc33502b47241c13e0930865dc8a0ffe33fd76a31ec26d1a989dc7b38",
+  "frozen_inputs_hash": "9ba3758151c2cae54c2ce85bc86111ec57c72bc9add3cb1abcb22e3eaf2154cb",
+  "revision": "c34e29efb4b361d47b1be7345f84f825fa66f9a8251b0c6e651cc3da2f96408a",
+  "preflight_hash": "ed34d5d1ae4306d1037836ac31e9b85cdd95ba04a41ff1aaf2e753f158c2b376",
+  "original_27_file_hashes": {
+    "README.md": "c098d64a123652c1b6796ef928d181fec56bb5c94a2c2fde3bc20b5595917757",
+    "acceptance-report-contract.json": "a887348e961c5a801915b8d05768a1dbe28242b15a135ba43cd71a2cad7526f3",
+    "acceptance-report-template.json": "2ebb192091772c35482783650e4943a875a78b53d6cec8c6b39976ab7d4994cc",
+    "after-state.json": "9f34e2c88dea62d562099a4b14a679d5e57a98f3af4d1c3040fd5f61bf697409",
+    "after-view.json": "583c789a97da27e47eca4b1b27d53abc14875a8925839d7e62ca99a235e00397",
+    "backup-check.json": "fb2c6c95f11b379e9869215900a67e96b1a14b0591985e00b48f31acdd0531a6",
+    "before-state.json": "76ee676f6b00931ebe057eae4624a58bad5aa100582962232d3687f49574688d",
+    "before-view.json": "65bfbb3dfdefb149d0b57f2513816844fce0908abe10677ebe1e30890b626b70",
+    "budget-and-risk.json": "fff097248a24c08666ebd6a643c4ee93270660c9ae31426e2f451fe0232f99bd",
+    "confirmation-text.txt": "2094a95350379342560db1cd42984610e5c134f2c893730bbf45926f38d9fb30",
+    "deployment-check.json": "177ffa94cf466c3dfb041d0073ed73ec4762d3b10ee7509877e7250ebe50017a",
+    "execution-preview.json": "48dc75afba921168b6289aaf838c7be8397682cbf37c707b609f0f4f6200371c",
+    "execution-preview.md": "ab7fb68b784cb06b8a9cce662d771d6c7ede72bd81bd30962e7e17607ac767d3",
+    "final_audit.py": "961325a89d606e0a46b361df62f2c3d9182ba7dcd56122b1e438f935d47928e3",
+    "freeze.py": "84935cbfb537b03c919c10d3ed5572232222831727aa561436672a0e06b85ff6",
+    "frozen-inputs.json": "47d5ce4c5724727f90d957a83244bc3afc94e10369fcbc368bb06ab4b27607dd",
+    "history-check.json": "3c24748932c45ddd8723f740583422cc3774b3882419c2bc9042fe1a3f21f66d",
+    "model-and-archive-check.json": "f7bc626ebf9f155358382b1989d5c0ce07566f91e75a29dffa326425a6bc1557",
+    "plan.json": "ee28bd2c532d9ed27259d8ddc15510e6849dfc13f7a298c68e9489c96e21bdc7",
+    "prerequisite-check.json": "75ff0c7ab03361689aaca2f9215ecf3bc317c64efc7427249d2c7f9e72306592",
+    "render.py": "49e5f02d4703d3c77a4e28513f5a48525bdede28bd794ea709bd3a8a3fbd623a",
+    "source-check.json": "9b3d87a4a69fad81e2dfb86c1e6b3165efaf014ecad5246dc0b0bae3e92f9954",
+    "upstream-check.json": "01dcb74d3b89347edf79e7ad31ebe12048cec616bc9e90879181f63bbad1514b",
+    "upstream-first-read.json": "15385143792b10a80d71862cd9739d285522cb81be3f15cb6a4c405a0c164eab",
+    "verify.py": "699af0261ed61073cdd7723b7b469e2cf23b4a1ea287e99f6a1d661f09dc2405",
+    "final-checks.json": "145b0eb7ffec14d98002a38961ae7c1e74d4ceff789402cec5a6f3d39f434551",
+    "delivery-check.json": "fa91f8fa3dc8a35136121ef46d81a6f1202079a72af1a163464b060f6effc6ce"
+  },
+  "current_readonly_verification_hash": "e40e52bc307fd82df22868779a93902590cf3413962a1be2c96c3720b25ede07",
+  "original_audit_hash": "0743f9a5c2d4b9e0fe90f09999f470637d4a43babbbccbdcfedc8790b066f11e",
+  "payload_file_count": 30,
+  "commit_total_file_count": 31,
+  "preparation_directory_file_count": 30,
+  "files": [
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/README.md",
+      "bytes": 1637,
+      "sha256": "c098d64a123652c1b6796ef928d181fec56bb5c94a2c2fde3bc20b5595917757",
+      "raw_git_blob": "06a8fa9cfb777bd55455e1da0e7e0e3d863ae690",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/acceptance-report-contract.json",
+      "bytes": 11165,
+      "sha256": "a887348e961c5a801915b8d05768a1dbe28242b15a135ba43cd71a2cad7526f3",
+      "raw_git_blob": "ce227e0b85f0ef89df0a695313a56942612956f5",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/acceptance-report-template.json",
+      "bytes": 1032,
+      "sha256": "2ebb192091772c35482783650e4943a875a78b53d6cec8c6b39976ab7d4994cc",
+      "raw_git_blob": "4d4a0b56fc891b32680ddc159fa1946b055fce0e",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/after-state.json",
+      "bytes": 1000029,
+      "sha256": "9f34e2c88dea62d562099a4b14a679d5e57a98f3af4d1c3040fd5f61bf697409",
+      "raw_git_blob": "fde7ac3dd72b9e4ed21e8c5e8f2133e323f61742",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/after-view.json",
+      "bytes": 1338036,
+      "sha256": "583c789a97da27e47eca4b1b27d53abc14875a8925839d7e62ca99a235e00397",
+      "raw_git_blob": "cdac2f9e045fc354f8f8f2f271a057625f54f6c6",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/backup-check.json",
+      "bytes": 611,
+      "sha256": "fb2c6c95f11b379e9869215900a67e96b1a14b0591985e00b48f31acdd0531a6",
+      "raw_git_blob": "af9a9c6568d1d7ef3ac07a706e8c9eb8adb588f9",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/before-state.json",
+      "bytes": 998726,
+      "sha256": "76ee676f6b00931ebe057eae4624a58bad5aa100582962232d3687f49574688d",
+      "raw_git_blob": "b844742da86cfae361c3a680307cfe38ba79bfac",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/before-view.json",
+      "bytes": 1336876,
+      "sha256": "65bfbb3dfdefb149d0b57f2513816844fce0908abe10677ebe1e30890b626b70",
+      "raw_git_blob": "55dc5a38861ffc375c62edab5f2cdf12a3a50919",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/budget-and-risk.json",
+      "bytes": 4359,
+      "sha256": "fff097248a24c08666ebd6a643c4ee93270660c9ae31426e2f451fe0232f99bd",
+      "raw_git_blob": "e7b3db17ba66488c3751580fde0e30effd984009",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/confirmation-text.txt",
+      "bytes": 4660,
+      "sha256": "2094a95350379342560db1cd42984610e5c134f2c893730bbf45926f38d9fb30",
+      "raw_git_blob": "9ed666bb1dba41aa31afe6ea1861964fcf4aa8db",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/delivery-check.json",
+      "bytes": 1050,
+      "sha256": "fa91f8fa3dc8a35136121ef46d81a6f1202079a72af1a163464b060f6effc6ce",
+      "raw_git_blob": "84d697c8b6d782a84423ff957027c0051e62b088",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/deployment-check.json",
+      "bytes": 9437,
+      "sha256": "177ffa94cf466c3dfb041d0073ed73ec4762d3b10ee7509877e7250ebe50017a",
+      "raw_git_blob": "b261d46873f1d72a7490bdea57a9ffdbba001f34",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/execution-preview.json",
+      "bytes": 104680,
+      "sha256": "48dc75afba921168b6289aaf838c7be8397682cbf37c707b609f0f4f6200371c",
+      "raw_git_blob": "37901e13ac90cea4d71314ca40160f087ebc4277",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/execution-preview.md",
+      "bytes": 16911,
+      "sha256": "ab7fb68b784cb06b8a9cce662d771d6c7ede72bd81bd30962e7e17607ac767d3",
+      "raw_git_blob": "233781757180ca23615aa83446312a77a8a0fb9a",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/final-checks.json",
+      "bytes": 8888,
+      "sha256": "145b0eb7ffec14d98002a38961ae7c1e74d4ceff789402cec5a6f3d39f434551",
+      "raw_git_blob": "1a41d0c3fe5429bb5a49473e74031eec4fd94784",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/final_audit.py",
+      "bytes": 13238,
+      "sha256": "961325a89d606e0a46b361df62f2c3d9182ba7dcd56122b1e438f935d47928e3",
+      "raw_git_blob": "cd9b55fb8f1c6591a5c2028dfeb08c89b80344d5",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/freeze.py",
+      "bytes": 18297,
+      "sha256": "84935cbfb537b03c919c10d3ed5572232222831727aa561436672a0e06b85ff6",
+      "raw_git_blob": "5a6f839cc9eabdc9ce78746df9b26d05a488b094",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/frozen-inputs.json",
+      "bytes": 72701,
+      "sha256": "47d5ce4c5724727f90d957a83244bc3afc94e10369fcbc368bb06ab4b27607dd",
+      "raw_git_blob": "8d39e85404d02ad86fe8a12a5eb3096c913753e8",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/git-delivery.md",
+      "bytes": 6981,
+      "sha256": "eb3d8a88be5e02b21487dd3cbd81d68ce654afa479fbe1c7033705cdfe8a4ea4",
+      "raw_git_blob": "c8228a63c628caf90d07da7315e468b115909b6b",
+      "classification": "new_git_delivery_record"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/git-readonly-verification.json",
+      "bytes": 29361,
+      "sha256": "f739b1cc52fccfdb8b9dd25e1e71e87935f08da975533a4077ea5bec383d6fd1",
+      "raw_git_blob": "8f9ed4c42f56dff27a23606f4cbe2f379be4e341",
+      "classification": "new_git_delivery_record"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/history-check.json",
+      "bytes": 6073,
+      "sha256": "3c24748932c45ddd8723f740583422cc3774b3882419c2bc9042fe1a3f21f66d",
+      "raw_git_blob": "637b3bf20e7e5e359d2f044edf989ad4f638c68f",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/model-and-archive-check.json",
+      "bytes": 1792,
+      "sha256": "f7bc626ebf9f155358382b1989d5c0ce07566f91e75a29dffa326425a6bc1557",
+      "raw_git_blob": "77339061a4a58347cf41dc6d8ca5c8e48ec3993c",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/plan.json",
+      "bytes": 6901,
+      "sha256": "ee28bd2c532d9ed27259d8ddc15510e6849dfc13f7a298c68e9489c96e21bdc7",
+      "raw_git_blob": "cb185bd01ba84219cbca1a1ea29e80b889c26b6b",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/prerequisite-check.json",
+      "bytes": 2198,
+      "sha256": "75ff0c7ab03361689aaca2f9215ecf3bc317c64efc7427249d2c7f9e72306592",
+      "raw_git_blob": "24ac756d733f9fbdd9b60652a448ec0b835339c0",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/render.py",
+      "bytes": 16776,
+      "sha256": "49e5f02d4703d3c77a4e28513f5a48525bdede28bd794ea709bd3a8a3fbd623a",
+      "raw_git_blob": "9c214261976ce6813bc6ea3d3abc46d50752b8b3",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/source-check.json",
+      "bytes": 4403,
+      "sha256": "9b3d87a4a69fad81e2dfb86c1e6b3165efaf014ecad5246dc0b0bae3e92f9954",
+      "raw_git_blob": "7f1b6a5e2935ed7f231036b3c84fc0edbf3d4faf",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/upstream-check.json",
+      "bytes": 1125,
+      "sha256": "01dcb74d3b89347edf79e7ad31ebe12048cec616bc9e90879181f63bbad1514b",
+      "raw_git_blob": "9a54d788cf7c3b629c9d89259b4d3d4944493ec2",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/upstream-first-read.json",
+      "bytes": 1125,
+      "sha256": "15385143792b10a80d71862cd9739d285522cb81be3f15cb6a4c405a0c164eab",
+      "raw_git_blob": "b14a3d58df412ab118ad27239b66599c9d8179a8",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/verify.py",
+      "bytes": 19606,
+      "sha256": "699af0261ed61073cdd7723b7b469e2cf23b4a1ea287e99f6a1d661f09dc2405",
+      "raw_git_blob": "583fd0c10595305fbb646fc82499b6f63ff96d3c",
+      "classification": "preserved_original_freeze_material"
+    },
+    {
+      "path": "docs/tasks.md",
+      "bytes": 573611,
+      "sha256": "21969c789ef9e14e1ee42996a17a3d33f08d58a50c6b9ea02dc7b1c59c341513",
+      "raw_git_blob": "3ae0f7eed505373d2a67f4d8514c136649053d7a",
+      "classification": "necessary_roadmap_record"
+    }
+  ],
+  "self_inventory": {
+    "path": "docs/agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/git-delivery-check.json",
+    "canonical_hash_field": "report_hash",
+    "cannot_contain_own_final_raw_sha256": true,
+    "verify_commit_blob_after_commit": true
+  },
+  "excluded_untracked_preserved": {
+    "agent-harness-reset-v1.zip": "d664d895ee82df574bdd23e855a952df1897620008464de1a3a7e7d96a103738",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-final-full-0.xml": "2bcf314e353f91bffd48878592b577854b443f0693a1b741e17ecc6d81b86a74",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-final-full-1.xml": "bb414967d7070f413577cd0ef44c4ce0a2a5cfc7eef04c38c4ef524be4c77c6a",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-full-0.xml": "8be4713e9e26e315c1bb4fad0c54a80c808a755e96130c222f4552b5998be282",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-full-1.xml": "53d1a63f92a803a6b263253c36292c5d04144ef810add3ed06c8cdcfcb9072c5",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/preflight-diagnostic.jsonl": "604e40f204fd6b5c11b9409e645744122f5264a816b34c394b2d53b868cc2f4b"
+  },
+  "checks": {
+    "original_27_bytes_and_self_hashes": "passed",
+    "linked_evidence_and_local_links": "passed",
+    "current_deployment_and_domain_hashes": "passed",
+    "secret_and_canary_scan": "passed; scan exact staged blobs again before commit",
+    "compileall": "passed",
+    "git_diff_check": "passed",
+    "non_sample_hooks": [],
+    "hooks_disabled": false,
+    "selective_staging_only": true,
+    "post_commit_source_tree_revision_preflight_and_business_verification": "required; run immediately after commit"
+  },
+  "new_business_records_paid_calls_approvals_jobs_or_budget_changes": 0,
+  "deployment_push_PR_comment_or_publication": false,
+  "HR4_HR5_P5_G06_Linux_amd64": "open",
+  "stop_after_local_commit_verification": true,
+  "report_hash": "9ef9698f446397fc40ea2dd19d9be7d8ab318f862ddb4dbb7ab181136f64858f"
+}

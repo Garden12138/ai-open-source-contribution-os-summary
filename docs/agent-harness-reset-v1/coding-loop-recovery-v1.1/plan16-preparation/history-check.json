@@ -1,0 +1,142 @@
+{
+  "Plan11_15": {
+    "Plan11": {
+      "session_id": "session-2dd44f18b8adba684806de67cc01a327",
+      "checkpoint": {
+        "session_id": "session-2dd44f18b8adba684806de67cc01a327",
+        "revision": "e3215914ab4b6bc35fbb72e90837ce8b1f3e95ec0b76d0132ae2bc2c5add7617",
+        "state": "blocked",
+        "source_hash": "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c",
+        "snapshot_artifact": null,
+        "pending_calls": [],
+        "usage": {
+          "model_calls": 14,
+          "input_tokens": 171256,
+          "output_tokens": 12756,
+          "reads": 43,
+          "output_bytes": 216162,
+          "protocol_repairs": 2
+        },
+        "last_result_hash": "4c81c063961c05a47c2d4c784b6976774de5eb3e1ac79ab4476bb0b5d808b55d"
+      },
+      "plan_hash": "2507f8d586a918e66fb6c7f287b42ea5b287980270b161a103c1f1fb4693057f",
+      "authorization_hash": "6014267b8f9427eaa4ee37c5b92c00a242f19b4ead5ea40b2a1f01031b567f06",
+      "event_count": 232,
+      "event_hash_set_hash": "942606741a65b9901901ba5918d963186e91d7cb20bcb6964ba8ba09cff84f89",
+      "plan_id": "2026fb2d-29f5-4b1d-81b9-a0ba125505bb"
+    },
+    "Plan12": {
+      "session_id": "session-345b2c24d307d9e35767d4f34f34d672",
+      "checkpoint": {
+        "session_id": "session-345b2c24d307d9e35767d4f34f34d672",
+        "revision": "c33c3ea79b56c0fa7746368f2938d39aa14772633999db2b9bdf96bfd51f2dc0",
+        "state": "blocked",
+        "source_hash": "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c",
+        "snapshot_artifact": null,
+        "pending_calls": [],
+        "usage": {
+          "model_calls": 8,
+          "input_tokens": 137303,
+          "output_tokens": 15038,
+          "output_bytes": 87173,
+          "reads": 13,
+          "protocol_repairs": 2
+        },
+        "last_result_hash": "19912220d7effd162f45e24aa83ea82043b3bc2a02ba43730cf940e3c2e955be"
+      },
+      "plan_hash": "c91a11677f13080efba7b36136bcf2eccffb71d0bf86b0fee421e2bf6d256f1b",
+      "authorization_hash": "56d1f5eb0408d0b818f29f444539ee13ccdc70eab4e9f7937e1fe1f4def95783",
+      "event_count": 117,
+      "event_hash_set_hash": "4a204959153c1e2845e684d0e2aa6e9adc2898d180af35ef717df02ded35c3d8",
+      "plan_id": "5c6df081-f469-44be-a2de-81fec47b2289"
+    },
+    "Plan13": {
+      "session_id": "session-11901711068ace4c72aa1410a8847453",
+      "checkpoint": {
+        "session_id": "session-11901711068ace4c72aa1410a8847453",
+        "revision": "abfebe97461aa4c4acecb446953902ba6d155dd5361b1a4ff1bdf7fe582e4f3c",
+        "state": "blocked",
+        "source_hash": "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c",
+        "snapshot_artifact": null,
+        "pending_calls": [],
+        "usage": {
+          "model_calls": 2,
+          "input_tokens": 15882,
+          "output_tokens": 1164,
+          "output_bytes": 24369,
+          "reads": 12
+        },
+        "last_result_hash": "bf7f56294f52dd1cbc15bc3462b5ae9a4048222ca03510af16432a5dec756c1e"
+      },
+      "plan_hash": "1831436b3da8904d514205c2c877b9019c44f2b88aaf2cb31f05ce4b16583865",
+      "authorization_hash": "7918e7cd6332a46f8cbe1977fab51150a7551c7a325def3326aa04f240759108",
+      "event_count": 42,
+      "event_hash_set_hash": "275ec301d27a7f2d10a9f2f39a79c15da63bfd54655d0a326633a2a4ca3270bf",
+      "plan_id": "b3c5acdd-bb80-461f-8dd9-5af5ca687280"
+    },
+    "Plan14": {
+      "session_id": "session-2f7eb4b35c9954bc3c1623c299cf8dde",
+      "checkpoint": {
+        "session_id": "session-2f7eb4b35c9954bc3c1623c299cf8dde",
+        "revision": "657f9c2dd0c8a05866d4104dc790de3c5d45e8db6308b583c2bd0d3b533df31b",
+        "state": "blocked",
+        "source_hash": "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c",
+        "snapshot_artifact": null,
+        "pending_calls": [],
+        "usage": {
+          "model_calls": 3,
+          "input_tokens": 46008,
+          "output_tokens": 4560,
+          "output_bytes": 35526,
+          "reads": 5
+        },
+        "last_result_hash": "a86020cba944d386698cc7c791f8d870a388fb65b6dee9591ddde8ff61f9a1ad"
+      },
+      "plan_hash": "1006e34393baf6a239c3f4e001af5726baaf3c69e00065a25d5934531b693d06",
+      "authorization_hash": "3aaa2d98e361552e5660de5dc13b14a1f2d2d2bff3dc6e3cf77e0355375df66d",
+      "event_count": 47,
+      "event_hash_set_hash": "fea8922100a0adccff53dc70a4391336a95ee2fe016b85334818c7636a708af5",
+      "plan_id": "e8503bc5-9b61-4e51-95c6-c4eb33bb919e"
+    },
+    "Plan15": {
+      "session_id": "session-02147971b2194757d6b48d00358fbf5c",
+      "checkpoint": {
+        "session_id": "session-02147971b2194757d6b48d00358fbf5c",
+        "revision": "3990c0f998d398329aa339ea18c4eafb565d99d6d0a6a69623ebbe7b30bf85bd",
+        "state": "blocked",
+        "source_hash": "7f02d8377a922ec5473bd68159817d058064e8a2892f65ef33ba17362bf9265c",
+        "snapshot_artifact": null,
+        "pending_calls": [],
+        "usage": {
+          "model_calls": 15,
+          "input_tokens": 176505,
+          "output_tokens": 17211,
+          "output_bytes": 426518,
+          "reads": 40,
+          "protocol_repairs": 1
+        },
+        "last_result_hash": "d9814f8ff4d9aa6d19e9f8705a5d9309c90d37305488edc6afa8f9f332fa8b42"
+      },
+      "plan_hash": "448b0a90cd2c9e4d3dfc14c94de8705ee5a7f2ec89487473397c18dc3e654740",
+      "authorization_hash": "c0cffa5486fb041c5f82f0788e0d539f8053c52ce7c3fb7338339f5fb456bd7a",
+      "event_count": 382,
+      "event_hash_set_hash": "206bb6e8a41cde2684c272e263317963f57a8eb0a7dc4245233c337f5b602403",
+      "plan_id": "626be813-5437-4ad3-8a24-e30d12c7b803"
+    }
+  },
+  "all_45_tables_unchanged": true,
+  "all_11_checkpoints_unchanged": true,
+  "all_1802_artifacts_verified": true,
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 106,
+    "execution_authorizations": 13,
+    "plan_approvals": 13,
+    "task_events": 2551,
+    "artifacts": 1802
+  },
+  "historical_fees_approvals_budgets_unknown_holds": "unchanged",
+  "query_only": true,
+  "report_hash": "33ee31300f2f9f42e6826dd691e51131e01890f9336955ff26c37dbc9e125772"
+}

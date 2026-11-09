@@ -1,0 +1,115 @@
+{
+  "HEAD": "b33349d684b1705cc9e1d30ee4aa7d71fd32e740",
+  "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "source_files": 255,
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "source_matches_committed_and_worktree": true,
+  "native_transport": {
+    "version": "agent-native-tools-v1",
+    "tools_schema_hash": "52999661311852705547ff40da95c4d33cf16c61fc03ed7deff51b99418f7226"
+  },
+  "native_transport_hash": "b661a6b2bc3b7c5e6bd83a307024e26e529f82625bd9aba263c95cb2b48d9174",
+  "prompt": "native-coding-loop-recovery-v11",
+  "coding_recovery_policy": {
+    "version": "coding-loop-recovery-v1.1",
+    "correction_after_unpatched_rounds": 6,
+    "stop_after_unpatched_rounds": 8,
+    "delivery": "committed_response_and_exact_source_bytes",
+    "projection": "exact_task_brief_and_source_working_set",
+    "working_set_max_files": 4,
+    "source_page_limits": [
+      4096,
+      2048,
+      1024,
+      768,
+      512,
+      256,
+      128
+    ],
+    "handoff": "one_per_authorization_only_new_round_eight_source_actually_in_prompt",
+    "selection": "related_module_least_served_round_robin_unseen_ranges",
+    "module": "directory_after_common_related_parent"
+  },
+  "all_original_limits": {
+    "model_calls": 24,
+    "reads": 64,
+    "writes": 24,
+    "checks": 6,
+    "protocol_repairs": 2,
+    "provider_retries": 2,
+    "code_repairs": 2,
+    "input_tokens": 200000,
+    "output_tokens": 32000,
+    "output_bytes": 500000,
+    "seconds": 1800
+  },
+  "write_paths": [
+    "extension/src/transcript-parser.ts",
+    "extension/src/hook-server.ts",
+    "web/hooks/simulation/handle-tool-events.ts",
+    "web/hooks/simulation/types.ts",
+    "web/lib/agent-types.ts",
+    "web/hooks/simulation/handle-tool-events.test.ts",
+    "extension/test/transcript-parser.test.ts",
+    "extension/test/hook-server.test.ts"
+  ],
+  "commands": [
+    {
+      "command_id": "root_tests",
+      "argv": [
+        "pnpm",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_tests",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "extension",
+        "test"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "extension_lint",
+      "argv": [
+        "pnpm",
+        "--filter",
+        "agent-flow",
+        "run",
+        "lint"
+      ],
+      "working_directory": "."
+    },
+    {
+      "command_id": "web_typecheck",
+      "argv": [
+        "pnpm",
+        "--dir",
+        "web",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "working_directory": "."
+    }
+  ],
+  "acceptance_criteria": [
+    "同一 agent 对同一工具发起的多次并行调用（不同 tool_use_id、不同参数/文件）均被独立记录，不再被去重丢弃。",
+    "fileAttention 中每个被读取的不同文件都有独立条目。",
+    "乱序到达的 tool_call_end 按 tool_use_id 精确完成对应那条调用，不影响同工具的其他运行中调用。",
+    "同一 tool_use_id 的重复投递（Hook Server 与 Session Watcher 竞态）仍被去重为单条调用。",
+    "现有测试与类型检查全部通过；对不含 tool_use_id 的旧 replay 数据保持兼容回退。"
+  ],
+  "unrelated_untracked_hashes": {
+    "agent-harness-reset-v1.zip": "d664d895ee82df574bdd23e855a952df1897620008464de1a3a7e7d96a103738",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-final-full-0.xml": "2bcf314e353f91bffd48878592b577854b443f0693a1b741e17ecc6d81b86a74",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-final-full-1.xml": "bb414967d7070f413577cd0ef44c4ce0a2a5cfc7eef04c38c4ef524be4c77c6a",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-full-0.xml": "8be4713e9e26e315c1bb4fad0c54a80c808a755e96130c222f4552b5998be282",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/missing-source-full-1.xml": "53d1a63f92a803a6b263253c36292c5d04144ef810add3ed06c8cdcfcb9072c5",
+    "docs/agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/preflight-diagnostic.jsonl": "604e40f204fd6b5c11b9409e645744122f5264a816b34c394b2d53b868cc2f4b"
+  },
+  "report_hash": "476aed839d720701f8e01024fe560dfae3f090e06461e72a951eefe01112548b"
+}

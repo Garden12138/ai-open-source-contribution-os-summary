@@ -1,0 +1,59 @@
+{
+  "version": "plan16-freeze-prerequisites-v1",
+  "recorded_at": "2026-11-08T10:46:08.661847+00:00",
+  "git_HEAD": "b33349d684b1705cc9e1d30ee4aa7d71fd32e740",
+  "source_commit": "bd3f8927bfed1a280b8d8ae15cdd446d30357917",
+  "source_hash": "627a3689ca6647f8747796469f7e93fddff23a8445557066a7cae061e3346d47",
+  "source_files": 255,
+  "all_frozen_inputs_match": true,
+  "five_roles_verified": true,
+  "upstream_unchanged": true,
+  "all_original_limits_unchanged": true,
+  "planning_budget_exhausted_no_planner_authorized": true,
+  "new_run_budget_allocated": false,
+  "paid_calls": 0,
+  "new_plan": false,
+  "new_binding": false,
+  "new_approval_or_job": false,
+  "health": {
+    "18090": {
+      "status": "ok",
+      "database": "ok"
+    },
+    "18091": {
+      "status": "ok"
+    },
+    "18092": {
+      "status": "ok"
+    },
+    "18080": {
+      "status": "ok",
+      "database": "ok"
+    }
+  },
+  "counts": {
+    "active_jobs": 0,
+    "all_active_jobs": 0,
+    "model_starts": 106,
+    "execution_authorizations": 13,
+    "plan_approvals": 13,
+    "task_events": 2551,
+    "artifacts": 1802
+  },
+  "old_roles_images_retained": true,
+  "backup_available": true,
+  "Linux_amd64": "not_run_still_open",
+  "HR4_HR5_P5_G06": "not_passed",
+  "upstream_hash": "7492d83d4d483f19d32f06f3c93b45cca84508095e7382239d32e4805b0ab4c8",
+  "evidence_hashes": {
+    "before-state.json": "76ee676f6b00931ebe057eae4624a58bad5aa100582962232d3687f49574688d",
+    "before-view.json": "65bfbb3dfdefb149d0b57f2513816844fce0908abe10677ebe1e30890b626b70",
+    "source-check.json": "9b3d87a4a69fad81e2dfb86c1e6b3165efaf014ecad5246dc0b0bae3e92f9954",
+    "deployment-check.json": "177ffa94cf466c3dfb041d0073ed73ec4762d3b10ee7509877e7250ebe50017a",
+    "history-check.json": "3c24748932c45ddd8723f740583422cc3774b3882419c2bc9042fe1a3f21f66d",
+    "model-and-archive-check.json": "f7bc626ebf9f155358382b1989d5c0ce07566f91e75a29dffa326425a6bc1557",
+    "backup-check.json": "fb2c6c95f11b379e9869215900a67e96b1a14b0591985e00b48f31acdd0531a6",
+    "upstream-check.json": "01dcb74d3b89347edf79e7ad31ebe12048cec616bc9e90879181f63bbad1514b"
+  },
+  "report_hash": "3f6e42e7aacb4e55a751f386a8d86247346d0e6049b442c4651f4cf80691cf01"
+}

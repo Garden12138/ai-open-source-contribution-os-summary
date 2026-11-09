@@ -1,0 +1,45 @@
+{
+  "model_configuration": {
+    "implementation": {
+      "id": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+      "record_hash": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049",
+      "model": "deepseek-v4-pro",
+      "max_tokens": 16384,
+      "timeout_seconds": 300,
+      "temperature": null,
+      "reasoning_effort": "high",
+      "structured_output": "tools",
+      "connection_hash": "9a2b803dab24e59f7d550bde7a0d7f79910f7275b930afd62a4401c1b3218bef",
+      "identity": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+      }
+    },
+    "review": {
+      "id": "d660a5ca-9904-4c5b-8dcc-b94bda8f5e4e",
+      "record_hash": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049",
+      "model": "deepseek-v4-pro",
+      "max_tokens": 16384,
+      "timeout_seconds": 300,
+      "temperature": null,
+      "reasoning_effort": "high",
+      "structured_output": "tools",
+      "connection_hash": "9a2b803dab24e59f7d550bde7a0d7f79910f7275b930afd62a4401c1b3218bef",
+      "identity": {
+        "provider": "deepseek",
+        "adapter_version": "studio-deepseek-thinking-v1",
+        "model": "deepseek-v4-pro",
+        "model_version": "bb3522b03a444b544c808217ec5ed4b4fa71253591ee8c09e3fc77c57d3a6049"
+      }
+    }
+  },
+  "archive_hash": "d269dc46fd82a9ae5d443b95aa389bb6637856f28f5e5cb7da0d0392384b2cdb",
+  "archive_bytes": 877322,
+  "archive_roots": [
+    "agent-flow-3489e17c48985b74fdb42cde122376b1eb12d8a7"
+  ],
+  "context_hash": "5f9b41facf3773266149daf5466d275792c6c23af665bcada4162121084fef7c",
+  "report_hash": "9302a6d4970452b49d02dfb6eefe3adf0e04d957877b494fe7d7128a7db7153a"
+}
