@@ -14,6 +14,7 @@ RUN python -m app.runtime_integrity \
     && groupadd --gid 10001 contribos \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent contribos \
     && mkdir -p /data/artifacts /data/model-secrets \
+    && chmod 0700 /data/model-secrets \
     && chown -R contribos:contribos /data
 
 USER 10001:10001

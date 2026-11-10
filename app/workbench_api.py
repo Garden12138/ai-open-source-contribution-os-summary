@@ -713,7 +713,7 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
         status_code=202,
         dependencies=[Depends(require_mutation_access)],
     )
-    def execute(
+    async def execute(
         task_id: str,
         payload: ExecutePlanRequest,
         request: Request,
@@ -739,6 +739,15 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             raise HTTPException(409, "请先在当前任务中确认模型，或发送消息重新规划")
         if current_binding and payload.model_binding_hash != current_binding.record_hash:
             raise HTTPException(409, "模型选择已变化，请重新确认当前方案和模型")
+        credential_proofs = None
+        if settings.model_gateway_signing_key or settings.model_gateway_store_id:
+            from app.providers.gateway_readiness import credential_readiness, execution_profiles
+            from app.providers.contracts import ProviderRunError
+            try:
+                credential_proofs = {stage: await credential_readiness(settings, profile)
+                    for stage, profile in execution_profiles(settings, ModelSettingsService(session), task_id).items()}
+            except ProviderRunError as exc:
+                raise WorkbenchError(exc.safe_message, code=exc.code) from None
         if payload.conversation:
             wb.append(task_id, "conversation_started", {"version": "conversation-v1"},
                       key="conversation-start:" + key, actor="local-user", commit=False)
@@ -749,6 +758,7 @@ def register_workbench_routes(app, get_session, require_mutation_access) -> None
             plan_hash=payload.plan_hash,
             key=key,
             settings=settings,
+            credential_proofs=credential_proofs,
         )
         return JobResponse.model_validate(job)
 

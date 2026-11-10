@@ -44,6 +44,7 @@ from app.providers.nvidia_nim import (
     STRUCTURED_OUTPUT_TOOL_NAME,
 )
 from app.security import ensure_no_sensitive_data
+from app.providers.gateway_readiness import STORAGE_ERROR_CODES
 
 
 class UnconfiguredModelUpstream:
@@ -98,16 +99,24 @@ def runner_for_profile(settings, profile: dict, *, client=None, paired_analysis:
             ttl_seconds=300,
             profile_hash=content_hash(profile),
         )
-    return StudioRunner(profile, broker=broker, client=client, paired_analysis=paired_analysis)
+    return StudioRunner(profile, broker=broker, client=client, paired_analysis=paired_analysis, readiness_settings=settings)
 
 
 class StudioRunner(NvidiaNimGatewayRunner):
-    def __init__(self, profile, *, broker, client=None, paired_analysis: bool = True):
+    def __init__(self, profile, *, broker, client=None, paired_analysis: bool = True, readiness_settings=None):
         super().__init__(broker=broker, client=client)
         self.profile = profile
         self.paired_analysis = paired_analysis
+        self.readiness_settings = readiness_settings
+
+    async def ensure_ready(self) -> dict | None:
+        if self.readiness_settings is None:
+            return None  # Direct protocol fixtures; production factory always supplies Settings.
+        from app.providers.gateway_readiness import credential_readiness
+        return await credential_readiness(self.readiness_settings, self.profile, client=self._client)
 
     async def complete(self, invocation):
+        await self.ensure_ready()
         if self.broker is None:
             raise ProviderRunError(
                 "gateway_not_configured", "模型网关尚未配置", retryable=False
@@ -276,6 +285,9 @@ class StudioRunner(NvidiaNimGatewayRunner):
                     "model_gateway_model_eol",
                 }:
                     retryable = False
+                if error_code.removeprefix("model_") in STORAGE_ERROR_CODES:
+                    retryable = False
+                    error_message = "Credential storage is not ready; explicit configuration may be required"
                 raise ProviderRunError(
                     error_code,
                     error_message,
@@ -294,6 +306,7 @@ class StudioRunner(NvidiaNimGatewayRunner):
             raise ProviderRunError("model_profile_mismatch", "Native function profile binding is invalid", retryable=False)
         if not 1 <= len(tools) <= 16:
             raise ProviderRunError("agent_native_tool_contract_invalid", "Native tool definitions are invalid", retryable=False)
+        await self.ensure_ready()
         payload = {"model": invocation.model, "_contribos_profile": self.profile,
             "messages": [{"role": "system", "content": instruction}, {"role": "user", "content": invocation.prompt}],
             "tools": tools, "tool_choice": "auto", "stream": False,
@@ -510,6 +523,9 @@ class StudioGateway:
     async def create_response(self, *, authorization_header, payload, now=None):
         profile = payload.get("_contribos_profile")
         if profile is None:
+            if hasattr(self.store, "storage_readiness"):
+                self.legacy.authorizer.codec.decode(authorization_header.removeprefix("Bearer "), now=now)
+                self.store.storage_readiness()
             return await self.legacy.create_response(
                 authorization_header=authorization_header, payload=payload, now=now
             )

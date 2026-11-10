@@ -48,6 +48,7 @@ def authorize_execution(
     plan_hash: str,
     key: str,
     settings: Settings,
+    credential_proofs: dict[str, dict] | None = None,
 ) -> Job:
     rows = wb.history(task_id)
     old = next((r for r in rows if r.idempotency_key == "authorize:" + key), None)
@@ -55,6 +56,16 @@ def authorize_execution(
         if old.plan_version_id != plan_id or old.payload["plan_hash"] != plan_hash:
             raise WorkbenchError("执行确认的内容已变化")
         return wb.session.get(Job, old.job_id)
+    if settings.model_gateway_signing_key or settings.model_gateway_store_id:
+        from app.providers.gateway_readiness import execution_profiles, validate_proof
+        from app.model_settings import ModelSettingsService
+        from app.providers.contracts import ProviderRunError
+        try:
+            profiles = execution_profiles(settings, ModelSettingsService(wb.session), task_id)
+            for stage, profile in profiles.items():
+                validate_proof(settings, profile, (credential_proofs or {}).get(stage, {}))
+        except ProviderRunError as exc:
+            raise WorkbenchError(exc.safe_message, code=exc.code) from None
     from app.cla import _lock
     from app.conversation import require_settled_messages
     _lock(wb)
@@ -156,6 +167,10 @@ def authorize_execution(
             "repair_twice",
         ],
     }
+    if credential_proofs:
+        payload["credential_readiness"] = {stage: {name: proof[name] for name in
+            ("store_id", "generation", "checked_at", "profile_hash", "proof_hash")}
+            for stage, proof in credential_proofs.items()}
     if preflight.get("baseline_failure_policy"):
         payload["baseline_failure_policy"] = preflight["baseline_failure_policy"]
     if transport is not None:

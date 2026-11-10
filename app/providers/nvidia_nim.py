@@ -714,6 +714,10 @@ class NvidiaNimGatewayRunner:
                 "model_gateway_auth_failure",
             }:
                 retryable = False
+            from app.providers.gateway_readiness import STORAGE_ERROR_CODES
+            if error_code.removeprefix("model_") in STORAGE_ERROR_CODES:
+                retryable = False
+                error_message = "Credential storage is not ready; explicit configuration may be required"
             raise ProviderRunError(
                 error_code,
                 error_message,

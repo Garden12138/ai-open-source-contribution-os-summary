@@ -80,6 +80,18 @@ def build_parser() -> argparse.ArgumentParser:
     gateway.add_argument("--host", default="127.0.0.1")
     gateway.add_argument("--port", type=int, default=8001)
 
+    storage = subparsers.add_parser("gateway-storage", help="Explicit offline Gateway storage maintenance; never invokes a Provider")
+    storage.add_argument("operation", choices=("initialize", "import-legacy", "backup", "restore", "rollback", "recover"))
+    storage.add_argument("--root", required=True)
+    storage.add_argument("--intent", choices=("new-install", "reconfigure-new-store"))
+    storage.add_argument("--store-id")
+    storage.add_argument("--expected-generation")
+    storage.add_argument("--source")
+    storage.add_argument("--destination")
+    storage.add_argument("--snapshot-hash")
+    storage.add_argument("--material-hash")
+    storage.add_argument("--envelope-key-id")
+
     sandbox_worker = subparsers.add_parser(
         "sandbox-worker",
         help="Run Docker-only execution jobs without GitHub/model credentials",
@@ -183,6 +195,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         )
         return 0 if report.ok else 1
+    if args.command == "gateway-storage":
+        return run_gateway_storage(args)
+    if args.command in {"publisher-service", "publisher-worker"}:
+        assert_publisher_environment()  # Reject model key files before Settings reads them.
     settings = Settings.from_env()
     if args.command == "publisher-service":
         from app.publisher_service import create_publisher_app
@@ -249,6 +265,37 @@ async def run_provider_worker(
         database.close()
 
 
+def run_gateway_storage(args: argparse.Namespace) -> int:
+    from app.providers.gateway_storage import GatewayStorageMaintenance as Maintenance, GatewayStorageError
+    try:
+        operation = args.operation
+        if operation == "initialize":
+            result = Maintenance.initialize(args.root, intent=args.intent)
+        elif operation == "import-legacy":
+            if not all((args.source, args.material_hash, args.envelope_key_id)):
+                raise GatewayStorageError("explicit_intent_required")
+            result = Maintenance.import_legacy(args.source, args.root, material_hash=args.material_hash, envelope_key_id=args.envelope_key_id)
+        else:
+            if not args.store_id or not args.expected_generation:
+                raise GatewayStorageError("explicit_intent_required")
+            options = {"store_id": args.store_id, "expected_generation": args.expected_generation}
+            if operation == "backup":
+                if not args.destination:
+                    raise GatewayStorageError("explicit_intent_required")
+                result = {"snapshot_hash": Maintenance.backup(args.root, args.destination, **options)}
+            elif operation == "restore":
+                if not args.source or not args.snapshot_hash:
+                    raise GatewayStorageError("explicit_intent_required")
+                result = Maintenance.restore(args.root, args.source, snapshot_hash=args.snapshot_hash, **options)
+            else:
+                result = getattr(Maintenance, operation)(args.root, **options)
+        print(json.dumps({"status": "ok", "result": result}))
+        return 0
+    except (GatewayStorageError, OSError, ValueError, KeyError, TypeError) as exc:
+        print(json.dumps({"status": "blocked", "code": exc.code if isinstance(exc, GatewayStorageError) else "gateway_storage_unavailable"}))
+        return 2
+
+
 def run_model_gateway(settings: Settings, args: argparse.Namespace) -> int:
     if settings.model_gateway_signing_key is None:
         raise ValueError("MODEL_GATEWAY_SIGNING_KEY is required")
@@ -267,15 +314,17 @@ def run_model_gateway(settings: Settings, args: argparse.Namespace) -> int:
         ) if api_key else UnconfiguredModelUpstream(),
         provider_name="nvidia_nim",
     )
-    from app.providers.model_secrets import GatewaySecretStore
+    from app.providers.gateway_storage import PersistentGatewaySecretStore, GatewayStorageError
     from app.providers.studio import StudioGateway
-    store = GatewaySecretStore(settings.model_gateway_secret_root, environment_key=api_key)
-    uvicorn.run(
-        create_model_gateway_app(StudioGateway(gateway, store, proxy_url=settings.nvidia_https_proxy),
-            secret_store=store, management_key=settings.model_gateway_management_key),
-        host=args.host,
-        port=args.port,
-    )
+    if not settings.model_gateway_store_id or not settings.model_gateway_management_key:
+        raise GatewayStorageError("identity_invalid")
+    with PersistentGatewaySecretStore(settings.model_gateway_secret_root, settings.model_gateway_store_id, environment_key=api_key) as store:
+        uvicorn.run(
+            create_model_gateway_app(StudioGateway(gateway, store, proxy_url=settings.nvidia_https_proxy),
+                secret_store=store, management_key=settings.model_gateway_management_key, readiness_key=settings.model_gateway_readiness_key),
+            host=args.host,
+            port=args.port,
+        )
     return 0
 
 
@@ -322,11 +371,12 @@ def _gateway_secret(
     return value
 def assert_publisher_environment() -> None:
     from app.workbench import WorkbenchError
-    if any(os.environ.get(name) for name in (
+    forbidden = (
         "GITHUB_TOKEN", "GH_TOKEN", "NVIDIA_API_KEY", "OPENAI_API_KEY",
-        "MODEL_GATEWAY_SIGNING_KEY", "MODEL_GATEWAY_MANAGEMENT_KEY",
+        "MODEL_GATEWAY_SIGNING_KEY", "MODEL_GATEWAY_MANAGEMENT_KEY", "MODEL_GATEWAY_READINESS_KEY",
         "SANDBOX_JOB_SPEC_SIGNING_KEY", "DOCKER_HOST",
-    )) or Path("/var/run/docker.sock").exists() and os.access("/var/run/docker.sock", os.W_OK):
+    )
+    if any(os.environ.get(name) for name in (*forbidden, *(name + "_FILE" for name in forbidden))) or Path("/var/run/docker.sock").exists() and os.access("/var/run/docker.sock", os.W_OK):
         raise WorkbenchError("Publisher 必须使用独立环境：仅 gh 登录、数据库和产物；不能访问 Docker 或模型凭证")
 
 

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+import sys
 
 
 DEFAULT_GITHUB_QUERIES = (
@@ -116,7 +117,18 @@ def _signing_key_env() -> bytes | None:
 
 
 def _hex_key_env(name: str) -> bytes | None:
-    raw = _secret_text(name, f"{name}_FILE")
+    if name in {"MODEL_GATEWAY_SIGNING_KEY", "MODEL_GATEWAY_MANAGEMENT_KEY", "MODEL_GATEWAY_READINESS_KEY"} and os.getenv(name + "_FILE"):
+        # Host LaunchAgent configuration points to private files, never embeds
+        # credentials in a plist or silently falls back to inherited variables.
+        from app.providers.gateway_storage import _read
+        if os.getenv(name):
+            raise ValueError("Gateway key must have one explicit source")
+        try:
+            raw = _read(Path(os.environ[name + "_FILE"])).decode()
+        except (OSError, UnicodeError):
+            raise ValueError("Gateway key file is unavailable") from None
+    else:
+        raw = _secret_text(name, f"{name}_FILE")
     if raw is None or not raw.strip():
         return None
     try:
@@ -166,7 +178,9 @@ class Settings:
     model_gateway_service_name: str = "contribos-model-gateway"
     model_gateway_signing_key: bytes | None = None
     model_gateway_management_key: bytes | None = None
-    model_gateway_secret_root: str = "/data/model-secrets"
+    model_gateway_readiness_key: bytes | None = None
+    model_gateway_secret_root: str = field(default_factory=lambda: str(Path.home() / "Library/Application Support/ContribOS/model-gateway") if sys.platform == "darwin" else "/data/model-secrets")
+    model_gateway_store_id: str | None = None
     nvidia_https_proxy: str | None = None
     sandbox_job_spec_key_id: str = "local-v1"
     sandbox_job_spec_signing_key: bytes | None = None
@@ -356,7 +370,9 @@ class Settings:
                 "MODEL_GATEWAY_SIGNING_KEY"
             ),
             model_gateway_management_key=_hex_key_env("MODEL_GATEWAY_MANAGEMENT_KEY"),
+            model_gateway_readiness_key=_hex_key_env("MODEL_GATEWAY_READINESS_KEY"),
             model_gateway_secret_root=os.getenv("MODEL_GATEWAY_SECRET_ROOT", defaults.model_gateway_secret_root),
+            model_gateway_store_id=os.getenv("MODEL_GATEWAY_STORE_ID", "").strip() or None,
             nvidia_https_proxy=(
                 os.getenv("NVIDIA_HTTPS_PROXY", "").strip() or None
             ),

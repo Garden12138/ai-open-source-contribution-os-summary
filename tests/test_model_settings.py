@@ -719,9 +719,12 @@ def test_studio_runner_parses_gateway_error():
     ],
 )
 def test_profile_gateway_binds_endpoint_and_structured_result(
-    tmp_path, provider, model
+    tmp_path, provider, model, monkeypatch
 ):
-    store = GatewaySecretStore(str(tmp_path / "private"), environment_key=CANARY)
+    from app.providers import gateway_storage as storage
+    monkeypatch.setattr(storage, "_is_ephemeral", lambda path: False)
+    initialized = storage.GatewayStorageMaintenance.initialize(tmp_path / "private", intent="new-install")
+    store = storage.PersistentGatewaySecretStore(tmp_path / "private", initialized["store_id"], environment_key=CANARY)
     credential_ref = None
     if provider in {"minimax", "deepseek"}:
         grant = store.grant("minimax-gateway")
@@ -782,7 +785,8 @@ def test_profile_gateway_binds_endpoint_and_structured_result(
             base_url="http://contribos-model-gateway:8001",
         ) as client:
             runner = runner_for_profile(
-                Settings(model_gateway_signing_key=KEY), profile, client=client
+                Settings(model_gateway_signing_key=KEY, model_gateway_management_key=bytes.fromhex("ef" * 32),
+                         model_gateway_store_id=initialized["store_id"]), profile, client=client
             )
             invocation = CodexExecInvocation(
                 stage=ProviderStage.PLANNING,

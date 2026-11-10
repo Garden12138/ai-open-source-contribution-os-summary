@@ -49,6 +49,8 @@ services:
       GITHUB_DISCOVERY_TOKEN_CONFIGURED: ${GITHUB_TOKEN:+true}
       SANDBOX_JOB_SPEC_SIGNING_KEY: ${SANDBOX_JOB_SPEC_SIGNING_KEY:-}
       MODEL_GATEWAY_MANAGEMENT_KEY: ${MODEL_GATEWAY_MANAGEMENT_KEY:-}
+      MODEL_GATEWAY_STORE_ID: ${MODEL_GATEWAY_STORE_ID:-}
+      MODEL_GATEWAY_READINESS_KEY: ${MODEL_GATEWAY_READINESS_KEY:-}
       MODEL_GATEWAY_BASE_URL: http://contribos-model-gateway:8001/v1
       PUBLISHER_MANAGEMENT_KEY: ${PUBLISHER_MANAGEMENT_KEY:-}
       PUBLISHER_MANAGEMENT_URL: http://publisher:8002
@@ -103,8 +105,11 @@ services:
       MODEL_GATEWAY_NETWORK: contribos-model-gateway-local
       MODEL_GATEWAY_SERVICE_NAME: contribos-model-gateway
       MODEL_GATEWAY_SIGNING_KEY: ${MODEL_GATEWAY_SIGNING_KEY:-}
+      MODEL_GATEWAY_READINESS_KEY: ${MODEL_GATEWAY_READINESS_KEY:-}
+      MODEL_GATEWAY_STORE_ID: ${MODEL_GATEWAY_STORE_ID:-}
     networks:
       - model-internal
+      - model-management
     depends_on:
       model-gateway:
         condition: service_healthy
@@ -208,6 +213,8 @@ services:
       NVIDIA_HTTPS_PROXY: ${NVIDIA_HTTPS_PROXY:-}
       MODEL_GATEWAY_MANAGEMENT_KEY: ${MODEL_GATEWAY_MANAGEMENT_KEY:-}
       MODEL_GATEWAY_SECRET_ROOT: /data/model-secrets
+      MODEL_GATEWAY_STORE_ID: ${MODEL_GATEWAY_STORE_ID:-}
+      MODEL_GATEWAY_READINESS_KEY: ${MODEL_GATEWAY_READINESS_KEY:-}
     volumes:
       - model-secrets:/data/model-secrets
     init: true

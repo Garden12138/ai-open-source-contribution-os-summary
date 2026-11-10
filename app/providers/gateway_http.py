@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.providers.contracts import ProviderRunError
+from app.providers.gateway_storage import GatewayStorageError
 from app.providers.gateway import (
     GatewayAuthorizationError,
     GatewayAuthorizationExpiredError,
@@ -21,7 +22,7 @@ from app.providers.gateway import (
 logger = logging.getLogger(__name__)
 
 
-def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None, management_key=None) -> FastAPI:
+def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None, management_key=None, readiness_key=None) -> FastAPI:
     """Create the internal-only HTTP boundary consumed by Codex CLI."""
 
     app = FastAPI(
@@ -30,6 +31,12 @@ def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None
         redoc_url=None,
         openapi_url=None,
     )
+
+    @app.exception_handler(GatewayStorageError)
+    async def storage_error(_: Request, exc: GatewayStorageError) -> JSONResponse:
+        return JSONResponse(status_code=503, content={"error": {
+            "code": exc.code, "message": "Credential storage unavailable; explicit configuration may be required",
+            "retryable": False}})
 
     @app.exception_handler(Exception)
     async def unexpected_error(
@@ -45,6 +52,47 @@ def create_model_gateway_app(gateway: InternalModelGateway, *, secret_store=None
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.post("/internal/readiness")
+    async def readiness(request: Request):
+        import re
+        import time
+        from app.provenance import canonical_json, content_hash
+        from app.providers.model_secrets import management_auth, verify_management
+        from app.model_settings import ProfileInput, ConnectionInput
+        from app.providers.gateway_readiness import readonly_key
+        key = readiness_key or (readonly_key(management_key) if management_key else None)
+        if key is None:
+            return _error(403, "management_disabled", "Gateway management is disabled")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 24000:
+                return _error(413, "management_limit", "Readiness request is too large")
+        try:
+            verify_management(key, bytes(body), request.headers.get("X-Gateway-Readiness", ""))
+            value = json.loads(body)
+            if not re.fullmatch(r"[a-f0-9]{32}", value["nonce"]):
+                raise ValueError()
+            operation = value["operation"]
+            if operation not in {"storage_readiness", "credential_readiness"}:
+                raise ValueError()
+            profile = value.get("profile")
+            if operation == "credential_readiness":
+                ProfileInput.model_validate({k: v for k, v in profile.items() if k not in {"id", "record_hash", "connection"}})
+                ConnectionInput.model_validate({k: v for k, v in profile["connection"].items() if k not in {"id", "record_hash"}})
+        except (ValueError, KeyError, TypeError, AttributeError):
+            return _error(403, "management_rejected", "Readiness authorization or binding rejected")
+        if not hasattr(secret_store, "storage_readiness") or value.get("store_id") != secret_store.store_id:
+            raise GatewayStorageError("identity_changed")
+        result = (secret_store.credential_readiness(profile["connection"]["credential_ref"])
+                  if operation == "credential_readiness" else secret_store.storage_readiness())
+        result.update(checked_at=int(time.time()), nonce=value["nonce"])
+        if profile is not None:
+            result["profile_hash"] = content_hash(profile)
+        result["proof_hash"] = content_hash(result)
+        result["proof_auth"] = management_auth(key, canonical_json(result).encode())
+        return result
 
     @app.post("/internal/settings")
     async def manage(request: Request):

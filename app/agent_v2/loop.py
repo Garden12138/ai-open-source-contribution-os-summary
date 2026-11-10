@@ -309,6 +309,24 @@ class AgentModelWorker(WorkbenchJobWorker):
                     journal.transition(cp, state="blocked", key="coding-handoff-stop-cp:" + job.id, job_id=job.id)
                     return self.finish(s, job, {"state": "blocked", "reason_code": info.safe_reason_code})
             adapter = self.adapter_factory(s, spec)
+            from app.providers.nvidia_nim import NvidiaNimGatewayRunner
+            runner = getattr(adapter, "runner", None)
+            if isinstance(runner, NvidiaNimGatewayRunner) and (self.settings.model_gateway_signing_key or self.settings.model_gateway_store_id):
+                from app.providers.gateway_readiness import credential_readiness, execution_profiles
+                from app.model_settings import ModelSettingsService
+                try:
+                    profile = execution_profiles(self.settings, ModelSettingsService(s), journal.task_id)["implementation"]
+                    proof = await credential_readiness(self.settings, profile, client=getattr(runner, "_client", None))
+                    authorization = journal.wb.latest(journal.task_id, "execution_authorized")
+                    frozen_storage = authorization.payload.get("credential_readiness", {}).get("implementation") if authorization else None
+                    if frozen_storage and any(proof[k] != frozen_storage[k] for k in ("store_id", "generation", "profile_hash")):
+                        from app.providers.gateway_readiness import storage_failure
+                        raise storage_failure("gateway_storage_identity_changed")
+                except ProviderRunError as exc:
+                    info = failure(journal, "platform", exc.code, "inspect_storage_configuration", retryable=False)
+                    journal.append("blocked", {"failure": info.model_dump()}, key="storage-preflight:" + job.id, job_id=job.id)
+                    journal.transition(cp, state="blocked", key="storage-preflight-cp:" + job.id, job_id=job.id)
+                    return self.finish(s, job, {"state": "blocked", "reason_code": exc.code})
             bound = (adapter.input_bound(prompt) if hasattr(adapter, "input_bound") else
                 len(canonical_json(prompt).encode()) + 2 * len(canonical_json(Decision.model_json_schema()).encode()) + 512)
             if type(bound) is not int or not 0 < bound <= 32000:
