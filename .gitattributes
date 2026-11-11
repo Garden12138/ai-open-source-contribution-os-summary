@@ -1,3 +1,1 @@
-# Preserve hash-addressed JUnit failure traceback bytes, including pytest's "E     " lines.
-docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results/*.xml whitespace=-blank-at-eol
-docs/agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/test-results-public/*.xml whitespace=-blank-at-eol
+# Text files use the standard Git whitespace checks.

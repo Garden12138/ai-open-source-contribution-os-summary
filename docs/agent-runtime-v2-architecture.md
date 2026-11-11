@@ -13,7 +13,7 @@ exposed two separate capabilities. Unsupported forms must stop before coding wit
 exact command evidence. The derived diagnosis may supersede a historical generic
 blocker append-only; original failures, approvals and hashes remain intact.
 No model code-repair budget is consumed by this stop. See the
-[failure and verification record](acceptance/agent-runtime-v2/user-trial-baseline-failure.json).
+[failure and verification record](maintenance/HISTORY_INDEX.md).
 
 A disposable full dependency copy was tested and rejected: `/execution` is
 actually `noexec` on the current engine, and copied pnpm launchers failed with
@@ -149,7 +149,7 @@ external-write reconciliation are unchanged. v2 tools cannot call them. CLA,
 ready and metadata updates retain their separately confirmed boundaries.
 
 Verification evidence and unpassed native/cross-platform gates are maintained in
-[acceptance/agent-runtime-v2](acceptance/agent-runtime-v2/README.md).
+[acceptance/agent-runtime-v2](maintenance/HISTORY_INDEX.md).
 
 ## Bounded planning context
 
@@ -220,7 +220,7 @@ do not bypass finish verification or independent Review. The schema/instruction
 hash travels through plan binding, preflight, exact confirmation, authorization
 and TaskSpec; existing frozen sessions keep their original structured transport.
 See [migration](agent-runtime-v2-migration.md#forward-revision-0041-frozen-native-model-functions)
-and the [acceptance ledger](acceptance/universal-environment-v1/README.md) for
+and the [acceptance ledger](maintenance/HISTORY_INDEX.md) for
 controlled versus native evidence and unresolved gates.
 
 SQLite workflow advancement takes the same write lock as exact stop before

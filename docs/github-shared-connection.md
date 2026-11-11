@@ -65,5 +65,5 @@ authentication or native contribution success. The user subsequently saved the
 connection: actual account probe and public repository/commit/archive reads now
 pass. The reported scope is `repo`; the relay still permits public GETs only.
 Native MiniMax planning has separate failed/incomplete results in the
-[acceptance ledger](acceptance/universal-environment-v1/README.md); access readiness
+[acceptance ledger](maintenance/HISTORY_INDEX.md); access readiness
 does not satisfy the contribution gate.

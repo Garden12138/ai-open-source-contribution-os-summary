@@ -4,7 +4,7 @@ Agent Runtime v2 is an opt-in Phase 5 refactor, default off and restricted to
 isolated test instances until its real journey gates pass. Its durable tool
 loop, rollout pinning and evidence are documented in
 [the v2 architecture](agent-runtime-v2-architecture.md) and
-[acceptance](acceptance/agent-runtime-v2/README.md). Existing jobs retain their
+[acceptance](maintenance/HISTORY_INDEX.md). Existing jobs retain their
 frozen protocol and exact approvals; this page also describes that baseline.
 
 This Phase 5 extension implements the user-approved conversation model: progress

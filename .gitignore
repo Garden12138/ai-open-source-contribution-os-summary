@@ -11,3 +11,5 @@ data/
 dist/
 build/
 .DS_Store
+.local-demo/
+.local-live/

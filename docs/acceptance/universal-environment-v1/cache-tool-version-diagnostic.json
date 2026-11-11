@@ -1,5 +1,0 @@
-{
-  "classification": "controlled supervisor diagnostic only",
-  "stderr_hash": "1cf1f2256514126c79eb15538ce51fcf1edfc2c2f2dae77b53872f69a942a15d",
-  "redacted_stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1282, in <module>\n  File \"<string>\", line 1274, in record_python_cache\nValueError: python_data_cache_tool_version_unsupported\n"
-}

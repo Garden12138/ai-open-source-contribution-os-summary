@@ -1,4 +1,0 @@
-# Keep redacted pytest traceback bytes and original hash-addressed page endings.
-test-results/*.xml whitespace=-blank-at-eol
-saved-envelope-replay/artifacts/0fe6312e23c3793d1fd91e2d337eac64d857362df6b8ec577d89a20bf46cea48.txt whitespace=-blank-at-eol,-blank-at-eof
-saved-envelope-replay/artifacts/3fedc9e34bbdf3078c56d5aec4f2015ae7bc43b19d3d1e3baddcd2960ec6c6f5.txt whitespace=-blank-at-eol,-blank-at-eof

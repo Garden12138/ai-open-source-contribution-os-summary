@@ -1,4 +1,0 @@
-# Preserve original content-addressed source bytes and historical test tracebacks.
-saved-envelope-replay/artifacts/*.txt whitespace=-blank-at-eol,-blank-at-eof
-test-results/*.xml whitespace=-blank-at-eol
-code.diff whitespace=-blank-at-eol

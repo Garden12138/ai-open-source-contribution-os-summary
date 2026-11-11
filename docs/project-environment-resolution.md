@@ -194,7 +194,7 @@ review and confirmation buttons were enabled and no mutation request occurred.
 This is acceptance of plan continuation, not proof that this project's
 dependencies, baseline or implementation have run. Those remain behind the
 new exact confirmation. Detailed evidence and platform limits are recorded in
-[planning-continuation-2026-10-25.json](acceptance/planning-continuation-2026-10-25.json).
+[planning-continuation-2026-10-25.json](maintenance/HISTORY_INDEX.md).
 
 ## Upgrade, recovery and verification
 
@@ -278,7 +278,7 @@ implementation/review attempts supersede that checkpoint: original root **7/8**,
 ten total coding calls including two original-authority repairs, all reviews
 blocked. The command-evidence correction and unapproved child plan above are
 the current state. Full exact evidence is in
-[verification-command-policy-2026-10-26.json](acceptance/verification-command-policy-2026-10-26.json).
+[verification-command-policy-2026-10-26.json](maintenance/HISTORY_INDEX.md).
 
 The matched pre-recovery backup is
 `/data/backups/coding-read-recovery-20261025T063740Z` (1,958 events and 1,133
@@ -317,7 +317,7 @@ production state and usage are not modified. Full regression: 1,319 passed,
 paths plus Bun locked/unlocked and npm unlocked). These controlled preparations
 do not claim that the production repository's full build or native tests ran.
 Machine-readable reports, isolated replay history and final source hashes are in
-[the acceptance record](acceptance/project-environment-2026-10-25.json).
+[the acceptance record](maintenance/HISTORY_INDEX.md).
 
 Tool semantics were checked against the official
 [Bun installation documentation](https://bun.com/docs/installation),

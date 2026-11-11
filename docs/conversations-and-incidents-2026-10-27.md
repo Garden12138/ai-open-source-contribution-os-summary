@@ -79,7 +79,7 @@
 | [B08](#b08) · [can1357/oh-my-pi #16821](https://github.com/can1357/oh-my-pi/issues/16821)<br>`65bb0e9f…` | 81 / 4 / 6 | `planning` | 5 次 block；新启动遇到上游变更，原候选已有修复 |
 | [B09](#b09) · [a2ui-project/a2ui #3085](https://github.com/a2ui-project/a2ui/issues/3085)<br>`f7a75a35…` | 12 / 0 / 0 | `planning` | 0 个合法方案；补读方式冲突，本轮未修复 |
 
-前七个任务的根因审查见 [2026-10-24 跨任务独立完成能力审查](autonomous-completion-audit-2026-10-24.md)。本轮新增覆盖后续 oh-my-pi 和 A2UI 的对话与诊断。
+前七个任务的根因审查见 [2026-10-24 跨任务独立完成能力审查](maintenance/HISTORY_INDEX.md)。本轮新增覆盖后续 oh-my-pi 和 A2UI 的对话与诊断。
 
 Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游已存在修复”都是有效的只读结论；它们不能作为本产品成功生成、测试、审查并交付新修改的样本。已有四份发布记录也不能抹去相应任务的外部维护介入。
 
@@ -91,13 +91,13 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 
 **P02：真实任务、对话焦点和授权混在一起。** 查看旧结果、询问进度、补充要求和“继续”可能被误路由，或打断后台工作。运行时已分离任务观察、引用焦点、当前请求和精确授权；只读问题不产生新动作权限，历史焦点不能选择历史方案执行。来源：[运行时设计](agent-runtime.md)、AR-T01—AR-T05。
 
-**P03：慢实现占用对话处理通道。** 用户询问状态也要等待代码生成或审查。已保留独立前台与后台 Provider 通道；真实复合提问样例在后台任务仍排队时完成。该样例不是所有并发场景的证明。来源：AR-T03、[agent-runtime 验收](acceptance/agent-runtime-2026-10-24.json)。
+**P03：慢实现占用对话处理通道。** 用户询问状态也要等待代码生成或审查。已保留独立前台与后台 Provider 通道；真实复合提问样例在后台任务仍排队时完成。该样例不是所有并发场景的证明。来源：AR-T03、[agent-runtime 验收](maintenance/HISTORY_INDEX.md)。
 
-**P04：“继续”被接收，却没有真正排入下一步。** oh-my-pi 的“按你的下一步计划进行”在读取额度耗尽后没有生成计划；此前读取成功曾被误认为可继续实施。ENV-R06 通过批量元数据读取、保留原请求及真实子方案验证修复；能出现确认按钮仍不等于实施通过。来源：[规划接续证据](acceptance/planning-continuation-2026-10-25.json)。
+**P04：“继续”被接收，却没有真正排入下一步。** oh-my-pi 的“按你的下一步计划进行”在读取额度耗尽后没有生成计划；此前读取成功曾被误认为可继续实施。ENV-R06 通过批量元数据读取、保留原请求及真实子方案验证修复；能出现确认按钮仍不等于实施通过。来源：[规划接续证据](maintenance/HISTORY_INDEX.md)。
 
 **P05：澄清答案、停止和后续接续不稳定。** HFlow 等任务出现选项难以统一回答、澄清后仍卡住、停止影响后来新任务等问题。已增加可点击选项、一次发送、源问题绑定和精确停止范围；不允许历史问题的回答自动套用到新问题。来源：[C03](#c03)、[C04](#c04)、[会话协议](conversation-agent-contract.md)。
 
-**P06：模型叙述先于真实动作回执。** 历史上出现“现在进入实施”，但实际上未准备环境、未产生改动的答复。现在依赖持久化 Job、ChangeSet、Verify、Review 和发布回执判断动作是否发生；自然语言不能补造执行结果。历史误导性答复原文保留在附录，不继续视为事实。来源：[跨任务审查](autonomous-completion-audit-2026-10-24.md)。
+**P06：模型叙述先于真实动作回执。** 历史上出现“现在进入实施”，但实际上未准备环境、未产生改动的答复。现在依赖持久化 Job、ChangeSet、Verify、Review 和发布回执判断动作是否发生；自然语言不能补造执行结果。历史误导性答复原文保留在附录，不继续视为事实。来源：[跨任务审查](maintenance/HISTORY_INDEX.md)。
 
 ### 二、环境、源码读取与验证
 
@@ -107,37 +107,37 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 
 **P09：声明支持与实际环境生命周期脱节。** 依赖“曾安装成功”不能证明对应卷仍在，也不能证明 Verify 加载的是修改后的源码。Excalidraw 暴露了回收卷、符号链接视图、清单排序、缓存和临时目录问题。已通过精确配方恢复、重新基线、私有可写视图和来源检查处理；不复用已经失效的测试或审查。来源：ENV-T02、ENV-T04、[依赖契约](sandbox-dependencies.md)。
 
-**P10：原生依赖加载失败被误当作代码或提案问题。** oh-my-pi 的 Bun 安装完成后，测试仍缺少正确的原生 addon 或入口链接。ENV-R07 已修复相关平台包版本/二进制绑定、受限构建和一次性源码补读；原生加载错误在代码调用前成为环境阻塞。该任务的真实完整执行验收仍未通过。来源：[执行补读恢复证据](acceptance/execution-read-recovery-2026-10-25.json)。
+**P10：原生依赖加载失败被误当作代码或提案问题。** oh-my-pi 的 Bun 安装完成后，测试仍缺少正确的原生 addon 或入口链接。ENV-R07 已修复相关平台包版本/二进制绑定、受限构建和一次性源码补读；原生加载错误在代码调用前成为环境阻塞。该任务的真实完整执行验收仍未通过。来源：[执行补读恢复证据](maintenance/HISTORY_INDEX.md)。
 
-**P11：只读检索误报“缺锁文件”，或因容量而重复读取。** 全仓库清单与初始捕获上下文不是同一范围；大锁文件和元数据可能被截断。现有补读按完整清单、分页和共享输入空间有界分配；原始内容、归档和视图哈希保持绑定，补读不扩展可编辑路径。来源：ENV-R04、ENV-R06、[项目环境证据](acceptance/project-environment-2026-10-25.json)。
+**P11：只读检索误报“缺锁文件”，或因容量而重复读取。** 全仓库清单与初始捕获上下文不是同一范围；大锁文件和元数据可能被截断。现有补读按完整清单、分页和共享输入空间有界分配；原始内容、归档和视图哈希保持绑定，补读不扩展可编辑路径。来源：ENV-R04、ENV-R06、[项目环境证据](maintenance/HISTORY_INDEX.md)。
 
-**P12：退出码为零被误报为检查执行成功。** Bun 1.4.4 的 `bun --cwd packages/tui run …` 写法曾只输出帮助，类型与检查脚本没有运行，却被报告为 5/5。真实 sentinel 和原始输出证明确认了问题；R03 重开，使用显式 working_directory，历史派生结果更正为 3/5、environment_blocked，旧证据不覆盖。来源：[验证命令证据](acceptance/verification-command-policy-2026-10-26.json)。
+**P12：退出码为零被误报为检查执行成功。** Bun 1.4.4 的 `bun --cwd packages/tui run …` 写法曾只输出帮助，类型与检查脚本没有运行，却被报告为 5/5。真实 sentinel 和原始输出证明确认了问题；R03 重开，使用显式 working_directory，历史派生结果更正为 3/5、environment_blocked，旧证据不覆盖。来源：[验证命令证据](maintenance/HISTORY_INDEX.md)。
 
 **P13：检查资源故障与源码错误需要分开。** 在真实脚本开始执行后，并行编译器出现 SIGKILL（退出 -9）；没有充分证据把它直接断言为 OOM。保留原 2 GiB 沙箱与完整检查，通过 `--singleThreaded` 真实执行。不能靠缩测试、放宽网络或宿主机运行绕过失败。来源：同上。
 
-**P14：基线失败导致贡献范围膨胀。** OpenInference 双包任务出现既有类型错误后，方案逐渐扩大到 typing/stub 等无关内容；用户后来要求只处理本 Issue。现有契约分别呈现环境故障、既有失败和新增回归；任何范围变化都需子方案，不能用屏蔽错误或缩小检查冒充通过。来源：[C06](#c06)、[跨任务审查](autonomous-completion-audit-2026-10-24.md)。
+**P14：基线失败导致贡献范围膨胀。** OpenInference 双包任务出现既有类型错误后，方案逐渐扩大到 typing/stub 等无关内容；用户后来要求只处理本 Issue。现有契约分别呈现环境故障、既有失败和新增回归；任何范围变化都需子方案，不能用屏蔽错误或缩小检查冒充通过。来源：[C06](#c06)、[跨任务审查](maintenance/HISTORY_INDEX.md)。
 
 ### 三、上下文、提案、模型错误与预算
 
-**P15：输入预算规则不一致，调用付费后才拒绝结果。** 双包任务的历史 checkpoint 为 45,121 bytes、目标内；实际输入为 16,478，却在调用后触发 16,000 输入阈值，输出只有 478。这不是用户消息太长或账户没额度。运行时已在调用前统一输入、系统/Schema 预留、读取和输出额度，保留累计用量；历史回放验证通过不代表原任务已经完成。来源：UXR-T14、[跨任务审查](autonomous-completion-audit-2026-10-24.md)、[运行时证据](acceptance/agent-runtime-2026-10-24.json)。
+**P15：输入预算规则不一致，调用付费后才拒绝结果。** 双包任务的历史 checkpoint 为 45,121 bytes、目标内；实际输入为 16,478，却在调用后触发 16,000 输入阈值，输出只有 478。这不是用户消息太长或账户没额度。运行时已在调用前统一输入、系统/Schema 预留、读取和输出额度，保留累计用量；历史回放验证通过不代表原任务已经完成。来源：UXR-T14、[跨任务审查](maintenance/HISTORY_INDEX.md)、[运行时证据](maintenance/HISTORY_INDEX.md)。
 
-**P16：额度和重试层级混淆。** 根提案调用上限、单 Job 修正次数、最多两轮代码修复、单次输出上限和累计用量是不同限制。一个额度有剩余不能绕过另一限制，换根或新方案也不能抹去历史。已经记录的 6→8、3→4 和 32K→64K 都是不同、精确绑定的决定，不能相互借用。来源：[最终一次格式重试预览](acceptance/proposal-final-retry-preview-2026-10-26.json)、[输出额度预览](acceptance/proposal-output-budget-preview-2026-10-27.json)。
+**P16：额度和重试层级混淆。** 根提案调用上限、单 Job 修正次数、最多两轮代码修复、单次输出上限和累计用量是不同限制。一个额度有剩余不能绕过另一限制，换根或新方案也不能抹去历史。已经记录的 6→8、3→4 和 32K→64K 都是不同、精确绑定的决定，不能相互借用。来源：[最终一次格式重试预览](maintenance/HISTORY_INDEX.md)、[输出额度预览](maintenance/HISTORY_INDEX.md)。
 
-**P17：重复路径和冗余字段导致整个代码提案被拒。** 同一测试文件被拆成 edit 与 append；又带 unchanged executable=false 和空 edits。默认验证器继续拒绝重复路径。R09 仅在受信维护入口中，将相邻且精确等价的 edit/plain-append 归一化，并验证最终字节、原始哈希和模式一致；不改模型代码、不增加调用、不放宽通用校验。归一化能恢复表示，不证明代码正确。来源：[提案/Provider 恢复证据](acceptance/proposal-provider-recovery-2026-10-27.json)。
+**P17：重复路径和冗余字段导致整个代码提案被拒。** 同一测试文件被拆成 edit 与 append；又带 unchanged executable=false 和空 edits。默认验证器继续拒绝重复路径。R09 仅在受信维护入口中，将相邻且精确等价的 edit/plain-append 归一化，并验证最终字节、原始哈希和模式一致；不改模型代码、不增加调用、不放宽通用校验。归一化能恢复表示，不证明代码正确。来源：[提案/Provider 恢复证据](maintenance/HISTORY_INDEX.md)。
 
 **P18：模型生成的代码存在真实回归。** 表示恢复后，真实 Verify 只有 1/5 命令通过；包括两个旧投影用例失败、两个新增用例超时及新增 mock 参数类型错误。独立 Review 为 block。这些是模型代码失败，不能归因于平台格式，也不能通过删断言或说“已修复”抹去。来源：R09、同上证据。
 
 **P19：Provider 真实错误被吞成通用错误。** change_set_proposal 失败只显示 `nvidia_coding_failed` 与“代码生成未完成”，底层是 ProviderRunError。R10 现在原子记录脱敏 code、safe_message、retryable、Job attempt 和 payload 绑定。更早那次 provider code 无法证明，仍记 unknown；后来的截断不能反推它也是同一错误。来源：R10、[错误边界测试](../tests/test_coding_provider_failure.py)。
 
-**P20：UI 隐藏重试，底层接口却仍可重试。** R10 收尾检查发现这一遗漏，已将相同的不可重试判断落实到服务端；连接与限流故障仍保留合法重试，截断与不可重试认证错误被拒绝。该缺陷发现后的定向与全量检查均通过。来源：同上测试、[提案/Provider 恢复证据](acceptance/proposal-provider-recovery-2026-10-27.json)。
+**P20：UI 隐藏重试，底层接口却仍可重试。** R10 收尾检查发现这一遗漏，已将相同的不可重试判断落实到服务端；连接与限流故障仍保留合法重试，截断与不可重试认证错误被拒绝。该缺陷发现后的定向与全量检查均通过。来源：同上测试、[提案/Provider 恢复证据](maintenance/HISTORY_INDEX.md)。
 
-**P21：输出截断与更高输出配置尚未实测。** 后一次真实调用明确返回 `minimax_completion_truncated`；冻结上限是 32,768。收到新精确确认后创建 65,536 的任务级实现配置、相同贡献内容的子方案及新授权。启动先被上游提交变更挡住，因此本轮没有新的模型请求，不能声称“64K 已证明解决截断”。来源：[配置应用与上游审计证据](acceptance/proposal-output-budget-application-2026-10-27.json)。
+**P21：输出截断与更高输出配置尚未实测。** 后一次真实调用明确返回 `minimax_completion_truncated`；冻结上限是 32,768。收到新精确确认后创建 65,536 的任务级实现配置、相同贡献内容的子方案及新授权。启动先被上游提交变更挡住，因此本轮没有新的模型请求，不能声称“64K 已证明解决截断”。来源：[配置应用与上游审计证据](maintenance/HISTORY_INDEX.md)。
 
 **P22：最新 A2UI 规划仍存在工具选择冲突。** 新任务 `f7a75a35…` 在同一轮同时请求 `read_context` 与 `read_paths`，触发 `planning_output_invalid / context_read_tool_conflict`，达到该轮自动修订上限。快照中没有方案和执行尝试。协议要求每轮选择一种读取方式，另一种在后继有界轮次读取；本次只归档诊断，未修改产品或恢复任务，也不把 planning_turn 的 succeeded 当作方案保存成功。来源：[B09](#b09)、[规划读取契约](agent-runtime.md)。
 
 ### 四、部署完整性与执行工具
 
-**P23：健康接口通过，Worker 却缺少应用内部模块。** xcli 部署快照少了 `app/coding_budget.py`，三个延迟导入引用它，另有五个应用文件与已验证快照不一致。R08 恢复完整 202 文件运行时，同时保留 xcli 源码；构建前做静态内部导入检查，缺失时报告 `worker_runtime_incomplete`。不把应用打包缺陷说成上游依赖缺失。来源：[运行时完整性证据](acceptance/runtime-integrity-recovery-2026-10-26.json)、[构建检查](../app/runtime_integrity.py)。
+**P23：健康接口通过，Worker 却缺少应用内部模块。** xcli 部署快照少了 `app/coding_budget.py`，三个延迟导入引用它，另有五个应用文件与已验证快照不一致。R08 恢复完整 202 文件运行时，同时保留 xcli 源码；构建前做静态内部导入检查，缺失时报告 `worker_runtime_incomplete`。不把应用打包缺陷说成上游依赖缺失。来源：[运行时完整性证据](maintenance/HISTORY_INDEX.md)、[构建检查](../app/runtime_integrity.py)。
 
 **P24：xcli 本机接入与容器 Host Bridge 不是同一能力。** 本机传输、配置入口和契约已有实现；容器到宿主的认证 Bridge 与真实 Plan/Review 仍未验证。接口明确拒绝不支持的容器路径，不能因为集成源码存在就宣布生产可用。来源：[xcli 部署说明](deployment/xcli-local.md)、tasks.md 的 Optional xcli integration。
 
@@ -147,9 +147,9 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 
 **P26：发布后的 ready、CLA、文案更新与跟踪边界不清晰。** 用户多次询问是否需要去 GitHub 点按钮、是否只能等维护者。已增加单独确认的 Draft 文案更新、Ready for review 与固定 CLA 签署扩展，以及只读跟踪；精确账号、协议版本、PR/head 和正文绑定继续有效。“继续”不授权法律签署、合并、任意评论或不受限推送。来源：[C01](#c01)、[C03](#c03)、[C04](#c04)、[AGENTS.md](../AGENTS.md)。
 
-**P27：PR 查询返回旧信息，发布后反馈又依赖外部触发。** HFlow 已合并但对话仍展示旧状态；Excalidraw 的发布后消息曾由外部维护推进。已修复只读状态刷新与发布后持久接续，并区分触发来源。历史真实 PR 成果继续保留，但不能因此忽略维护介入。来源：[C04](#c04)、[C07](#c07)、[跨任务审查](autonomous-completion-audit-2026-10-24.md)。
+**P27：PR 查询返回旧信息，发布后反馈又依赖外部触发。** HFlow 已合并但对话仍展示旧状态；Excalidraw 的发布后消息曾由外部维护推进。已修复只读状态刷新与发布后持久接续，并区分触发来源。历史真实 PR 成果继续保留，但不能因此忽略维护介入。来源：[C04](#c04)、[C07](#c07)、[跨任务审查](maintenance/HISTORY_INDEX.md)。
 
-**P28：长期恢复期间，上游已经解决原问题。** oh-my-pi 新授权启动前发现基准变化。只读刷新显示新 main 比旧基准领先 476 个提交；`5dcd9fb` 已包含整行检查、片段裁剪和回归测试，两个目标文件与该修复提交逐字节一致。Issue 当时仍 open，关联 PR #16823 为 closed、merged=false；依据是修复提交确实在 main 中，不能写成“该 PR 已合并”。原贡献候选已被覆盖，不重复实现，不在新基准复用旧审批。来源：R11、[配置应用与上游审计证据](acceptance/proposal-output-budget-application-2026-10-27.json)。
+**P28：长期恢复期间，上游已经解决原问题。** oh-my-pi 新授权启动前发现基准变化。只读刷新显示新 main 比旧基准领先 476 个提交；`5dcd9fb` 已包含整行检查、片段裁剪和回归测试，两个目标文件与该修复提交逐字节一致。Issue 当时仍 open，关联 PR #16823 为 closed、merged=false；依据是修复提交确实在 main 中，不能写成“该 PR 已合并”。原贡献候选已被覆盖，不重复实现，不在新基准复用旧审批。来源：R11、[配置应用与上游审计证据](maintenance/HISTORY_INDEX.md)。
 
 ## oh-my-pi 故障与恢复时间线
 
@@ -241,19 +241,19 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 | --- | --- |
 | [AGENTS.md](../AGENTS.md) | 阶段、来源链、信任域、授权、安全与交付契约 |
 | [tasks.md](tasks.md) | 路线图、历史问题、ENV/AR/UXR 状态和验收证据 |
-| [跨任务独立完成能力审查](autonomous-completion-audit-2026-10-24.md) | 前七个贡献任务的历史根因与独立性边界 |
+| [跨任务独立完成能力审查](maintenance/HISTORY_INDEX.md) | 前七个贡献任务的历史根因与独立性边界 |
 | [对话任务运行时](agent-runtime.md) | 任务观察、焦点、请求、授权、通道和预算 |
 | [项目环境识别与恢复](project-environment-resolution.md) | 环境识别、锁文件、原生依赖、恢复与命令语义 |
-| [运行时真实控制样例](acceptance/agent-runtime-2026-10-24.json) | AR-T06/T07 与模型/容器/fixture 范围 |
-| [项目环境证据](acceptance/project-environment-2026-10-25.json) | ENV-R01—R05 |
-| [规划接续证据](acceptance/planning-continuation-2026-10-25.json) | ENV-R06 的真实请求与子方案 |
-| [执行补读恢复证据](acceptance/execution-read-recovery-2026-10-25.json) | ENV-R07、来源绑定补读与保留的失败 |
-| [验证命令证据](acceptance/verification-command-policy-2026-10-26.json) | Bun 帮助输出、sentinel、真实脚本与命令子方案 |
-| [运行时完整性证据](acceptance/runtime-integrity-recovery-2026-10-26.json) | ENV-R08 缺模块、构建守卫和完整部署 |
-| [最后一次格式重试预览](acceptance/proposal-final-retry-preview-2026-10-26.json) | 精确 Job 3→4，已有根最后一次调用 |
-| [提案与 Provider 恢复证据](acceptance/proposal-provider-recovery-2026-10-27.json) | R09 等价归一化、真实失败、R10 错误与重试边界 |
-| [输出额度预览](acceptance/proposal-output-budget-preview-2026-10-27.json) | 32,768→65,536 的具体范围与预算上限 |
-| [配置应用与上游审计证据](acceptance/proposal-output-budget-application-2026-10-27.json) | R11 用户决定、子方案、启动阻塞、祖先提交与文件一致性 |
+| [运行时真实控制样例](maintenance/HISTORY_INDEX.md) | AR-T06/T07 与模型/容器/fixture 范围 |
+| [项目环境证据](maintenance/HISTORY_INDEX.md) | ENV-R01—R05 |
+| [规划接续证据](maintenance/HISTORY_INDEX.md) | ENV-R06 的真实请求与子方案 |
+| [执行补读恢复证据](maintenance/HISTORY_INDEX.md) | ENV-R07、来源绑定补读与保留的失败 |
+| [验证命令证据](maintenance/HISTORY_INDEX.md) | Bun 帮助输出、sentinel、真实脚本与命令子方案 |
+| [运行时完整性证据](maintenance/HISTORY_INDEX.md) | ENV-R08 缺模块、构建守卫和完整部署 |
+| [最后一次格式重试预览](maintenance/HISTORY_INDEX.md) | 精确 Job 3→4，已有根最后一次调用 |
+| [提案与 Provider 恢复证据](maintenance/HISTORY_INDEX.md) | R09 等价归一化、真实失败、R10 错误与重试边界 |
+| [输出额度预览](maintenance/HISTORY_INDEX.md) | 32,768→65,536 的具体范围与预算上限 |
+| [配置应用与上游审计证据](maintenance/HISTORY_INDEX.md) | R11 用户决定、子方案、启动阻塞、祖先提交与文件一致性 |
 | [平台交付提交 ab4716f](https://github.com/Garden12138/ai-open-source-contribution-os-summary/commit/ab4716f85a48a812fe3b7790bf37e55edd4630ce) | 此前已提交并推送的运行时与恢复改动 |
 
 <a id="incidents-2026-10-28"></a>
@@ -283,7 +283,7 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 | 7 | 缓存修复期间的真实容器验证 | 完整复制依赖会使 pnpm 启动器落在 `noexec` 临时目录而失败；后续还遇到缺 esbuild 平台包和证据导出器错误 | 丢弃整份复制方案；实现固定工具版本的数据缓存映射，用新冻结样本验证。各次失败保留，最终组件通过不回填原任务为成功 |
 | 8 | 再次“继续”后尝试新 Python 样本，最后反馈“还是失败” | 原先显示可确认的 Python 方案已进入执行准备，但 5 条检查只有 2 条通过，`ruff`、`stubtest` 不可用 | 本次只读核验确认新的实际失败，详情见下表。没有启动编码、Review 或发布；“只差人工确认”的旧说明已不足以描述当前状态 |
 
-当日重构、框架选型和组件证据见[Runtime v2 规格](agent-runtime-v2-refactor-spec.md)、[框架 ADR](adr/agent-runtime-v2-engine-selection.md)及[验收索引](acceptance/agent-runtime-v2/README.md)。本节不把框架接入本身当作用户旅程成功。
+当日重构、框架选型和组件证据见[Runtime v2 规格](maintenance/HISTORY_INDEX.md)、[框架 ADR](adr/agent-runtime-v2-engine-selection.md)及[验收索引](maintenance/HISTORY_INDEX.md)。本节不把框架接入本身当作用户旅程成功。
 
 ### 任务一：radashi #257，规划恢复后仍未通过修改前检查
 
@@ -311,7 +311,7 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 
 修复后的派生分类为 `environment_blocked`，分别指出 `node_tool_cache_unavailable` 与 `verification_dependency_preparation_required`。重分类只追加事件；原失败、原审批、源码清单及修复前 509 条事件的哈希均保留。曾成功的 `coding_context` 是源码读取，不能算业务代码编辑。该任务没有进入 v2 编码会话，没有独立 Review、最终人工验收或交付。
 
-证据：[原对话故障](acceptance/agent-runtime-v2/user-trial-dialogue-failure.json)、[规划恢复](acceptance/agent-runtime-v2/user-trial-fix-verification.json)、[原基线失败](acceptance/agent-runtime-v2/user-trial-baseline-failure.json)、[追加诊断与历史保护](acceptance/agent-runtime-v2/user-trial-baseline-verification.json)、[实际原生页面核验](acceptance/agent-runtime-v2/user-trial-baseline-browser.json)。各文件的测量时间不同，早期“尚未批准”不能当作之后仍未批准。
+证据：[原对话故障](maintenance/HISTORY_INDEX.md)、[规划恢复](maintenance/HISTORY_INDEX.md)、[原基线失败](maintenance/HISTORY_INDEX.md)、[追加诊断与历史保护](maintenance/HISTORY_INDEX.md)、[实际原生页面核验](maintenance/HISTORY_INDEX.md)。各文件的测量时间不同，早期“尚未批准”不能当作之后仍未批准。
 
 ### 缓存适配修复中保留的失败与有效验证
 
@@ -326,7 +326,7 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 
 最终样本是**组件 fixture**，模型调用为 0；它证明缓存机制在该冻结工具版本和策略下有效，不能证明原生陌生仓库任务已自主完成。原任务旧的失败基线没有被替换为这个样本的通过结果，原 `pnpm lint` 的动态依赖配方缺口仍未解决。
 
-证据：[缓存适配及失败试验](acceptance/agent-runtime-v2/node-cache-adapter.json)、[两次实际命令收据](acceptance/agent-runtime-v2/node-cache-actual-receipts.json)、[迁移与恢复边界](agent-runtime-v2-migration.md)。
+证据：[缓存适配及失败试验](maintenance/HISTORY_INDEX.md)、[两次实际命令收据](maintenance/HISTORY_INDEX.md)、[迁移与恢复边界](agent-runtime-v2-migration.md)。
 
 ### 任务二：more-itertools #1316，确认执行后仍缺少校验工具
 
@@ -354,7 +354,7 @@ Opencollab 的“已有链接，无需重复修改”和 oh-my-pi 的“上游�
 - 环境规格 Artifact：`5865ce4904a56e1c32ed3c8c48ad1daafb392acdf72d9911c2d2e034bf4f1f69`。
 - 依赖结果 Artifact：`558450d40d4e2e05781feca72da2860afc4f9a810b0ff3ec0e7c594892c86023`。
 
-[早期 Python 调研证据](acceptance/agent-runtime-v2/native-research-plan.json)只证明当时保存了真实源码支持的方案。本节的较晚执行记录更新了其结果边界；早期“可确认”或“缺人工批准”不再是当前失败的完整解释。
+[早期 Python 调研证据](maintenance/HISTORY_INDEX.md)只证明当时保存了真实源码支持的方案。本节的较晚执行记录更新了其结果边界；早期“可确认”或“缺人工批准”不再是当前失败的完整解释。
 
 ### 对交付说明的再次纠正与尚未解决的问题
 
@@ -456,11 +456,11 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 ### 本节证据入口
 
-- [当前任务与暂停交接](tasks.md#2026-11-03-暂停交接当前问题和剩余验收门禁)、[专项验收总表](acceptance/universal-environment-v1/acceptance-status.json)、[专项验收记录](acceptance/universal-environment-v1/README.md)。
-- [Plan10真实执行](acceptance/universal-environment-v1/ci-native-plan10-execution.json)、[反馈修复验证](acceptance/universal-environment-v1/native-rejection-feedback-checks.json)。
-- [Plan11精确预览](acceptance/universal-environment-v1/ci-native-plan11-execution-proposal.json)、[人工批准](acceptance/universal-environment-v1/ci-native-plan11-execution-approval.json)、[原生Baseline](acceptance/universal-environment-v1/ci-native-plan11-baseline.json)、[完整执行结果](acceptance/universal-environment-v1/ci-native-plan11-execution.json)。
-- [重复读取与反馈观察](acceptance/universal-environment-v1/ci-native-plan11-read-observation.json)、[终态审计](acceptance/universal-environment-v1/ci-native-plan11-terminal-audit.json)、[终态证据清单](acceptance/universal-environment-v1/ci-native-plan11-terminal-evidence-seal.json)。
-- [本地未完成代码及测试报告哈希检查点](acceptance/universal-environment-v1/read-progress-paused-checkpoint.json)。
+- [当前任务与暂停交接](tasks.md#2026-11-03-暂停交接当前问题和剩余验收门禁)、[专项验收总表](maintenance/HISTORY_INDEX.md)、[专项验收记录](maintenance/HISTORY_INDEX.md)。
+- [Plan10真实执行](maintenance/HISTORY_INDEX.md)、[反馈修复验证](maintenance/HISTORY_INDEX.md)。
+- [Plan11精确预览](maintenance/HISTORY_INDEX.md)、[人工批准](maintenance/HISTORY_INDEX.md)、[原生Baseline](maintenance/HISTORY_INDEX.md)、[完整执行结果](maintenance/HISTORY_INDEX.md)。
+- [重复读取与反馈观察](maintenance/HISTORY_INDEX.md)、[终态审计](maintenance/HISTORY_INDEX.md)、[终态证据清单](maintenance/HISTORY_INDEX.md)。
+- [本地未完成代码及测试报告哈希检查点](maintenance/HISTORY_INDEX.md)。
 
 ## 附录 A：本机项目对话公开消息
 
@@ -553,7 +553,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 | P1 | 执行入口会自动创建并授权新的方案版本 | 用户提交的方案 ID/hash 与实际授权版本可能不同；相同请求重放也可能发生冲突 |
 | P1 | 部分新增日志直接记录异常、容器 stderr/stdout | 应恢复统一脱敏，避免诊断修复破坏安全边界 |
 
-主要定位：[对话界面](<repo>/app/static/workbench.js:276)、[工作流与授权](<repo>/app/contribution_workflow.py:41)、[审查输入与失败处理](<repo>/app/review_provider.py:186)。
+主要定位：[对话界面](maintenance/HISTORY_INDEX.md)、[工作流与授权](maintenance/HISTORY_INDEX.md)、[审查输入与失败处理](maintenance/HISTORY_INDEX.md)。
 
 本次所选回归测试 **38 项通过**，但其中包含 Fake 执行，不能证明真实项目通过。审查报告中的代码问题也需要逐条核实，不能把模型推测当成测试失败根因。
 
@@ -726,7 +726,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 验证：477 项离线测试通过、11 项条件跳过；浏览器桌面/移动端检查及两项真实容器测试通过，服务健康正常。
 
-**仍未证明完整跑通真实项目。** Oppia 的复杂环境尚未适配；专用 Python/TypeScript 仓库的真实模型端到端验收、原生 Linux 验收仍待完成，已如实记录在[改造说明](docs/conversation-execution.md)中。
+**仍未证明完整跑通真实项目。** Oppia 的复杂环境尚未适配；专用 Python/TypeScript 仓库的真实模型端到端验收、原生 Linux 验收仍待完成，已如实记录在[改造说明](maintenance/HISTORY_INDEX.md)中。
 ````
 
 #### C01-M018
@@ -822,7 +822,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 - 用“询问进度”获取真实状态，不再因此生成新方案。
 - 切换“讨论方案”修改目标。
 
-真正继续需要：**适配 Oppia 的 Python/Node、浏览器及应用服务环境 → 在原代码上验证六条命令 → 确认新方案后执行。** 具体要求已写入[恢复记录](docs/oppia-task-recovery.md)，完整环境还未实现。
+真正继续需要：**适配 Oppia 的 Python/Node、浏览器及应用服务环境 → 在原代码上验证六条命令 → 确认新方案后执行。** 具体要求已写入[恢复记录](maintenance/HISTORY_INDEX.md)，完整环境还未实现。
 
 另外需要确认目标：原来的 **Playwright 迁移**，还是最新方案的 **Puppeteer 参数修复**？两者已不一致，不能直接沿用推进。
 
@@ -1134,7 +1134,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 - **对话、工具调用、可执行计划分开。** 普通讨论使用小协议；路径、命令和批准在形成执行计划时严格校验。
 - **环境预检和真实验收前移。** 先确认环境能运行、记录修改前基线，再生成改动。用受支持的 Python、TypeScript 小项目反复验证完整流程，记录首次成功率和人工介入次数。
 
-详细证据和改造建议已写入[架构评审文档](<repo>/docs/workflow-architecture-review.md)。这次只完成了评审，尚未实施这些结构调整；下一次改造应以**一个小项目在对话中完成真实改动、测试和审查**作为验收目标。
+详细证据和改造建议已写入[架构评审文档](maintenance/HISTORY_INDEX.md)。这次只完成了评审，尚未实施这些结构调整；下一次改造应以**一个小项目在对话中完成真实改动、测试和审查**作为验收目标。
 ````
 
 #### C01-M058
@@ -1241,7 +1241,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 验证：**531 项回归通过，8 项真实沙箱验收通过**，服务健康。
 
-**完整执行闭环仍未验收**：修改前基线验证和更多环境适配仍待完成，已明确记录在[任务清单](<repo>/docs/tasks.md:1771)。
+**完整执行闭环仍未验收**：修改前基线验证和更多环境适配仍待完成，已明确记录在[任务清单](maintenance/HISTORY_INDEX.md)。
 ````
 
 #### C01-M070
@@ -1338,7 +1338,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 上一轮完成了讨论入口和回复契约的调整，**没有补齐这个完整闭环，之前的改造确实不够**。下一步应以这个任务实际完成修改、测试和审查作为验收，不能再以“聊天成功”或“方案生成成功”算解决。
 
-我已将证据和改造要求写入[审计报告](<repo>/docs/task-82c0ec73-sandbox-audit.md)，并在路线图新增三个未完成项。本轮完成的是检查和问题定位，执行能力尚未修复。
+我已将证据和改造要求写入[审计报告](maintenance/HISTORY_INDEX.md)，并在路线图新增三个未完成项。本轮完成的是检查和问题定位，执行能力尚未修复。
 ````
 
 #### C01-M078
@@ -1539,7 +1539,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 **刷新原任务，在对话中勾选授权，点击「确认方案并执行」即可。** 后续实现、测试和审查都由沙箱完成，无需侧栏操作或本机运行。
 
-该 Issue 的实现尚未启动；[仓库约定](<repo>/docs/tasks.md:957)要求你确认具体方案。通用 TypeScript 工作区与原生 Linux 验收仍待完成。
+该 Issue 的实现尚未启动；[仓库约定](maintenance/HISTORY_INDEX.md)要求你确认具体方案。通用 TypeScript 工作区与原生 Linux 验收仍待完成。
 ````
 
 #### C01-M102
@@ -1883,7 +1883,7 @@ JUnit记录为准。已部署 v4 的 **1940通过 / 62跳过 / 0失败** 是其�
 
 工作台回归：578 通过、14 跳过；服务健康。现在刷新任务对话，查看最新 diff、测试和审查后验收即可。尚未发布 PR。
 
-[完整执行记录](<repo>/docs/task-82c0ec73-sandbox-audit.md)
+[完整执行记录](maintenance/HISTORY_INDEX.md)
 ````
 
 #### C01-M137
@@ -2476,7 +2476,7 @@ CLA 通过后，其他 CI 检查仍可能需要维护者批准才能运行。
 
 目前还没有这个能力。**是否允许我新增“对话确认后代发 CLA 签署评论”的流程？** 功能开发和你同意具体协议，会保留为两次独立确认。
 
-需要确认范围，是因为仓库 [AGENTS.md](<repo>/AGENTS.md:67) 将自动评论排除在当前产品范围外；这里需要增加一个仅限明确授权的 CLA 签署例外。
+需要确认范围，是因为仓库 [AGENTS.md](maintenance/HISTORY_INDEX.md) 将自动评论排除在当前产品范围外；这里需要增加一个仅限明确授权的 CLA 签署例外。
 ````
 
 #### C01-M195
@@ -2818,7 +2818,7 @@ fix(openai): accumulate streamed refusal and reasoning content
 
 GitHub 明确允许作者转换草稿状态；转换为 Ready for review 表示准备接受审核，并不代表已经审核通过。[状态转换说明](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request)。Fork CI 的运行批准则可能必须由维护者完成。[CI 批准说明](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/approve-runs-from-forks)。
 
-现在仍是草稿，是因为我们新增的功能**只更新标题和正文**。当前项目也明确把自动转审核、合并排除在范围外，见 [AGENTS.md](<repo>/AGENTS.md:67)。
+现在仍是草稿，是因为我们新增的功能**只更新标题和正文**。当前项目也明确把自动转审核、合并排除在范围外，见 [AGENTS.md](maintenance/HISTORY_INDEX.md)。
 
 接下来，确认代码、文案和仓库要求已准备好后，用创建 PR 的 **Garden12138** 账号打开 #4025，在页面底部点击 **Ready for review**。之后查看 Checks：等待运行批准就需要维护者；真正执行失败则继续修复。草稿状态下不能合并。[合并要求](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request)。
 
@@ -3019,7 +3019,7 @@ GitHub 明确允许作者转换草稿状态；转换为 Ready for review 表示�
 ````text
 审查结论：**用户仍在替 Agent 协调流程**。选择消息用途、找确认入口、处理阻断、衔接下一步，这些工作应由产品承担。
 
-完整方案已写入：[对话式 Agent 改造方案](<repo>/docs/conversation-agent-redesign.md)。
+完整方案已写入：[对话式 Agent 改造方案](maintenance/HISTORY_INDEX.md)。
 
 核心改造：
 
@@ -3262,7 +3262,7 @@ Implement the plan.
 
 全量测试 **761 项通过、14 项跳过**，桌面与手机页面检查通过，服务健康。任务 82 的历史和 PR 未改动。
 
-[改造与验证记录](docs/conversation-agent-contract.md)已更新。独立 Python/TypeScript 真实任务验收和原生 Linux 验收仍待完成。
+[改造与验证记录](maintenance/HISTORY_INDEX.md)已更新。独立 Python/TypeScript 真实任务验收和原生 Linux 验收仍待完成。
 ````
 
 </details>
@@ -3666,7 +3666,7 @@ Implement the plan.
 
 已部署，791 项回归和 3 项真实沙箱验收通过。该任务已保存**方案 v2**，执行准入通过，尚未重新执行。
 
-请在[任务页面](http://127.0.0.1:8000/#/tasks/86b6be40-2022-4975-ab04-2d56f1cc0f17)查看新方案并点击“按此方案开始”。[AGENTS.md](<repo>/AGENTS.md)规定冻结输入变化会使旧批准失效，因此需要重新确认。Salt 本身的安装和测试结果仍待这次执行验证。
+请在[任务页面](http://127.0.0.1:8000/#/tasks/86b6be40-2022-4975-ab04-2d56f1cc0f17)查看新方案并点击“按此方案开始”。[AGENTS.md](maintenance/HISTORY_INDEX.md)规定冻结输入变化会使旧批准失效，因此需要重新确认。Salt 本身的安装和测试结果仍待这次执行验证。
 ````
 
 #### C03-M042
@@ -3716,9 +3716,9 @@ Implement the plan.
 ````text
 通用修复已加入：保存失败阶段、包名、冻结依赖计划和诊断哈希；同一环境有明确失败证据时，改写方案或重复确认也不会再次启动。
 
-让这条任务真正跑通，还需要增加独立的源码 wheel 构建阶段。我已写好[扩展方案](<repo>/docs/dependency-source-build-proposal.md)，包含来源哈希、离线编译、镜像绑定和验收要求。
+让这条任务真正跑通，还需要增加独立的源码 wheel 构建阶段。我已写好[扩展方案](maintenance/HISTORY_INDEX.md)，包含来源哈希、离线编译、镜像绑定和验收要求。
 
-现有上游依赖策略仅允许 wheel。[AGENTS.md](<repo>/AGENTS.md)要求：“If the requested work would cross a security boundary or materially change product scope, explain the conflict and ask for direction.” 我将“允许执行上游源码构建”视为需要明确确认的策略扩展，因此先完成其余修复和验证。
+现有上游依赖策略仅允许 wheel。[AGENTS.md](maintenance/HISTORY_INDEX.md)要求：“If the requested work would cross a security boundary or materially change product scope, explain the conflict and ask for direction.” 我将“允许执行上游源码构建”视为需要明确确认的策略扩展，因此先完成其余修复和验证。
 ````
 
 #### C03-M047
@@ -4698,7 +4698,7 @@ wheel 构建、开发依赖、格式检查和类型检查已跑通。修改前�
 
 需要新增独立的固定资源准备步骤：提前下载项目指定版本、核对 SHA-256，再以只读方式交给断网验证。这会扩展当前依赖下载范围，需要你决定是否加入。
 
-依据 [AGENTS.md](<repo>/AGENTS.md)：“A dependency preparation step … must be separate, credential-free, and restricted through an allowlisted package proxy.” 当前代理只允许包仓库，新增 GitHub 固定资源来源涉及这项边界。
+依据 [AGENTS.md](maintenance/HISTORY_INDEX.md)：“A dependency preparation step … must be separate, credential-free, and restricted through an allowlisted package proxy.” 当前代理只允许包仓库，新增 GitHub 固定资源来源涉及这项边界。
 ````
 
 #### C04-M026
@@ -4742,9 +4742,9 @@ wheel 构建、开发依赖、格式检查和类型检查已跑通。修改前�
 ````text
 wheel 构建问题已修复并部署，子方案 v2 已保存。三项静态检查通过；pytest 仍因缺少项目固定的 FFmpeg/ffprobe 而受阻，尚未修改代码。
 
-是否继续新增[固定资源准备能力](<repo>/docs/hflow-native-test-assets.md)？提前下载指定版本、核对 SHA-256，测试仍保持断网。
+是否继续新增[固定资源准备能力](maintenance/HISTORY_INDEX.md)？提前下载指定版本、核对 SHA-256，测试仍保持断网。
 
-需要确认是因为 [AGENTS.md](<repo>/AGENTS.md) 限制依赖下载来源，此步骤需要扩展现有代理白名单。
+需要确认是因为 [AGENTS.md](maintenance/HISTORY_INDEX.md) 限制依赖下载来源，此步骤需要扩展现有代理白名单。
 ````
 
 #### C04-M031
@@ -4920,7 +4920,7 @@ wheel 构建问题已修复并部署，子方案 v2 已保存。三项静态检�
 ````text
 已修复并部署。根因是合成 IPv6 地址触发校验；修复后已验证真实资源链接返回 HTTP 200，任务页面也已恢复。
 
-请[打开任务](http://127.0.0.1:8000/#/tasks/ac50e857-e176-434e-94ef-677fbc00f4cf)，在新预览中再次点击“授权下载这些资源”。按[一次性授权规则](<repo>/docs/hflow-native-test-assets.md:63)，失败任务的旧授权不能复用；实际下载仍待这次确认。
+请[打开任务](http://127.0.0.1:8000/#/tasks/ac50e857-e176-434e-94ef-677fbc00f4cf)，在新预览中再次点击“授权下载这些资源”。按[一次性授权规则](maintenance/HISTORY_INDEX.md)，失败任务的旧授权不能复用；实际下载仍待这次确认。
 ````
 
 #### C04-M052
@@ -5296,7 +5296,7 @@ Linux 原生平台验收仍待完成。
 
 刷新任务页，打开“查看完整预览”。当前预览已过期，可点击“沿用文案更新预览”，核对后再确认创建草稿 PR。
 
-[详细根因与修复记录](<repo>/docs/conversation-workflow-reliability.md)。真实发布尚未执行，独立 Python/TypeScript 全流程及 Linux 验收仍未标记完成。
+[详细根因与修复记录](maintenance/HISTORY_INDEX.md)。真实发布尚未执行，独立 Python/TypeScript 全流程及 Linux 验收仍未标记完成。
 ````
 
 #### C04-M093
@@ -5336,7 +5336,7 @@ Linux 原生平台验收仍待完成。
 
 系统就会替你提交并核对结果。
 
-目前停在最终确认，是因为项目的 [AGENTS.md](<repo>/AGENTS.md:78) 要求：转为正式审核必须在展示精确预览后，由你单独确认一次。
+目前停在最终确认，是因为项目的 [AGENTS.md](maintenance/HISTORY_INDEX.md) 要求：转为正式审核必须在展示精确预览后，由你单独确认一次。
 ````
 
 #### C04-M097
@@ -5741,7 +5741,7 @@ Linux 原生平台验收仍待完成。
 ````text
 跨包适配已完成并部署，1086 项回归和 2 项真实沙箱验收通过。
 
-任务当前等待方案 v2 确认。请在任务页面点击 **“核对方案并继续” → “确认方案并开始”**，后台便会启动双包基线、实施和验证。这一步用于满足[仓库的精确授权要求](<repo>/docs/tasks.md:381)。
+任务当前等待方案 v2 确认。请在任务页面点击 **“核对方案并继续” → “确认方案并开始”**，后台便会启动双包基线、实施和验证。这一步用于满足[仓库的精确授权要求](maintenance/HISTORY_INDEX.md)。
 
 Linux 平台验收仍待完成。
 ````
@@ -5837,7 +5837,7 @@ Linux 平台验收仍待完成。
 
 是否把这 3 处类型兼容问题纳入新方案一起修复？
 
-它们超出当前批准范围；[仓库规则](<repo>/AGENTS.md:106)要求创建新方案版本，并重新确认执行。
+它们超出当前批准范围；[仓库规则](maintenance/HISTORY_INDEX.md)要求创建新方案版本，并重新确认执行。
 ````
 
 #### C06-M038
@@ -6171,7 +6171,7 @@ Linux 平台验收仍待完成。
 
 验证：**1133 项通过**，六个服务运行正常。
 
-该任务的 **v6 候选方案已准备好，贡献代码尚未实施**。它保留双包目标和全部八条检查，新增两个类型接口文件。请在任务页查看 v6 后点击“按此方案开始”。新增范围需要重新确认，这是[仓库批准规则](<repo>/AGENTS.md:106)的要求。
+该任务的 **v6 候选方案已准备好，贡献代码尚未实施**。它保留双包目标和全部八条检查，新增两个类型接口文件。请在任务页查看 v6 后点击“按此方案开始”。新增范围需要重新确认，这是[仓库批准规则](maintenance/HISTORY_INDEX.md)的要求。
 
 Linux amd64 平台验收仍待完成。
 ````
@@ -6768,7 +6768,7 @@ Linux amd64 平台验收仍待完成。
 - **中断后能接续**：重启、取消、重试或环境被清理后，重新校验和恢复；环境发生变化就重跑相关检查。
 - **结果能进入审查**：独立审查、人工验收和发布预览绑定实际环境与测试证据，安装成功不能代替测试通过。
 
-这些已记录为[待实现的流程要求与验收项](<repo>/docs/tasks.md:3854)。后续要用不同项目实际走完“准备环境 → 基线 → 实施 → 验证 → 审查 → 验收 → 发布预览”，才能认定这项能力完成。
+这些已记录为[待实现的流程要求与验收项](maintenance/HISTORY_INDEX.md)。后续要用不同项目实际走完“准备环境 → 基线 → 实施 → 验证 → 审查 → 验收 → 发布预览”，才能认定这项能力完成。
 ````
 
 #### C07-M019
@@ -6900,7 +6900,7 @@ npm、Yarn 1、Yarn 4（PnP）和 pnpm 的真实容器链路都已通过：修�
 
 你的那条对话已恢复到可确认状态，子方案已保存，历史保留。刷新后核对最新方案，点击“确认方案并开始”即可继续。当前只是准入通过，尚未替你批准执行或运行该项目测试。
 
-原生 Linux 验收仍未完成，进度已记入 [任务记录](<repo>/docs/tasks.md:3854)。
+原生 Linux 验收仍未完成，进度已记入 [任务记录](maintenance/HISTORY_INDEX.md)。
 ````
 
 #### C07-M034
@@ -7126,7 +7126,7 @@ npm、Yarn 1、Yarn 4（PnP）和 pnpm 的真实容器链路都已通过：修�
 ````text
 可以做。记录显示，14:33 的发布确认动作是“创建草稿 PR”，所以 [PR #12435](https://github.com/excalidraw/excalidraw/pull/12435) 当前是 Draft。
 
-**Ready for review 预览已准备好。** 刷新原对话，点击“查看审核预览 → 提交正式审核”即可。按 [AGENTS.md](<repo>/AGENTS.md:78) 的约定，这一步需要针对当前 PR 和提交单独确认。
+**Ready for review 预览已准备好。** 刷新原对话，点击“查看审核预览 → 提交正式审核”即可。按 [AGENTS.md](maintenance/HISTORY_INDEX.md) 的约定，这一步需要针对当前 PR 和提交单独确认。
 
 另外，GitHub CI 目前仍等待维护者批准运行，转 Ready 不会自动完成 CI 审批。
 ````
@@ -7438,7 +7438,7 @@ npm、Yarn 1、Yarn 4（PnP）和 pnpm 的真实容器链路都已通过：修�
 
 接下来应优先修复当前预算缺陷，再统一失败诊断与恢复，并用真实模型、真实沙箱和产品界面连续完成支持范围内的小任务。验收必须明确记录外部介入；需要我修草案、调用维护服务才能继续，就应记为未通过。
 
-完整证据已写入[审查报告](<repo>/docs/autonomous-completion-audit-2026-10-24.md)。我按仓库规则重开了 [UXR-T14](<repo>/docs/tasks.md:3682)。**本轮完成的是审查和文档更正，运行代码尚未修改，预算缺陷尚未修复。**
+完整证据已写入[审查报告](maintenance/HISTORY_INDEX.md)。我按仓库规则重开了 [UXR-T14](maintenance/HISTORY_INDEX.md)。**本轮完成的是审查和文档更正，运行代码尚未修改，预算缺陷尚未修复。**
 ````
 
 #### C08-M011
@@ -7486,13 +7486,13 @@ npm、Yarn 1、Yarn 4（PnP）和 pnpm 的真实容器链路都已通过：修�
 
 对话层选择工作流，规划层生成方案，执行层推进阶段，基线层处理部分失败，发布层再负责接续。
 
-这些模块都有作用，但它们分别判断“是否可以继续”和“该怎样恢复”。例如，“继续”入口需要依次识别基线重规划、预算恢复、执行重试、发布后跟进等情况，代码里逐个分支处理。[对应实现](<repo>/app/conversation.py:431)
+这些模块都有作用，但它们分别判断“是否可以继续”和“该怎样恢复”。例如，“继续”入口需要依次识别基线重规划、预算恢复、执行重试、发布后跟进等情况，代码里逐个分支处理。[对应实现](maintenance/HISTORY_INDEX.md)
 
 结果是：新增一种故障，就经常需要给多个入口补判断。**系统能执行已知流程，却很难接住流程之外的情况。**
 
 **2. 编码过程被拆开，模型与实际工作区缺少连续反馈**
 
-当前编码先调用模型写“准备怎样改”，再调用模型生成结构化修改，之后才由 Worker 实施、测试，失败后重新构造下一轮上下文。[对应实现](<repo>/app/coding.py:1240)
+当前编码先调用模型写“准备怎样改”，再调用模型生成结构化修改，之后才由 Worker 实施、测试，失败后重新构造下一轮上下文。[对应实现](maintenance/HISTORY_INDEX.md)
 
 这要求每次交接都准确传递：
 
@@ -7538,7 +7538,7 @@ npm、Yarn 1、Yarn 4（PnP）和 pnpm 的真实容器链路都已通过：修�
 
 环境失败应修环境，代码回归应修代码，格式失败应纠正输出，租约丢失应核对执行状态。这些都需要明确的后继动作，不能统一落到“失败，成果已保留”。
 
-预算问题尤其直接：框架按字节压缩输入，调用完成后又按 token 拒绝结果。上次 **16,478 输入、478 输出**的失败，就是框架内部规则冲突。[对应检查](<repo>/app/conversation_reasoning.py:314)
+预算问题尤其直接：框架按字节压缩输入，调用完成后又按 token 拒绝结果。上次 **16,478 输入、478 输出**的失败，就是框架内部规则冲突。[对应检查](maintenance/HISTORY_INDEX.md)
 
 **6. 验证框架时，过多依赖预先正确的模型回答**
 
@@ -7902,7 +7902,7 @@ Implement the plan.
 - 六个受控样本通过真实模型编码、容器测试和独立审查，无人工补丁。
 - 真实对话及历史预算故障回放通过，旧任务数据完整保留。
 
-[实现与验收说明](docs/agent-runtime.md)。真实 GitHub 独立任务和 Linux 验收仍未完成，目前不能宣称所有 issue 都能独立完成。
+[实现与验收说明](maintenance/HISTORY_INDEX.md)。真实 GitHub 独立任务和 Linux 验收仍未完成，目前不能宣称所有 issue 都能独立完成。
 ````
 
 #### C08-M044
@@ -8024,7 +8024,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 验证通过：七条真实容器准备路径、全套回归 1,319 项，以及最终专项 176 项。生产任务未被自动执行或批准。
 
-[实现与验收记录](docs/project-environment-resolution.md)。未知工具链会报告具体能力缺口；Linux 和真实 GitHub 全流程验收仍未完成。
+[实现与验收记录](maintenance/HISTORY_INDEX.md)。未知工具链会报告具体能力缺口；Linux 和真实 GitHub 全流程验收仍未完成。
 ````
 
 #### C08-M058
@@ -8371,7 +8371,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 任务 `65bb0e9f` 已用完 **6/6 次提案调用**。是否授权在原方案、原文件范围内追加最多 **2 次**，总上限增至 8 次？
 
-现行[运行契约](<repo>/docs/agent-runtime.md:70)限定六次调用，不能自动提高或清零已用记录。
+现行[运行契约](maintenance/HISTORY_INDEX.md)限定六次调用，不能自动提高或清零已用记录。
 ````
 
 #### C09-M027
@@ -8535,7 +8535,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 修订方案 `b81f2268` 已保存，真实类型和格式诊断通过。请在[任务页](http://127.0.0.1:8000/#/tasks/65bb0e9f-e8b5-4780-8a5e-19469e5e0f46)核对新方案并确认，随后才能继续实施和审查。Linux 平台验收仍未完成。
 
-需要重新确认，是因为 [AGENTS.md](<repo>/AGENTS.md:106)规定：冻结输入变化会使原审批失效，旧审批不能覆盖修正后的命令。
+需要重新确认，是因为 [AGENTS.md](maintenance/HISTORY_INDEX.md)规定：冻结输入变化会使原审批失效，旧审批不能覆盖修正后的命令。
 ````
 
 #### C09-M047
@@ -8563,7 +8563,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 请在[任务页](http://127.0.0.1:8000/#/tasks/65bb0e9f-e8b5-4780-8a5e-19469e5e0f46)点击「核对方案并继续」→「确认方案并开始」，随后才能继续实现、验证和审查。
 
-这是 [AGENTS.md](<repo>/AGENTS.md:106) 的要求：修订后的命令必须重新确认，旧审批已失效。
+这是 [AGENTS.md](maintenance/HISTORY_INDEX.md) 的要求：修订后的命令必须重新确认，旧审批已失效。
 ````
 
 #### C09-M050
@@ -8639,7 +8639,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 2026-10-26T06:41:29.920Z · 助手公开答复
 
 ````text
-这次确认只针对多一次格式重试，原方案审批仍有效。依据 [AGENTS.md](<repo>/AGENTS.md:144)，我不能自行绕过已耗尽的重试限制；[精确恢复预览](<repo>/docs/acceptance/proposal-final-retry-preview-2026-10-26.json)已保存，尚未执行。
+这次确认只针对多一次格式重试，原方案审批仍有效。依据 [AGENTS.md](maintenance/HISTORY_INDEX.md)，我不能自行绕过已耗尽的重试限制；[精确恢复预览](maintenance/HISTORY_INDEX.md)已保存，尚未执行。
 ````
 
 #### C09-M059
@@ -8651,7 +8651,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 任务恢复后又遇到模型草案格式错误，三次修正已用尽。是否允许**仅再试一次（3→4）**，使用原六次调用额度中剩余的一次？
 
-依据 [AGENTS.md](<repo>/AGENTS.md)，我不能自行放宽重试限制；现有方案审批和证据均已保留。
+依据 [AGENTS.md](maintenance/HISTORY_INDEX.md)，我不能自行放宽重试限制；现有方案审批和证据均已保留。
 ````
 
 #### C09-M060
@@ -8867,9 +8867,9 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 ````text
 流程修复已部署，测试 **1,452 通过、46 跳过**。原贡献任务尚未完成，当前卡在 MiniMax 输出截断。
 
-[恢复预览](<repo>/docs/acceptance/proposal-output-budget-preview-2026-10-27.json)已验证：仅将实现输出额度 **32,768 → 65,536**，新执行最多 18 次代码调用、3 次审查。是否按此预览继续？
+[恢复预览](maintenance/HISTORY_INDEX.md)已验证：仅将实现输出额度 **32,768 → 65,536**，新执行最多 18 次代码调用、3 次审查。是否按此预览继续？
 
-需要重新确认，因为 [AGENTS.md](<repo>/AGENTS.md) 规定冻结配置变更会使原审批失效；本次也涉及新增调用预算。
+需要重新确认，因为 [AGENTS.md](maintenance/HISTORY_INDEX.md) 规定冻结配置变更会使原审批失效；本次也涉及新增调用预算。
 ````
 
 #### C09-M086
@@ -8937,7 +8937,7 @@ Bun 的两条真实容器测试已通过：使用现有 `bun.lock`，以及无�
 
 核查发现[上游提交 5dcd9fb](https://github.com/can1357/oh-my-pi/commit/5dcd9fb4548d06c383c7766c50849da0f9b15a6f)已有针对原问题的修复，两个目标文件与其一致。因此本轮没有重复实现，也未新增模型调用。
 
-[证据已保存](<repo>/docs/acceptance/proposal-output-budget-application-2026-10-27.json)。端到端验收仍需新的未解决候选，Linux 平台验收也仍未完成。
+[证据已保存](maintenance/HISTORY_INDEX.md)。端到端验收仍需新的未解决候选，Linux 平台验收也仍未完成。
 ````
 
 #### C09-M094
@@ -10262,7 +10262,7 @@ commands_to_run 全部由沙箱 worker 在 openai 子包目录内执行，按"�
   - `doc/ref/states/all/salt.states.file.rst`：`automodule:: salt.states.file` 由 Salt `saltautodoc` 从 Python docstring 自动生成（这是 Salt 既有约定，参考 `agents/docs/module-templates.md` 与 doc 目录的兄弟文件）。所以单点修复只需要改 `salt/states/file.py` 的 docstring；下一次文档构建时 `.rst` 会同步刷新，不需要手动编辑 RST。
 - Towncrier 配置（来自 `pyproject.toml`）：
   - 类型目录 `changelog/*.fixed.md`；命名规则是 `<issue>.fixed.md`。
-  - 模板路径：`changelog/.template.jinja`；issue_format：`[#{issue}](...)`。
+  - 模板路径：`changelog/.template.jinja`；issue_format：`[#{issue}](maintenance/HISTORY_INDEX.md)`。
   - 最新一条已存在的 fixed 头条例如 `changelog/70259.fixed.md`、`changelog/70254.fixed.md`，命名格式可对照。
   - 因此本次需要新增 `changelog/68316.fixed.md`。
 - 没有发现关于 DCO/CLA/CI 强制要求 docstring 改动还需要附加 lint 或 pre-commit 步骤的条目（参考 `.pre-commit-config.yaml` 仍需要 pre-commit，但常规的 `pre-commit-action.yml` 是实现阶段由机器人执行，方案里只需列出）。
@@ -16676,7 +16676,7 @@ Push 到 fork 触发 `.github/workflows/stress_test_acceptance_test.yml`，累�
     "补读 core/tests/playwright-acceptance-tests/utilities/user/super-admin.ts（本轮已通过 user-factory.ts 知道已导入 SuperAdmin / SuperAdminFactory），确认存在 addTranslationLanguageReviewRights(username, language) 与 navigateToContributorDashboardAdminPage()；缺失则按 Puppeteer 端 super-admin.ts 语义补齐（Contributor Admin 导航 + 逐语言授权循环），且不影响其它非本任务的 suite。",
     "修改 core/tests/playwright-acceptance-tests/utilities/common/user-factory.ts：",
     "(a) USER_ROLE_MAPPING 新增 [ROLES.TRANSLATION_REVIEWER]: TranslationReviewerFactory；",
-    "(b) assignRolesToUser 的 switch 新增 case ROLES.TRANSLATION_REVIEWER：调用 superAdminInstance.navigateToContributorDashboardAdminPage()，把 string 标准化为 string[]，循环 addTranslationLanguageReviewRights(username, language)；保留 USERS_ROLES_NOT_REFLECTED_IN_ADMIN_PAGE 中 TRANSLATION_REVIEWER 项；不要调用 expectUserToHaveRole；最后 composeUserWithRoles(user, [USER_ROLE_MAPPING[role](user.page)])；",
+    "(b) assignRolesToUser 的 switch 新增 case ROLES.TRANSLATION_REVIEWER：调用 superAdminInstance.navigateToContributorDashboardAdminPage()，把 string 标准化为 string[]，循环 addTranslationLanguageReviewRights(username, language)；保留 USERS_ROLES_NOT_REFLECTED_IN_ADMIN_PAGE 中 TRANSLATION_REVIEWER 项；不要调用 expectUserToHaveRole；最后 composeUserWithRoles(user, [USER_ROLE_MAPPING[role](maintenance/HISTORY_INDEX.md)])；",
     "(c) createNewUser 的 composeUserWithRoles 链中加入 ContributorFactory(page)；",
     "(d) BasicRolesUser 交叉类型加入 Contributor。",
     "注：playwright-utils.ts 与本轮 user-factory.ts 已显式采用 namesDefinedInThisCall 命名冲突检测；新增 TranslatorReviewerFactory 与现有 factory 不存在方法名冲突。",
@@ -18912,7 +18912,7 @@ def test_streamed_reasoning_content_full_string() -> None:
 
 * **openai:** accumulate refusal and reasoning_content deltas during Chat Completions streaming ([#3785](https://github.com/Arize-ai/openinference/issues/3785))
 
-## [0.1.65](...) (2026-10-09)
+## [0.1.65](maintenance/HISTORY_INDEX.md) (2026-10-09)
 ...（后续全部为 pre_change_baseline 原样）
 ```
 
@@ -19201,7 +19201,7 @@ def test_streamed_reasoning_content_full_string() -> None:
 
 ### 3. `CHANGELOG.md` Unreleased 段
 
-按通常做法，在仓库已有发布段之前插入 `Unreleased` 段（顶部 `## [Unreleased]`），并仅在该段中追加一行修复条目；与现有 v0.1.65 / v0.1.64 等发布条目格式保持一致（`### Bug Fixes` + `* **openai:** ... ([#XXXX](...)) ([hash](...))`）。注意：上一轮反馈中提到“发布链路若不允许在已有更新版本之上再插入 Unreleased，应回退或与发布管理员对齐”。在本批准范围内，仅产出条目文本本身，等沙箱验证通过后再决定落点；最小化文本如下：
+按通常做法，在仓库已有发布段之前插入 `Unreleased` 段（顶部 `## [Unreleased]`），并仅在该段中追加一行修复条目；与现有 v0.1.65 / v0.1.64 等发布条目格式保持一致（`### Bug Fixes` + `* **openai:** ... ([#XXXX](maintenance/HISTORY_INDEX.md)) ([hash](maintenance/HISTORY_INDEX.md))`）。注意：上一轮反馈中提到“发布链路若不允许在已有更新版本之上再插入 Unreleased，应回退或与发布管理员对齐”。在本批准范围内，仅产出条目文本本身，等沙箱验证通过后再决定落点；最小化文本如下：
 
 ```
 ## [Unreleased]
@@ -19212,7 +19212,7 @@ def test_streamed_reasoning_content_full_string() -> None:
 * **openai:** accumulate streamed Chat Completions `refusal` and `reasoning_content` fields into the full string instead of overwriting with the latest fragment.
 ```
 
-—— 这里**故意留空** `([#XXXX](...))` 与 commit 哈希，等 review 时填，避免在沙箱环境中伪造与 GitHub 链接一致的占位。
+—— 这里**故意留空** `([#XXXX](maintenance/HISTORY_INDEX.md))` 与 commit 哈希，等 review 时填，避免在沙箱环境中伪造与 GitHub 链接一致的占位。
 
 ---
 
@@ -19457,7 +19457,7 @@ def test_streamed_reasoning_content_full_string() -> None:
 ```
 （实际写入时把 `chat_completion_type` 的 import 移到顶部 `_streamed_output_value` 之外，避免函数内 import，并删除未使用的 `Any / Iterator`，使 ruff I001 满足。）
 
-`CHANGELOG.md`：恢复 `## [0.1.6](...) (2024-05-21)` 元数据；顶部新增/保留 `## Unreleased` 段，写入唯一 Bug Fixes 行；0.1.0–0.1.65 任何条目一字不改。
+`CHANGELOG.md`：恢复 `## [0.1.6](maintenance/HISTORY_INDEX.md) (2024-05-21)` 元数据；顶部新增/保留 `## Unreleased` 段，写入唯一 Bug Fixes 行；0.1.0–0.1.65 任何条目一字不改。
 
 执行回执预期：5 条命令全部由 worker 输出；新增失败数 0；`pytest-full-package-after-change` 中若 collect 阶段报不可读文件错误，由 worker 单独列出，不计入本 PR。
 ````
@@ -19526,7 +19526,7 @@ def test_streamed_reasoning_content_full_string() -> None:
 消息 ID：`aaa97277-3eda-40b3-ac18-6adbe022ed65`；原 record_hash：`d6062c0b6ce38aa0e383265db863cc3072ac478fa66243c1b6ee608124802f14`。
 
 ````text
-{\"reply\":\"已基于冻结上下文完成最小化修改的实际产出物（仅在批准路径内），等待隔离 Worker 执行五条验证命令。\\n\\n## 一、`_response_accumulator.py` 的最小修改\\n\\n在 `_ChatCompletionAccumulator.__init__` 中 `message=_ValuesAccumulator(...)` 内，紧邻 `content=_StringAccumulator()` 之后新增两行：\\n\\n- `refusal=_StringAccumulator()`\\n- `reasoning_content=_StringAccumulator()`\\n\\n依据 `_ValuesAccumulator.__iadd__` 的第 263 行 `values.get(key) is None continue` 守卫：\\n- 当响应**不携带** `refusal` / `reasoning_content` 时，`values.get(\\\"refusal\\\")` 为 `None`，分支 `continue`，现有累加器保持空状态，最终 `__iter__` 中 `_StringAccumulator` 的空字符串判定使其不出现在输出里——与改动前完全一致。\\n- 当响应**携带**分片时，每次 `process_chunk` 都会进入 `elif isinstance(self_value, _StringAccumulator): self_value += value`，从而逐片拼接为完整字符串，根除“覆盖而非拼接”的回归。\\n\\n修改前/后行为对照（仅在 `message=` 内新增两行，其余字节不变）：\\n\\n```python\\nmessage=_ValuesAccumulator(\\n    content=_StringAccumulator(),\\n    refusal=_StringAccumulator(),\\n    reasoning_content=_StringAccumulator(),\\n    function_call=_ValuesAccumulator(arguments=_StringAccumulator()),\\n    tool_calls=_IndexedAccumulator(\\n        lambda: _ValuesAccumulator(\\n            id=_StringAccumulator(),\\n            function=_ValuesAccumulator(arguments=_StringAccumulator()),\\n        )\\n    ),\\n),\\n```\\n\\n新增字段**未出现在** `files_to_inspect` 中受保护文件列表（`_stream.py` / `_with_span.py` / `conftest.py` / `pyproject.toml` / `test-requirements.txt`）中，也未触及 `_responses_api.py`、`_CompletionAccumulator`、PR #3737 图像分支、mistralai 包 (#3761)。\\n\\n## 二、新增独立回归测试 `tests/openinference/instrumentation/openai/test_stream_accumulator_regression.py`\\n\\n- 使用**真实** `openai.types.chat.ChatCompletionChunk.construct` 构造 4 个 chunk：role chunk、3 个 `refusal`/`reasoning_content` 片段 chunk、`finish_reason=\\\"stop\\\"` chunk。\\n- **独立**构造 `trace_sdk.TracerProvider()` + `SimpleSpanProcessor(InMemorySpanExporter())`，**不依赖** `conftest.py` 的 autouse `instrument` fixture。\\n- 通过 `for chunk in stream` 自然耗尽 `_Stream`，由 `_Stream` 内部捕获 `StopIteration` 调用 `_finish_tracing`。**不**额外裸调用 `__next__()`、**不**手动 `finish_tracing`、**不**读取 accumulator 内部状态。\\n- 断言导出 span 存在，从 `SpanAttributes.OUTPUT_VALUE` 取真实 `output.value`，`json.loads` 后 `result[\\\"choices\\\"][0][\\\"message\\\"][\\\"refusal\\\"]` / `[\\\"reasoning_content\\\"]` 必须等于 `\"\\\".join(fragments)`，即 `\"I can't help with that.\"`。\\n- 两条用例：`test_streamed_refusal_full_string`、`test_streamed_reasoning_content_full_string`。\\n- 导入排序遵循 `pyproject.toml` 中 ruff isort 默认：`openai` 置于 `opentelemetry` 之**前**（openai 是第三方，opentelemetry 是一方扩展；标准 isort 把 `openai` 视为本地字母序优先，符合 `force-single-line = false`）。\\n- **不**引入 `noqa`、**不**跳过用例、**不**放宽断言。\\n\\n完整测试文件已生成。\\n\\n## 三、`CHANGELOG.md` 精确文本编辑\\n\\n在文件**顶部**追加 `## [Unreleased]` 段与一个 Bug Fixes 条目，**绝不**覆盖任何 0.1.0–0.1.65 的历史条目，**绝不**删除 #3737/#3975/#3967/#3911/#3907/#3837/#3836/#3815 等历史引用：\\n\\n```\\n# Changelog\\n\\n## [Unreleased]\\n\\n\\n### Bug Fixes\\n\\n* **openai:** concatenate streamed `refusal` and `reasoning_content` deltas in chat completions\\n\\n## [0.1.65](https://github.com/Arize-ai/openinference/compare/...python-openinference-instrumentation-openai-v0.1.64...python-openinference-instrumentation-openai-v0.1.65) (2026-10-09)\\n\\n...\\n\\n## 0.1.0 (2024-01-11)\\n\\n...\\n```\\n\\n所有原始字节（含 #3737 图像分支条目等）逐字保留。\\n\\n## 四、未触动的边界\\n\\n- `test_instrumentor.py` 与 `test_tool_calls.py` 仍处于不可读状态；本轮**未**读取、**未**引用、**未**修改它们，亦未在 `files_likely_to_change` 列表里出现。\\n- 未修改 `_stream.py` / `_with_span.py` / `conftest.py` / `pyproject.toml` / `test-requirements.txt`。\\n- 未评论 issue、未触发 PR、未联网。\\n\\n## 五、验证命令的预期输出（取决于隔离 Worker 在 `python/instrumentation/openinference-instrumentation-openai` 工作目录中的实际运行）\\n\\n- `pytest-baseline-public-suite`：基于已运行基线 4/4 passed，环境可用，期望 2 passed 不变（`test_decisions.py` + `test_token_counts.py` 已知不敏感）。\\n- `pytest-new-regression-suite`：期望 `2 passed`，与 acceptance criteria 第 2 条匹配。\\n- `pytest-full-package-after-change`：期望同包内全部测试**新增失败数 = 0**；若 `test_instrumentor.py` / `test_tool_calls.py` 因历史不可读导致 collect 错误，按 inventory 现状如实记录，不视为本 PR 引入。\\n- `ruff-openai-src-tests`：仅对 `src` 与 `tests` 跑 lint；导入排序遵循现有 isort 配置，期望通过。\\n- `mypy-openai-src`：仅对 `src` 跑类型检查（`pyproject.toml` 中已配置 `strict = true` 且 `exclude = [\\\"examples\\\",\\\"dist\\\",\\\"sdist\\\"]`，测试目录默认被排除），期望通过。\\n\\n## 六、引用证据（来自 frozen context）\\n\\n- `_response_accumulator.py` 第 263 行 `if (value := values.get(key)) is None: continue` —— `prior_hash=ea0cf895b4e20f940f6ad3c0dab929d3d85d5e8c0e203d3a25c4b1512af69a7c`。\\n- `_ValuesAccumulator.__iadd__` 分支 `elif isinstance(self_value, _StringAccumulator): self_value += value` —— 同文件。\\n- `_StringAccumulator.__iadd__` 逐片 append，`__str__` 为 `\"\\\".join(self._fragments)` —— 同文件。\\n- `CHANGELOG.md` 顶部 `# Changelog` 后紧跟 `## [0.1.65](...)` 段，无 `## [Unreleased]` —— `prior_hash=47d1e1564c7750cd26fa1fb8af949ffe0b4bf2d05460daacbfbd7cdf0f9d773e`。\\n- `pyproject.toml` `tool.ruff.lint` `select = [\\\"E\\\",\\\"F\\\",\\\"W\\\",\\\"I\\\"]`，`isort.force-single-line = false` —— `prior_hash=ce5d41304aae77d21970bcd7e0174c6f1d86f500ed698d43d75ff363956f4e05`。\\n- `pyproject.toml` `[tool.pytest.ini_options] addopts = \\\"-p openinference.instrumentation.openai._httpx2_compat --block-network\\\"`，`tool.mypy.exclude = [\\\"examples\\\",\\\"dist\\\",\\\"sdist\\\"]`。\\n- `conftest.py` 提供 autouse `instrument` fixture，本轮新文件刻意**绕过**之 —— `prior_hash=74c4ce9291b0ff177a5b9625ac00718a9f68b2a648618f620f490ac6d4680ffe`。\\n- 基线 `{passed:4, total:4, failures:[], status:passed}` 由隔离 Worker 在执行前独立运行得到，本回复仅作证据引用，不据此放宽任何断言。\\n\\n## 七、引用列表\\n\\n`approved_plan`、`acceptance_criteria`（共 10 条）、`commands_to_run`（5 条）、`files_likely_to_change`、`files_to_inspect`、`goal`、`implementation_steps`、`tests_to_add_or_run`、`risks`、`coding_context.entries[*].path`（5 个冻结文件 + 1 个新增文件路径）、`prior_hash`（5 个）、`conversation[0].role=user`（基线执行提示）、`conversation[0].content` 内 `failures=[]`、`passed=4`、`total=4`、`status=passed`。\\n\\n如需后续在隔离 Worker 中复现失败，可基于上述 `files_likely_to_change` 三处精确文本编辑与新增测试文件重新跑五条命令；测试 `test_streamed_refusal_full_string` 与 `test_streamed_reasoning_content_full_string` 的断言只接受 `\"I can't help with that.\"`，任何覆盖或截断行为都会立刻失败。\"}
+{\"reply\":\"已基于冻结上下文完成最小化修改的实际产出物（仅在批准路径内），等待隔离 Worker 执行五条验证命令。\\n\\n## 一、`_response_accumulator.py` 的最小修改\\n\\n在 `_ChatCompletionAccumulator.__init__` 中 `message=_ValuesAccumulator(...)` 内，紧邻 `content=_StringAccumulator()` 之后新增两行：\\n\\n- `refusal=_StringAccumulator()`\\n- `reasoning_content=_StringAccumulator()`\\n\\n依据 `_ValuesAccumulator.__iadd__` 的第 263 行 `values.get(key) is None continue` 守卫：\\n- 当响应**不携带** `refusal` / `reasoning_content` 时，`values.get(\\\"refusal\\\")` 为 `None`，分支 `continue`，现有累加器保持空状态，最终 `__iter__` 中 `_StringAccumulator` 的空字符串判定使其不出现在输出里——与改动前完全一致。\\n- 当响应**携带**分片时，每次 `process_chunk` 都会进入 `elif isinstance(self_value, _StringAccumulator): self_value += value`，从而逐片拼接为完整字符串，根除“覆盖而非拼接”的回归。\\n\\n修改前/后行为对照（仅在 `message=` 内新增两行，其余字节不变）：\\n\\n```python\\nmessage=_ValuesAccumulator(\\n    content=_StringAccumulator(),\\n    refusal=_StringAccumulator(),\\n    reasoning_content=_StringAccumulator(),\\n    function_call=_ValuesAccumulator(arguments=_StringAccumulator()),\\n    tool_calls=_IndexedAccumulator(\\n        lambda: _ValuesAccumulator(\\n            id=_StringAccumulator(),\\n            function=_ValuesAccumulator(arguments=_StringAccumulator()),\\n        )\\n    ),\\n),\\n```\\n\\n新增字段**未出现在** `files_to_inspect` 中受保护文件列表（`_stream.py` / `_with_span.py` / `conftest.py` / `pyproject.toml` / `test-requirements.txt`）中，也未触及 `_responses_api.py`、`_CompletionAccumulator`、PR #3737 图像分支、mistralai 包 (#3761)。\\n\\n## 二、新增独立回归测试 `tests/openinference/instrumentation/openai/test_stream_accumulator_regression.py`\\n\\n- 使用**真实** `openai.types.chat.ChatCompletionChunk.construct` 构造 4 个 chunk：role chunk、3 个 `refusal`/`reasoning_content` 片段 chunk、`finish_reason=\\\"stop\\\"` chunk。\\n- **独立**构造 `trace_sdk.TracerProvider()` + `SimpleSpanProcessor(InMemorySpanExporter())`，**不依赖** `conftest.py` 的 autouse `instrument` fixture。\\n- 通过 `for chunk in stream` 自然耗尽 `_Stream`，由 `_Stream` 内部捕获 `StopIteration` 调用 `_finish_tracing`。**不**额外裸调用 `__next__()`、**不**手动 `finish_tracing`、**不**读取 accumulator 内部状态。\\n- 断言导出 span 存在，从 `SpanAttributes.OUTPUT_VALUE` 取真实 `output.value`，`json.loads` 后 `result[\\\"choices\\\"][0][\\\"message\\\"][\\\"refusal\\\"]` / `[\\\"reasoning_content\\\"]` 必须等于 `\"\\\".join(fragments)`，即 `\"I can't help with that.\"`。\\n- 两条用例：`test_streamed_refusal_full_string`、`test_streamed_reasoning_content_full_string`。\\n- 导入排序遵循 `pyproject.toml` 中 ruff isort 默认：`openai` 置于 `opentelemetry` 之**前**（openai 是第三方，opentelemetry 是一方扩展；标准 isort 把 `openai` 视为本地字母序优先，符合 `force-single-line = false`）。\\n- **不**引入 `noqa`、**不**跳过用例、**不**放宽断言。\\n\\n完整测试文件已生成。\\n\\n## 三、`CHANGELOG.md` 精确文本编辑\\n\\n在文件**顶部**追加 `## [Unreleased]` 段与一个 Bug Fixes 条目，**绝不**覆盖任何 0.1.0–0.1.65 的历史条目，**绝不**删除 #3737/#3975/#3967/#3911/#3907/#3837/#3836/#3815 等历史引用：\\n\\n```\\n# Changelog\\n\\n## [Unreleased]\\n\\n\\n### Bug Fixes\\n\\n* **openai:** concatenate streamed `refusal` and `reasoning_content` deltas in chat completions\\n\\n## [0.1.65](https://github.com/Arize-ai/openinference/compare/...python-openinference-instrumentation-openai-v0.1.64...python-openinference-instrumentation-openai-v0.1.65) (2026-10-09)\\n\\n...\\n\\n## 0.1.0 (2024-01-11)\\n\\n...\\n```\\n\\n所有原始字节（含 #3737 图像分支条目等）逐字保留。\\n\\n## 四、未触动的边界\\n\\n- `test_instrumentor.py` 与 `test_tool_calls.py` 仍处于不可读状态；本轮**未**读取、**未**引用、**未**修改它们，亦未在 `files_likely_to_change` 列表里出现。\\n- 未修改 `_stream.py` / `_with_span.py` / `conftest.py` / `pyproject.toml` / `test-requirements.txt`。\\n- 未评论 issue、未触发 PR、未联网。\\n\\n## 五、验证命令的预期输出（取决于隔离 Worker 在 `python/instrumentation/openinference-instrumentation-openai` 工作目录中的实际运行）\\n\\n- `pytest-baseline-public-suite`：基于已运行基线 4/4 passed，环境可用，期望 2 passed 不变（`test_decisions.py` + `test_token_counts.py` 已知不敏感）。\\n- `pytest-new-regression-suite`：期望 `2 passed`，与 acceptance criteria 第 2 条匹配。\\n- `pytest-full-package-after-change`：期望同包内全部测试**新增失败数 = 0**；若 `test_instrumentor.py` / `test_tool_calls.py` 因历史不可读导致 collect 错误，按 inventory 现状如实记录，不视为本 PR 引入。\\n- `ruff-openai-src-tests`：仅对 `src` 与 `tests` 跑 lint；导入排序遵循现有 isort 配置，期望通过。\\n- `mypy-openai-src`：仅对 `src` 跑类型检查（`pyproject.toml` 中已配置 `strict = true` 且 `exclude = [\\\"examples\\\",\\\"dist\\\",\\\"sdist\\\"]`，测试目录默认被排除），期望通过。\\n\\n## 六、引用证据（来自 frozen context）\\n\\n- `_response_accumulator.py` 第 263 行 `if (value := values.get(key)) is None: continue` —— `prior_hash=ea0cf895b4e20f940f6ad3c0dab929d3d85d5e8c0e203d3a25c4b1512af69a7c`。\\n- `_ValuesAccumulator.__iadd__` 分支 `elif isinstance(self_value, _StringAccumulator): self_value += value` —— 同文件。\\n- `_StringAccumulator.__iadd__` 逐片 append，`__str__` 为 `\"\\\".join(self._fragments)` —— 同文件。\\n- `CHANGELOG.md` 顶部 `# Changelog` 后紧跟 `## [0.1.65](maintenance/HISTORY_INDEX.md)` 段，无 `## [Unreleased]` —— `prior_hash=47d1e1564c7750cd26fa1fb8af949ffe0b4bf2d05460daacbfbd7cdf0f9d773e`。\\n- `pyproject.toml` `tool.ruff.lint` `select = [\\\"E\\\",\\\"F\\\",\\\"W\\\",\\\"I\\\"]`，`isort.force-single-line = false` —— `prior_hash=ce5d41304aae77d21970bcd7e0174c6f1d86f500ed698d43d75ff363956f4e05`。\\n- `pyproject.toml` `[tool.pytest.ini_options] addopts = \\\"-p openinference.instrumentation.openai._httpx2_compat --block-network\\\"`，`tool.mypy.exclude = [\\\"examples\\\",\\\"dist\\\",\\\"sdist\\\"]`。\\n- `conftest.py` 提供 autouse `instrument` fixture，本轮新文件刻意**绕过**之 —— `prior_hash=74c4ce9291b0ff177a5b9625ac00718a9f68b2a648618f620f490ac6d4680ffe`。\\n- 基线 `{passed:4, total:4, failures:[], status:passed}` 由隔离 Worker 在执行前独立运行得到，本回复仅作证据引用，不据此放宽任何断言。\\n\\n## 七、引用列表\\n\\n`approved_plan`、`acceptance_criteria`（共 10 条）、`commands_to_run`（5 条）、`files_likely_to_change`、`files_to_inspect`、`goal`、`implementation_steps`、`tests_to_add_or_run`、`risks`、`coding_context.entries[*].path`（5 个冻结文件 + 1 个新增文件路径）、`prior_hash`（5 个）、`conversation[0].role=user`（基线执行提示）、`conversation[0].content` 内 `failures=[]`、`passed=4`、`total=4`、`status=passed`。\\n\\n如需后续在隔离 Worker 中复现失败，可基于上述 `files_likely_to_change` 三处精确文本编辑与新增测试文件重新跑五条命令；测试 `test_streamed_refusal_full_string` 与 `test_streamed_reasoning_content_full_string` 的断言只接受 `\"I can't help with that.\"`，任何覆盖或截断行为都会立刻失败。\"}
 ````
 
 </details>

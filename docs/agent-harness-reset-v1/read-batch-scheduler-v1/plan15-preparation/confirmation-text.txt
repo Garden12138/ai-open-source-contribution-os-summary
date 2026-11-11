@@ -1,7 +1,0 @@
-批准执行预览 `f7c000560f1e2e1bb9bad33ba20b21c81ceb39bbcfd97f843f1c4e745bc41a6e`。
-仅授权 Plan15 `626be813-5437-4ad3-8a24-e30d12c7b803`，Plan Hash `448b0a90cd2c9e4d3dfc14c94de8705ee5a7f2ec89487473397c18dc3e654740`，Binding Hash `2672bf166060bf9ec58eda0392a55ba0d141c02dad8fc9a4853a7d4b1d29e70b`。
-使用该预览冻结的254文件源码 Hash `31deb61be86711e475db5d75b3d08274be5b363b8f1487861897aed5586bfc95`、app/worker/Runner镜像 Digest、原 Issue/基线和 deepseek-v4-pro 配置，仅限其中8条写入路径和4条验证命令，进行一次有界真实模型验收及独立 Review。
-本轮上限：模型24次、读取64、写入24、检查6、协议纠偏2、Provider重试2、代码修复2、输入200000 Token、输出32000 Token、工具/证据输出500000字节、1800秒；保留预览内全部单次调用、独立Review和沙箱上限，不增加任何容量。
-执行前重新核验精确预览、Issue/base、源码/镜像、Plan/Binding、模型/协议、revision/preflight和预算；关键输入变化则停止重新确认。历史Plan11/12/13/14终态、审批、费用、预算和未知占用不变，不复用Plan14审批。
-按预览契约保留真实模型调用、有效/重复读取、首次Patch轮次、Prompt源码覆盖、Artifact分页恢复、最新源码Verify及独立Review证据；未观察到的指标如实标注，失败或预算耗尽安全停止。
-到人工最终验收前停止。禁止Push、PR、评论、发布、恢复旧终态、退还历史费用或自动另起付费轮次。

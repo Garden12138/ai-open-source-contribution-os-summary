@@ -1,3 +1,0 @@
-*.diff whitespace=-blank-at-eol
-test-results/*.xml whitespace=-blank-at-eol
-saved-envelope-replay/artifacts/*.txt whitespace=-blank-at-eol

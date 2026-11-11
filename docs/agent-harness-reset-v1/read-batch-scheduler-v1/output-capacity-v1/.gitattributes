@@ -1,3 +1,0 @@
-# Preserve actual source-page and failed pytest traceback bytes; never trim evidence.
-artifacts/*.txt whitespace=-blank-at-eol,-blank-at-eof
-test-results/*.xml whitespace=-blank-at-eol

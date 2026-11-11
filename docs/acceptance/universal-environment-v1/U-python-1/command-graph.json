@@ -1,5 +1,0 @@
-{
-  "status": "unsupported",
-  "reason": "Python 环境需要包含版本及 SHA-256 的 requirements.lock 或 requirements.txt。",
-  "manifests": []
-}

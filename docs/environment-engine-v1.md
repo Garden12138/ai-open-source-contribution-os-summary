@@ -1,7 +1,7 @@
 # UPEVE v1 implementation candidate
 
 This is an opt-in candidate, not completed UPEVE acceptance. The original
-specifications and [acceptance ledger](acceptance/universal-environment-v1/README.md)
+specifications and [acceptance ledger](maintenance/HISTORY_INDEX.md)
 remain authoritative. Original ARV2 and Phase 5 gates stay open.
 
 ## Activation and provenance
@@ -128,7 +128,7 @@ never new global defaults or a silent legacy downgrade. Disabled v2 rejects.
 These changes add no database schema and rewrite no historical jobs or receipts.
 The isolated Publisher runs separately on18092; there is no publication consent.
 The older trial service/data remain unchanged. Current deployment and real vs
-controlled outcomes are recorded in the [acceptance ledger](acceptance/universal-environment-v1/README.md).
+controlled outcomes are recorded in the [acceptance ledger](maintenance/HISTORY_INDEX.md).
 
 Runtime v2 provider failures now include optional `completion-response-facts-v1`
 enums/booleans and `agent-provider-failure-v1` receipts. Reported token usage is

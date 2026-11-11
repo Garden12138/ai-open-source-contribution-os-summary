@@ -30,8 +30,8 @@ repository-code execution. Candidate packages were not added to this project.
 | Codex CLI 0.164.0 / app-server | Fresh HOME/CODEX_HOME, no credentials: initialize JSON-RPC handshake succeeds | Native model/tool execution was not exercised; filesystem/shell policy and thread state need a separately isolated harness adapter |
 
 Exact probe classifications/versions are retained in
-[framework-spikes.json](../acceptance/agent-runtime-v2/framework-spikes.json)
-and [codex-protocol-spike.json](../acceptance/agent-runtime-v2/codex-protocol-spike.json).
+[framework-spikes.json](../maintenance/HISTORY_INDEX.md)
+and [codex-protocol-spike.json](../maintenance/HISTORY_INDEX.md).
 These are technical probes, not comparative live-model performance results.
 The selected implementation's real Docker probe repeatedly edits the same
 file, observes an actual assertion failure, repairs it and passes fresh tests.

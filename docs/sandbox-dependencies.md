@@ -413,7 +413,7 @@ capability/context inputs have changed.
 
 ## Optional upstream source builds (2026-10-14)
 
-After the user authorized the [source-build extension](dependency-source-build-proposal.md),
+After the user authorized the [source-build extension](maintenance/HISTORY_INDEX.md),
 `execution-capabilities-v3` can select signed `workspace-dependency-plan-v4` /
 `source-wheel-v1` when a digest-pinned `DEPENDENCY_BUILDER_IMAGE` is configured.
 The API, coordinator and Sandbox Worker receive the same non-secret setting.
