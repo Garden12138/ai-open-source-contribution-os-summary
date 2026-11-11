@@ -31,7 +31,7 @@ Update rules:
 - [x] 清理过程快照、原始 JUnit 与缓存，保留回归所需历史 Artifact。
 - [x] 独立 Fake API/Worker 启动、真实 HTTP 业务链路和停止/重启。
 - [x] 本轮首次完整回归 2149 通过/2 失败/83 跳过；端口权限项重跑 1 通过，间接 Fixture 恢复后相关 67 通过。合并新增试用测试后逐用例 2158 通过/0 未解决失败/83 跳过；浏览器 10 项、服务检查 13 项和无 Token 真实只读扫描通过。
-- [ ] 目标分支提交/安全推送及旧开发分支清理。
+- [x] feature/upgrade-chatgpt 从 884d015 建立，三组成果已推送；敏感/新增可达对象扫描通过。旧 refactor/agent-runtime-v2 在远程 HEAD/SHA/保护/祖先关系复核后，本地 -d 与远程正常删除成功；main/历史/Tag 保留。收尾报告随最后文档提交同步。
 
 公开结果入口：[升级对比](UPGRADE_DIFF.md)、[验收](maintenance/HISTORY_INDEX.md)、
 [本地运行](LOCAL_SETUP.md)、[使用手册](USER_GUIDE.md)、
