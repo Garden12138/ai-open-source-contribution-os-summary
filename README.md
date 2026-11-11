@@ -1,287 +1,65 @@
 # AI Open Source Contribution OS
 
-面向独立开发者的开源贡献工作台：发现值得做的 GitHub Issue，按个人目标筛选和比较候选，再跟进真实贡献进度。
+单用户、本地优先的开源贡献工作台：发现 GitHub Issue，筛选机会，保存分析、方案、执行、测试与 Review 记录。
 
-当前版本实现了产品闭环的第一个纵向切片：
+**当前成熟度：可本地试用；真实 AI 自主贡献全链路尚未完成产品验收。** 默认试用使用合成数据和 Fake Provider，无需 Token、模型额度或 Docker。Fake Patch、Verify 和 Review 只演示业务链路。
+
+## 核心功能
+
+- GitHub 只读发现、硬过滤、七维评分、每日 3/3/2/2 推荐。
+- 贡献偏好、候选管理、比较、提醒、扫描与任务历史。
+- 不可变分析版本、方案批准、执行及内容寻址 Artifact。
+- 原生 Web、FastAPI、SQLite、持久 Job 与 contribos CLI。
+- 已有模型设置、隔离 Coding/Verify、Review 和精确确认 PR 工作流实现；真实使用依赖独立 Gateway、Worker、镜像和凭据，部分验收仍阻断。
+
+## 快速启动
+
+要求 Python 3.11+；本轮验证 macOS arm64 / Python 3.12.11。已有可用 .venv 时跳过环境创建和安装。
+
+```bash
+cd ai-open-source-contribution-os-summary
+uv venv --python 3.12
+uv pip install --python .venv/bin/python -e '.[dev]'
+./scripts/local-start.sh
+./scripts/local-smoke.sh
+open http://127.0.0.1:18765
+```
+
+没有 uv 时：`python3 -m venv .venv`，再 `.venv/bin/python -m pip install -e '.[dev]'`。
+
+“发现机会”显示合成 Issue；“贡献概览”及侧栏“最近任务”显示 smoke 创建的方案、执行和审查。终端输出精确结果 API 地址，详细记录保存在 `.local-demo/last-smoke.json`。
+
+```bash
+./scripts/local-stop.sh
+```
+
+停止保留数据，重新 start 即可继续。脚本固定监听 127.0.0.1，不加载 .env，不重启已有服务。端口冲突可指定 `--port 18766`；三个脚本均支持 `--data-dir /absolute/private/path`。
+
+## 架构
 
 ```text
-GitHub Search → 候选去重 → 仓库元数据缓存 → 硬规则过滤
-              → 七维评分 → 个性化推荐 → 批量 AI 筛选 → 候选比较
-              → 直接对话规划（AI 报告可选）→ Vibe Coding 工作台 → Review → Draft PR 意图 → 贡献进度
+原生 HTML/CSS/JS → FastAPI → SQLite + Artifact + 持久 Job
+                              ├─ Discovery Worker（GitHub 只读）
+                              ├─ Provider Worker → 独立 Model Gateway
+                              ├─ Sandbox Worker → Docker / OrbStack
+                              └─ 独立 Publisher（精确确认后才允许外部写入）
 ```
 
-## 已实现
+离线试用只启动 API 和 Fake Worker，不执行外来仓库代码、不发布 PR。
 
-- 单用户、只读 GitHub Issue 发现。
-- 默认搜索 Python、TypeScript、`help wanted`、`good first issue` 和 bounty 机会。
-- 候选跨查询去重，仓库元数据按 24 小时缓存。
-- 排除已归档、无可识别许可证、已分配、描述过短或长期不活跃的任务。
-- 按奖励可靠性、接受概率、技术匹配、项目影响力、清晰度、竞争度和学习价值计算 0～100 分。
-- 保存每个维度的分数、风险扣分和原因，结果可审计。
-- 每日榜单优先组合 3 个赏金、3 个高影响力、2 个技术匹配和 2 个战略机会；不足时按总分补位。
-- 首次使用可设置贡献目标、偏好语言、每周投入与最低赏金；推荐会对完整合格候选池重新排序，但不会覆盖原始规则分。
-- 发现列表提供“只看小改动”：从完整候选池初筛文案/链接、局部参数与边界修复等机会，显示匹配依据，可与 AI 推荐条件组合。明显迁移、重写、复杂验证和已有分析认定工作量较大的任务会排除；实际改动量和环境可运行性仍需读代码确认。
-- 原生 Studio 工作台：侧栏导航／任务历史、卡片机会列表、点击展开详情、独立任务对话和可编辑方案，支持候选比较、浅色／深色和窄屏布局。
-- 模型设置支持 DeepSeek、MiniMax 国内官方 API、NVIDIA 与 OpenAI 兼容服务、自定义模型、默认及四阶段覆盖；API Key 由浏览器加密并仅保存到独立 Gateway，任务冻结模型版本。
-- 支持每日自动扫描、候选提醒，以及新增高匹配机会和候选内容/评分变化的站内通知；需持续运行 Worker。
-- 默认发现结果明确使用条件查询、硬筛选和规则/偏好排序，不会暗中调用模型；Provider 就绪时可对当前规则 Top 30 中最匹配的 5 个候选批量运行有预算上限的 AI 筛选。
-- AI 结论只调整独立的决策排序，不覆盖原始规则分；旧 Snapshot 的分析不会用于新扫描候选，也不能启动新的贡献任务。
-- 分析先从冻结仓库快照生成中文项目介绍，再从冻结 Issue 生成中文需求概括，后续匹配度、工作量、竞争、风险和结论都基于这两部分；详情以精简 Markdown 报告展示并可直接下载，结构化 JSON 仅保留给内部校验、评分和不可变溯源。
-- “我的候选”及机会详情可直接“开始对话制定方案”，不必等待 AI 深入评估报告；“贡献进度”可继续已有任务，完成计划、批准、执行、Review 和发布意图流程。
-- FastAPI、SQLite、原生 Web 产品和可供 cron 调用的 CLI。
+## 文档
 
-贡献任务使用一个对话输入框：发送要求、运行中补充信息或停止工作。可交替询问进度、追问详情、引用旧结果，再要求继续当前任务；只读问题不打断后台工作。方案、测试结果和下一步确认出现在对话中，长内容按需打开详情。修改要求直接回复，模型在设置中配置。确认结果后会接着准备英文 PR 文案与发布预览；创建草稿 PR、更新文案、提交正式审核和签署贡献者协议均需独立确认。使用方法见 [贡献方案工作台](docs/contribution-workbench.md)，队列与升级契约见 [会话协议](docs/conversation-agent-contract.md)，新版状态、预算及恢复边界见 [对话任务运行时](docs/agent-runtime.md)。真实独立任务和 Linux 平台验收仍单独记录。
+- [本地部署](docs/LOCAL_SETUP.md) · [产品使用](docs/USER_GUIDE.md)
+- [实际升级对比](docs/UPGRADE_DIFF.md) · [本轮验收](docs/ACCEPTANCE_REPORT.md)
+- [清理报告](docs/maintenance/CLEANUP_REPORT.md) · [分支报告](docs/maintenance/BRANCH_CLEANUP_REPORT.md) · [历史索引](docs/maintenance/HISTORY_INDEX.md)
+- [路线图](docs/tasks.md) · [迁移恢复](docs/database-migrations.md) · [真实模型配置参考](docs/nvidia-provider.md)
 
-项目历史公开对话、全部工作台任务对话及问题处理记录见 [项目对话全记录与问题复盘](docs/conversations-and-incidents-2026-10-27.md)。该文档保留脱敏原文附录，并区分已修复行为、维护介入和未通过的验收。
+## 已知限制
 
-## Agent Runtime v2 重构分支
-
-UPEVE 环境引擎候选版的启用、支持边界和未通过门禁见
-[工程说明](docs/environment-engine-v1.md)及
-[专项验收记录](docs/acceptance/universal-environment-v1/README.md)。默认不开启，
-静态准入、工具准备和修改前验证分别记录；历史失败不改写为成功。
-
-`refactor/agent-runtime-v2` 增加持久化工具回合、精确增量编辑、真实测试反馈、
-独立审查衔接和原生工具时间线。`AGENT_RUNTIME_V2_ENABLED` 默认关闭；
-只在独立端口、数据库、Artifact 和网关的测试实例开启，禁止直接升级正式实例。
-授权时固定运行协议，已有 v1 作业继续使用其原协议。
-
-框架选择和恢复契约见 [架构](docs/agent-runtime-v2-architecture.md)、
-[ADR](docs/adr/agent-runtime-v2-engine-selection.md) 和
-[迁移说明](docs/agent-runtime-v2-migration.md)。测试与真实模型受控样例记录在
-[验收目录](docs/acceptance/agent-runtime-v2/README.md)。受控样例不等于陌生 GitHub
-Issue 的原生人工验收；M5、UXR-G01 及原生 Linux P5-G06 未通过时均保持未完成。
-
-## 库完成 vs 生产可点
-
-| 环节 | 库 / API / UI | 默认 `serve` + `worker` |
-| --- | --- | --- |
-| GitHub 扫描与 3/3/2/2 榜单 | 已完成 | **可点** |
-| AI 深析与批量筛选 | 已完成 | MiniMax-M3 可通过国内官方 API 直连并作为四阶段默认；其他 Profile 可手动切换 |
-| AI 规划、编辑版本、批准 | 已实现 | 发现快照可生成最小 AnalysisVersion，无需完整报告；规划需实现模型与隔离读取，执行仍需精确计划批准 |
-| 隔离执行 Explore/Implement/Verify | 引擎与状态机已完成 | 采集归档后，`SANDBOX_STAGE_RUNTIME=fake` 可离线跑通 Explore → ChangeSet → Implement → Verify |
-| 从计划生成代码 / ChangeSet | 已接线 | DeepSeek V4 Pro 支持冻结上下文、多轮对话、结构化提案和精确哈希确认 |
-| 独立 Review / 有界修复 | 已完成 | Fake 可离线演示；MiniMax M3 可审查精确 diff 与测试 Artifact |
-| 人工验收 / Draft PR | 本地实现与契约测试通过 | 默认关闭；`PUBLISHER_MODE=gh` 使用独立 Publisher，最终确认才 Fork／Push／Draft；真实账号验收待完成 |
-| PR 事件 / 生命周期 / 热力图 | 已完成（本地观测） | 看板可点；真实 GitHub 轮询未启用 |
-
-## 快速开始
-
-完整的安装、配置、双进程启动步骤和分层测试案例见
-[部署、启动与自测指南](docs/deployment-and-self-test.md)。
-NVIDIA Build 的模型分工、密钥隔离、Compose Profile 和完整五进程启动方式见
-[NVIDIA Provider 接入指南](docs/nvidia-provider.md)。
-新界面、通用模型配置和独立密钥卷的升级要求见 [Studio 使用说明](docs/studio-workbench.md)。
-在模型设置页添加服务商连接和模型后，可在“各功能使用的模型”中分别选择机会分析、规划、
-实现和审查所用模型；每个下拉框的第一项就是默认模型。API Key 仍通过加密信封保存到独立
-Gateway，不会进入业务数据库。
-
-DeepSeek：在接口类型选择“DeepSeek 官方（国内）”，地址固定为
-`https://api.deepseek.com`；保存独立 API Key 后，添加 `deepseek-v4-pro`
-或 `deepseek-flash` 模型。支持四阶段选择、思考模式、结构化输出和连接测试。
-升级包含 `0040_deepseek_reviews`，请先保存 SQLite 与 Artifact 的一致备份。
-已有任务保留原绑定和累计预算；新增模型不会自动重置验收额度。
-
-要求 Python 3.11+。推荐使用 `uv`：
+路线图仍在 Phase 5，版本元数据仍为 0.1.0，不表示稳定发布。陌生 Issue 的真实自主 Coding、Linux 原生 Docker、真实 Gateway 恢复和账号发布验收未被 Fake 测试替代。Runtime v2 和环境引擎默认关闭。离线实例不提供真实 AI 对话规划、凭据保存或发布。Plan16 仍 blocked 且授权已消费。
 
 ```bash
-uv venv --python 3.11
-source .venv/bin/activate
-uv pip install -e '.[dev]'
-export GITHUB_TOKEN='your-read-only-token'
-contribos serve
+.venv/bin/python -m pytest
+.venv/bin/python -m compileall -q app
+git diff --check
 ```
-
-打开 <http://127.0.0.1:8000>。GitHub Token 不是硬性要求，但未认证请求的额度很低；建议使用只读 fine-grained token。
-
-Web 发起的扫描会进入可恢复的持久任务队列。请在另一个终端启动 Worker：
-
-```bash
-source .venv/bin/activate
-export GITHUB_TOKEN='your-read-only-token'
-contribos worker
-```
-
-若设置了 `LOCAL_ACCESS_TOKEN`，所有写 API 还必须携带
-`Authorization: Bearer <token>` 或 `X-ContribOS-Token`。浏览器写请求同时
-校验同源 `Origin` 和由 `/api/v1/meta` 返回的 CSRF Token；访问令牌不会写入
-页面、数据库或日志。
-
-直接运行一次扫描：
-
-```bash
-contribos scan
-```
-
-检查 Phase 5 Sandbox Worker 的本机运行前置条件（镜像必须使用本地精确摘要，
-不能使用可变 Tag）：
-
-```bash
-contribos doctor --runner-image sha256:<64 位小写十六进制摘要>
-```
-
-该命令不会读取 GitHub 或应用 Token；它以 JSON 报告 Python、Docker/buildx、
-OrbStack 或 Linux 架构、隔离原语、磁盘、无网络能力、Runner 镜像和真实受限
-容器探针，任一检查失败都会返回非零状态。
-
-使用自定义查询：
-
-```bash
-contribos scan \
-  --query 'is:issue is:open no:assignee label:"help wanted" language:Python' \
-  --query 'is:issue is:open no:assignee bounty in:title,body'
-```
-
-若使用 `.env.example`，本项目不自动读取 `.env`；请由 shell 或进程管理器注入：
-
-```bash
-cp .env.example .env
-set -a
-source .env
-set +a
-```
-
-该共享注入方式只适合 `none`/`fake` 快速体验。启用 NVIDIA 时不要把同一份完整
-`.env` 注入所有进程；按 NVIDIA 指南分别给 Gateway、Provider Worker 和 Sandbox
-Worker 最小权限配置。
-
-## API
-
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| `GET` | `/health` | 健康检查 |
-| `GET` | `/api/v1/meta` | 当前搜索与偏好配置 |
-| `POST` | `/api/v1/scans` | 幂等创建一个发现扫描 Job |
-| `GET` | `/api/v1/scans` | 扫描历史 |
-| `GET` | `/api/v1/jobs/{id}` | 查询 Job 状态、进度与结果 |
-| `POST` | `/api/v1/jobs/{id}/cancel` | 请求取消 Job |
-| `POST` | `/api/v1/jobs/{id}/retry` | 重试可重试的终态 Job |
-| `GET` | `/api/v1/opportunities/daily` | 当日精选榜单 |
-| `GET` | `/api/v1/recommendations` | 按本地偏好重排后的完整合格候选池 |
-| `POST` | `/api/v1/recommendations/analyses` | 为最多 5 个当前 Top-30 候选排队有总预算上限的分析 Job |
-| `GET/POST` | `/api/v1/preferences/current` | 读取或创建不可变的新一版推荐偏好 |
-| `POST` | `/api/v1/opportunities/{id}/dispositions` | 加入/移出候选、忽略或设置提醒 |
-| `GET` | `/api/v1/shortlist` | 当前候选清单 |
-| `GET` | `/api/v1/opportunities/compare` | 并排比较 2～3 个机会 |
-| `GET` | `/api/v1/scan-changes/latest` | 最近扫描带来的新匹配和候选变化 |
-| `GET` | `/api/v1/notifications` | 站内通知与已读状态 |
-| `GET` | `/api/v1/opportunities/{id}` | 完整评分与风险详情 |
-| `POST` | `/api/v1/opportunities/{id}/analyses` | 在 Provider 就绪时排队一次分析 Job |
-| `GET` | `/api/v1/opportunities/{id}/analyses` | 不可变分析版本历史 |
-| `GET` | `/api/v1/opportunities/{id}/analyses/{version}/document` | 查看或下载包含项目介绍、需求内容和关联判断的 Markdown 分析报告 |
-| `GET` | `/api/v1/opportunities/{id}/analyses/compare/document` | 查看两个版本的重要内容中文差异 |
-| `POST` | `/api/v1/tasks` | 从精确 AnalysisVersion 创建贡献任务 |
-| `GET` | `/api/v1/tasks/{id}` | 任务、计划、批准与执行摘要 |
-| `POST` | `/api/v1/tasks/{id}/plan-versions` | 创建或修订结构化计划 |
-| `POST` | `/api/v1/plan-versions/{id}/approve` | 锁定 base SHA 并批准计划 |
-| `POST` | `/api/v1/plan-versions/{id}/archives` | 为已批准计划排队只读仓库归档采集 Job |
-| `POST` | `/api/v1/plan-versions/{id}/executions` | 以精确审批、base SHA、归档和 Runner digest 幂等创建执行 |
-| `POST` | `/api/v1/executions/{id}/change-sets` | 在 Explore 成功后接受 ChangeSet 并排队 Implement |
-| `POST` | `/api/v1/executions/{id}/coding-context` | 在 Sandbox Worker 中冻结批准路径的编码上下文 |
-| `GET` | `/api/v1/executions/{id}/coding-session` | 读取经哈希链复验的多轮编码会话与提案 |
-| `POST` | `/api/v1/executions/{id}/coding/messages` | 排队一次 DeepSeek 编码对话 |
-| `POST` | `/api/v1/executions/{id}/coding/proposals` | 从当前对话生成不可变 ChangeSet 提案 |
-| `POST` | `/api/v1/change-set-proposals/{id}/accept` | 按精确 ChangeSet 哈希确认并排队 Implement |
-| `POST` | `/api/v1/executions/{id}/review-jobs` | 排队一次 MiniMax 独立 Review |
-| `GET` | `/api/v1/executions/{id}` | 查询经溯源复验的执行、阶段、Job 与 Artifact 清单 |
-| `GET` | `/api/v1/executions/{id}/artifacts` | 列出属于该执行的经复验 Artifact |
-| `GET` | `/api/v1/executions/{id}/artifacts/{artifact_id}` | 按 SHA-256 复验并读取 Artifact 内容 |
-
-FastAPI 交互文档位于 <http://127.0.0.1:8000/docs>。
-
-## 数据库迁移
-
-服务启动和 `contribos scan` 会自动执行有版本、带 checksum 的数据库迁移。
-既有 Phase 1 SQLite 数据库只有在完整 schema 校验通过后才会被标记为基线版本；
-部分或未知 schema 会拒绝启动，不会通过删库重建来绕过。
-
-升级和恢复约定见
-[docs/database-migrations.md](docs/database-migrations.md)。
-Explore → Implement → Verify 的不可变执行记录、重启恢复边界和 CAS 规则见
-[docs/execution-state.md](docs/execution-state.md)。
-可选依赖准备的内部网络、固定包代理、哈希锁和只读 Verify 约束见
-[docs/sandbox-dependencies.md](docs/sandbox-dependencies.md)。
-Sandbox 内统一禁用 Git hooks、credential helper、LFS/filter、submodule 与
-传输协议的规则见 [docs/sandbox-git-safety.md](docs/sandbox-git-safety.md)。
-命令、UTC 时间、资源使用、输出哈希与脱敏日志的执行证据约定见
-[docs/execution-evidence.md](docs/execution-evidence.md)。
-完整文件清单、确定性 unified diff、diff hash 与规范化测试结果也由同一份
-执行证据约定覆盖。
-Stage 成功前的内容寻址固化、Artifact manifest 与崩溃恢复规则见
-[docs/execution-artifacts.md](docs/execution-artifacts.md)。
-Verify Artifact 固化后的 workspace 销毁、Worker 隔离与重试规则见
-[docs/workspace-disposal.md](docs/workspace-disposal.md)。
-
-## 评分模型
-
-```text
-总分 = 奖励可靠性 × 22%
-     + 接受概率 × 20%
-     + 技术匹配 × 18%
-     + 项目影响力 × 15%
-     + Issue 清晰度 × 10%
-     + 竞争度 × 10%
-     + 学习价值 × 5%
-     - 风险扣分
-```
-
-这是不会被 AI 或个人偏好覆盖的基础规则分。产品推荐会按用户目标调整七个维度的权重，并应用语言、时间和最低赏金偏好；AI 对当前 Snapshot 的 `pursue / consider / skip / insufficient_evidence` 结论只形成独立、可解释的决策排序调整。`GET /api/v1/recommendations?analysis_filter=recommended` 可只读取 AI 建议投入或继续确认的机会。所有评分都只是决策辅助，不承诺 PR 一定合并或赏金一定兑现。
-
-`GET /api/v1/recommendations?small_change_only=true` 在分页前筛选小改动线索，可组合 `analysis_filter`、`include_dismissed`、`limit`、`offset`。每项返回 `change_scope`（规则版本、分类、匹配/排除原因码），响应包含 `small_change_only` 和 `small_change_total`；后者统计忽略状态过滤后、AI 条件过滤前的小改动数。规则读取该条目的不可变 Snapshot，并参考同 Snapshot 的已有工作量分析，不修改基础分、不追加评分版本、不调用模型。`good first issue` 单独不足以入选；已有分析估计 xs/s 且不超过 4 小时可提供线索，m/l/xl 或超过 8 小时会排除。筛选未知范围和过长描述时保持保守，不承诺文件数、工时或运行环境已就绪。
-
-`change-scope-v2` 兼容 `size:S`、`size / XS` 等大小写和分隔符，且统一处理大规模排除标签；补充有明确文件/元数据依据的文档链接、截图和 PyPI 项目链接改动。默认发现查询增加 Python/TypeScript 标题含 typo 的定向搜索（每类沿用 25 条上限）；显式配置 `GITHUB_QUERIES` 时仍遵循自定义查询。列表只使用最近完成的扫描，重新扫描可能改变数量；不会拿旧扫描机会或范围未知任务填充结果。
-
-MiniMax/OpenAI-compatible 的新深入评估使用 `studio-analysis-paired-v1`：每条数组结论连同自己的 `evidence_ids` 一起生成，再无损转换为原分析结构并执行完整校验，避免结论与引用的独立数组长度错位。缺失、伪造或不明确的引用仍会失败，不会复制引用补齐。历史失败任务重试保留原适配器格式；重新发起评估使用新格式。NVIDIA、规划与执行格式不变；无需数据库迁移，回退时先停止新格式任务并保留现有不可变历史。
-
-批量分析接口 `POST /api/v1/recommendations/analyses` 同样支持 `small_change_only`，仅在匹配项中排队，保留现有 Top-30 证据、预算、授权和幂等边界。此功能不新增持久字段或迁移；回退应用版本即可移除筛选，已有数据保持原样。
-
-## 配置
-
-常用环境变量见 [.env.example](.env.example)：
-
-- `GITHUB_TOKEN`：GitHub 只读 Token，也兼容 `GH_TOKEN`。
-- `GITHUB_QUERIES`：以分号分隔的 GitHub Search 查询。
-- `PREFERRED_LANGUAGES`：技术偏好，默认 `Python;TypeScript`。
-- `STRATEGIC_KEYWORDS`：战略项目关键词。
-- `DATABASE_URL`：默认 `sqlite:///./data/contribos.db`。
-- `APP_TIMEZONE`：每日榜单的日期时区，默认 `Asia/Shanghai`。
-- `ANALYSIS_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `nvidia/nemotron-3.5-lightning-30b-a3b`。
-- `IMPLEMENTATION_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `deepseek-ai/deepseek-v4-pro-0813`。
-- `REVIEW_PROVIDER`：`none`、`fake` 或 `nvidia_nim`；NVIDIA 默认使用 `minimaxai/minimax-m3`。
-- `NVIDIA_API_KEY`：只允许注入 `contribos model-gateway`，不得注入 API、Provider 或 Sandbox Worker。
-- `MODEL_GATEWAY_SIGNING_KEY`：至少 32 字节十六进制，用于签发短期、限次、任务绑定的 Gateway 凭据。
-- `SANDBOX_JOB_SPEC_KEY_ID`：JobSpec 签名密钥 ID，默认 `local-v1`。
-- `SANDBOX_JOB_SPEC_SIGNING_KEY`：至少 32 字节的十六进制 HMAC 密钥。未设置时执行只创建 `explore/pending`，不会入队沙箱 Job。
-- `SANDBOX_STAGE_RUNTIME`：`none`、`fake` 或 `docker`。Docker runtime 只在 `contribos sandbox-worker` 装配，API/Provider 不读取 Docker 配置。
-- `WORKBENCH_RUNNER_IMAGE`：规划和自动执行使用的固定 Runner 镜像摘要。
-- `PUBLISHER_MODE`：`none`（默认）、`fake`（显式离线演示）或 `gh`（独立真实 Publisher）。
-- `GITHUB_ARCHIVE_HOSTS`：允许接收无凭证归档下载的 HTTPS 主机，默认 `codeload.github.com`。GitHub Token 不会发往这些主机。
-
-## 验证
-
-```bash
-pytest
-python -m compileall -q app
-```
-
-测试全部使用 Fake GitHub 数据，不会访问网络。
-
-## 下一阶段
-
-1. 完成原生 Linux amd64 + Docker Engine 恶意套件验收（P5-G06）。
-2. 在用户提供的 Linux 环境完成同一 Runner 与恶意套件验收。
-3. 为 NVIDIA 分析、编码和 Review 运行受控的真实账户验收并记录预算证据。
-4. 在精确用户确认后接通真实 Draft PR，并同步远端 PR 状态。
-
-讨论入口与可选报告已解耦：`POST /api/v1/tasks` 接受 `snapshot_id` 或
-`analysis_version_id`，必须且只能提供一个。Snapshot 入口创建明确标为
-`unassessed` 的 `snapshot-assessment-v1` 依据，保留原始快照、规则分、来源及哈希；
-没有模型 Job、调用、工时、推荐或执行批准。它不计入 AI 评估统计，也不改写已有报告。
-普通说明、澄清问题、文件读取和方案草稿可以同轮出现；协调器先等待澄清，随后补读，
-最后独立验证并保存方案。草稿校验失败可保留安全对话说明，执行仍被阻断。
-未读文件会请求补读；不再通过删掉目标文件、截断命令或把未决问题改成风险来保存方案。
-
-数据库前向升级 `0033_snapshot_assessments` 会保留旧 AnalysisVersion、任务、计划和哈希。
-升级前停止写入并备份 SQLite 与 Artifact 数据；失败时恢复完整备份。旧版本程序不能
-读取新修订链，回退应用时也必须恢复升级前数据库，不能删除新任务来源或将事实依据
-改标为 AI 报告。真实任务和平台验收见 [架构调整记录](docs/workflow-architecture-review.md)。

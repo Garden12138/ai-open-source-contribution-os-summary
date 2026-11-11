@@ -21,6 +21,24 @@ Update rules:
 4. Do not enter the next phase until every exit gate in the current phase passes.
 5. Reopen a checkbox if a later change invalidates its evidence.
 
+## 本轮产品收敛（2026-11-11）
+
+本轮按用户明确授权进行清理、实际可用性验收、隔离 Fake 试用与目标分支整合，
+不推进新的路线图架构。既有 Phase 5 门禁继续保持原状态；Plan16 blocked、原授权已消费，
+不新建付费 Plan、不改预算、不调用真实模型、不重启现有持久服务。
+
+- [x] 仓库外私有备份与逐文件哈希核验；有效 repair-v1 源码/测试保留。
+- [x] 清理过程快照、原始 JUnit 与缓存，保留回归所需历史 Artifact。
+- [x] 独立 Fake API/Worker 启动、真实 HTTP 业务链路和停止/重启。
+- [x] 本轮首次完整回归 2149 通过/2 失败/83 跳过；端口权限项重跑 1 通过，间接 Fixture 恢复后相关 67 通过。合并新增试用测试后逐用例 2158 通过/0 未解决失败/83 跳过；浏览器 10 项、服务检查 13 项和无 Token 真实只读扫描通过。
+- [ ] 目标分支提交/安全推送及旧开发分支清理。
+
+公开结果入口：[升级对比](UPGRADE_DIFF.md)、[验收](maintenance/HISTORY_INDEX.md)、
+[本地运行](LOCAL_SETUP.md)、[使用手册](USER_GUIDE.md)、
+[清理与恢复](maintenance/CLEANUP_REPORT.md)、[历史索引](maintenance/HISTORY_INDEX.md)。
+历史过程证据链接已导向归档索引；原结论/哈希和已完成 Phase 内容保留，
+本轮 Fake 通过不关闭 P5-G06、HR4/5 或真实 Gateway/发布验收。
+
 ## Current status
 
 | Field | Value |
@@ -29,7 +47,7 @@ Update rules:
 | Completed phase | Phase 4 — contribution tasks, plan discussion, and locking |
 | Current phase | **Phase 5 — isolated execution on macOS and Linux** |
 | Goal scope | Phase 2–10 |
-| First current task | Plan16 independent freeze preparation complete after source/deployment review: HEAD b33349d6, five roles/255 files and original images/policy/budgets verified; fresh Plan16/Binding and exact preview dab07066 await independent review and separate one-time execution consent. New paid calls/approvals/jobs/budget allocation0; Plan11–15 terminal states, fees and holds unchanged. Any paid execution is NO-GO now; HR4/5, Linux amd64 and P5-G06 stay open |
+| First current task | Gateway Credential Incident local source repair implemented: explicit persistent Gateway generations, matching crypto identity, offline backup/atomic restore/rollback, authenticated zero-Provider readiness and non-retryable storage faults; Publisher legacy store unchanged. Full offline regression2151 passed/83 opt-in skipped; final source and OCI evidence in repair-v1. Independent new-Diff review and real Gateway deployment remain NO-GO; original recovery materials unproven, Plan16 blocked/consumed, history/budgets untouched; HR4/5, Linux amd64 and P5-G06 remain open |
 | Last roadmap audit | 2026-09-02 |
 | Feature note | Plan9 approvedd3ef025e is consumed once: root2/3 recovers a read failure, real Explore passes, preparation1/1 fails node_resolve/network_unavailable; new models/Baseline/Coding/Review0/not_run. All1430 events/1431 artifacts preserve old usage. Controlled diagnosis observes pnpm10.34.9 ERR_PNPM_FETCH_502 and30 fixed-DNS TLS closures (not reconstructed native errors). Generic30s positive public-DNS cache commitd3517e3 passes1931 default/62 skipped,35 focused/13 new cases, real Python proxy boundary1 and independent Node8 entrypoints/4 checks. Five owned roles redeploy with45 tables/1430 events/security unchanged. Mechanical same-content Plan10 adds4 records to1434,10 Plans/7 approvals; previewc7b8ab6d is unapproved/unrun. Native0/4, U0/15, H Node/E3–E6/Linux gates remain open. |
 
@@ -1777,7 +1795,7 @@ contains 19 analysis Jobs, with 16 historical final failures in report/citation
 contracts. This includes earlier adapters and is not the final adapter's failure
 rate. AR-G01 proves one candidate evaluation and UI, not a complete contribution
 workflow or general reliability. The user-directed review and proposed boundary
-changes are recorded in [workflow-architecture-review.md](workflow-architecture-review.md).
+changes are recorded in [workflow-architecture-review.md](maintenance/HISTORY_INDEX.md).
 Minimal trusted analysis vs optional report, smaller conversation/tool contracts,
 early environment/baseline verification and repeatable real end-to-end acceptance
 are proposals; no schema, permission, safety policy or workflow change is claimed
@@ -1872,7 +1890,7 @@ root-only environment detection missed the selected nested Python package.
 Dependency preparation currently follows Implement; no actual pre-change test
 baseline exists. Exact final draft rejection causes cannot be recovered from
 the persisted generic diagnostics. Full evidence and design are recorded in
-[task-82c0ec73-sandbox-audit.md](task-82c0ec73-sandbox-audit.md).
+[task-82c0ec73-sandbox-audit.md](maintenance/HISTORY_INDEX.md).
 
 - [x] **WD-T03** Separate runtime capability, selected-package environment
   preparation and plan/authorization readiness; service-owned action receipts
@@ -1930,7 +1948,7 @@ these acceptance results do not represent a completed contribution.
 Final deployed read-only acceptance against the new base passed all four existing
 approved commands: selected tests, complete package `531 passed, 27 skipped`,
 Ruff, and mypy on 14 source files, with unchanged inventory. Evidence summary:
-[task-82c0ec73-sandbox-acceptance.json](task-82c0ec73-sandbox-acceptance.json).
+[task-82c0ec73-sandbox-acceptance.json](maintenance/HISTORY_INDEX.md).
 Five services are running, API/Gateway healthy; SQLite integrity/FKs and all
 pre-0035 historical hashes pass. Database/response/artifact/log secret checks
 found zero. Current task is the exact plan confirmation followed by real sandbox
@@ -2000,7 +2018,7 @@ Execution composer polish requested on 2026-10-10:
   API/Gateway healthy, health/database OK, integrity OK/FK errors zero;
   inspected business records/artifacts/log credential canaries zero and recent
   log tracebacks zero. No GitHub writes or publication. Evidence and recovery
-  interventions: [task-82c0ec73-sandbox-audit.md](task-82c0ec73-sandbox-audit.md).
+  interventions: [task-82c0ec73-sandbox-audit.md](maintenance/HISTORY_INDEX.md).
   Python execution evidence advances WD-T05/WD-G03 but does not close general
   TypeScript, restart/cancellation or native Linux acceptance; P5-G06 stays current.
 
@@ -2345,7 +2363,7 @@ labels. Real desktop/mobile Chromium: zero mutations, page errors or horizontal
 overflow. Existing execution/publication history is preserved; no model call,
 execution, approval or GitHub mutation was performed for this review.
 
-The [conversation-agent redesign](conversation-agent-redesign.md) specifies one
+The [conversation-agent redesign](maintenance/HISTORY_INDEX.md) specifies one
 message composer, durable follow-up handling, service-owned result/next-step
 messages, plain product language and contextual exact confirmations. It reuses
 the existing isolated services and requires independent product acceptance
@@ -2656,7 +2674,7 @@ for the same Salt task; Phase 5 remains current):
   reject the same frozen environment even after plan rewording; transient failures
   are not mislabeled as permanent missing packages. Worker admission also rechecks
   authorization against the exact attempt, archive, image and current capabilities.
-- User authorized the reviewed [source-build extension](dependency-source-build-proposal.md).
+- User authorized the reviewed [source-build extension](maintenance/HISTORY_INDEX.md).
   Optional `DEPENDENCY_BUILDER_IMAGE` selects `execution-capabilities-v3` and signed
   `workspace-dependency-plan-v4` / `source-wheel-v1`. Legacy v1/v2/v3 inputs and
   hashes remain unchanged and wheel-only. Build-tool wheels and bounded tar source
@@ -3707,7 +3725,7 @@ Automatic task context management (2026-10-20, user-requested extension):
   below the explicitly configured 3,000,000-token limit. Input budgeting,
   compaction, schema overhead and useful recovery required a coordinated fix;
   historical usage, failed receipts and approvals remain
-  intact. See the [cross-task independent-completion audit](autonomous-completion-audit-2026-10-24.md).
+  intact. See the [cross-task independent-completion audit](maintenance/HISTORY_INDEX.md).
 - Reopened again 2026-10-24: task `65bb0e9f-e8b5-4780-8a5e-19469e5e0f46`
   requests a lockfile search. Its first call was admitted at 15,935; after three
   reads, the next input was denied at 17,307. The file-list tool ignored queries
@@ -4104,7 +4122,7 @@ roadmap gate, with no later phase entry or repository-wide completion claimed.
 ### Conversational task runtime refactor (2026-10-24)
 
 User-approved Phase 5 extension following the
-[cross-task audit](autonomous-completion-audit-2026-10-24.md). The operating model
+[cross-task audit](maintenance/HISTORY_INDEX.md). The operating model
 and rollback procedure are documented in [agent-runtime.md](agent-runtime.md).
 
 - [x] **AR-T01** Separate current task observation, source-bound dialogue focus,
@@ -4133,7 +4151,7 @@ and rollback procedure are documented in [agent-runtime.md](agent-runtime.md).
   approved plans are fixtures; this does not close real-GitHub acceptance. The
   dynamic case identified missing bounded/hash-bound requirement-file discovery,
   now fixed and verified in the real container path. Full per-sample evidence:
-  [agent-runtime-2026-10-24.json](acceptance/agent-runtime-2026-10-24.json).
+  [agent-runtime-2026-10-24.json](maintenance/HISTORY_INDEX.md).
 - [x] **AR-T07** Finish isolated replay of the historical input-budget failure,
   final regression, deployment, historical-chain/artifact and credential checks.
 
@@ -4219,7 +4237,7 @@ pass; all six services match **29** changed source hashes and are healthy/runnin
 All eight task chains, all **1,918** original events and **1,100** original
 artifacts remain intact; runtime-secret/canary matches and log tracebacks are
 zero (647 log lines). Evidence:
-[planning-continuation-2026-10-25.json](acceptance/planning-continuation-2026-10-25.json).
+[planning-continuation-2026-10-25.json](maintenance/HISTORY_INDEX.md).
 P5-G06, UXR-G01 and ENV-G01 remain open.
 
 - [ ] **ENV-R07** Reopened execution acceptance (2026-10-25): after exact user
@@ -4275,7 +4293,7 @@ The eight current chains contain **1,998** events. Runtime-secret/canary checks 
 zero matches in database/artifacts and **162** recent log lines; no tracebacks.
 Plan, approval, execution-attempt and publication-root counts are unchanged.
 Exact evidence and failed acceptance attempts are retained in
-[execution-read-recovery-2026-10-25.json](acceptance/execution-read-recovery-2026-10-25.json).
+[execution-read-recovery-2026-10-25.json](maintenance/HISTORY_INDEX.md).
 Native Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 remain open.
 
 2026-10-26 continuation and command-evidence correction:
@@ -4330,7 +4348,7 @@ Native Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 remain open.
   `aa448fe7241c1b6791c6611fff416ef12a82e923bb2f2978d6c5b19fe10956a9`.
   Preserve newer receipts before matched recovery. No SQL schema change.
   Exact current evidence:
-  [verification-command-policy-2026-10-26.json](acceptance/verification-command-policy-2026-10-26.json).
+  [verification-command-policy-2026-10-26.json](maintenance/HISTORY_INDEX.md).
 
 2026-10-26 later incident: the user confirmed child plan `b81f2268`, creating
 approval-bound attempt `e74948b6-1c0e-4cd8-a0a9-477c28de7b4c` and authorization
@@ -4389,7 +4407,7 @@ There are no active jobs. This is a new model-protocol blocker, not a recurrence
 of the missing runtime module, and ENV-R07 remains open.
 
 The exact one-call recovery preview is retained in
-[proposal-final-retry-preview-2026-10-26.json](acceptance/proposal-final-retry-preview-2026-10-26.json),
+[proposal-final-retry-preview-2026-10-26.json](maintenance/HISTORY_INDEX.md),
 hash `0c25c33d30fc2da1aad53912a6e240c6c0e318c8e9d785805ecacd7aecc4a3d8`.
 It proposes only Job `43b7d960`'s attempt limit **3 → 4**, preserving its three
 attempts and using the existing root's sixth and final model call. Same plan,
@@ -4488,11 +4506,11 @@ artifacts at `/data/backups/coding-provider-retry-guard-20261027T011729Z`, with
 SQLite/foreign keys pass; database, artifacts and inspected final/retry logs have
 zero runtime-secret/canary matches. The deployed task page passes at widths
 1440/390 without overflow, page errors or write requests. Exact evidence:
-[proposal-provider-recovery-2026-10-27.json](acceptance/proposal-provider-recovery-2026-10-27.json).
+[proposal-provider-recovery-2026-10-27.json](maintenance/HISTORY_INDEX.md).
 
 At the R10 checkpoint, the configuration decision was prepared,
 **unapproved and unapplied**, in
-[proposal-output-budget-preview-2026-10-27.json](acceptance/proposal-output-budget-preview-2026-10-27.json),
+[proposal-output-budget-preview-2026-10-27.json](maintenance/HISTORY_INDEX.md),
 hash `222d8b80bb2ba4cf042330da58b2e09710dd5176ce4358e56822ac8402c62049`.
 It clones only this task's implementation profile with output **32,768 → 65,536**;
 other fields, stages, global defaults, the two contribution paths and all five
@@ -4577,7 +4595,7 @@ reports with no overflow, page errors or mutation requests. SQLite/foreign keys,
 database/artifact canary checks and 531 inspected log lines pass. Source is
 unchanged from the **1,452 passed / 46 skipped** regression; compilation and diff
 checks pass. Exact evidence:
-[proposal-output-budget-application-2026-10-27.json](acceptance/proposal-output-budget-application-2026-10-27.json).
+[proposal-output-budget-application-2026-10-27.json](maintenance/HISTORY_INDEX.md).
 Historical coding usage stays **21**; this authorization added **zero** coding
 calls, review calls or ExecutionAttempts. No active jobs or third-party writes
 remain. This superseded candidate does **not** close ENV-R07/ENV-G01/UXR-G01 or
@@ -4589,7 +4607,7 @@ foreign keys pass. Database/artifact runtime-secret/canary matches are zero.
 All **460** post-deployment log lines have zero credential/canary matches,
 tracebacks or ModuleNotFoundError. Desktop/mobile live browser checks pass
 without page errors, overflow or mutation requests. Exact evidence:
-[runtime-integrity-recovery-2026-10-26.json](acceptance/runtime-integrity-recovery-2026-10-26.json).
+[runtime-integrity-recovery-2026-10-26.json](maintenance/HISTORY_INDEX.md).
 
 Pre-recovery backup: `/data/backups/runtime-integrity-repair-20261026T060807Z`,
 including **2,078** events/**1,191** artifacts and the matched 200-file source
@@ -4625,7 +4643,7 @@ write was performed. Detailed design and controlled/production evidence
 boundaries are in the linked document.
 Final service-log scan: **478** lines, zero credential-pattern matches and zero
 tracebacks. Machine-readable evidence is retained in
-[project-environment-2026-10-25.json](acceptance/project-environment-2026-10-25.json).
+[project-environment-2026-10-25.json](maintenance/HISTORY_INDEX.md).
 
 The incident archive really contains `bun.lock` (160,768 bytes) and declares
 `bun@>=1.4`. No npm/Yarn/pnpm source lock should be generated to bypass its tool
@@ -4639,7 +4657,7 @@ Linux P5-G06, full real-GitHub UXR-G01 and ENV-G01 stay open.
 ### Agent Runtime v2专项重构（2026-10-27）
 
 User-directed Phase 5 extension, governed by
-[agent-runtime-v2-refactor-spec.md](agent-runtime-v2-refactor-spec.md).
+[agent-runtime-v2-refactor-spec.md](maintenance/HISTORY_INDEX.md).
 Branch `refactor/agent-runtime-v2`, origin/main baseline `27802bb5`.
 No production deployment or external write is authorized. Existing Phase 5 and
 UXR/ENV gates remain unchanged.
@@ -4660,7 +4678,7 @@ UXR/ENV gates remain unchanged.
 - [ ] **ARV2-M6** Full regression/security/browser/migration/isolation validation,
   honest cross-platform evidence and synchronized operator documentation.
 
-Evidence and checkpoints: [acceptance/agent-runtime-v2/README.md](acceptance/agent-runtime-v2/README.md).
+Evidence and checkpoints: [acceptance/agent-runtime-v2/README.md](maintenance/HISTORY_INDEX.md).
 M0 evidence: clean branch based on fetched/verified origin/main; baseline **1451
 passed / 46 skipped / 1 clock-boundary test failure**. The duplicate-scan fixture
 now stays on one local date; business scan behavior is unchanged.
@@ -4809,8 +4827,8 @@ existing P5-G06/UXR-G01/ENV-G01 gates are unchanged.
 ### Universal Project Environment & Verification Engine v1 (2026-10-28)
 
 User-directed Phase 5 specialization on `refactor/agent-runtime-v2`; governed by
-[the implementation plan](universal-environment-v1/03-implementation-plan.md).
-Evidence: [acceptance ledger](acceptance/universal-environment-v1/README.md).
+[the implementation plan](maintenance/HISTORY_INDEX.md).
+Evidence: [acceptance ledger](maintenance/HISTORY_INDEX.md).
 
 - [x] **UPEVE-E01** E0 branch/source/immutable historical evidence baseline.
 - [x] **UPEVE-E02** E1 strict versioned contracts, static graph and honest readiness.
@@ -4935,7 +4953,7 @@ active Jobs. SQLite backup preserved all table counts and 57 event IDs/hashes;
 old trial state/artifacts are retained, current trial storage moved under
 `/tmp/upeve-isolated-20261029-v2/business/`. Formal services/data are untouched.
 See [shared connection](github-shared-connection.md) and
-[deployment evidence](acceptance/universal-environment-v1/shared-github-deployment.json).
+[deployment evidence](maintenance/HISTORY_INDEX.md).
 
 Authenticated continuation: the user saved the shared Token in the page. The
 durable Publisher account probe succeeded (reported scopes: `repo`, broader than
@@ -4950,7 +4968,7 @@ model calls; TypeScript chat exhausted its read count. Its explicit planning
 workflow read source and produced an unverified no-bug explanation with admitted
 source gaps and a clarification, no Plan. Neither is a native delivery.
 The exact source, Job outcomes, cumulative usage and limits are retained in
-[authenticated failures](acceptance/universal-environment-v1/authenticated-planning-failures.json).
+[authenticated failures](maintenance/HISTORY_INDEX.md).
 
 Generic v2 context maintenance now compresses duplicated captured-source metadata
 and indexed file copies while preserving exact requested pages, rules, current
@@ -4968,7 +4986,7 @@ not produce Plans. Python's one bounded transport retry ends
 `minimax_completion_invalid` (19 lifetime calls); TypeScript returns an
 unverified no-change narrative and clarification (11 lifetime calls). No exact
 execution approval, Coding, Verify, Review or final acceptance exists.
-[Live outcomes](acceptance/universal-environment-v1/planning-page-live-retest.json)
+[Live outcomes](maintenance/HISTORY_INDEX.md)
 retain both earlier failures and unchanged lifetime limits.
 
 New frozen N6 metadata sampling yielded no eligible targets; N7 selected one
@@ -4987,8 +5005,8 @@ lineage, preserve them across same-archive capture/restart, and index older
 text by hash when it exceeds the existing prompt target. Current exact pages,
 legacy behavior, schemas, four read rounds, Profile, lifetime limits and exact
 approvals remain unchanged. No repository-specific rule or business patch.
-[Diagnosis](acceptance/universal-environment-v1/read-history-diagnosis.json) and
-[checks](acceptance/universal-environment-v1/read-history-checks.json): 31 focused
+[Diagnosis](maintenance/HISTORY_INDEX.md) and
+[checks](maintenance/HISTORY_INDEX.md): 31 focused
 and full **1609 passed / 62 skipped / 0 failed**; compileall, diff and credential
 scans pass. Historical ARV2 74 files / 71+165 events, N5 first 36 and N7 first
 37 event IDs/hashes are preserved. N7 is now D for any maintenance retest.
@@ -5004,7 +5022,7 @@ with prompts 48,323–75,680 bytes under the unchanged 96,000-byte hard ceiling.
 Lifetime usage is 12 calls / 236,952 input / 5,775 output tokens; limits and
 source binding are unchanged. It still returns unresolved annotation semantics
 and evidence questions, **no Plan**. Its narrative's proposed reproduction is
-not an executed assertion. [Actual D result](acceptance/universal-environment-v1/read-history-live-retest.json)
+not an executed assertion. [Actual D result](maintenance/HISTORY_INDEX.md)
 is not native success or human approval. E3 remains the first unchecked task.
 
 
@@ -5015,7 +5033,7 @@ Source projection still targets 48 KB, model Profile/read rounds/lifetime
 budgets are unchanged, and any hard overflow still fails closed. This is a
 prompt allocation correction, not new execution authority or a native pass.
 
-Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](acceptance/universal-environment-v1/history-headroom-checks.json). No additional stage gate passed.
+Latest allocation verification: 32 focused cases; full **1610 passed / 62 skipped / 0 failed**. [Checks](maintenance/HISTORY_INDEX.md). No additional stage gate passed.
 
 
 Final isolated checkpoint `b9bf5de`: 1610 passed / 62 skipped / 0 failed;
@@ -5027,9 +5045,9 @@ output tokens), retains inline older pages where they fit, and reaches at most
 proposals fail strict `extra_forbidden`/`missing` envelope validation; bounded
 repairs end without a Plan. No schema coercion, added call budget, operator
 business fix, execution approval, native Coding, Verify or Review.
-[Final live record](acceptance/universal-environment-v1/history-headroom-live-retest.json),
-[deployment](acceptance/universal-environment-v1/history-headroom-deployment.json)
-and [audit](acceptance/universal-environment-v1/history-headroom-audit.json)
+[Final live record](maintenance/HISTORY_INDEX.md),
+[deployment](maintenance/HISTORY_INDEX.md)
+and [audit](maintenance/HISTORY_INDEX.md)
 retain all original files/events; credential scan has no findings. No jobs
 remain active. E0–E2 pass; E3/H Node is failed/unsupported, E4 partial, E5 native
 deliveries remain **0/3**, E6/Linux amd64 blocked/not_run. First specialty task
@@ -5043,7 +5061,7 @@ while `PlanCommand` required strict `BaselineExpectation`. The model supplied
 `expected`/`notes` phase labels; the domain rejected them, but diagnostics lost
 the nested field path and returned only `response`. This is a platform contract
 mismatch; earlier model/native failure counts and original evidence stay intact.
-[Exact failed-payload replay](acceptance/universal-environment-v1/baseline-schema-replay.json)
+[Exact failed-payload replay](maintenance/HISTORY_INDEX.md)
 uses no model, live database writes or operator business patch.
 
 Provider and API now share the existing strict expectation type. Normally the
@@ -5064,7 +5082,7 @@ API/Gateway/Publisher/older trial health pass. The original N7 goal/source/Profi
 and 32-call lifetime limit remain unchanged. The actual D retest makes two calls
 (20 lifetime), then fails `planning_outcome_missing` before any new plan is
 validated. The old Baseline schema error was not reached, so real-model
-improvement is not yet proven. [Actual record](acceptance/universal-environment-v1/baseline-schema-live-retest.json)
+improvement is not yet proven. [Actual record](maintenance/HISTORY_INDEX.md)
 retains the terminal failed Job separately from the preceding read request.
 
 New v2 requests may now submit an empty model outcome to the existing two
@@ -5089,7 +5107,7 @@ Snapshot and Task, native read/plan control captures the exact observed base and
 uses the frozen MiniMax Profile. Seven model calls exhaust four read rounds,
 then bounded repair ends with no Plan. All 40 first event IDs/hashes remain.
 First native deliveries are now **0/4**, separate from environment baselines
-0/15. [First N8 result](acceptance/universal-environment-v1/native-cohort8-results.json)
+0/15. [First N8 result](maintenance/HISTORY_INDEX.md)
 remains failed; subsequent maintenance makes N8 permanently D.
 
 N8 exposes a projection inefficiency: even 484–1584-byte manifests/contribution
@@ -5100,7 +5118,7 @@ matches its original hash. They remain untrusted evidence, never system rules
 or authorization. Large files, oversized collections, legacy skeletons and
 unknown paths still index normally; no hard/read/model/resource limit changes.
 42 focused contracts and full **1620 passed / 62 skipped / 0 failed**
-regression pass. [Real-payload clone](acceptance/universal-environment-v1/foundation-replay.json)
+regression pass. [Real-payload clone](maintenance/HISTORY_INDEX.md)
 retains all five sampled foundation files inline at 62,094 bytes (before: four
 indexed at 56,285 bytes), under the same 96,000-byte ceiling; zero real model
 calls/live writes, not native success. D retest follows.
@@ -5120,7 +5138,7 @@ only total reported completion usage is counted. Ambiguous completion POSTs
 are no longer replayed by transport; GET catalog retries remain bounded.
 Known paired/unpaired bindings recognize new adapter versions; old identities
 and historical evidence are unchanged and cannot silently approve new behavior.
-[Policy/source notes](acceptance/universal-environment-v1/minimax-adaptive-policy.json)
+[Policy/source notes](maintenance/HISTORY_INDEX.md)
 state this remains a hypothesis for native reliability. 87 focused provider,
 analysis-wire and NVIDIA contracts plus full **1624 passed / 62 skipped /
 0 failed** regression pass; native D test follows.
@@ -5150,13 +5168,13 @@ amd64 gates remain failed and blocked/not_run respectively.
 Final budget-accounting regression: 1630 passed / 62 skipped / 0 failed;
 one first-run display-text assertion was corrected and its full shard rerun.
 All historical files/events and N5/N7/N8 first events pass preservation audit.
-See [checks](acceptance/universal-environment-v1/budget-reservation-checks.json);
+See [checks](maintenance/HISTORY_INDEX.md);
 no original native outcome or stage gate is promoted.
 
 Budget-maintenance code `32fdeb5` is now deployed only to the isolated five roles;
 all four trial service health checks pass. Actual native-page read-only observation
 confirms unknown-call reserves; no additional model calls or approvals occurred.
-The exact [planning-only 16K proposal](acceptance/universal-environment-v1/planning-cap-proposal.md)
+The exact [planning-only 16K proposal](maintenance/HISTORY_INDEX.md)
 is saved but not applied. Only this resource-dependent retest awaits explicit user
 direction; the original Profile/defaults/task totals remain unchanged. This is an
 exception decision under UPEVE spec section 2, not stage continuation permission.
@@ -5236,7 +5254,7 @@ checks pass. Native improvement remains unverified before request 2.
 
 Request 2 makes three actual MiniMax calls, then fails context admission before
 its fourth call: legal individual pages combine into a 99,905-byte prompt in an
-actual-payload clone. [Initial failure](acceptance/universal-environment-v1/readonly-followup-2-context-failure.json)
+actual-payload clone. [Initial failure](maintenance/HISTORY_INDEX.md)
 is saved separately before any continuation. Lifetime is 26 calls / 649,359 input /
 34,852 output; unknown reserves remain. No Plan or native delivery exists.
 
@@ -5531,23 +5549,23 @@ gates remain open, with no Plan/execution/final acceptance.
 
 
 Approved planning-only low-effort trial (2026-10-31 local): user “允许” binds
-proposal `59f6c37f...ee7f1d`; [approval](acceptance/universal-environment-v1/deepseek-planning-low-approval.json)
+proposal `59f6c37f...ee7f1d`; [approval](maintenance/HISTORY_INDEX.md)
 changes only this task’s planning Profile, preserving high defaults/other stages
 and 16K/300s plus lifetime50/4M/200K limits. Five actual calls return complete
 outputs without truncation, known +163,409 input/+20,892 output. The draft is
-deferred, no Plan saved. [Diagnosis](acceptance/universal-environment-v1/deepseek-planning-low-read-diagnosis.json)
+deferred, no Plan saved. [Diagnosis](maintenance/HISTORY_INDEX.md)
 proves automatic environment closure requires absent `pnpm-lock.yaml` after
 read round4/4; repair_round0 also disproves the displayed “repair limit” cause.
 Exact original model read intent is unknown because raw output was not retained.
 Job success is not planning success; the original rejection stays immutable.
 
-[Final audit](acceptance/universal-environment-v1/deepseek-planning-low-audit.json)
+[Final audit](maintenance/HISTORY_INDEX.md)
 retains lifetime44/982,107 known input/83,716 output, the three unknown-call
 reserves1,350,000/40,960, and remaining six calls/1,667,893 input/75,324 output.
 Generic maintenance preloads statically selected declarations before model
 planning, protects them from context eviction, and names missing paths/read
 limits without claiming repairs exhausted. Existing model/read/repair caps and
-legacy routing stay intact. A separate [real OCI component](acceptance/universal-environment-v1/environment-preload-oci.json)
+legacy routing stay intact. A separate [real OCI component](maintenance/HISTORY_INDEX.md)
 reads/hash-verifies the missing67,635-byte lock under unchanged network-free
 non-root/read-only policy; this draft graph closes in memory only. Native task
 context/Plan is untouched, no further model request occurs. Full native
@@ -5560,16 +5578,16 @@ Maintenance source `9aade9356a239fe5d00c0efee63c0dbb3cd91889` now passes
 **1691 default /62 skipped /0 failed**, plus **27 focused contracts**, compileall,
 runtime integrity and diff checks. Four pre-fix failing contracts are retained;
 nine new cases verify generic declaration capture, limits/eviction and diagnostics.
-[Checks](acceptance/universal-environment-v1/environment-preload-checks.json),
-[isolated redeployment](acceptance/universal-environment-v1/environment-preload-deployment.json)
-and [final audit](acceptance/universal-environment-v1/environment-preload-final-audit.json)
+[Checks](maintenance/HISTORY_INDEX.md),
+[isolated redeployment](maintenance/HISTORY_INDEX.md)
+and [final audit](maintenance/HISTORY_INDEX.md)
 verify five role children/four health endpoints, all234 source hashes,74 historical
 files, native event/Job preservation, SQLite integrity/FKs and sanitized records.
 Only the isolated host roles restart; Publisher/formal services stay unchanged.
 Zero native requests/calls follow maintenance; real post-fix native effectiveness
 is **not_run**, and no existing gate is promoted.
 
-A [concrete one-request repeat preview](acceptance/universal-environment-v1/deepseek-environment-preload-retest-proposal.json)
+A [concrete one-request repeat preview](maintenance/HISTORY_INDEX.md)
 `43190800...008dab` uses the same low Profile and at most six remaining calls
 within unchanged50/4M/200K and16K/300s limits, retaining usage/reserves. It stops
 at Plan/material clarification/stale input/terminal failure/cap; execution still
@@ -5579,8 +5597,8 @@ inferred from unused allowance. Current specialty task remains UPEVE-E04.
 
 
 Approved post-preload native retest (2026-10-31 local): user “允许” authorizes
-proposal43190800...008dab, recorded by [exact approval](acceptance/universal-environment-v1/deepseek-environment-preload-retest-approval.json).
-[Actual journal](acceptance/universal-environment-v1/deepseek-environment-preload-native-retest.json)
+proposal43190800...008dab, recorded by [exact approval](maintenance/HISTORY_INDEX.md).
+[Actual journal](maintenance/HISTORY_INDEX.md)
 captures the lock before any model call (seq273<276), then five complete calls
 save actual PlanVersion `cb2aa72a-58a6-45e2-a26f-0daf9c3ba354`, hash
 `bc9791d8...ccf50d9`, retaining four exact CI commands. Native preload effectiveness
@@ -5591,7 +5609,7 @@ Plan existence only. Its original blocked receipt remains immutable.
 Generic Node adapter v3 resolves one exact unique declared workspace name and
 explicit run script with complete source/cwd provenance, rejecting uncertain
 selectors, ambiguous/invalid source, widened flags, dropped args, installers and
-cycles. [Checks](acceptance/universal-environment-v1/pnpm-filter-checks.json) at
+cycles. [Checks](maintenance/HISTORY_INDEX.md) at
 source `61cbbc0d68e212fce91d453ac260c9e287d46b0b` pass **1725 default /62 skipped
 /0 failed**, **105 focused**, compileall/runtime integrity/diff checks.34 new
 cases and the earlier23-failure/5-pass run are preserved. A [real pnpm10.11.0 OCI
@@ -5602,7 +5620,7 @@ An initial observer-hook receipt failure is retained separately. No fixture or
 static graph is counted as native delivery. Exact v2 wire/hash roundtrip passes,
 and v3 closes the same four commands without rewriting the Plan or old preflight.
 
-[Operator source review](acceptance/universal-environment-v1/deepseek-native-plan-source-review.json)
+[Operator source review](maintenance/HISTORY_INDEX.md)
 finds the saved web-only Plan incomplete: frozen transcript/hook emitters omit
 stable call IDs, so start-side generated IDs cannot identify out-of-order ends.
 The native planner must produce a child Plan establishing the upstream/consumer
@@ -5610,15 +5628,15 @@ contract and required test scope. This is not independent ReviewRun success;
 Codex supplies no external business patch and does not insert/rewrite a Plan.
 Current v3 API readiness is static admission only; execution approval is withheld.
 
-[Deployment](acceptance/universal-environment-v1/pnpm-filter-deployment.json) and
-[final audit](acceptance/universal-environment-v1/pnpm-filter-final-audit.json)
+[Deployment](maintenance/HISTORY_INDEX.md) and
+[final audit](maintenance/HISTORY_INDEX.md)
 verify five owned role children/four healthy endpoints, all234 source hashes,
 74 historical files, Plan/events/Jobs, SQLite integrity/FKs and sanitized data.
 Only isolated host roles restart; formal services/Publisher remain unchanged.
 Lifetime49 calls/1,147,323 input/107,360 output; the three old unknown-call
 reserves1,350,000/40,960 remain. Remaining one call/1,502,677 input/51,680 output.
 No native request/model call follows Plan; no execution/publication approval.
-A [concrete one-call native child-plan preview](acceptance/universal-environment-v1/deepseek-native-plan-revision-proposal.json)
+A [concrete one-call native child-plan preview](maintenance/HISTORY_INDEX.md)
 `c7904ce6...d3e385` awaits confirmation against the exact parent/source/Profile;
 it retains all four commands and existing caps and must stop if another call
 is needed. This is a new read-only request, not execution consent.
@@ -5628,8 +5646,8 @@ blocker stay unchanged. No stage gate is promoted; current task is UPEVE-E04.
 
 
 Approved one-call native child revision (2026-10-31 local): user “允许” binds
-[c7904ce6...d3e385](acceptance/universal-environment-v1/deepseek-native-plan-revision-proposal.json),
-recorded in [approval](acceptance/universal-environment-v1/deepseek-native-plan-revision-approval.json).
+[c7904ce6...d3e385](maintenance/HISTORY_INDEX.md),
+recorded in [approval](maintenance/HISTORY_INDEX.md).
 The first Job fails planning_context_limit before any model call. A controlled
 consistent-copy replay reproduces111,740 bytes; generic v2 graph indexing reduces
 the same request to93,821 bytes, preserving current Plan/request/rules and
@@ -5637,7 +5655,7 @@ retrievable exact graphs. The96KB guard, API facts, approved commands and all
 budgets remain. Sourcef156147 passes1729 default/62 skipped/0 failed and43 focused,
 with isolated redeployment. This controlled replay is not native success.
 
-[Existing native recovery](acceptance/universal-environment-v1/deepseek-native-plan-revision-resume.json)
+[Existing native recovery](maintenance/HISTORY_INDEX.md)
 continues the exact same frozen Job payload (hash9c830b5f...bda0a9a), without a
 fresh planning request or rewriting the failed Job; user also steers “继续”.
 One real93,414-byte prompt reaches DeepSeek HTTP200, known33,563 input/1,453
@@ -5650,20 +5668,20 @@ passes in the real path; full native planning still fails.
 Generic bounded read-parameter correction/recovery is now implemented without
 clamping, widening bounds, resetting read rounds or adding repair slots. It
 requires the exact trusted rejection/failed Job and unchanged source/model/parent;
-exhausted budgets and stale/pause state still stop it. [Checks](acceptance/universal-environment-v1/read-bounds-checks.json)
+exhausted budgets and stale/pause state still stop it. [Checks](maintenance/HISTORY_INDEX.md)
 at sourcef6aaa40 pass **1743 default/62 skipped/0 failed**, **76 focused**,
 compileall/runtime integrity/diff;14 new cases retain pre-fix8 failures/5 passes.
-A [copy-only recovery preflight](acceptance/universal-environment-v1/read-bounds-controlled-replay.json)
+A [copy-only recovery preflight](maintenance/HISTORY_INDEX.md)
 proves cap50 denial and a simulated64-call correction fits94,393 bytes; this
-is not actual budget consent or native recovery. [Isolated deployment](acceptance/universal-environment-v1/read-bounds-deployment.json)
+is not actual budget consent or native recovery. [Isolated deployment](maintenance/HISTORY_INDEX.md)
 verifies five role children/four healthy endpoints, unchanged original receipts,
 Plan, usage and Publisher/formal services. Zero real calls follow maintenance.
 
-[Final audit](acceptance/universal-environment-v1/native-plan-revision-final-audit.json)
+[Final audit](maintenance/HISTORY_INDEX.md)
 retains234 production hashes,74 historical files, Plan/events/Jobs, defaults,
 SQLite integrity/FKs and sanitized records. Lifetime50/1,180,886 known input/108,813
 output; three unknown-call holds1,350,000/40,960 retained. Remaining0 calls/
-1,469,114 input/50,227 output. A [call-only50→64 exact preview](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64-proposal.json)
+1,469,114 input/50,227 output. A [call-only50→64 exact preview](maintenance/HISTORY_INDEX.md)
 `3a3d1b86...98cee8` proposes at most14 more calls under unchanged4M/200K and
 16K/300s limits, continuing only the existing frozen read-only request with all
 four CI checks and original read/repair counters. Confirmation is pending;
@@ -5675,9 +5693,9 @@ Linux amd64 blocker remain unchanged. No gate is checked; task stays UPEVE-E04.
 
 
 Approved64-call native recovery and source delivery maintenance (2026-11-01 local):
-[Approval](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64-approval.json)
+[Approval](maintenance/HISTORY_INDEX.md)
 applies only the50→64 call cap, preserving4M/200K input/output, all known usage
-and three unknown-call holds. [Actual native receipt](acceptance/universal-environment-v1/deepseek-native-readonly-extension-64.json)
+and three unknown-call holds. [Actual native receipt](maintenance/HISTORY_INDEX.md)
 uses the one permitted recovery control and **one complete DeepSeek call**.
 The numeric correction succeeds: four valid source reads are parsed. The next
 Job475d4ded fails planning_context_limit **before a second model invocation**.
@@ -5686,28 +5704,28 @@ Lifetime51 calls/1,214,594 known input/110,121 output; unchanged unknown holds
 1,350,000 input/40,960 output. Remaining13 calls/1,435,406 input/48,919 output.
 This is a local context failure, not evidence of depleted provider credits.
 
-A [consistent-copy diagnosis](acceptance/universal-environment-v1/source-delivery-context-diagnosis.json)
+A [consistent-copy diagnosis](maintenance/HISTORY_INDEX.md)
 reproduces98,898 bytes even with four minimum256-byte pages. Generic v2 history
 projection now groups older assistant proposals in source-labelled immutable
 references, without generated summaries or dropped originals. Human instructions,
 current Plan, exact checks, rules and new tool pages retain their existing
-semantics; legacy/small histories stay unchanged. [Controlled fixed replay](acceptance/universal-environment-v1/source-delivery-context-replay.json)
+semantics; legacy/small histories stay unchanged. [Controlled fixed replay](maintenance/HISTORY_INDEX.md)
 fits94,443 bytes using the existing fair page delivery/continuations. All96KB,
 read/repair, output/time and security limits remain. Both replays use copies of
 the business DB **and artifacts**, no model, and omit only the terminal lease
 check in the copy; they are not native success or execution evidence.
 
-[Checks](acceptance/universal-environment-v1/source-delivery-checks.json) at
+[Checks](maintenance/HISTORY_INDEX.md) at
 sourcef4c0886 pass **1748 default/62 skipped/0 failed**, **48 focused**, and final
 five new cases after constant extraction. Pre-fix new cases retain3 failures/2
-passes. Compileall/runtime integrity/diff pass. [Deployment](acceptance/universal-environment-v1/source-delivery-deployment.json)
+passes. Compileall/runtime integrity/diff pass. [Deployment](maintenance/HISTORY_INDEX.md)
 restarts only the five idle owned host roles; children/four health endpoints,
 parent/hash history and budget pass. Publisher/formal services/OCI interfaces
-stay intact. Zero model calls follow maintenance. [Audit](acceptance/universal-environment-v1/source-delivery-final-audit.json)
+stay intact. Zero model calls follow maintenance. [Audit](maintenance/HISTORY_INDEX.md)
 records actual results and historical preservation; native effectiveness of this
 new projection is still not_run.
 
-[Supplemental concrete preview](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-proposal.json)
+[Supplemental concrete preview](maintenance/HISTORY_INDEX.md)
 `2f0d199d...024f6786` requests at most3 native recovery controls/13 calls within
 the **existing64/4M/200K limits**, only for the same frozen read-only request
 (payloadf40e09e6...cf7383, read round1/repair round1 retained). New root requests,
@@ -5721,8 +5739,8 @@ independent Review remain not_run. No stage gate is checked; UPEVE-E04 is curren
 
 
 Supplemental source-delivery native acceptance (2026-11-01): user “允许” is
-recorded against preview2f0d199d...024f6786 in [approval](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-approval.json).
-[Native journal](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery.json)
+recorded against preview2f0d199d...024f6786 in [approval](maintenance/HISTORY_INDEX.md).
+[Native journal](maintenance/HISTORY_INDEX.md)
 uses one recovery control, preserves exact payloadf40e09e6...cf7383 and read1/
 repair1, and runs **three actual model calls**. Real prompts94,456/94,344/94,308
 bytes all pass the96KB gate. Fair source deliveries record105,905→94,456 and
@@ -5734,7 +5752,7 @@ existing automatic correction is rejected read_context.max_lines<=160 at repair
 round2/2, read round2/4. Exact raw JSON/bad numeric value are not retained, and
 rejected reads never execute. There is no new child Plan. The grant stops on
 this non-context terminal failure; its two unused context-recovery controls do
-not permit another schema retry. [Audit](acceptance/universal-environment-v1/deepseek-native-source-delivery-recovery-audit.json)
+not permit another schema retry. [Audit](maintenance/HISTORY_INDEX.md)
 retains original source/parent/Profile/defaults/failed Jobs/events and all74
 historical files. Additional known usage97,416 input/10,140 output; lifetime
 **54 calls/1,312,010 input/120,261 output**. Three old unknown holds remain
@@ -5747,23 +5765,23 @@ JSON/envelope corrections. Earlier range guidance is refreshed only in the
 prompt view; frozen Job data/hashes stay intact. No clamping, schema relaxation,
 additional repair slots or legacy prompt change is introduced. The native JSON
 response was not retained; this guidance is not claimed to fix its generation.
-[Checks](acceptance/universal-environment-v1/active-read-limits-checks.json) pass
+[Checks](maintenance/HISTORY_INDEX.md) pass
 **1753 default/62 skipped/0 failed**, **42 focused**;5 new cases preserve4
 pre-fix failures/1 pass. The initial short-corrupt-JSON fixture normalized to an
 empty outcome; the corrected actual-json_invalid fixture and pre-fix run are
 both recorded. Compileall/runtime integrity/diff pass.
 
-[Copy-only replay](acceptance/universal-environment-v1/active-read-limits-controlled-replay.json)
+[Copy-only replay](maintenance/HISTORY_INDEX.md)
 observes current bounds in94,308/95,283-byte unissued prompts, preserves source
 and frozen payloads, and proves the exhausted request still refuses recovery
 despite ten available calls. It uses DB+artifact copies/no model, omitting only
-the already-terminal lease check in the copy. [Isolated deployment](acceptance/universal-environment-v1/active-read-limits-deployment.json)
+the already-terminal lease check in the copy. [Isolated deployment](maintenance/HISTORY_INDEX.md)
 verifies five owned children/four health endpoints; zero native calls follow
-maintenance. [Final audit](acceptance/universal-environment-v1/active-read-limits-final-audit.json)
+maintenance. [Final audit](maintenance/HISTORY_INDEX.md)
 records unchanged history/budget/security. The new guidance's native effect is
 not_run. Formal services, Publisher and OCI boundaries remain intact.
 
-[Concrete next preview](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-proposal.json)
+[Concrete next preview](maintenance/HISTORY_INDEX.md)
 `fb611b2e...fbd2caa7` requests at most2 **new** native read-only planning requests,
 using at most the existing10 calls and2 context-only recovery controls, with
 unchanged source/parent/Profile/four CI checks and64/4M/200K caps. Each new
@@ -5782,40 +5800,40 @@ no stage gate is promoted.
 
 
 Approved native request1 → real Plan2, test-write scope still blocked (2026-11-01):
-[Approval](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-approval.json)
-`7df9a1e0...74bf6a` binds previewfb611b2e...fbd2caa7. [Native receipt](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1.json)
+[Approval](maintenance/HISTORY_INDEX.md)
+`7df9a1e0...74bf6a` binds previewfb611b2e...fbd2caa7. [Native receipt](maintenance/HISTORY_INDEX.md)
 uses **one new request/five real model calls/two context-only recoveries**. All
 five responses pass the envelope/read validation, with no extra correction
 slots. Calls1–3 expose the current read contract, then delivery Jobe243c3bb fails
-before call4. Its [original failure](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-context-failure.json)
+before call4. Its [original failure](maintenance/HISTORY_INDEX.md)
 is preserved: even minimum pages total97,824 bytes. Generic v2 pressure indexing
 retains known/focused paths, gives the full inventory a queryable hash reference,
-and shares duplicate read hints. [Checks](acceptance/universal-environment-v1/inventory-headroom-checks.json)
+and shares duplicate read hints. [Checks](maintenance/HISTORY_INDEX.md)
 at7cfed8c pass1757 default/62 skipped/52 focused, with3 pre-fix failures/1 pass;
-[copy replay](acceptance/universal-environment-v1/inventory-headroom-context-replay.json)
-fits94,236 bytes without model/native DB writes. [Deployment](acceptance/universal-environment-v1/inventory-headroom-deployment.json)
+[copy replay](maintenance/HISTORY_INDEX.md)
+fits94,236 bytes without model/native DB writes. [Deployment](maintenance/HISTORY_INDEX.md)
 verifies five owned roles/four healthy endpoints.
 
-The first authorized [native recovery](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-recovery-1.json)
+The first authorized [native recovery](maintenance/HISTORY_INDEX.md)
 keeps the exact failed payload/read3/repair0 and admits an actual94,247-byte
 prompt. Its complete response requests the last read round; Jobec5944ca fails
-before call5, again preserved in a [separate receipt](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-context-failure-2.json).
+before call5, again preserved in a [separate receipt](maintenance/HISTORY_INDEX.md).
 A new copy diagnosis reproduces97,700 bytes even at minimum pages. Generic
 background paging at702bc55 moves bulky status/snapshot/older conversation and
 history detail behind source-bound references; identical complete human text
 keeps its first literal plus every occurrence's original position/event/hash.
 It preserves permissions, preparation/verification facts, current Plan/commands,
 current reads and repository instructions, with no generated decision summary.
-[Checks](acceptance/universal-environment-v1/background-pressure-checks.json)
+[Checks](maintenance/HISTORY_INDEX.md)
 pass1762 default/62 skipped/57 focused;5 new cases retain2 pre-fix failures/3
 passes and original fixture-pressure calibration failures. Originals roundtrip,
 canaries fail before writes, legacy/small contexts remain. Compileall/runtime
-integrity/diff pass. [Copy replay](acceptance/universal-environment-v1/background-pressure-context-replay.json)
+integrity/diff pass. [Copy replay](maintenance/HISTORY_INDEX.md)
 fits95,416 bytes with15,413 actual source-page bytes. This is controlled evidence,
-not native success. [Deployment](acceptance/universal-environment-v1/background-pressure-deployment.json)
+not native success. [Deployment](maintenance/HISTORY_INDEX.md)
 preserves idle isolated services, Publisher and formal data.
 
-The second/final authorized [context recovery](acceptance/universal-environment-v1/deepseek-native-active-read-limits-retest-1-recovery-2.json)
+The second/final authorized [context recovery](maintenance/HISTORY_INDEX.md)
 keeps read4/repair0 and the exact failed payload. Actual prompt95,764 bytes
 contains15,413 source bytes, with zero read rounds/requests remaining. The real
 model saves child Plan2 `9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57`, record hash
@@ -5823,13 +5841,13 @@ model saves child Plan2 `9a38b9e3-c0f5-42b0-9b34-2c04bdc20d57`, record hash
 content hash`af2f2a7100397bc3fc5443a7819b5cba063e81c22b3f060023a6c41b3532fb0d`.
 Producer and consumer write scope is included, and all four original command
 IDs/argv/cwd are unchanged. The grant stops at this saved Plan; its second fresh
-request is unused. [Batch audit](acceptance/universal-environment-v1/deepseek-native-plan2-batch-audit.json)
+request is unused. [Batch audit](maintenance/HISTORY_INDEX.md)
 verifies5 known calls,2 pre-model failures with no billed model calls, immutable
 payloads/counters, prior history/74 files and no execution approval. Lifetime
 **59 calls/1,474,279 input/147,591 output**; unchanged unknown holds1,350,000/
 40,960. Remaining **5 calls/1,175,721 input/11,449 output**, caps64/4M/200K.
 
-[Operator source review](acceptance/universal-environment-v1/deepseek-native-plan2-source-review.json)
+[Operator source review](maintenance/HISTORY_INDEX.md)
 is not an independent ReviewRun. Plan2 promises transcript-parser/hook-server
 extension regressions but lists no extension/test write path among its six
 paths. Frozen Runtime v2 would permit only the listed paths; no denied patch
@@ -5839,21 +5857,21 @@ an execution preview. No manual Plan edit/business patch is used.
 
 A generic model-facing PlanningPlan field description at8470ca1 now explains
 that all promised source/config/test files require exact writable paths. All
-existing numeric schema/runtime constraints are identical. [Checks](acceptance/universal-environment-v1/write-scope-guidance-checks.json)
+existing numeric schema/runtime constraints are identical. [Checks](maintenance/HISTORY_INDEX.md)
 pass1762 default/62 skipped/75 focused plus compileall/runtime integrity/diff;
 no tests were added for a description-only change, and the initial nonexistent
-focused-test filename invocation is recorded. [Isolated deployment](acceptance/universal-environment-v1/write-scope-guidance-deployment.json)
+focused-test filename invocation is recorded. [Isolated deployment](maintenance/HISTORY_INDEX.md)
 keeps both Plans/history/budget and five roles/four healthy endpoints. Zero
 native calls follow this new guidance; effectiveness is not_run.
 
-[New-parent concrete preview](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope-proposal.json)
+[New-parent concrete preview](maintenance/HISTORY_INDEX.md)
 `3bb12cfd...69f95f0e` proposes one new read-only native request/at most the existing
 five calls, retaining Plan2's six paths/four commands and adding
 extension/test/transcript-parser.test.ts and extension/test/hook-server.test.ts.
 The native planner must use the real extension tsx/node:test layout, not a
 manual Plan insertion. Confirmation is pending because the earlier grant ends
 at a saved child and pins the old parent. There is no cap/Profile change or
-execution/publication approval. [Final audit](acceptance/universal-environment-v1/native-plan2-final-audit.json)
+execution/publication approval. [Final audit](maintenance/HISTORY_INDEX.md)
 records current source/health/provenance. Native first deliveries0/4 and full
 environment baselines0/15 remain unchanged; Plan2 is only a planning substep.
 Historical Node still fails, Linux amd64 is blocked/not_run, and native Baseline/
@@ -5862,9 +5880,9 @@ phase gate is checked.
 
 ### 2026-11-01 Plan3 attempt: known truncation and exhausted output allowance
 
-[Exact approval](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope-approval.json)
+[Exact approval](maintenance/HISTORY_INDEX.md)
 `2b72ba5a...0e9ab544` consumes the prior new-parent preview. The
-[actual native request](acceptance/universal-environment-v1/deepseek-native-plan3-test-scope.json)
+[actual native request](maintenance/HISTORY_INDEX.md)
 runs on8470ca1: **three real calls**, two valid read responses, one real OCI
 source-capture Job, and no schema rejection. Native context now includes the
 existing extension transcript-parser and hook-entries tests. The final Job
@@ -5895,24 +5913,24 @@ failed rounds, usage and holds are retained. Budget exhaustion is checked
 before model access or reuse. No schema migration, write permission, model
 capacity, read/repair maximum or execution boundary changes.
 
-[Checks](acceptance/universal-environment-v1/read-reuse-checks.json) pass
+[Checks](maintenance/HISTORY_INDEX.md) pass
 **1771 default/62 skipped/0 failed**, **57 focused**, compileall, runtime
 integrity and diff checks. Two of nine new cases fail against the pre-fix
 planner; an initial fixture's unsaved-Profile setup is corrected without
-relaxing a guard. The [disposable-copy replay](acceptance/universal-environment-v1/read-reuse-controlled-replay.json)
+relaxing a guard. The [disposable-copy replay](maintenance/HISTORY_INDEX.md)
 first proves the real zero-output budget still blocks, then simulates250K
 output funding only in the copy. It measures a95,199-byte unissued prompt with
 four earlier pages and real source/lease checks, without any model call or
 native database/artifact mutation. That simulation is neither consent nor
-native success. [Deployment](acceptance/universal-environment-v1/read-reuse-deployment.json)
+native success. [Deployment](maintenance/HISTORY_INDEX.md)
 restarts only five idle owned roles; four endpoints are healthy, all236 tested
 source files match, and the native journal/Plans/budget stay unchanged.
 
-[Final audit](acceptance/universal-environment-v1/native-plan3-read-reuse-final-audit.json)
+[Final audit](maintenance/HISTORY_INDEX.md)
 verifies396 task events,74 historical files, SQLite integrity/foreign keys and
 503 sanitized evidence files without credential-pattern findings. Reuse's
 native effectiveness remains not_run because output is exhausted.
-[Output-only preview](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-proposal.json)
+[Output-only preview](maintenance/HISTORY_INDEX.md)
 `635ad29f...b8eb3ee1` awaits fresh exact resource consent: output200K→250K only,
 unchanged64 calls/4M input and all use/holds, one read-only child-Plan request,
 at most the remaining two calls. It binds the current source/parent/Profile
@@ -5924,10 +5942,10 @@ Review remain unchanged. UPEVE-E04 is current; no phase gate is checked.
 
 ### 2026-11-01 Approved output extension: native Plan3 saves in one call
 
-[Exact resource approval](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-approval.json)
+[Exact resource approval](maintenance/HISTORY_INDEX.md)
 `c14bb91a...64f25888` binds the output-only preview. The native budget API
 appends only output200K→250K; calls64/input4M, all known usage, and all three
-unknown-call holds are retained. [Actual native request](acceptance/universal-environment-v1/deepseek-native-plan3-output-only.json)
+unknown-call holds are retained. [Actual native request](maintenance/HISTORY_INDEX.md)
 uses **one real DeepSeek call**, with34,208 known input/4,211 output. The
 95,680-byte issued prompt passes the unchanged96KB bound and contains exactly
 the four previously admitted source-page objects, verified against old
@@ -5942,7 +5960,7 @@ parent Plan2 unchanged. It retains all six old paths and explicitly adds the
 existing transcript-parser test and new hook-server test, with corresponding
 start/end/failure assertions and the actual node:test layout. All four original
 command IDs/argv/cwd are identical; the extension test purpose is only clarified.
-The [operator scope review](acceptance/universal-environment-v1/deepseek-native-plan3-source-review.json)
+The [operator scope review](maintenance/HISTORY_INDEX.md)
 finds no remaining scope blocker. This is not an independent ReviewRun, actual
 Issue reproduction, prepared environment or verification pass.
 
@@ -5950,22 +5968,22 @@ The read-only grant stops at this saved Plan, without using its second call.
 Lifetime known use is **63 calls/1,606,663 input/163,251 output**; unchanged
 unknown holds1,350,000/40,960 across three calls; remaining **1 call/1,043,337
 input/45,789 output**. No prior failed/truncated request or old Plan is edited.
-[Audit](acceptance/universal-environment-v1/deepseek-native-plan3-output-only-audit.json)
+[Audit](maintenance/HISTORY_INDEX.md)
 verifies402 task events,74 historical files,236 unchanged tested source files,
 SQLite integrity/foreign keys and510 sanitized JSON records, with no credential
 findings. Source remainsc4cfabe, the1771-pass/62-skipped/57-focused deployment;
 no production source change warrants another suite run or service restart.
 All four local health endpoints pass.
 
-[Read-only upstream observation](acceptance/universal-environment-v1/deepseek-native-plan3-head-proxy-diagnosis.json)
+[Read-only upstream observation](maintenance/HISTORY_INDEX.md)
 confirms HTTP200 and main SHA equal to the frozen base. The first optional
 operator probe passed a hex string instead of decoded proxy-key bytes; its
-failure is preserved in [the initial observation](acceptance/universal-environment-v1/deepseek-native-plan3-head-observation.json).
+failure is preserved in [the initial observation](maintenance/HISTORY_INDEX.md).
 Correct decoding fixes the trusted probe without changing product code,
 Publisher configuration, credentials or permissions. It was not a network,
 GitHub-token or native workflow failure.
 
-[Exact execution preview](acceptance/universal-environment-v1/deepseek-native-plan3-execution-proposal.json)
+[Exact execution preview](maintenance/HISTORY_INDEX.md)
 `4275a961...f788aa0` binds Plan3, snapshot/analysis, context, model identities,
 eight write paths, four commands, policy/image, workspace scope, preflight
 `dc953973...6f7e3f6b1` and contract`c31fc440...e444e126`. Static admission is
@@ -5984,12 +6002,12 @@ Baseline/Coding/Verify/independent Review remain not_run; first deliveries0/4,
 full environment baselines0/15, historical Node failure, native Linux amd64
 blocker and all stage gates remain unchanged. UPEVE-E04 is still current.
 
-2026-11-02 continuation: [fresh execution readiness](acceptance/universal-environment-v1/deepseek-native-plan3-execution-readiness.json)
+2026-11-02 continuation: [fresh execution readiness](maintenance/HISTORY_INDEX.md)
 rechecks the same preview bindings and current upstream SHA through the product
 GitHubClient, verifies402 unchanged events/74 historical files/236 source files,
 five live host roles and four health endpoints, and scans512 sanitized JSON
 records. The first health pass finds the owned Publisher stopped with exit0,
-no OOM/error and unknown stop cause. [Recovery receipt](acceptance/universal-environment-v1/deepseek-native-plan3-publisher-recovery.json)
+no OOM/error and unknown stop cause. [Recovery receipt](maintenance/HISTORY_INDEX.md)
 records starting exactly the same container after proving zero queued/active
 Jobs. Its image/config/two narrow mounts/non-root/read-only/cap-drop/security
 options/restart policy remain identical. No formal service or credential is
@@ -5999,8 +6017,8 @@ pending; the preview hash and all budgets are unchanged.
 
 ### 2026-11-02 Approved Plan3 execution fails before Baseline; generic toolchain fixes
 
-The user's exact consent consumes preview4275a961; [approval](acceptance/universal-environment-v1/deepseek-native-plan3-execution-approval.json)
-hash30fd38ba binds that action. [Native result](acceptance/universal-environment-v1/deepseek-native-plan3-execution.json)
+The user's exact consent consumes preview4275a961; [approval](maintenance/HISTORY_INDEX.md)
+hash30fd38ba binds that action. [Native result](maintenance/HISTORY_INDEX.md)
 records authorizationcf32a58b, Attempt37f2f49d, successful Explore Jobd8847d2c
 and failed preparation Job087590be (`environment_preparation_failed`). The
 failure artifactd6065b2c and original signed specf58ecf1a remain immutable.
@@ -6019,7 +6037,7 @@ hashed receipt and typed redacted OS errors. Its enlarged trusted program uses
 bounded lossless transport to stay below Linux's per-argument limit. Initial
 transport and alias-layout component failures remain in the ledger. Corrected
 acquisition succeeds, but that unpinned component still fails the offline build.
-[Manager checks](acceptance/universal-environment-v1/pnpm-native-entrypoint-checks.json)
+[Manager checks](maintenance/HISTORY_INDEX.md)
 pass1789/62 skipped and107 focused; this is not full pnpm12 or native success.
 
 The frozen CI explicitly requests pnpm10 and Node22; old discovery ignored
@@ -6029,12 +6047,12 @@ Expressions, conflicting/missing/indirect declarations and ambiguous ranges
 reject; no workflow is executed. Legacy contracts and exact checks remain.
 Native replan routing fix71c8ced preserves the explicit task planning Profile
 and existing v2, rejects disabled v2, and does not inherit new global defaults.
-[Final checks](acceptance/universal-environment-v1/ci-toolchain-checks.json)
+[Final checks](maintenance/HISTORY_INDEX.md)
 pass **1810/62 skipped/0 failed**,122 CI-focused/40 replan-focused, desktop/mobile
 browser components, compileall/runtime integrity/JS syntax/diff. No DB schema
 change, budget increase, dependency addition or historical rewrite is needed.
 
-[Real controlled OCI result](acceptance/universal-environment-v1/ci-toolchain-controlled-environment.json)
+[Real controlled OCI result](maintenance/HISTORY_INDEX.md)
 prepares pnpm10.34.9/Node22.23.2, passes8 entrypoint probes and **4/4 original
 checks** (root47 tests, extension78, two typechecks), with unchanged source
 inventory. Original bounded log records remain outside Git, referenced by raw
@@ -6046,16 +6064,16 @@ after maintenance, **not this task's native Baseline/Coding/Review**, nor a new
 unseen success. Cumulative U environment baselines0/15 and native first
 deliveries0/4 stay unchanged.
 
-[Isolated deployment](acceptance/universal-environment-v1/ci-toolchain-deployment.json)
+[Isolated deployment](maintenance/HISTORY_INDEX.md)
 restarts only the five idle owned roles, verifies all238 tested source files,
 four healthy endpoints,416 unchanged events, all three Plans, failed jobs,
 budgets and task model binding; Publisher/config/image is unchanged. The new
 preflight2e98ea5a/contractcf3aeef1 reject old execution approval as
-`environment_stale`. [Consistent-copy API/prompt probe](acceptance/universal-environment-v1/ci-replan-controlled-copy-confirmed.json)
+`environment_stale`. [Consistent-copy API/prompt probe](maintenance/HISTORY_INDEX.md)
 retains complete Plan3 content7bcea4e1 in an unissued94,242-byte prompt under
 normal lease/state/budget checks, with no native writes or model calls.
 
-[New exact read-only preview](acceptance/universal-environment-v1/ci-native-child-replan-proposal.json)
+[New exact read-only preview](maintenance/HISTORY_INDEX.md)
 hash098f49b3bf155637ed701be76640ffb69c8a31e39ae321dded42e3892adc5488
 awaits consent for one native child-plan request and at most the **one remaining
 DeepSeek planning call**. Limits64/4M/250K, known use63/1,606,663/163,251 and
@@ -6067,7 +6085,7 @@ The previous consent cannot cover changed frozen inputs (AGENTS immutable
 provenance rule). E0–E2 pass; E3/H Node, E4, E5, native Linux amd64 and existing
 roadmap gates stay open. Current specialty task remains **UPEVE-E04**.
 
-[Maintenance audit](acceptance/universal-environment-v1/ci-toolchain-final-audit.json)
+[Maintenance audit](maintenance/HISTORY_INDEX.md)
 verifies238 source files,74 historical files,416 chained task events, three
 immutable Plans, approval/failure/Explore artifacts, all three terminal jobs,
 SQLite integrity/foreign keys and530 sanitized JSON records, with no credential
@@ -6078,11 +6096,11 @@ no product guard or test was weakened. New child-plan consent remains pending.
 
 ### 2026-11-02 Approved CI child revision saves native Plan4 in one call
 
-[Exact approval](acceptance/universal-environment-v1/ci-native-child-replan-approval.json)
+[Exact approval](maintenance/HISTORY_INDEX.md)
 99e2a399 consumes preview098f49b3. The normal authenticated `/workbench/replan`
 control stops the old failed workflow and creates one native v2 planning job,
 retaining explicit task DeepSeek low Profilef3687acf/hash5538d8a2 and parent
-Plan3. [Actual result](acceptance/universal-environment-v1/ci-native-child-replan.json)
+Plan3. [Actual result](maintenance/HISTORY_INDEX.md)
 records Jobbca827b9 succeeded: **one real call,32,756 input/3,488 output**, no
 source-read round, protocol repair, truncation, rejection or extra control.
 Actual94,242-byte prompt/checkpointadad9e1e/inputf2f21d67 hashes verify; the
@@ -6093,7 +6111,7 @@ Native child Plan4`057b1990-c3e0-4c18-9c46-6d7bd6bfb66b`, record hash
 `62c7952dfd2afa7de570c909719a0627c8ee589028a3931a78bef3851eda5148`,
 has the **same content hash7bcea4e1** as Plan3. Goal, eight writable paths,
 steps, tests, four exact command IDs/argv/cwd and risks are identical. New state
-b34c0150/binding31048814 replace no historical record. [Operator review](acceptance/universal-environment-v1/ci-native-plan4-source-review.json)
+b34c0150/binding31048814 replace no historical record. [Operator review](maintenance/HISTORY_INDEX.md)
 finds no scope gap; it is not independent Review or Issue reproduction.
 The CI-corrected environment differs only in `binding.plan_version_hash` and
 its resulting contract hash: Plan4 contractc2dab4d9/preflight2ffb1130. The prior
@@ -6109,9 +6127,9 @@ input/42,301 output: the **planning call cap is exhausted**, without establishin
 the provider account's balance. Coding and Review retain their existing separate
 limits; no execution consent, cap reset or hold release follows from this grant.
 
-[Fresh read-only upstream observation](acceptance/universal-environment-v1/ci-native-child-upstream-observation.json)
+[Fresh read-only upstream observation](maintenance/HISTORY_INDEX.md)
 uses the product GitHubClient/narrow proxy and matches frozen main3489e17c.
-[Audit](acceptance/universal-environment-v1/ci-native-child-replan-audit.json)
+[Audit](maintenance/HISTORY_INDEX.md)
 verifies423 chained events, all three older Plans plus Plan4, old preparation
 failure/authorization,74 historical files,238 unchanged source files, SQLite
 integrity/foreign keys,536 sanitized JSON records and four healthy endpoints.
@@ -6119,7 +6137,7 @@ No source change requires another suite or redeploy: existing1810-pass/62-skippe
 source and five owned roles remain current. No new native preparation/Coding
 job, new execution authorization, business patch, Review or external write exists.
 
-[New exact execution preview](acceptance/universal-environment-v1/ci-native-plan4-execution-proposal.json)
+[New exact execution preview](maintenance/HISTORY_INDEX.md)
 `fccdcdcc17e7f8d6915d49e54270d9f73d076a8c0faa3af534ada99856d0e713`
 awaits approval bound to Plan4, source/context/models, new environment hash,
 policy/image, eight paths/four commands and existing v2 limits24 calls/200K
@@ -6135,13 +6153,13 @@ amd64 blocker and all open gates remain. Current specialty task is UPEVE-E04.
 
 ### 2026-11-02 Approved Plan4: native environment passes; first Coding response blocked
 
-[Execution approval62d500be](acceptance/universal-environment-v1/ci-native-plan4-execution-approval.json)
-consumes previewfccdcdcc. [Actual native run](acceptance/universal-environment-v1/ci-native-plan4-execution.json)
+[Execution approval62d500be](maintenance/HISTORY_INDEX.md)
+consumes previewfccdcdcc. [Actual native run](maintenance/HISTORY_INDEX.md)
 records authorization25d560eb, root Job66210ff6, Attempt775ef4f2, successful
 Explore Jobdee3ad07 and preparation Jobceae3b4d. Original Plan3's preparation
 failure and all four immutable Plans remain. This time pnpm10.34.9/Node22.23.2
 really prepare under the original credential-free package proxy/offline policy.
-[Native Baseline/admission evidence](acceptance/universal-environment-v1/ci-native-plan4-baseline.json)
+[Native Baseline/admission evidence](maintenance/HISTORY_INDEX.md)
 verifies8 entrypoint probes and **4/4 original checks**:47 root tests,78 extension
 tests and two typechecks. Contractc2dab4d9, dependencyde878c7e, preparation
 receipt811852ce, entrypointe863138e and Baselinea889979e remain hash-addressed.
@@ -6161,7 +6179,7 @@ are disposed by normal terminal cleanup; this does not reverse the passed
 preparation/Baseline. Original native first deliveries0/4 and U baselines0/15
 are unchanged: this is a maintained D journey, not a new unseen success.
 
-[Failure investigation](acceptance/universal-environment-v1/ci-native-plan4-model-failure-diagnosis.json)
+[Failure investigation](maintenance/HISTORY_INDEX.md)
 finds the original v2 exception path did not retain provider response facts or
 reported usage. Exact upstream finish/choice/content/usage shape and balance are
 **unverified**; the error is not proof of quota exhaustion or output truncation.
@@ -6175,20 +6193,20 @@ facts to typed provider errors and a separate v2 failure receipt for reported,
 unreported, invalid or over-reservation usage. It never stores response/private
 reasoning text, settles the failed reservation, changes existing retry semantics
 or creates a new authorization. Old failures remain unchanged and cannot gain
-facts retroactively. [Checks](acceptance/universal-environment-v1/provider-failure-facts-checks.json)
+facts retroactively. [Checks](maintenance/HISTORY_INDEX.md)
 pass **1836/62 skipped/0 failed**,62 focused with26 new contract/API cases,
 compileall/runtime integrity/diff. No SQL migration or new dependency is needed.
-[Deployment](acceptance/universal-environment-v1/provider-failure-facts-deployment.json)
+[Deployment](maintenance/HISTORY_INDEX.md)
 restarts only five idle owned roles; all240 tested source files and four healthy
 endpoints verify,448 events/checkpoint/Plans/Baseline/budgets remain unchanged,
 Publisher is not rebuilt. New diagnostic effectiveness is **not_run**.
 
-[Exact read-only diagnostic preview](acceptance/universal-environment-v1/provider-readonly-diagnostic-proposal.json)
+[Exact read-only diagnostic preview](maintenance/HISTORY_INDEX.md)
 `2406f44ce23a8e2df698f891749ae0ef38571f5ec5476682e65cfdd5d3a1bad1`
 awaits human consent for one separately recorded controlled request: identical
 hash-verified original prompt/Decision schema and saved high Profile, max4096
 output, existing300s timeout, one gateway request/one upstream POST attempt,
-no retry. The [reviewable helper](acceptance/universal-environment-v1/provider_diagnostic_probe.py)
+no retry. The [reviewable helper](maintenance/HISTORY_INDEX.md)
 checks the exact approval/script/source/model/journal hashes before issuing it.
 It records only safe response facts/reported usage or validated outcome/tool
 names; none of those proposed tools execute. It cannot resume the blocked
@@ -6198,7 +6216,7 @@ approval and the prior preview's model-failure stop condition require fresh
 consent for this additional diagnostic action. E3/H Node, E4, E5, Linux amd64
 and all prior gates remain open; UPEVE-E04 remains current.
 
-[Final audit](acceptance/universal-environment-v1/ci-native-plan4-final-audit.json)
+[Final audit](maintenance/HISTORY_INDEX.md)
 verifies448 chained events,74 historical files,240 current source files, four
 Plans/two execution approvals, original failure and current Baseline/entrypoint/
 TaskSpec/prompt artifacts, SQLite integrity/foreign keys and544 sanitized JSON
@@ -6209,8 +6227,8 @@ that session or insert a decision into it. No stage gate or U success is added.
 
 ### 2026-11-02 One approved diagnostic isolates the structured transport boundary
 
-[Exact approval464990ff](acceptance/universal-environment-v1/provider-readonly-diagnostic-approval.json)
-consumes preview2406f44c. [Actual single controlled request](acceptance/universal-environment-v1/provider-readonly-diagnostic.json)
+[Exact approval464990ff](maintenance/HISTORY_INDEX.md)
+consumes preview2406f44c. [Actual single controlled request](maintenance/HISTORY_INDEX.md)
 uses the same frozen prompt/schema/high Profile with4096 output cap, no retry.
 It returns one **choice**, `finish=tool_calls`, verified3409 input/277 output,
 tool-call and reasoning presence, no final text, and `final_content_missing`.
@@ -6218,7 +6236,7 @@ The client fails to extract the exact registered structured-result function.
 One choice is not proof of one tool call. V1 facts did not retain tool-call count,
 function-name match or argument shape, so exact alternative remains **unverified**.
 This new response cannot reconstruct or supply usage for the older native failure.
-The account balance is not probed. [Observation audit](acceptance/universal-environment-v1/structured-transport-observation.json)
+The account balance is not probed. [Observation audit](maintenance/HISTORY_INDEX.md)
 verifies448 unchanged native events/checkpoint/budgets, no tool execution,
 no native recovery and no business patch. The separate probe is not a native turn,
 native recovery or delivery; old conservative reservations are not refunded.
@@ -6236,24 +6254,24 @@ strict tool-envelope enum (including count/name/argument failures); old v1 wire
 stays exact. This does **not** prove which old alternative occurred or that
 the instruction fixes the live model. Source tests do not substitute for it.
 
-[Checks](acceptance/universal-environment-v1/structured-transport-checks.json)
+[Checks](maintenance/HISTORY_INDEX.md)
 pass **1854/62 skipped/0 failed**,115 focused/18 new cases, compileall/runtime
 integrity/diff. Two initial focused runs fail because the fixture's gateway
 host/service/network are outside the existing allowlist; only the fixture is
 corrected. No endpoint guard is relaxed. DeepSeek/MiniMax/OpenAI tools and JSON
 schema modes retain exact user input/schema/Profile and output caps; rejected
 names/arrays and credential/reasoning canaries remain safe. No SQL migration
-or dependency is needed. [Deployment](acceptance/universal-environment-v1/structured-transport-deployment.json)
+or dependency is needed. [Deployment](maintenance/HISTORY_INDEX.md)
 restarts only five idle owned roles, verifies240 source files/four health
 endpoints and unchanged448 events, passed native Baseline, old expired checkpoint,
 budgets and first probe. Publisher is not rebuilt. No new call tests the hardening.
 
-[New exact read-only retest preview](acceptance/universal-environment-v1/structured-transport-retest-proposal.json)
+[New exact read-only retest preview](maintenance/HISTORY_INDEX.md)
 `351ca44ab8a29823b8455d99bf7aaa2798f79d34dbd52e34c6d05dad238738f1`
 awaits fresh consent for **one** controlled request after hardening, same original
 business prompt/schema/Profile,4096 output/300s/no retry, one gateway/upstream
 POST. It explicitly binds the new trusted instruction, source and
-[reviewable helper](acceptance/universal-environment-v1/structured_transport_probe.py).
+[reviewable helper](maintenance/HISTORY_INDEX.md).
 A valid Decision's proposed tools still never execute. A failure records v2 facts
 and stops. The expired native session cannot resume or accept this result; no
 planning/coding budget is extended/reset and no original failure is overwritten.
@@ -6261,7 +6279,7 @@ The preceding exact one-call grant is consumed, so AGENTS precise authorization
 requires this separate action's consent. Native first deliveries0/4, U full
 baselines0/15, H Node failure, E3–E6 and Linux gates remain. UPEVE-E04 is current.
 
-[Final transport audit](acceptance/universal-environment-v1/structured-transport-final-audit.json)
+[Final transport audit](maintenance/HISTORY_INDEX.md)
 verifies240 current source files,74 original historical files,448 chained native
 records, four Plans/two execution approvals, the single controlled probe's
 consent/result hashes, old expired checkpoint and all budgets, SQLite integrity/
@@ -6272,10 +6290,10 @@ retest351ca44a consent is pending. No gate or native/U denominator changes.
 
 ### 2026-11-03 Plan8 real execution fails after passing native environment checks
 
-[Exact consenta1006288](acceptance/universal-environment-v1/ci-native-plan8-execution-approval.json)
-consumes preview91ab427e once. [New Baseline](acceptance/universal-environment-v1/ci-native-plan8-baseline.json)
+[Exact consenta1006288](maintenance/HISTORY_INDEX.md)
+consumes preview91ab427e once. [New Baseline](maintenance/HISTORY_INDEX.md)
 passes8 actual entrypoint probes/all4 unchanged approved checks and source inventory.
-[Terminal run](acceptance/universal-environment-v1/ci-native-plan8-execution.json)
+[Terminal run](maintenance/HISTORY_INDEX.md)
 records22 real DeepSeek starts,21 valid Decisions, one rejected six-call batch
 (zero executed),52 successful reads (31 Docker source/21 artifact), zero patches
 and `agent_budget_exceeded`. Verify and independent Review remain not_run.
@@ -6304,14 +6322,14 @@ bounded UTF-8 prefixes carry explicit partial/continuation fields. Original
 receipts, old prompts, commands/paths,32000 cap and accumulated budgets remain.
 Legacy structured wire stays exact; no SQL migration or dependency is added.
 
-[Checks](acceptance/universal-environment-v1/native-feedback-checks.json) pass
+[Checks](maintenance/HISTORY_INDEX.md) pass
 **1918 default/62 skipped/0 failed**,75 focused,7 new cases (first4 reproduce),
 **13 real OCI plus2 pure boundary** checks; compileall/runtime integrity/diff/canary scans pass.
-[Unissued replay](acceptance/universal-environment-v1/native-feedback-replay.json)
+[Unissued replay](maintenance/HISTORY_INDEX.md)
 retains complete task22/22 and all prior batch receipts, max30901. It makes zero
 model/tool calls and does not establish native success. Actual old/new images
 verify identical11 API schemas and trusted instruction; only projection digest
-changes. [Deployment](acceptance/universal-environment-v1/native-feedback-deployment.json)
+changes. [Deployment](maintenance/HISTORY_INDEX.md)
 verifies242 files and preserves45 tables/1411 events, old checkpoint/usage and all
 security/resource settings. Initial4-second page timeout and an approval-service
 usage interruption reconcile safely, with page200/four health endpoints and no
@@ -6319,9 +6337,9 @@ replayed deployment/task action. Credential Gateway is not cold-restarted.
 
 Marked mechanical Plan9 is saved with identical business content/8 paths/4 checks,
 no model call, execution or new approval. Four append-only records bring1415 events,
-9 Plans/6 authorizations. [Exact preview](acceptance/universal-environment-v1/ci-native-plan9-execution-proposal.json)
+9 Plans/6 authorizations. [Exact preview](maintenance/HISTORY_INDEX.md)
 **e8bd3b98185cc7bc0fcd64d81b0ab8113076f15e5fe7dc173275b39b8221664e** binds current source/protocol/roles/environment/models and
-[one-execute helper](acceptance/universal-environment-v1/native_plan9_execute.py).
+[one-execute helper](maintenance/HISTORY_INDEX.md).
 Fresh human consent is required for its new bounded24-call/200K-input/32K-output/
 1800s authorization, unchanged Review bounds and at most2 code repairs. No old
 failure, used/reserved budget or planning64 cap/three unknown holds is reset.
@@ -6330,7 +6348,7 @@ and publication require their own confirmation. This is D maintenance, not U
 or zero-maintenance evidence. Native0/4, U0/15, H Node failure, E3–E6 and Linux
 amd64 remain open; **UPEVE-E04** stays current. No formal or third-party writes.
 
-[Plan9 final audit](acceptance/universal-environment-v1/ci-native-plan9-final-audit.json)
+[Plan9 final audit](maintenance/HISTORY_INDEX.md)
 verifies1415 events/1427 artifact hashes,242 source files/74 historical files,
 old usage/approvals and42 tables unchanged after the child. Logs/JSON credential
 scans pass; four endpoints remain healthy and active jobs/new policy calls are0.
@@ -6340,15 +6358,15 @@ boundaries; counts are separated and the intermediate overclassification correct
 
 ### 2026-11-03 Exact Plan9 run: environment network failure before new model admission
 
-[Human consentd3ef025e](acceptance/universal-environment-v1/ci-native-plan9-execution-approval.json)
+[Human consentd3ef025e](maintenance/HISTORY_INDEX.md)
 consumes previewe8bd3b98 via one execute. Two earlier helper failures occur before
 submission at the GitHub read guard. Rootf619363b's initial GitHubAPIError is
-preserved; the [same Job retry](acceptance/universal-environment-v1/ci-native-plan9-start-retry1.json)
+preserved; the [same Job retry](maintenance/HISTORY_INDEX.md)
 succeeds at2/3 under existing authorization, without a new execute or cap. The
 Worker read-only diagnostic's two automatic-review timeouts execute nothing;
 existing approved API recovery/status provide a safe alternative.
 
-[Actual terminal run](acceptance/universal-environment-v1/ci-native-plan9-execution.json)
+[Actual terminal run](maintenance/HISTORY_INDEX.md)
 records new Attemptafdf1bfb/real Explore pass, then preparation5eee31d5 fails
 **node_resolve/network_unavailable/exit1**,1/1 attempts. No new native entrypoints,
 Baseline, v2 session, Coding, Verify or Review; model calls/writes/code repairs0.
@@ -6358,9 +6376,9 @@ planning64/three unknown holds remain. No Job cap or old failure is overwritten.
 Typed recovery supports node_tools and cannot accept a fabricated node_resolve
 proof. Only the actual resource-dependent gate is blocked.
 
-[Restricted proxy probe](acceptance/universal-environment-v1/ci-native-plan9-package-proxy-probe.json)
+[Restricted proxy probe](maintenance/HISTORY_INDEX.md)
 passes two npm metadata calls and outside-allowlist rejection, with no credentials
-or repository. The [independent original full recipe](acceptance/universal-environment-v1/ci-native-plan9-controlled-environment.json)
+or repository. The [independent original full recipe](maintenance/HISTORY_INDEX.md)
 still reproduces node_resolve/network_unavailable and preserves45 tables/1430
 native events. It is D component diagnosis, not native success. A separate observer
 fails its own generated-script indentation before target execution; that failure
@@ -6369,7 +6387,7 @@ Source35be850/default1918-pass/62-skipped/75 focused/13 real OCI+2 pure boundari
 are unchanged. Native0/4, U0/15, H Node, E3–E6/Linux remain open; **UPEVE-E04** is
 current. No source patch, publication, third-party or formal-data write occurs.
 
-[Corrected controlled observation](acceptance/universal-environment-v1/ci-native-plan9-controlled-network-observation-corrected.json)
+[Corrected controlled observation](maintenance/HISTORY_INDEX.md)
 measures actual pnpm10.34.9/ERR_PNPM_FETCH_502 with matching proxies and30 proxy
 SSLZeroReturnError/4 TimeoutError/1 RemoteDisconnected. Static proxy call chain
 locates TLS closures in its fixed public DNS fetch, not the opaque package tunnel.
@@ -6387,18 +6405,18 @@ entries are removed before refresh; denied/failed/stale results never become a
 fallback. TLS, resolver provider, package hashes, proxy allowlist, Verify network,
 scripts/image/resource limits stay unchanged. No SQL/API/UI shape migration.
 
-[Checks](acceptance/universal-environment-v1/package-dns-cache-checks.json) pass
+[Checks](maintenance/HISTORY_INDEX.md) pass
 **1931 default/62 skipped/0 failed**,35 focused/1 opt-in skipped,13 new cases;
 compileall/proxy compilation/runtime integrity/diff/canary scans pass. Actual
 Python proxy boundary1 passes (empty hash lock, not complete Python coverage).
-[Original-recipe Node controlled OCI](acceptance/universal-environment-v1/ci-native-plan9-cached-proxy-controlled-environment.json)
+[Original-recipe Node controlled OCI](maintenance/HISTORY_INDEX.md)
 passes8 entrypoints/all4 original checks with identical source inventories. This
 is D evidence, not native recovery or success. Original failure/caps and45 native
 tables/1430 events stay intact. Cold/expired DNS can still fail safely; this does
 not prove the sole earlier cause or general network reliability. Diagnostic
 source hashes/revisions are saved without raw package logs or real credentials.
 
-[Deployment](acceptance/universal-environment-v1/package-dns-cache-deployment.json)
+[Deployment](maintenance/HISTORY_INDEX.md)
 verifies242 source files and actual worker proxy script; only five idle isolated
 roles are rebuilt,45 tables/1430 events and full safety/resource configuration
 preserved, page200/four health endpoints. Gateway is not cold-restarted. No
@@ -6407,13 +6425,13 @@ native failed Job is reset or restored by a component result.
 Marked mechanical Plan10 retains the same entire business content/8 paths/4
 checks, appends4 records to1434 and leaves7 execution authorizations. New source
 and prior preparation1/1 consumption require fresh precise consent to
-[preview](acceptance/universal-environment-v1/ci-native-plan10-execution-proposal.json)
+[preview](maintenance/HISTORY_INDEX.md)
 **c7b8ab6d6085e8c52cef61dd8bffd48b2010571b4381baaaf9115640b1501e00** and the frozen one-execute helper. New proposed bounds:
 24 model calls/200K input/32K output/1800s,3 startup attempts,1 native preparation,
 unchanged Review limits/at most2 code repairs. Model transport/Profile stays the
 same; all old failures, P8 charges, planning64 cap/3 holds remain. No consent or
 new native readiness is inferred. Baseline/Coding/Verify/Review and model effects
-remain not_run. [Final audit](acceptance/universal-environment-v1/ci-native-plan10-final-audit.json)
+remain not_run. [Final audit](maintenance/HISTORY_INDEX.md)
 verifies1434 events/1431 artifacts,242 files/74 historical files,42 unchanged tables
 after child append, old counts/usage and credential scans. Native0/4, U0/15,
 H Node/E3–E6/Linux amd64 remain open; **UPEVE-E04** is current. No third-party or
@@ -6422,8 +6440,8 @@ formal-data writes, Push, PR or publication.
 
 ### 2026-11-03 Plan10 native Baseline passes; bounded protocol failure retained; v4 deployed
 
-The exact [Plan10 grant](acceptance/universal-environment-v1/ci-native-plan10-execution-approval.json)
-is consumed once. [Native execution](acceptance/universal-environment-v1/ci-native-plan10-execution.json)
+The exact [Plan10 grant](maintenance/HISTORY_INDEX.md)
+is consumed once. [Native execution](maintenance/HISTORY_INDEX.md)
 root passes1/3, preparation1/1,8 entrypoints/all4 original Baseline commands pass
 with fresh exact bindings and unchanged inventories. Then3 real DeepSeek replies
 request5 calls each: every whole batch is rejected under the unchanged4-call
@@ -6441,21 +6459,21 @@ Malformed receipts fail closed; stored failures stay immutable. Four-call whole-
 batch rejection,2 repair budget,11 API functions/trusted instruction, model,
 legacy structured wire, Sandbox/Verify/independent Review/approval boundaries
 stay intact. New transport v4 changes the frozen digest; no SQL/API/UI migration.
-[Checks](acceptance/universal-environment-v1/native-rejection-feedback-checks.json)
+[Checks](maintenance/HISTORY_INDEX.md)
 pass1940 default/62 skipped/0 failed and84 focused/9 new cases; compileall/runtime
 integrity/diff/credential scans pass. Three-prompt offline replay max20999/32000
-bytes sends0 requests and is not live effect. [Deployment](acceptance/universal-environment-v1/native-rejection-feedback-deployment.json)
+bytes sends0 requests and is not live effect. [Deployment](maintenance/HISTORY_INDEX.md)
 verifies242 files/five isolated roles,45 tables/1469 events unchanged, all safety/
 resource settings preserved, page200/four healthy endpoints, Gateway not restarted.
 
 Marked identical-content Plan11 saves8 paths/4 original checks, appending4 records
-to1473,11 Plans/8 prior approvals. New exact [preview](acceptance/universal-environment-v1/ci-native-plan11-execution-proposal.json)
+to1473,11 Plans/8 prior approvals. New exact [preview](maintenance/HISTORY_INDEX.md)
 **6af1cc92add7cb3c49eafbd9292be56e9cc2ca99e08904b2d9fae7c58dfb8c92** is unapproved/unrun. Fresh human consent is required
 for changed frozen source/transport after Plan10 protocol2/2 consumed; same DeepSeek
 Profile/24 calls/200K input/32K output/1800s, startup3/preparation1,2 code repairs and
 original independent Review bounds. New Plan11 environment remains not_prepared;
 visible Baseline is explicitly old Plan10 provenance, not reused readiness.
-[Final audit](acceptance/universal-environment-v1/ci-native-plan11-final-audit.json)
+[Final audit](maintenance/HISTORY_INDEX.md)
 verifies1473 events/1446 artifacts/74 history files/242 sources,42 unchanged tables
 after child append, integrity/FK/chains/credential scan, all prior usage/failures.
 Native starts64 differ from planning lifetime64. Native0/4, U0/15, H Node failure,
@@ -6465,7 +6483,7 @@ checked, external business patch, formal-data change, third-party write, Push or
 
 ### 2026-11-03 Plan11 exact consent consumed; real Baseline passed; native Coding running
 
-Human explicitly approved preview6af1cc92. [Approval](acceptance/universal-environment-v1/ci-native-plan11-execution-approval.json)
+Human explicitly approved preview6af1cc92. [Approval](maintenance/HISTORY_INDEX.md)
 binds unchanged DeepSeek/eight paths/four commands and24 calls/200K input/32K
 output/1800s; single execute queues root a742ed6b, succeeds1/3. [Fresh native
 Baseline](acceptance/universal-environment-v1/ci-native-plan11-baseline.json) verifies
@@ -6478,7 +6496,7 @@ third-party/formal-data write, Push or PR is authorized.
 
 ### 2026-11-03 Plan11 terminal budget failure; actual v4 feedback pass; no patch
 
-[Actual Plan11 result](acceptance/universal-environment-v1/ci-native-plan11-execution.json):
+[Actual Plan11 result](maintenance/HISTORY_INDEX.md):
 14 real DeepSeek starts/12 valid Decisions/43 Docker source observations(39 file
 reads/4 path queries),zero patches/checks/code repairs. Native preparation1/1,
 8 entrypoints/all4 original Baseline commands pass under fresh Plan11 bindings.
@@ -6487,7 +6505,7 @@ prompt with correct remaining1 then0, followed by valid turns and stale-feedback
 clearing. Complete task facts remain in all14 prompts. This passes actual v4
 feedback delivery, not native Issue implementation or an inferred causal model fix.
 
-[Read evidence](acceptance/universal-environment-v1/ci-native-plan11-read-observation.json)
+[Read evidence](maintenance/HISTORY_INDEX.md)
 shows6 paths, all offsets0,33 repeated starts among39 reads. No search_code,
 read_artifact or inspect_failure use; four final read receipts have no later model
 prompt. Charged171256 input/12756 output stays separate from reported128816/5408;
@@ -6499,7 +6517,7 @@ Post-change Verify/Issue regression/independent Review/final acceptance are not_
 or unavailable. Further paid execution needs a concrete frozen strategy/preview and
 fresh precise human consent, not inferred permission from unused call count.
 
-[Terminal audit](acceptance/universal-environment-v1/ci-native-plan11-terminal-audit.json)
+[Terminal audit](maintenance/HISTORY_INDEX.md)
 verifies1782 events(all1473 old hashes),1523 artifacts(all1446 old registrations),
 74 history files/242 source files, all old rows unchanged,9 authorizations/11 Plans,
 45-table comparison, integrity/FK/audit/event chains, page200/four healthy endpoints,
@@ -6541,7 +6559,7 @@ Plan11 的账目与失败保持原样：累计保留输入171256/输出12756，�
 上一条聊天把修复前日志尾部误读为当前结果。此前已提交 v4 的 **1940通过/62跳过**
 仅适用于该已验证版本，不是本地 v5 候选的全量成绩。
 
-恢复时先核对 [暂停检查点](acceptance/universal-environment-v1/read-progress-paused-checkpoint.json)
+恢复时先核对 [暂停检查点](maintenance/HISTORY_INDEX.md)
 中的文件哈希，补充源码变化、过期哈希、UTF-8/零内联字节、伪造提醒及旧协议兼容边界，
 完成定向/全量检查、真实 OCI 和隔离部署后，再冻结新的精确预览并取得新执行批准。
 不得直接恢复 Plan11 的终态检查点或原样追加模型重跑。
@@ -6556,16 +6574,16 @@ Plan14失败证据保留。用户另行精确授权的Plan15已执行一次：Ba
 15次真实模型请求后因deepseek_completion_truncated安全停止；Patch/修改后Verify/Review均0或not_run。
 HR4/5未通过，本轮授权已消费，没有付费重试授权**。
 原路线图Phase 5/P5-G06与UPEVE-E04及全部跨平台/真实交付门禁保持原状态。
-设计依据为 [专项文档](agent-harness-reset-v1/README.md)。
+设计依据为 [专项文档](maintenance/HISTORY_INDEX.md)。
 
 - [x] **HR0-G00** 可恢复轨迹、39次读取关联、代码链路与根因置信度已完成。
   2026-11-04用户明确接受两次原始调用信息`unavailable`，解除该历史缺口的Phase0阻塞。
-  [诊断](agent-harness-reset-v1/diagnosis.md) 和
-  [衍生索引](agent-harness-reset-v1/phase0-evidence.json) 已记录可恢复部分；
+  [诊断](maintenance/HISTORY_INDEX.md) 和
+  [衍生索引](maintenance/HISTORY_INDEX.md) 已记录可恢复部分；
   历史响应仍缺失，不冒充恢复；新准入结论见诊断页首及ADR-008。
 - [x] **HR1-G01** Gate0后先复现并覆盖重复/分页/hash变化、无进展纠偏与阻塞、
   调用身份、超量纯读/混合写批次、Checkpoint恢复和Verify hash。
-  [Phase1报告](agent-harness-reset-v1/phase1-report.json)：原始调用留存10项旧实现失败；
+  [Phase1报告](maintenance/HISTORY_INDEX.md)：原始调用留存10项旧实现失败；
   进度用例修正后5失败/1通过，证明旧行为；响应留存/迁移/现有原生回归107通过。
   未来安全工具信封在解析前独立提交，接受/拒绝/回执均可溯源，未启用自动分批。
   Progress的预期失败由Phase2处理；部署与真实平台验收仍待集成阶段完成，不充作通过。
@@ -6574,7 +6592,7 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   修复后r3专项227通过/8跳过、工作流63通过，r4 Worker增量92通过，门禁恢复。
   终态与Ledger同事务阻塞，保留原因、原始响应及事件hash，回滚/重放/旧会话兼容均覆盖。
   SQLite BUSY仅延后本地协调tick，未知DB错误和模型/工具效果执行不隐式重试。
-  [Phase2报告](agent-harness-reset-v1/phase2-report.json)：30项边界与30项补充检查通过，
+  [Phase2报告](maintenance/HISTORY_INDEX.md)：30项边界与30项补充检查通过，
   原生Worker独立进程重启用例通过；首次全量1963通过/9失败/62跳过，9项均为迁移
   夹具/版本预期，修正后定向9通过。原始全量失败保留，部署/真实OCI仍待集成验证。
   发布前重新开启：不同max_bytes返回完全相同字节时，原指纹仍把它算作新进展。
@@ -6582,47 +6600,47 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   原r1全量1982通过/62跳过及248文件镜像记录保留；r2仅改变progress.py，91项受影响
   原生/恢复/验证/独立Review回归通过，门禁恢复。未把r1完整成绩冒充r2全量重跑。
 - [x] **HR3-G03** 2026-11-04策略：整批拒绝与有限纠偏；不放宽4-call，不部分执行混合写。
-  [Phase3报告](agent-harness-reset-v1/phase3-report.json)：36项安全/纠偏/响应留存检查通过。
+  [Phase3报告](maintenance/HISTORY_INDEX.md)：36项安全/纠偏/响应留存检查通过。
   五调用含只读、Patch、Verify、终止或未知工具均先留证再零执行拒绝；两次修复上限保留，
   四调用合法纠正回合保留原始ID/顺序/一调用一结果，不启用自动分批。
 - [x] **HR3-RB** 2026-11-05用户授权的只读调度契约修复，离线及当前平台OCI验收通过。
-  [事实校验](agent-harness-reset-v1/read-batch-scheduler-v1/facts-and-baseline.json)确认Plan12三份真实
+  [事实校验](maintenance/HISTORY_INDEX.md)确认Plan12三份真实
   原始信封为6/5/5个read_file，16个原始ID/参数/顺序可核验；未重新调用Provider。
   仅5–8个全部合法read_file可进入整批准入与OCI预检，再持久化为最多4个调用的子批次。
   原Decision/Checkpoint仍最多4-call；混合写、未知/终止工具、越权路径、无效参数及>8整批预拒绝。
   原批次不可变Artifact、子批次Checkpoint/幂等标识/回执、原序聚合与原始Provider响应贯通；
   子批次之间不请求Decision。读取预算整批预留不退还；失败保留实际回执，已启动未知与未执行分列。
   精确复用、分页、源码变化、可见字节/next_offset、无进展与Coding未完成均有回归。
-  [保存信封离线重放](agent-harness-reset-v1/read-batch-scheduler-v1/offline-replay.json)：4+2、4+1、4+1；
+  [保存信封离线重放](maintenance/HISTORY_INDEX.md)：4+2、4+1、4+1；
   模型请求0、历史审批未复用。迁移0044仅添加Journal约束，旧数据/Checkpoint读取及进程崩溃恢复通过。
   最终源码9601fd8b的全量回归2015通过/69跳过，真实macOS arm64/OrbStack OCI16通过/0跳过；
-  [验收报告](agent-harness-reset-v1/read-batch-scheduler-v1/validation-report.json)保留初次失败、修复与最终JUnit。
+  [验收报告](maintenance/HISTORY_INDEX.md)保留初次失败、修复与最终JUnit。
   原五角色250文件逐一校验、四端健康，44张业务表Hash不变、仅追加0044；
-  [部署后审计](agent-harness-reset-v1/read-batch-scheduler-v1/postdeploy-audit.json)：授权10、模型启动86、
+  [部署后审计](maintenance/HISTORY_INDEX.md)：授权10、模型启动86、
   Plan12/1942条任务事件/1581个Artifact及旧预算/三个未知占用均不变，无活动Job。
-  [独立预览](agent-harness-reset-v1/read-batch-scheduler-v1/real-model-acceptance-preview.md)仅为文件，
+  [独立预览](maintenance/HISTORY_INDEX.md)仅为文件，
   冻结同一目标/源码/模型/8路径/4命令/原上限；新协议Hash使旧绑定过期。
   未创建Plan13、审批或付费Job，未Push/PR；需人类先授权同内容新绑定，再核对实际ID后的精确执行确认。
   原HR4/5与原生Linux amd64平台门禁仍未通过；不扩大Runtime或UPEVE范围。
 - [x] **HR4-P13-PREP** 用户另行明确仅授权创建新Plan/必要绑定和精确预览，不授权模型或执行。
   分支refactor/agent-runtime-v2、HEADe5cc92a；250个生产文件Hash仍9601fd8b，五角色镜像/源码/
   安全配置、原预览a7b2f501及计划内容/8路径/4命令/模型/预算完全一致。
-  [上游重新校验](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-preparation/upstream-check.json)
+  [上游重新校验](maintenance/HISTORY_INDEX.md)
   确认#107仍open，正文Hash5512d263、main与基线仍3489e17c。
   已在原任务追加同内容Plan13 `b3c5acdd-bb80-461f-8dd9-5af5ca687280`；
   Record Hash1831436b、Content Hash仍7bcea4e1、Binding Hashbcbf07e4，原生Transport Hashbc1d221e。
   必要的user_replan只追加新状态，Plan11/12终态和旧行全保留；审批10、模型启动86、
   Artifact1581、活动Job0不变，任务事件1942→1946；仅追加Plan/状态版本及4条事件。
-  [只读审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-preparation/preview-integrity-audit.json)
+  [只读审计](maintenance/HISTORY_INDEX.md)
   核对全部旧行、终态/Usage、Planning64次用量及三个未知占用；旧事件链与1581个Artifact再次验证。
-  [精确执行预览](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-preparation/execution-preview.md)
+  [精确执行预览](maintenance/HISTORY_INDEX.md)
   Hash `c628ea479f2647a18c3188575ed3bf7fbc17d611a5c58a7c55a43519fdfdf42c`，
   包含实际Plan/Binding、模型、环境契约、静态Preflight、Revision、原上限和未发送的执行请求。
   准备完成时Plan13尚未批准、未分配新预算、未创建新Job/Attempt、未运行模型/Coding/Verify/Review；
   未修改生产源码、未Push/PR/评论。准备阶段不满足HR4/5真实执行门禁，当时停止于等待新的精确执行确认。
 - [ ] **HR4-P13-RUN** 用户明确批准精确预览c628ea47的一次额外有界真实执行及独立Review；
-  [授权](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/approval.json)和
-  [单次派发回执](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/dispatch-receipt.json)已持久化，
+  [授权](maintenance/HISTORY_INDEX.md)和
+  [单次派发回执](maintenance/HISTORY_INDEX.md)已持久化，
   独立幂等键harness-rb-plan13-execute-once；无重复POST、无新方案或自动额外轮次。
   执行前再次核对Issue全文Hash/标题/状态/更新时间、基线3489e17c及全部冻结输入一致。
   Run `1e4051f5-a286-489f-9075-6e47d85a7bf4`、Attempt `e7d2a6ae-4a93-4af7-a790-e066d9c5fd06`，
@@ -6633,18 +6651,18 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   该路径是批准的新写入候选，不能当作已有源码读取。失败批次8个应用调用均未派发，
   未执行子批次、未知结果0；此前4条真实读取回执保留。未发生调用数量拒绝，
   **真实成功分批仍未观察到**，不能把离线4+2/4+1成绩当作本次真实成功。
-  [真实结果](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/README.md)：
+  [真实结果](maintenance/HISTORY_INDEX.md)：
   输入15882/输出1164 Token，读取预算12=成功4+整批预留8且不退还，原生写入/检查0、纠偏/重试/修复0。
   Patch0，修改后Verify/独立Review未运行，Gate4/5不通过，不进入最终人工验收。
-  [最终审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/final-audit.json)验证2013条任务事件、
-  1610个Artifact；[原始证据索引](agent-harness-reset-v1/read-batch-scheduler-v1/plan13-execution/evidence-index.json)
+  [最终审计](maintenance/HISTORY_INDEX.md)验证2013条任务事件、
+  1610个Artifact；[原始证据索引](maintenance/HISTORY_INDEX.md)
   另保存27份按原Hash导出的JSON原始字节，包括2个真实响应、Prompt、Tool Result、Baseline和整批预检/停止回执。
   所有旧行、Plan11/12及旧Checkpoint/Usage原样；Planning64次用量与三个未知占用不变。
   累计审批11、模型启动88（原86+2）、Plan仍13，无活动Job。五角色250文件/镜像/安全配置和四端健康通过。
   本轮授权已经消费，未扩大上限、未恢复旧终态、未修改生产源码、未Push/PR/评论或发布；
   当前安全停止，不复用本轮审批另起或重试付费执行。后续修复及重跑须由人类另行指示/精确授权。
 - [x] **HR4-MISSING-OFFLINE** 用户仅授权修复批准缺失文件语义、离线重放与OCI验收。
-  [取证/根因/恢复](agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/root-cause-and-recovery.md)
+  [取证/根因/恢复](maintenance/HISTORY_INDEX.md)
   核验原第二响应8个ID/参数/顺序；最后路径不在冻结库存，但属于原批准新建范围。
   source_not_found与未知IO/source_unavailable、Hash冲突、path/symlink拒绝分开。
   OCI真实路径检查保留；仅批准缺失且expected_hash为空产生not_found，无文本/大小/content_hash，
@@ -6653,21 +6671,21 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   0045前向迁移仅添加准入约束，禁止伪造缺失回执；真实独立进程崩溃恢复不重复已完成调用。
   冻结库存+当前snapshot形成模型文件分类；精确缺失复用、源码变化失效及无进展守卫均覆盖，
   缺失/读取不完成Coding。输入仍最多32000，必要时保留Plan的原分页引用，全部8个回执不删除。
-  [离线验收](agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/README.md)：
+  [离线验收](maintenance/HISTORY_INDEX.md)：
   最终源码e78f36d6/252文件，全量**2025通过、77跳过**，真实macOS arm64/OrbStack OCI**24通过、0跳过**。
   首次全量有1项旧分页引用形状失败，修复后最终源码两组完整回归和24项OCI均重跑；失败报告保留。
   保存信封的持久化Scheduler重放与真实归档OCI重放分别留证，不混称真实模型；Provider请求0。
   原五角色已重部署并健康，44张业务表Hash不变，仅新增0045；
-  [兼容审计](agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/legacy-compatibility.json)
+  [兼容审计](maintenance/HISTORY_INDEX.md)
   核验旧9个Checkpoint/全部旧行与2013事件/1610个Artifact，Plan13仍blocked且reads12不退还；
   Planning64/64与三个未知占用、审批11、模型启动88、Plan13、活动Job0均不变。
-  [新候选预览](agent-harness-reset-v1/read-batch-scheduler-v1/missing-file-semantics-v1/real-model-acceptance-preview.md)
+  [新候选预览](maintenance/HISTORY_INDEX.md)
   Hash `5c20cae76a88bdc5f06cf2cb819cf63aa1355993512f6f0f74b30cda47999376`，
   仅文件，冻结同一Issue/基线/计划内容、原模型/8路径/4命令/预算；新协议需新方案绑定及精确授权。
   未创建Plan14/付费Job、未恢复Plan13、未扩预算/UPEVE、未Push/PR/评论。
   该离线门禁不等于HR4/5真实Coding/Verify/Review通过；原生Linux amd64仍未运行。
 - [x] **HR4-MISSING-PREP** 用户仅授权只读核验、独立新Plan绑定及精确预览。
-  [准备与证据](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-preparation/README.md)
+  [准备与证据](maintenance/HISTORY_INDEX.md)
   核验最终252项源码、全部保存JUnit/离线/OCI报告Hash与五角色镜像/安全配置；
   Plan12的6/5/5分批、Plan13的7成功+1not_found原序反馈、批准新建及旧任务兼容四项均通过。
   补充纯离线新文件组合门禁：创建后Hash变化、旧Verify失效、最新Verify后仍需独立Review再等待人工；
@@ -6675,9 +6693,9 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   上游Issue正文/标题/main SHA保持冻结，计划内容/8路径/4命令/模型/预算上限不变。
   新Plan14 `e8503bc5-9b61-4e51-95c6-c4eb33bb919e`，
   Binding `6222c965647cdf54e039dad1c41544cdd5dd54245e0b59c6ee528bbd584c36bf`；
-  [精确预览](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-preparation/execution-preview.md)
+  [精确预览](maintenance/HISTORY_INDEX.md)
   Hash `3825f2d60954527af8276556fdff71235a185554177a3d5159da2aed06769250`。
-  [只读独立审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-preparation/preview-integrity-audit.json)
+  [只读独立审计](maintenance/HISTORY_INDEX.md)
   核验全部旧行/9个Checkpoint不变，仅追加Plan/状态版本/4条准备事件；事件2013→2017，Artifact1610不变。
   模型启动88、执行授权/审批各11、活动Job0；没有新增Job/Attempt、审批、预算分配或模型调用。
   报告契约与未运行模板明确真实批次、not_found实际进入下一模型输入、Patch提案/应用、
@@ -6685,28 +6703,28 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   本轮到预览停止；未Push/PR/评论，未恢复Plan13，HR4/5与原生Linux门禁仍开放。
 - [x] **HR4-PLAN14-REAL** 2026-11-06用户明确批准预览3825f2d6、实际Plan14/PlanHash/Binding，
   同原8路径/4命令、deepseek-v4-pro与全部预算，仅一次真实验收及独立Review。
-  [本轮报告](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/README.md)
+  [本轮报告](maintenance/HISTORY_INDEX.md)
   执行前全部冻结输入复核一致，持久化批准/意图后仅一次POST，Job469e1c19。
   Run c119d687、Attempt122cc13a、Session2f7eb4b3；新OCI准备/Baseline4/4通过，模型真实请求3次。
   第1轮4个read_file成功，第2轮读取完整Plan Artifact成功，第3轮8个read_file均max_bytes16000，
   输出准入上界833536大于剩余464474，返回agent_read_batch_budget并终态blocked。
-  [定量诊断](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/admission-diagnostic.json)
+  [定量诊断](maintenance/HISTORY_INDEX.md)
   证明是整批保守输出容量与合法大页请求的契约冲突，未进入OCI预检/子批次/应用读取；
   该批零执行、零读取预留，原始响应先留存；未放宽预算或安全检查。
   **新P0阻塞待单独授权最小离线修复**：考虑可信范围的保守容量与有限纠偏，不能移除校验或加预算。
-  [待授权离线范围](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/offline-fix-scope.md)
+  [待授权离线范围](maintenance/HISTORY_INDEX.md)
   补充只读量化：原8页68338字节，单按文件长度收紧六倍估算仍需475564，超出464474；
   data规范JSON预测72123不含完整回执/进度/失败元数据，不能据此直接放行。
   尚未修改Runtime或重启Plan14，容量证明与安全/恢复/旧任务兼容验收范围已列明。
   本轮未请求批准缺失路径，not_found为not_observed；Patch0、修改后Verify/独立Review未运行，HR4/5仍未通过。
   Provider实际输入24500/输出2665，失败预留计入后46008/4560；读取5=4源码+1Artifact；输出字节35526。
-  [独立真实审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/final-audit.json)
-  与[原始证据索引](agent-harness-reset-v1/read-batch-scheduler-v1/plan14-execution/evidence-index.json)
+  [独立真实审计](maintenance/HISTORY_INDEX.md)
+  与[原始证据索引](maintenance/HISTORY_INDEX.md)
   核验2090任务事件/1640Artifact与28份导出JSON，全部旧行/9个Checkpoint/历史审批预算原样。
   Plan仍14、模型启动91、审批/授权各12、活动Job0；旧Plan13 reads12与Planning64/64/3未知占用保留。
   本轮授权已消费，未恢复Plan14、未另起付费轮次/Plan15、未修改冻结Runtime、未Push/PR/评论。
 - [x] **HR3-CAP** 2026-11-06用户单独授权的 Plan14 最小离线容量/输入投影修复完成。
-  [交付与证据](agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/README.md)
+  [交付与证据](maintenance/HISTORY_INDEX.md)
   保留8-call/4-call/500000字节与原权限预算：OCI preflight-v3证明实际页序列化大小，
   capacity-v1覆盖完整回执、进度、原文Artifact、有界失败及批次元数据，证明成功后才开始子批次。
   修复失败回执记账后再修改预算快照造成的190字节口径差异，输出按最终持久化对象精确计费。
@@ -6716,7 +6734,7 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   最终冻结源码31deb61b的全量2047通过/78跳过，额外两项唯一预算/事务回归通过；
   当前平台OCI套件25通过（23实际OCI+2单元），确定性Investigation→Patch→Verify→Review→人工门禁通过。
   迁移0046仅新增证据guard；五角色原权限重部署、四健康端点通过，44业务表/2090事件/10旧Checkpoint不变。
-  [旧任务审计](agent-harness-reset-v1/read-batch-scheduler-v1/output-capacity-v1/legacy-audit.json)
+  [旧任务审计](maintenance/HISTORY_INDEX.md)
   证明Plan11/12/13/14仍blocked、历史费用/预算原样，模型启动91、授权/审批各12、Plan仍14、活动Job0。
   离线验收时无付费模型/真实Issue Coding、无Plan15/新绑定、未恢复旧终态、未Commit/Push/PR/评论。
   后续用户单独授权将既有源码/测试与验收文档分开本地Commit；不授权Push或任何新执行，
@@ -6724,7 +6742,7 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   仅允许审阅本地离线修复；后续独立绑定及真实模型执行须另获精确授权。
   HR4/5的真实Patch/当前源码Verify/独立Review及原生Linux amd64门禁仍未通过。
 - [x] **HR4-P15-PREP** 2026-11-06用户仅授权冻结准备、只读验证、独立Plan/Binding及精确预览。
-  [准备材料](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/README.md)：
+  [准备材料](maintenance/HISTORY_INDEX.md)：
   HEAD6b335c17的254份生产源码与清单/五个现有部署角色逐项一致，集合Hash仍31deb61b；
   镜像/安全配置、四端健康、Issue标题/正文/更新时间/main3489e17c、实际877322字节归档Hash、
   原8路径/4命令/模型与全部预算均核验一致。容量证书228743≤459508已用当前源码重算，
@@ -6734,11 +6752,11 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   新Plan15 `626be813-5437-4ad3-8a24-e30d12c7b803`，内容Hash仍7bcea4e1，
   Plan Hash `448b0a90cd2c9e4d3dfc14c94de8705ee5a7f2ec89487473397c18dc3e654740`，
   Binding Hash `2672bf166060bf9ec58eda0392a55ba0d141c02dad8fc9a4853a7d4b1d29e70b`。
-  [最终精确预览](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/execution-preview.md)
+  [最终精确预览](maintenance/HISTORY_INDEX.md)
   Hash `f7c000560f1e2e1bb9bad33ba20b21c81ceb39bbcfd97f843f1c4e745bc41a6e`，
   包含真实调用数、有效/重复读取、首次Patch轮次、逐请求Prompt源码覆盖、Artifact分页恢复、
   最新源码Verify和独立Review报告契约；Plan15真实结果均not_run/null，未用离线结果代填。
-  [最终只读审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-preparation/final-checks.json)
+  [最终只读审计](maintenance/HISTORY_INDEX.md)
   Hash ec4af3bf验证全部旧行/10个Checkpoint/2090旧事件/1640Artifact与历史预算审批原样；
   仅追加Plan、状态版本和4条准备事件，事件2090→2094。模型启动91、审批/执行授权各12、活动Job0。
   新增真实模型/执行审批/Job/Attempt/ReviewRun/预算分配均0；未复用Plan14审批或终态，未改生产源码、未Commit/Push/PR/评论。
@@ -6746,7 +6764,7 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   以上为冻结准备时点记录。之后用户单独授权提交并推送准备材料；
   Git交付记录见该目录git-delivery-check.json，原预览/审计及其中的HEAD保持原时点，不回填或视作执行授权。
 - [x] **HR4-P15-REAL** 用户另行逐项批准精确预览f7c00056、实际Plan15/Plan Hash/Binding及原全部预算，单次有界真实验收已执行并安全停止。
-  [本轮报告](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/README.md)：
+  [本轮报告](maintenance/HISTORY_INDEX.md)：
   执行前重新核验Issue/base/归档、254源码/五角色镜像、模型/协议/沙箱、8路径/4命令、Revision/Preflight/预算一致；
   8aa9051仅提交准备文档，原预览未修改。人类授权Hashf27e76fc、服务端执行授权Hashc0cffa54，
   仅一次POST与独立幂等键harness-capacity-plan15-execute-once，Jobd049cece；
@@ -6756,21 +6774,21 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   第14轮5个search_code+1个read_file超出4-call且不满足纯read_file分批条件，整批零执行，消耗原协议纠偏1/2；
   第15轮finish_reason=length，输出4096 Token全部reasoning，无final_text/tool_calls，
   deepseek_completion_truncated/retryable=false终态blocked。单次上限触发，整轮额度尚余；未提高额度或续跑。
-  [真实指标](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/coding-metrics.json)：
+  [真实指标](maintenance/HISTORY_INDEX.md)：
   40次计费读取=27源码回执+13 Artifact调用；16次新增字节、11次精确重复复用、18次同偏移重读。
   工具/实际Prompt去重源码70855/10624字节，输入投影最大31923/32000；完整Plan9431字节恢复，其他5个证据Artifact仅部分送达，
   未使用原文source_page_artifact完成源码恢复。首次Patch提案/应用均null，修改后Verify/独立Review未运行，not_found为not_observed。
   实际Provider输入135863/输出14939 Token；失败预留保留后的账本176505/17211，输出证据426518/500000字节，写入/检查/Provider重试/代码修复均0。
-  [真实审计](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/final-audit.json)Hash24b2bbcf核验原始ID/回执/容量及最终字节计费；
+  [真实审计](maintenance/HISTORY_INDEX.md)Hash24b2bbcf核验原始ID/回执/容量及最终字节计费；
   [原始证据](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/evidence-index.json)保存457条新事件及161份原字节JSON/text Artifact。
-  [终态核验](agent-harness-reset-v1/read-batch-scheduler-v1/plan15-execution/terminal-checks.json)Hashb385cde1通过：
+  [终态核验](maintenance/HISTORY_INDEX.md)Hashb385cde1通过：
   旧10个Checkpoint/2094事件前缀/旧审批费用及Planning64/64与3次未知占用不变；任务事件2551、Artifact1802、模型启动106、授权/审批各13、Plan仍15、活动Job0。
   四端健康、254源码/五角色镜像安全配置和凭据/canary/日志核验通过；未改生产源码、未重部署、未恢复旧终态、未新增Plan、未Commit/Push/PR/评论。
   本条仅记单次授权执行和证据归档完成，不代表HR4/5验收通过；真实Patch/最新源码Verify/独立Review及原生Linux amd64门禁仍开放。
   以上为真实执行归档时点。之后用户另行授权将本轮材料提交并推送；Git交付记录见该目录git-delivery-check.json。
   原预览、响应、源码页及终态审计保留原字节和时点字段；该Git操作不授权恢复Plan15或新增付费调用。
 - [x] **HR3-CLR** Coding Loop Recovery v1.1 本地离线修复与审查交付完成：定向50、全量2099通过/83跳过、真实离线OCI28（另2unit）通过；等待代码审查，部署NO-GO。
-  [v1.1交付](agent-harness-reset-v1/coding-loop-recovery-v1.1/README.md)保留共享送达修复；第8轮必须新观察相关源码且实际进入第9轮Prompt才允许一次条件机会。
+  [v1.1交付](maintenance/HISTORY_INDEX.md)保留共享送达修复；第8轮必须新观察相关源码且实际进入第9轮Prompt才允许一次条件机会。
   第9轮未实际成功OCI Patch则第10次前停止；同一执行授权跨Worker/修复Session不得再次领取，未知调用保留预留并停止。
   最多4文件按路径派生模块、历史可信服务次数和未送达区间选择；单模块可填满，不新读源码、不编造内容。
   候选255源码Hash627a3689，high/4096与全部原预算保持；新源码/协议不兼容原Plan15，未来必须新冻结绑定及独立精确授权。
@@ -6778,21 +6796,21 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   条件机会最多额外1次调用/输入32000/输出4096且从原总预算扣除；保存第7轮投影因逐页来源字段从3072降至2048字节，明确保留容量风险与原始页恢复路径。
   本条仅关闭离线修复交付，真实自主Coding、真实独立Review及Linux amd64门禁仍开放；未部署、付费调用、新建Plan、恢复终态或Commit/Push/PR/评论。
   以上为离线验收快照。之后用户另行授权本地Git交付：可信送达修复与v1.1源码/测试Commit为bd3f8927，审查文档单独提交；
-  [Git交付记录](agent-harness-reset-v1/coding-loop-recovery-v1.1/git-delivery.md)保存逐文件清单及归档复核结果，不回写原报告Hash，不授权Push或新执行。
-  2026-11-08另获原本地隔离环境部署授权：[本地部署验收](agent-harness-reset-v1/coding-loop-recovery-v1.1/local-deployment-v1/README.md)完成。
+  [Git交付记录](maintenance/HISTORY_INDEX.md)保存逐文件清单及归档复核结果，不回写原报告Hash，不授权Push或新执行。
+  2026-11-08另获原本地隔离环境部署授权：[本地部署验收](maintenance/HISTORY_INDEX.md)完成。
   五角色255源码Hash627a3689，app镜像c9c07093、Sandbox Worker镜像1c82d9a6，Runner923d81e4不变；原卷/配置/权限/网络/资源保持，新增迁移0。
   同部署镜像Python3.11内定向50和恢复53通过；真实离线OCI28（另2unit）和保存Plan12–15七信封通过，含实际第9轮Patch/Verify及确定性独立Review门禁。
   query_only最终核验45表全部行、11检查点、Plan11–15终态/事件链/审批/费用/预算/未知占用、1802 Artifact不变；活动Job0、模型启动仍106。
   旧容器/镜像保留，仓库外私有备份已由旧镜像无网络受限读取核验；仅证明备份可读取，未实际执行完整回滚恢复。测试工具的WAL读取、离线pytest和子进程环境探针纠正单独留证，不改生产代码或策略。
   本地隔离验收Go供人工审查；新付费执行No-Go，须新冻结绑定及独立精确授权。Linux amd64未运行，未宣称跨架构生产就绪；未建Plan16、恢复Plan15、加预算、付费调用、Commit/Push/PR/评论或外部发布。
-  之后另获本地验收文档Commit授权：[最终Git交付](agent-harness-reset-v1/coding-loop-recovery-v1.1/local-deployment-v1/git-delivery.md)逐角色列出实际镜像/255源码Hash，明确各套件不相加、2099/83为此前归档复核，并区分备份可读取与完整回滚未执行；不再次部署或自动Push。
+  之后另获本地验收文档Commit授权：[最终Git交付](maintenance/HISTORY_INDEX.md)逐角色列出实际镜像/255源码Hash，明确各套件不相加、2099/83为此前归档复核，并区分备份可读取与完整回滚未执行；不再次部署或自动Push。
   以下为上一轮closeout及原v1的冻结离线记录，不回写这些原报告Hash。
-  [审查收尾](agent-harness-reset-v1/coding-loop-recovery-v1/review-closeout-v1/README.md)：3个生产模块共享请求/响应/Prompt/Binding校验；
+  [审查收尾](maintenance/HISTORY_INDEX.md)：3个生产模块共享请求/响应/Prompt/Binding校验；
   相关179、最终边界24（重叠）、真实离线OCI2通过。仅model_started不再记为已送达；未知模型操作有无响应均保持阻断和原预留。
   第8轮新源码尚未送达就被第9次前硬停，且四文件工作集可持续偏向近期模块；原6/8及选择算法未擅改，方案与费用影响已交付。
   query_only再核验45表、Plan11–15事件/终态/审批/预算与旧11检查点完全不变。无真实模型/部署/新Plan/预算变更/Commit/Push/PR/评论。
   以下为原离线快照记录，不回写原报告Hash；真实Coding/独立Review及Linux门禁仍开放。
-  [交付与限制](agent-harness-reset-v1/coding-loop-recovery-v1/README.md)记录15轮实际Prompt/响应及161 Artifact Hash核验、事实/根因/假设区分；
+  [交付与限制](maintenance/HISTORY_INDEX.md)记录15轮实际Prompt/响应及161 Artifact Hash核验、事实/根因/假设区分；
   新增独立Coding度量，区分工具可用/响应确认送达源码，6轮纠偏、8轮后停止，不强制无依据Patch、不增加原预算。
   精确Task Brief/最多4文件工作集保留原始Artifact恢复；旧重复读取警告可见性兼容修复，阈值不变。
   最终255生产文件Hash3af23ee0，协议native-coding-loop-recovery-v10；冻结全量2056通过/79跳过，警告兼容专项36通过，
@@ -6802,40 +6820,65 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   本轮未真实调用模型、未建Plan16、未恢复Plan15、未新增真实审批/Job、未部署、Commit/Push/PR/评论；Linux amd64仍未验证。
   旧失败全量报告保留，最终源码独立分片全量重跑通过。下一真实验收NO-GO，须先审查，再另行指示新的冻结与精确授权。
 - [x] **HR4-P16-PREP** 2026-11-08用户仅授权只读核验、全部通过后独立Plan16/Binding冻结及精确预览；交付后立即停止。
-  [完整准备材料](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/README.md)：
+  [完整准备材料](maintenance/HISTORY_INDEX.md)：
   HEAD b33349d6、生产源码提交bd3f8927、255文件Hash627a3689与五角色逐文件一致；app c9c07093、Sandbox Worker1c82d9a6、Runner923d81e4、原权限/网络/资源/沙箱策略保持。
   Native transport b661a6b2、Schema52999661、Prompt native-coding-loop-recovery-v11匹配；Issue#107标题/正文/更新时间/main3489e17c、877322字节归档d269dc46、8路径/4命令及原验收目标均一致。
   新Plan16 `6944ba99-2de3-492f-a687-0c71e804d94a`，Plan Hash `aa03690633bcebc8e9c5346f5e930aa2c09a56aa9636a14b2528bb7fabeb74ca`，
   新Binding `e97e605fc33502b47241c13e0930865dc8a0ffe33fd76a31ec26d1a989dc7b38`，冻结输入 `9ba3758151c2cae54c2ce85bc86111ec57c72bc9add3cb1abcb22e3eaf2154cb`。
-  [精确预览](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/execution-preview.md)
+  [精确预览](maintenance/HISTORY_INDEX.md)
   Hash `dab070664ebed9d0451414078c1648ffa0fed5c64e63242dec2ed9a0e33504ce`；revision c34e29ef、preflight ed34d5d1。
   保持deepseek-v4-pro/high/4096和全部原上限，6+8+1只从原预算扣除；明确9次全额输入/输出不能由原总额保证，派发前不足即停止，high截断及独立Review额外费用均明示。
   首次真实Patch提案/OCI应用、当前源码唯一读取/实际Prompt送达、重复/Artifact恢复、6+8+1、最新4项Verify、独立真实Review及最终人工验收契约已冻结；Plan16实际结果全部not_run/null。
-  [最终只读审计](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/final-checks.json)
+  [最终只读审计](maintenance/HISTORY_INDEX.md)
   Hash `0743f9a5c2d4b9e0fe90f09999f470637d4a43babbbccbdcfedc8790b066f11e`核验45表旧行、11检查点、Plan11–15终态/审批/费用/未知占用和1802 Artifact保持。
   仅追加Plan、必要状态版本与4条准备事件2551→2555；模型启动106、执行授权13、Plan审批13、活动Job0不变。新Provider调用/执行审批/Job/Attempt/ReviewRun/预算分配均0。
   原备份Hash/权限/完整性/外键/45表读取通过，旧五容器stopped和旧镜像保留；完整回滚未执行，不得用旧备份覆盖新准备记录。
   当前只读复算归档容量证明及复核原JUnit，不重跑真实OCI/模型；源码未改/未重部署，凭据/日志扫描、compileall及diff检查通过，6个既存未跟踪文件保留。
   新一次性确认文本Hash `2094a95350379342560db1cd42984610e5c134f2c893730bbf45926f38d9fb30`仅供独立审查，未发送/消费；原Plan15文本不可复用。
   准备Go，任何付费执行No-Go；停止等待用户独立审查和精确授权。未恢复Plan15、加预算、Push/PR/评论/发布；HR4/5、P5-G06与Linux amd64门禁仍开放。
-  之后另获仅本地Git交付授权：[Git交付说明与逐文件清单](agent-harness-reset-v1/coding-loop-recovery-v1.1/plan16-preparation/git-delivery.md)保留原27文件和全部冻结Hash；当前只读核验未追加业务记录。
+  之后另获仅本地Git交付授权：[Git交付说明与逐文件清单](maintenance/HISTORY_INDEX.md)保留原27文件和全部冻结Hash；当前只读核验未追加业务记录。
   冻结HEAD仍b33349d6，文档提交后的HEAD另报；业务Revision/Preflight不依赖宿主HEAD，但归档脚本的逐字HEAD断言仍保留，后续执行不得静默绕过此差异，仍须独立精确授权。
+- [x] **HR4-P16-REAL** 2026-11-09用户逐字批准精确预览dab07066及Plan16/新Binding/冻结输入与原全部预算；单次有界执行已安全阻断并归档，不代表HR4/5通过。
+  [本轮结果与原字节证据](maintenance/HISTORY_INDEX.md)：
+  执行前重核HEAD dcb891f5仅文档后继、255源码/五角色镜像安全、Native v11、Issue/base/归档、8路径/4命令、模型、预算、Revision/Preflight全部一致；旧HEAD断言及原冻结材料未改。
+  人类授权Hash d5ce54b6、服务端授权Hash5507965d，仅一次POST/幂等键harness-coding-v11-plan16-execute-once；Job68d53e31、Runabcf9312、Attempt50ee61d1、Sessionsession-2e48191d1614d97de4bfbe4e9ce1947f。
+  新鲜OCI准备及Baseline4/4通过；之后模型派发3、可信响应0，三份失败回执均model_gateway_internal_error、usage_status=unreported、reservation_retained=true；原Provider重试2用尽后blocked，未继续使用剩余21次模型额度。
+  账本保留输入76761/输出12288 Token，不是已确认Provider生成量，实际费用未知，不退款或清零。读取/写入/检查/协议纠偏/代码修复均0；Patch提案及OCI应用轮次null，6/8/9均未到达，最新源码Verify/独立真实Review未运行。
+  网关只读日志分类显示最近三次sqlite3.OperationalError: no such table: credentials，栈位于model_secrets.read；未导出原日志/密文，不凭无请求ID关联日志认定零费用，未修表、重启或探测真实模型。
+  [来源审计](maintenance/HISTORY_INDEX.md)Hashf19971f4、37条新事件/23份可达JSON/text Artifact原字节Hash留存；真实度量Hash53a024e0，结果Hashec3a4797。
+  旧11检查点、2555事件前缀、1802旧Artifact及Plan11–15终态/审批/费用/预算/3次未知占用保留；任务事件2592、Artifact1819、模型启动109、执行授权/Plan审批各14、Plan仍16，活动Job0。
+  本次授权已消费，停止等待人工审查；未恢复旧终态、新建Plan17、加预算、修改生产源码/原预览、部署、Commit/Push/PR/评论。网关凭据存储恢复与任何新调用均需另行明确指示；HR4/5、P5-G06、Linux amd64仍开放。
+- [x] **HR4-P16-GW-INCIDENT** 用户仅授权只读根因调查、合成离线复现及最小修复设计；调查交付完成，不代表实际恢复或完整删除归因已证实。
+  [完整报告](maintenance/HISTORY_INDEX.md)保全37事件/23可达Artifact/3请求与失败信封关联，Plan16 blocked、授权已消费、活动Job0；45表、1819 Artifact、Plan11–15/旧11检查点及费用预算未知占用原样。
+  实际Gateway是宿主PID74991、端口18091，MODEL_GATEWAY_SECRET_ROOT指向/tmp/upeve-isolated-20261029-v2/gateway-private，没有Docker Image ID或模型私有持久卷；校正旧报告18080/18091/18092的角色标签，原证据Hash不回写。
+  SQLite严格只读核验为regular0字节/0644/inode286365377，两张表同时不存在、user_version0、page_count0、integrity_check=ok；master.key/envelope.pem均缺失。空库创建时间位于Plan16首请求/失败窗口，晚于Gateway启动。
+  直接缺表故障与HTTP500→StudioRunner可重试→原2次重试耗损链已证实；启动后文件丢失/替换并自动建空库是强证据机制，删除者/具体清理机制未证实。32个限定临时根/424目录未找到可信完整配套备份；业务备份不含私有表，未穷尽用户其他备份。
+  [离线结果](maintenance/HISTORY_INDEX.md)Hash1cbfebe3：12通过/零失败跳过，禁止网络和Store构造器；仅Fixture DDL/替换、生产未绑定方法、ASGI错误与原重试表达式，未假称真实Gateway初始化或加密恢复验收。
+  [结论](maintenance/HISTORY_INDEX.md)Hash500f0114及[最小修复设计](maintenance/HISTORY_INDEX.md)优先证明原正确路径/完整匹配库和密钥；拒绝通用建空表/chmod/重启，提出独立存储readiness、专用不可重试错误、消费端同步和零Provider预检，均未实施。
+  [最终只读核验](maintenance/HISTORY_INDEX.md)Hash8d2f51a4再次确认真实存储元数据、PID、源码及历史不变；敏感/canary扫描、compileall、Diff/逐文件检查通过，读取范围与连接模式限制单独说明。
+  Go仅限审查报告与设计；真实修复/恢复/重启/部署及新付费执行均NO-GO。没有实例化真实GatewaySecretStore、读取密钥文件/凭据密文/明文、修表、chmod、重建密钥、重写凭据、恢复Plan16、建Plan17、新Job/审批/预算分配或Commit/Push/PR/评论；输入76761/输出12288预留不退款/清零。
+- [x] **HR4-P16-GW-REPAIR-LOCAL** 2026-11-10用户单独授权本地源码/合成测试/离线OCI修复，不授权真实Gateway修复、密钥操作、重启部署或付费调用。
+  [实际交付](maintenance/HISTORY_INDEX.md)包含精确code.diff、源码清单、四项审查问题关闭证据、Publisher兼容证明及未来部署/安全回滚方案；原事故与独立审查材料Hash不改。
+  Gateway独立持久代际存储只open-existing；显式初始化/旧格式副本迁移、RSA/AES/DB身份、停机独占lease、一致备份、原子指针切换和写入后回滚拒绝均实现；旧Publisher Store源码原字节保留。
+  52项真实SQLite/合成密码/实际进程重启/崩溃/账本测试通过；完整默认回归2151通过/83显式opt-in跳过。后续类型及Publisher早拒绝隔离检查由最终精确源码OCI184通过/1既有跳过及compile/import检查验证，源Hash分别列明，不冒充同字节全量。
+  真实凭据库/密钥未访问，真实服务未操作；宿主cwd对应工作区磁盘源码已改，未声称内存升级或保留旧源码冻结。未恢复Plan16、建Plan17、改变历史预算/审批/费用/未知占用、Commit/Push/PR/评论；当前业务历史未实时重采。
+- [ ] **HR4-P16-GW-REPAIR-REVIEW-DEPLOY** 新Diff待另一审查者签署；当前真实恢复材料、旧启动器和生产持久卷恢复仍未验证，真实Gateway部署NO-GO。不得用本地测试或旧审查替代独立审查/真实修复授权；Plan16始终blocked/consumed，HR4/5、Linux amd64、P5-G06未关闭。
 - [ ] **HR4-G04** 完整Coding/Verify/有限Repair及独立Review链。
   原生工具的成功/失败后Repair→独立Review→等待人工验收两条确定性集成链通过；
-  [Phase4部分报告](agent-harness-reset-v1/phase4-report.json)、
-  [验证汇总](agent-harness-reset-v1/verification-report.json)与
-  [部署审计](agent-harness-reset-v1/postdeploy-audit.json)记录范围与未通过项。
+  [Phase4部分报告](maintenance/HISTORY_INDEX.md)、
+  [验证汇总](maintenance/HISTORY_INDEX.md)与
+  [部署审计](maintenance/HISTORY_INDEX.md)记录范围与未通过项。
   逐工具用途、证据、字节续页与下一步约束已补充。当时r2源码248文件重部署到原五角色，
   健康检查通过，44张业务表hash保留，仅追加0042/0043迁移；环境/挂载/安全和资源原样。
   真实Python/TypeScript OCI工具边界7通过。r1全量1982通过/62跳过，r2增量91通过及
   安全/协议补充38通过；r1来源与r2单模块差异均保留，不冒充r2全量或真实模型验收。
   GitHub公开GET确认#107仍open、正文hash与冻结快照相同、main仍3489e17c。
-  已保存同内容Plan12草稿和[精确预览](agent-harness-reset-v1/real-acceptance-preview.json)，
+  已保存同内容Plan12草稿和[精确预览](maintenance/HISTORY_INDEX.md)，
   原8路径/4命令、DeepSeek绑定及原每轮上限不变；旧Plan11检查点/用量与规划64次预算保留。
   用户随后明确回复“批准”，绑定预览81e1d70a及额外一轮原上限预算。
-  [批准记录](agent-harness-reset-v1/real-acceptance-approval.json)和
-  [执行回执](agent-harness-reset-v1/real-acceptance-execution.json)持久化；单次提交Job d4bbb222。
-  [真实验收结果](agent-harness-reset-v1/real-acceptance-result.json)：新准备和Baseline4/4通过；
+  [批准记录](maintenance/HISTORY_INDEX.md)和
+  [执行回执](maintenance/HISTORY_INDEX.md)持久化；单次提交Job d4bbb222。
+  [真实验收结果](maintenance/HISTORY_INDEX.md)：新准备和Baseline4/4通过；
   8次真实模型调用、13个工具结果，6次精确复用，三次超量批次6/5/5均先留证后零执行拒绝。
   原两次协议纠偏额度耗尽，终态agent_native_call_count_invalid。实际报告输入72200/输出5029，
   计入失败预留的用量输入137303/输出15038，不能混算。1579个Artifact和1937条任务事件通过审计。
@@ -6843,9 +6886,9 @@ HR4/5未通过，本轮授权已消费，没有付费重试授权**。
   不重复分配预算或恢复终态；旧Plan11终态、已用量及规划64次上限/三个未知预留原样保留。
   终态Ledger同步与协调Worker写锁退出问题已完成回归、部署和审计。当前r4源码718ed712的
   五角色248文件逐一校验、四端健康、44张业务表hash保留；没有新迁移或依赖变化。
-  [最终审计](agent-harness-reset-v1/real-acceptance-final-audit.json)校验1942条任务事件、
+  [最终审计](maintenance/HISTORY_INDEX.md)校验1942条任务事件、
   1581个Artifact；只追加一条Ledger阻塞修订，旧Checkpoint和Usage未变，仍为8次真实调用。
-  [部署审计](agent-harness-reset-v1/postdeploy-audit-r4.json)：无活动Job，授权仍10次，累计模型启动86次。
+  [部署审计](maintenance/HISTORY_INDEX.md)：无活动Job，授权仍10次，累计模型启动86次。
   r3两模块227通过/8跳过及63工作流通过、r4只增worker.py的92回归通过；不冒充r4全量重跑。
   以上为2026-11-04真实验收归档。2026-11-05只读调度离线修复见HR3-RB；
   HR4真实Patch/当前Verify仍待新的精确授权，不恢复终态、不重置耗尽的两次协议纠偏额度。

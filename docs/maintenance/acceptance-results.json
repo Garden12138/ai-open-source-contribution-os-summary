@@ -1,0 +1,767 @@
+{
+  "schema": "product-acceptance-v1",
+  "date": "2026-11-11",
+  "environment": {
+    "os": "macOS arm64",
+    "python": "3.12.11",
+    "node": "22.23.2",
+    "database": "SQLite",
+    "schema_revision": "0046_read_capacity"
+  },
+  "source": {
+    "files": 257,
+    "manifest_sha256": "264aeec3d3506c6e5884b488dd00cf22c111843c64c5907398bb4eb05cc41335"
+  },
+  "pytest_runs": [
+    {
+      "name": "default-full",
+      "command": ".venv/bin/python -m pytest --junitxml=/private/tmp/contribos-maintenance-baseline.xml",
+      "started_at": "2026-11-11T10:02:22.319658+08:00",
+      "duration_seconds": 1582.863,
+      "counts": {
+        "skipped": 83,
+        "passed": 2149,
+        "failed": 2
+      },
+      "raw_junit_sha256": "f498a96d94e7ee2c935d4dee42d36fe3ae4fbb700446d543539dae20996c895a"
+    },
+    {
+      "name": "new-demo-tests",
+      "command": ".venv/bin/python -m pytest tests/test_local_demo.py --junitxml=/private/tmp/contribos-local-demo.xml",
+      "started_at": "2026-11-11T10:09:20.198058+08:00",
+      "duration_seconds": 1.229,
+      "counts": {
+        "passed": 7
+      },
+      "raw_junit_sha256": "4d69efc49525dd8ab4e5cbac08829c8baf9406d5c47cea3b73a84c9ea1926702"
+    },
+    {
+      "name": "focused",
+      "command": ".venv/bin/python -m pytest tests/test_gateway_storage.py tests/test_provider_gateway.py tests/test_execution_pipeline.py tests/test_migrations.py tests/test_model_settings.py tests/test_local_demo.py --junitxml=/private/tmp/contribos-focused.xml",
+      "started_at": "2026-11-11T10:17:48.488584+08:00",
+      "duration_seconds": 62.274,
+      "counts": {
+        "passed": 111,
+        "failed": 1,
+        "skipped": 1
+      },
+      "raw_junit_sha256": "1a4ef8c0ef653e17949877e07b34b2e508a884acd2727e87df81ff0d27c1c104"
+    },
+    {
+      "name": "loopback-recheck",
+      "command": ".venv/bin/python -m pytest tests/test_gateway_storage.py::test_real_gateway_process_restart_retains_credential_and_readiness --junitxml=/private/tmp/contribos-loopback-retry.xml",
+      "started_at": "2026-11-11T10:19:20.639106+08:00",
+      "duration_seconds": 2.951,
+      "counts": {
+        "passed": 1
+      },
+      "raw_junit_sha256": "309b0c80b4eadce80a3de00fd3527e0c838a5dbd4b547b14019e1b4efefd9a6e"
+    },
+    {
+      "name": "fixture-dependency-recheck",
+      "command": ".venv/bin/python -m pytest tests/test_read_capacity.py tests/test_coding_loop_recovery.py tests/test_environment_engine_resolution.py --junitxml=/private/tmp/contribos-fixture-recheck.xml",
+      "started_at": "2026-11-11T10:30:33.543381+08:00",
+      "duration_seconds": 60.092,
+      "counts": {
+        "passed": 67
+      },
+      "raw_junit_sha256": "cc25f215367266e682c050cf104ee139e49b31c4f6995428946cc1a7eebedad2"
+    }
+  ],
+  "initial_failed_cases": [
+    "tests.test_gateway_storage::test_real_gateway_process_restart_retains_credential_and_readiness",
+    "tests.test_read_capacity::test_frozen_plan14_projection_and_raw_source_pages_recover_under_original_limits"
+  ],
+  "failure_resolutions": [
+    {
+      "case": "test_real_gateway_process_restart_retains_credential_and_readiness",
+      "cause": "execution sandbox denied loopback bind",
+      "resolution": "synthetic owned-port recheck passed; existing Gateway untouched"
+    },
+    {
+      "case": "test_frozen_plan14_projection_and_raw_source_pages_recover_under_original_limits",
+      "cause": "cleanup missed indirectly referenced fixture files",
+      "resolution": "28 files restored byte-for-byte from private backup; 67 related checks passed"
+    }
+  ],
+  "final_unique_counts": {
+    "passed": 2158,
+    "failed": 0,
+    "skipped": 83
+  },
+  "unresolved_failed_cases": [],
+  "per_module": {
+    "tests.test_agent_live_acceptance": {
+      "skipped": 7
+    },
+    "tests.test_agent_native_tools": {
+      "passed": 34
+    },
+    "tests.test_agent_runtime": {
+      "passed": 46
+    },
+    "tests.test_agent_v2_api": {
+      "passed": 3
+    },
+    "tests.test_agent_v2_live_controlled": {
+      "skipped": 2
+    },
+    "tests.test_agent_v2_loop": {
+      "passed": 14
+    },
+    "tests.test_agent_v2_migration": {
+      "passed": 1
+    },
+    "tests.test_agent_v2_orchestrator": {
+      "passed": 5
+    },
+    "tests.test_agent_v2_planning": {
+      "passed": 13
+    },
+    "tests.test_agent_v2_tools": {
+      "passed": 2,
+      "skipped": 5
+    },
+    "tests.test_analysis_availability": {
+      "passed": 5
+    },
+    "tests.test_analysis_documents": {
+      "passed": 5
+    },
+    "tests.test_analysis_evidence": {
+      "passed": 18
+    },
+    "tests.test_analysis_schema": {
+      "passed": 20
+    },
+    "tests.test_analysis_wire": {
+      "passed": 23
+    },
+    "tests.test_api": {
+      "passed": 7
+    },
+    "tests.test_api_security": {
+      "passed": 4
+    },
+    "tests.test_archives": {
+      "passed": 15
+    },
+    "tests.test_artifacts": {
+      "passed": 4
+    },
+    "tests.test_audit": {
+      "passed": 2
+    },
+    "tests.test_baseline_feedback": {
+      "passed": 25
+    },
+    "tests.test_baseline_metadata": {
+      "passed": 19,
+      "skipped": 1
+    },
+    "tests.test_bun_command_semantics": {
+      "skipped": 1
+    },
+    "tests.test_change_scope": {
+      "passed": 30
+    },
+    "tests.test_cla": {
+      "passed": 27
+    },
+    "tests.test_code_compressor": {
+      "passed": 6
+    },
+    "tests.test_codex_cli_provider": {
+      "passed": 21
+    },
+    "tests.test_codex_container": {
+      "passed": 2,
+      "skipped": 1
+    },
+    "tests.test_coding_budget": {
+      "passed": 14
+    },
+    "tests.test_coding_delivery_boundaries": {
+      "passed": 16
+    },
+    "tests.test_coding_loop_recovery": {
+      "passed": 7
+    },
+    "tests.test_coding_loop_recovery_oci": {
+      "skipped": 1
+    },
+    "tests.test_coding_provider_failure": {
+      "passed": 4
+    },
+    "tests.test_coding_recovery_v11": {
+      "passed": 16
+    },
+    "tests.test_coding_recovery_v11_oci": {
+      "skipped": 2
+    },
+    "tests.test_coding_source_reads": {
+      "passed": 8
+    },
+    "tests.test_coding_stop_boundaries": {
+      "passed": 5
+    },
+    "tests.test_coding_stop_boundaries_oci": {
+      "skipped": 2
+    },
+    "tests.test_coding_working_set_boundaries": {
+      "passed": 6
+    },
+    "tests.test_completion_normalizer": {
+      "passed": 6
+    },
+    "tests.test_context_archive_permissions": {
+      "passed": 6
+    },
+    "tests.test_context_compaction": {
+      "passed": 21
+    },
+    "tests.test_context_discussion_groups": {
+      "passed": 5
+    },
+    "tests.test_context_environment_graph": {
+      "passed": 4
+    },
+    "tests.test_context_inventory_headroom": {
+      "passed": 4
+    },
+    "tests.test_context_pressure": {
+      "passed": 5
+    },
+    "tests.test_context_reference_projection": {
+      "passed": 2
+    },
+    "tests.test_conversation_agent": {
+      "passed": 37
+    },
+    "tests.test_conversation_answers": {
+      "passed": 11
+    },
+    "tests.test_conversation_confirmation": {
+      "passed": 27
+    },
+    "tests.test_conversation_execution": {
+      "passed": 16
+    },
+    "tests.test_conversation_read_budget": {
+      "passed": 6
+    },
+    "tests.test_conversation_reasoning": {
+      "passed": 24
+    },
+    "tests.test_conversation_workflow_contract": {
+      "passed": 16
+    },
+    "tests.test_deepseek": {
+      "passed": 19
+    },
+    "tests.test_dependency_diagnostics": {
+      "passed": 17
+    },
+    "tests.test_environment_engine_api": {
+      "passed": 4
+    },
+    "tests.test_environment_engine_baseline": {
+      "passed": 21
+    },
+    "tests.test_environment_engine_oci": {
+      "skipped": 8
+    },
+    "tests.test_environment_engine_pnpm_filter": {
+      "passed": 34
+    },
+    "tests.test_environment_engine_resolution": {
+      "passed": 38
+    },
+    "tests.test_execution_acceptance": {
+      "passed": 5
+    },
+    "tests.test_execution_pipeline": {
+      "passed": 3
+    },
+    "tests.test_execution_preflight": {
+      "passed": 17
+    },
+    "tests.test_execution_read_recovery": {
+      "passed": 29
+    },
+    "tests.test_execution_repair": {
+      "passed": 37
+    },
+    "tests.test_execution_scheduling_recovery": {
+      "passed": 18
+    },
+    "tests.test_fake_provider": {
+      "passed": 3
+    },
+    "tests.test_gateway_storage": {
+      "passed": 52
+    },
+    "tests.test_github": {
+      "passed": 18
+    },
+    "tests.test_github_read_proxy": {
+      "passed": 21
+    },
+    "tests.test_harness_batch_strategy": {
+      "passed": 7
+    },
+    "tests.test_harness_coding_journey": {
+      "passed": 4
+    },
+    "tests.test_harness_coordinator_busy": {
+      "passed": 5
+    },
+    "tests.test_harness_migration": {
+      "passed": 1
+    },
+    "tests.test_harness_progress": {
+      "passed": 6
+    },
+    "tests.test_harness_progress_boundaries": {
+      "passed": 11
+    },
+    "tests.test_harness_response_receipts": {
+      "passed": 11
+    },
+    "tests.test_harness_terminal_progress": {
+      "passed": 4
+    },
+    "tests.test_initial_repository_read": {
+      "passed": 6
+    },
+    "tests.test_jobs": {
+      "passed": 5
+    },
+    "tests.test_maintenance_metrics": {
+      "passed": 3
+    },
+    "tests.test_migrations": {
+      "passed": 9
+    },
+    "tests.test_missing_source_observations": {
+      "passed": 10
+    },
+    "tests.test_missing_source_oci": {
+      "skipped": 8
+    },
+    "tests.test_model_settings": {
+      "passed": 35
+    },
+    "tests.test_multipackage_execution": {
+      "passed": 15,
+      "skipped": 2
+    },
+    "tests.test_native_feedback_delivery": {
+      "passed": 7
+    },
+    "tests.test_native_prompt_projection": {
+      "passed": 10
+    },
+    "tests.test_native_protocol_repairs": {
+      "passed": 9
+    },
+    "tests.test_native_read_batch_boundaries": {
+      "passed": 8
+    },
+    "tests.test_native_read_batches": {
+      "passed": 15
+    },
+    "tests.test_native_read_batches_oci": {
+      "skipped": 7
+    },
+    "tests.test_native_read_progress": {
+      "passed": 5
+    },
+    "tests.test_native_rejection_feedback": {
+      "passed": 9
+    },
+    "tests.test_native_resources": {
+      "passed": 54
+    },
+    "tests.test_native_workspace_receipt": {
+      "passed": 19,
+      "skipped": 1
+    },
+    "tests.test_node_ci": {
+      "passed": 16
+    },
+    "tests.test_node_environments": {
+      "passed": 30,
+      "skipped": 5
+    },
+    "tests.test_node_manager_entrypoints": {
+      "passed": 18
+    },
+    "tests.test_node_workflow": {
+      "passed": 18,
+      "skipped": 9
+    },
+    "tests.test_nvidia_nim": {
+      "passed": 31
+    },
+    "tests.test_nvidia_workflows": {
+      "passed": 4
+    },
+    "tests.test_package_dns": {
+      "passed": 18
+    },
+    "tests.test_package_dns_cache": {
+      "passed": 13
+    },
+    "tests.test_planning": {
+      "passed": 42
+    },
+    "tests.test_planning_active_read_limits": {
+      "passed": 5
+    },
+    "tests.test_planning_baseline_contract": {
+      "passed": 8
+    },
+    "tests.test_planning_budget": {
+      "passed": 24
+    },
+    "tests.test_planning_context": {
+      "passed": 7,
+      "skipped": 1
+    },
+    "tests.test_planning_continuation": {
+      "passed": 32
+    },
+    "tests.test_planning_delivery": {
+      "passed": 5
+    },
+    "tests.test_planning_diagnostics": {
+      "passed": 15
+    },
+    "tests.test_planning_environment_reads": {
+      "passed": 9
+    },
+    "tests.test_planning_eviction": {
+      "passed": 1
+    },
+    "tests.test_planning_failed_usage": {
+      "passed": 6
+    },
+    "tests.test_planning_read_bounds_repair": {
+      "passed": 14
+    },
+    "tests.test_planning_read_count_repair": {
+      "passed": 6
+    },
+    "tests.test_planning_read_reuse": {
+      "passed": 9
+    },
+    "tests.test_planning_reads": {
+      "passed": 8
+    },
+    "tests.test_post_publication": {
+      "passed": 22
+    },
+    "tests.test_pr_freshness": {
+      "passed": 21
+    },
+    "tests.test_pr_lifecycle": {
+      "passed": 43
+    },
+    "tests.test_pr_updates": {
+      "passed": 31
+    },
+    "tests.test_product_experience": {
+      "passed": 6
+    },
+    "tests.test_project_environment": {
+      "passed": 22,
+      "skipped": 3
+    },
+    "tests.test_prompt_injection": {
+      "passed": 10,
+      "skipped": 1
+    },
+    "tests.test_proposal_append_recovery": {
+      "passed": 18
+    },
+    "tests.test_proposal_format_correction": {
+      "passed": 22
+    },
+    "tests.test_proposal_validation": {
+      "passed": 14
+    },
+    "tests.test_provenance": {
+      "passed": 2
+    },
+    "tests.test_provider_budgets": {
+      "passed": 15
+    },
+    "tests.test_provider_contracts": {
+      "passed": 5
+    },
+    "tests.test_provider_gateway": {
+      "passed": 6,
+      "skipped": 1
+    },
+    "tests.test_provider_jobs": {
+      "passed": 9
+    },
+    "tests.test_provider_progress": {
+      "passed": 1
+    },
+    "tests.test_provider_response_diagnostics": {
+      "passed": 26
+    },
+    "tests.test_publication_documents": {
+      "passed": 32
+    },
+    "tests.test_publication_preview_renewal": {
+      "passed": 4
+    },
+    "tests.test_publication_workbench": {
+      "passed": 20
+    },
+    "tests.test_publisher_settings": {
+      "passed": 12
+    },
+    "tests.test_python_development_dependencies": {
+      "passed": 14
+    },
+    "tests.test_read_capacity": {
+      "passed": 22
+    },
+    "tests.test_read_capacity_oci": {
+      "skipped": 1
+    },
+    "tests.test_replan_runtime_binding": {
+      "passed": 4
+    },
+    "tests.test_runtime_integrity": {
+      "passed": 4
+    },
+    "tests.test_runtime_wiring": {
+      "passed": 14
+    },
+    "tests.test_sandbox_dependencies": {
+      "passed": 4,
+      "skipped": 1
+    },
+    "tests.test_sandbox_doctor": {
+      "passed": 6
+    },
+    "tests.test_sandbox_explore": {
+      "passed": 4,
+      "skipped": 5
+    },
+    "tests.test_sandbox_git_safety": {
+      "passed": 1
+    },
+    "tests.test_sandbox_implementation": {
+      "passed": 6,
+      "skipped": 3
+    },
+    "tests.test_sandbox_runner_image": {
+      "passed": 2
+    },
+    "tests.test_sandbox_specs": {
+      "passed": 7
+    },
+    "tests.test_sandbox_verification": {
+      "passed": 9
+    },
+    "tests.test_sandbox_worker": {
+      "passed": 5
+    },
+    "tests.test_scoring": {
+      "passed": 8
+    },
+    "tests.test_security": {
+      "passed": 3
+    },
+    "tests.test_service": {
+      "passed": 5
+    },
+    "tests.test_snapshot_assessment": {
+      "passed": 12
+    },
+    "tests.test_source_wheels": {
+      "passed": 18
+    },
+    "tests.test_structured_tool_transport": {
+      "passed": 18
+    },
+    "tests.test_task_erasure": {
+      "passed": 4
+    },
+    "tests.test_task_model_selection": {
+      "passed": 9
+    },
+    "tests.test_task_visibility": {
+      "passed": 9
+    },
+    "tests.test_verification_execution": {
+      "passed": 7
+    },
+    "tests.test_workbench": {
+      "passed": 20
+    },
+    "tests.test_worker": {
+      "passed": 3
+    },
+    "tests.test_workflow_stop_race": {
+      "passed": 1
+    },
+    "tests.test_workspace_execution": {
+      "passed": 19,
+      "skipped": 5
+    },
+    "tests.test_xcli_local": {
+      "passed": 12
+    },
+    "tests.test_local_demo": {
+      "passed": 7
+    }
+  },
+  "browser": {
+    "status": "PASS",
+    "mode": "contribos-offline-demo-v1",
+    "checks": [
+      "dashboard_and_demo_notice",
+      "scan_via_web",
+      "opportunity_details",
+      "shortlist_mutation_and_view",
+      "model_settings_view",
+      "task_history",
+      "task_detail",
+      "coding_verification_and_review_result_view",
+      "desktop_and_mobile_layout",
+      "no_page_errors_or_external_requests"
+    ],
+    "passed": 10,
+    "failed": 0,
+    "completed_at": "2026-11-11T02:27:30.088Z",
+    "real_ai": false
+  },
+  "service": {
+    "status": "PASS",
+    "checks": [
+      "/health",
+      "/",
+      "/static/app.js",
+      "/api/v1/model-settings",
+      "/api/v1/scans",
+      "/api/v1/tasks/52e4ae87-f09b-4459-be74-fbf83985ea5e",
+      "review_retained_after_restart",
+      "artifacts_retained_after_restart",
+      "unauthenticated_cli_rejected",
+      "cross_origin_rejected",
+      "missing_csrf_rejected",
+      "database_integrity",
+      "all_forward_migrations"
+    ],
+    "passed": 13,
+    "failed": 0,
+    "schema_revision": "0046_read_capacity",
+    "executed_at": "2026-11-11T02:23:20.368565+00:00",
+    "real_ai": false
+  },
+  "real_readonly_discovery": {
+    "status": "PASS",
+    "exit": 0,
+    "result": {
+      "job_id": "d2479c7a-a762-43fc-851e-12cf20781947",
+      "status": "succeeded",
+      "scan_run_id": "a464ea81-652e-4579-a3f7-4bef95c06f25",
+      "candidate_count": 1,
+      "eligible_count": 1,
+      "selected_count": 1,
+      "repository_count": 1,
+      "error_code": null
+    },
+    "duration_seconds": 2.97,
+    "executed_at": "2026-11-11T02:25:03.187190+00:00",
+    "credentials_used": false,
+    "model_calls": 0,
+    "query": "repo:pallets/flask is:issue is:open no:assignee"
+  },
+  "offline_e2e": {
+    "mode": "contribos-offline-demo-v1",
+    "real_ai": false,
+    "real_repository_tests": false,
+    "external_writes": 0,
+    "run": "c5bc457942824dbca8bdf34f6b2ffd2d",
+    "completed_at": "2026-11-11T02:20:55.952235+00:00",
+    "opportunity_id": 1,
+    "snapshot_id": "dc9d15de-a131-4103-8b6f-1d6b3357f6ea",
+    "analysis_id": "58483b2a-94f6-4888-b623-008591e46160",
+    "task_id": "52e4ae87-f09b-4459-be74-fbf83985ea5e",
+    "plan_id": "e4aa123d-a5fc-4d54-8186-06c19fe19dc8",
+    "execution_id": "82901229-9fbb-46ef-991c-0bb2d3d29373",
+    "review_id": "d36d5d78-89e8-4ffc-8a70-bfad195da902",
+    "review_verdict": "pass",
+    "change_set_hash": "833ddc073c441d2f472f743a78a9effcec18da3d0bc88ae12c7e87faf8369407",
+    "artifact_manifests": 3,
+    "result_url": "http://127.0.0.1:18767/api/v1/executions/82901229-9fbb-46ef-991c-0bb2d3d29373",
+    "web_url": "http://127.0.0.1:18767/#/contributions"
+  },
+  "security": {
+    "status": "PASS",
+    "checked_files": 748,
+    "exact_private_value_matches": [],
+    "real_owner_path_matches": [],
+    "unexpected_sensitive_or_generated_files": [],
+    "synthetic_canaries_in_tests": "intentional inputs; no real configured values found",
+    "checked_at": "2026-11-11T02:34:04.104105+00:00"
+  },
+  "external_acceptance": [
+    {
+      "feature": "real_ai_planning_coding_review",
+      "status": "NOT_RUN",
+      "reason": "No paid-model authorization; current task prohibits real paid calls"
+    },
+    {
+      "feature": "real_gateway_incident_recovery",
+      "status": "BLOCKED",
+      "reason": "No verified paired recovery materials; existing Gateway untouched"
+    },
+    {
+      "feature": "real_oci_macos",
+      "status": "NOT_RUN",
+      "reason": "No new real OCI acceptance in this maintenance pass; historical pass not reused"
+    },
+    {
+      "feature": "linux_amd64_docker",
+      "status": "BLOCKED",
+      "reason": "No native Linux acceptance environment used"
+    },
+    {
+      "feature": "real_github_publication",
+      "status": "NOT_RUN",
+      "reason": "No dedicated exact publication consent; local demo Publisher disabled"
+    },
+    {
+      "feature": "real_model_credentials_and_switch",
+      "status": "BLOCKED",
+      "reason": "Independent configured trial Gateway not provided; no existing secrets used"
+    },
+    {
+      "feature": "xcli_container_host_bridge",
+      "status": "BLOCKED",
+      "reason": "Not implemented"
+    }
+  ],
+  "engineering": {
+    "dependency_check": "PASS: 32 compatible installed packages",
+    "imports": "PASS: 244 modules",
+    "python_compile": "PASS",
+    "javascript_modules": "PASS: 7",
+    "shell_syntax": "PASS: 3",
+    "wheel": "PASS: 262 members, 11 static assets, revision 0046, no database or .env",
+    "diff_check": "PASS"
+  },
+  "no_real_ai_calls": true,
+  "no_business_external_writes": true,
+  "existing_env_and_data_unchanged": true,
+  "raw_evidence": "Private archive; original JUnit and traceback paths are not published"
+}
