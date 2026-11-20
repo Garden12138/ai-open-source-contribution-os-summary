@@ -1,41 +1,28 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "contribos"
-version = "0.1.0"
-description = "AI-assisted open-source contribution opportunity workbench"
+version = "2.0.0.dev0"
+description = "A local copilot for open-source contributions"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-  "fastapi>=0.116,<1",
-  "httpx>=0.28,<1",
-  "h2>=4,<5",
-  "requests>=2.32,<3",
-  "sqlalchemy>=2.0,<3",
-  "uvicorn>=0.35,<1",
-  "cryptography>=43,<47",
-  "packaging>=24,<27",
-]
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1", "agent-client-protocol==1.0.0"]
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=7.4,<9",
-]
+dev = ["pytest>=8,<10"]
 
 [project.scripts]
-contribos = "app.cli:main"
+contribos = "contribos.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["contribos*"]
 
 [tool.setuptools.package-data]
-app = ["static/*"]
+contribos = ["migrations/*.sql", "web/static/*.html", "web/static/*.css", "web/static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
-markers = [
-  "sandbox_malicious: real cross-platform malicious-repository acceptance suite",
-]
+pythonpath = ["."]
+markers = ["agents: opt-in real Agent CLI acceptance on an explicitly trusted user-owned issue"]

@@ -1,0 +1,4 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0; padding: 4rem 1.5rem; line-height: 1.6; }
+main { max-width: 48rem; margin: 0 auto; }
+h1 { letter-spacing: -.04em; }

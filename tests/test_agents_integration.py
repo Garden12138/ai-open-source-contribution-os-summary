@@ -1,0 +1,102 @@
+"""Opt-in acceptance against a user-owned issue and separately logged-in profiles."""
+
+import asyncio
+import contextlib
+import os
+import uuid
+from pathlib import Path
+
+import pytest
+from acp.schema import TextContentBlock
+
+from contribos.agent.acp_engine import AcpEngine
+from contribos.agent.engine import RequestResponse, TaskContext
+from contribos.agent.profiles import PROFILES
+from contribos.config import Settings
+from contribos.sandbox.host import HostSandbox
+from contribos.tasks.instructions import first_prompt, task_instructions
+from contribos.tasks.issue import fetch_issue, parse_issue_url
+
+
+@pytest.mark.agents
+@pytest.mark.parametrize('profile_id', tuple(PROFILES))
+def test_real_agent_host_acceptance(profile_id):
+    selected = os.environ.get('CONTRIBOS_IT_AGENTS', '').split(',')
+    if profile_id not in selected:
+        pytest.skip('Set CONTRIBOS_IT_AGENTS to explicitly select real agents.')
+    issue_url = os.environ.get('CONTRIBOS_IT_ISSUE_URL')
+    if not issue_url or os.environ.get('CONTRIBOS_IT_TRUST_REPO') != '1':
+        pytest.skip('Provide your own CONTRIBOS_IT_ISSUE_URL and explicitly set CONTRIBOS_IT_TRUST_REPO=1.')
+
+    async def check():
+        ref = parse_issue_url(issue_url)
+        snapshot = await fetch_issue(ref)
+        task = TaskContext(uuid.uuid4().hex, ref.repo, ref.number, '', '', trust_confirmed=True,
+            issue=snapshot, linked_prs=snapshot['linked_prs'])
+        sandbox = HostSandbox(Settings())
+        events = []
+        command_started = asyncio.Event()
+        async def refresh():
+            await sandbox.diff()
+        profile = PROFILES[profile_id]
+        agent = AcpEngine(lambda: sandbox.spawn_agent(profile), refresh_diff=refresh,
+                          stop_process=sandbox.stop, error_mapper=profile.classify_error)
+        reader = None
+        try:
+            await sandbox.prepare(task)
+            task.instructions = task_instructions(task)
+            sandbox.write_context(task)
+            marker = uuid.uuid4().hex
+            Path(task.context_dir, 'context-check.txt').write_text(marker)
+            sid = await agent.ensure_session(task)
+            async def consume():
+                async for event in agent.events(sid):
+                    events.append(event)
+                    if event.type == 'command.started':
+                        command_started.set()
+                    elif event.type == 'permission.requested':
+                        # A noninteractive test cannot grant host escalation on the user's behalf.
+                        await agent.respond(event.payload['request_id'], RequestResponse(cancelled=True))
+                    elif event.type == 'question.asked':
+                        await agent.respond(event.payload['request_id'], RequestResponse(cancelled=True))
+            reader = asyncio.create_task(consume())
+            async def prompt(text):
+                return await asyncio.wait_for(agent.prompt(task.session_id, [TextContentBlock(text=text)]), 240)
+            probe = await prompt(
+                'Before planning, use a tool to read the context file '
+                f'{task.context_dir}/context-check.txt. It contains a public test marker. '
+                'Reply with the complete marker verbatim. Do not edit any files.'
+            )
+            assert probe.stop_reason == 'end_turn'
+            assert any(marker in e.payload.get('text', '') for e in events if e.type == 'message.agent'), (
+                'The Agent did not return the context marker.'
+            )
+            assert (await prompt(first_prompt(task))).stop_reason == 'end_turn'
+            assert (await prompt('Implement the proposed solution and add relevant tests.')).stop_reason == 'end_turn'
+            assert (await prompt('Run the relevant tests. Report exact commands and results.')).stop_reason == 'end_turn'
+            assert await sandbox.diff()
+            assert any(e.type == 'files.changed' for e in events)
+            assert any(e.type == 'command.completed' for e in events)
+            command_started.clear()
+            slow = asyncio.create_task(prompt('Run a Python command that sleeps for 60 seconds; do not edit files.'))
+            try:
+                await asyncio.wait_for(command_started.wait(), 60)
+                await agent.cancel(task.session_id)
+                assert (await asyncio.wait_for(slow, 10)).stop_reason == 'cancelled'
+            finally:
+                if not slow.done():
+                    await agent.cancel(task.session_id)
+                    slow.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await slow
+            task.recap = 'Implementation and tests completed; a long sleep was cancelled. Preserve the current changes.'
+            await sandbox.stop()
+            await agent.ensure_session(task)
+            assert (await prompt('Continue from where you left off. Summarize the current changes and test results.')).stop_reason == 'end_turn'
+        finally:
+            await agent.close()
+            await sandbox.stop()
+            if reader:
+                await reader
+            # Keep the independent workspace for user review.
+    asyncio.run(check())
