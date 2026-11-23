@@ -15,6 +15,12 @@ from contribos.config import Settings
 RETRYABLE = (r'rate.?limit', r'\b429\b', r'overload', r'\b503\b', r'temporar', r'timed? ?out', r'connection (?:reset|refused)', r'network', r'ECONNRESET')
 AUTH_ERRORS = (r'authenticat', r'unauthori[sz]ed', r'not logged in', r'login required', r'\b401\b', r'invalid.*(?:key|token)')
 QUOTA_ERRORS = (r'quota', r'insufficient.*(?:credit|balance)', r'usage.?limit', r'credit.*exhaust', r'billing', r'spending.?limit')
+REGION_ERRORS = (
+    r'unsupported[_ -](?:country|region|territory|location)',
+    r'(?:country|region|territory|location)[^.!?]{0,90}(?:not supported|not available|unsupported|unavailable|restricted)',
+    r'(?:not supported|not available|unavailable|cannot be used)[^.!?]{0,90}(?:country|region|territory|location)',
+    r'geo(?:graphic)?[_ -]?(?:blocked|restricted|restriction)',
+)
 
 
 @dataclass(frozen=True)
@@ -57,6 +63,8 @@ class AgentProfile:
 
     def classify_error(self, exc: Exception) -> AgentError:
         text = str(exc) + ' ' + json.dumps(getattr(exc, 'data', None), default=str)
+        if any(re.search(pattern, text, re.I) for pattern in REGION_ERRORS):
+            return AgentError('agent_region_unavailable', 'Agent service is unavailable in this region; check your network egress or proxy settings.')
         if any(re.search(p, text, re.I) for p in QUOTA_ERRORS):
             return AgentError('quota_exhausted', 'Agent quota exhausted; check the account before continuing.')
         if any(re.search(p, text, re.I) for p in AUTH_ERRORS):

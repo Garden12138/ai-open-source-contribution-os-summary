@@ -1,5 +1,7 @@
 """FastAPI factory for the loopback-only local service."""
 
+import fcntl
+import os
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,10 +14,14 @@ from starlette.exceptions import HTTPException
 
 from contribos.config import Settings, server_origin
 from contribos.db import connect, migrate
+from contribos.sandbox.host import safe_text
 from contribos.security import (
     CSRF_COOKIE, CSRF_HEADER, SAFE_METHODS, SESSION_COOKIE,
     LocalAuth, SecurityError, load_or_create_local_token, valid_origin,
 )
+from contribos.tasks.store import TaskError, TaskStore
+from contribos.tasks.supervisor import TaskSupervisor
+from contribos.web.routes_tasks import router as task_router
 
 STATIC = Path(__file__).with_name("static")
 CSP = (
@@ -29,20 +35,40 @@ def error_response(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message}}, status_code=status)
 
 
-def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = None,
+               supervisor_factory: Callable[[Settings, TaskStore], TaskSupervisor] = TaskSupervisor) -> FastAPI:
     settings = settings or Settings()
     origin = server_origin(settings)  # Validate before filesystem access or startup.
-    auth = auth or LocalAuth(load_or_create_local_token(settings.local_token_path))
+    local_token = load_or_create_local_token(settings.local_token_path) if auth is None else None
+    auth = auth or LocalAuth(local_token)
+
+    def clean(text: str) -> str:
+        if local_token:
+            text = text.replace(local_token, '[REDACTED]')
+        return safe_text(text)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        database = connect(settings.database_path)
-        try:
-            migrate(database)
-            app.state.db = database
-            yield
-        finally:
-            database.close()
+        settings.home.mkdir(parents=True, exist_ok=True)
+        fd = os.open(settings.home / 'backend.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'rb') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuntimeError('A backend is already using this data directory.') from None
+            database = connect(settings.database_path)
+            try:
+                migrate(database)
+                app.state.db = database
+                supervisor = supervisor_factory(settings, TaskStore(database, clean))
+                app.state.supervisor = supervisor
+                try:
+                    supervisor.start()
+                    yield
+                finally:
+                    await supervisor.shutdown()
+            finally:
+                database.close()
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.auth = auth
@@ -99,6 +125,10 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
         return error_response(422, "invalid_request", "The request parameters are invalid.")
 
+    @app.exception_handler(TaskError)
+    async def task_error(request: Request, exc: TaskError) -> JSONResponse:
+        return error_response(exc.status, clean(exc.code), clean(exc.message))
+
     @app.api_route("/api/health", methods=["GET", "HEAD"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
@@ -124,5 +154,6 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     async def index() -> FileResponse:
         return FileResponse(STATIC / "index.html")
 
+    app.include_router(task_router)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
     return app

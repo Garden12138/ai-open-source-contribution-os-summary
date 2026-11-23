@@ -22,12 +22,15 @@ class AcpEngine(Client):
                  refresh_diff: Callable[[], Awaitable[None]] | None = None,
                  stop_process: Callable[[], Awaitable[None]] | None = None,
                  error_mapper: Callable[[Exception], AgentError] | None = None,
-                 secrets: tuple[str, ...] = ()) -> None:
+                 secrets: tuple[str, ...] = (),
+                 clean_text: Callable[[str], str] = redact, replay_session_updates: bool = True) -> None:
         self.spawn = spawn
         self.refresh_diff = refresh_diff
         self.stop_process = stop_process
         self.error_mapper = error_mapper
         self.secrets = secrets
+        self.clean_text = clean_text
+        self.replay_session_updates = replay_session_updates
         self.capabilities = AgentCapabilities()
         self.process: asyncio.subprocess.Process | None = None
         self.connection: Any = None
@@ -38,13 +41,14 @@ class AcpEngine(Client):
         self.watcher: asyncio.Task[None] | None = None
         self.running = False
         self.closed = False
-        self.recreated = False
+        self.session_ready = False
+        self.restoring = False
 
     def _clean(self, text: str) -> str:
         for value in self.secrets:
             if value:
                 text = text.replace(value, '[REDACTED]')
-        return redact(text)
+        return self.clean_text(text)
 
     def _emit(self, event: EngineEvent) -> None:
         def clean(value: Any) -> Any:
@@ -75,10 +79,12 @@ class AcpEngine(Client):
         rpc = asyncio.ensure_future(call)
         try:
             done, _ = await asyncio.wait({rpc, self.watcher}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+            if self.watcher in done:
+                if rpc in done and not rpc.cancelled() and rpc.exception() is None:
+                    return rpc.result()
+                raise AgentError('agent_exited', 'Agent process exited; continue to reconnect.')
             if rpc in done:
                 return rpc.result()
-            if self.watcher in done:
-                raise AgentError('agent_exited', 'Agent process exited; continue to reconnect.')
             raise AgentError('agent_timeout', 'Agent request timed out.')
         except AgentError:
             raise
@@ -98,7 +104,7 @@ class AcpEngine(Client):
             raise AgentError('engine_closed')
         if self.task and self.task.task_id != task.task_id:
             raise AgentError('task_mismatch')
-        if self.process and self.process.returncode is None and self.task and self.task.session_id:
+        if self.session_ready and self.process and self.process.returncode is None and self.task and self.task.session_id:
             return self.task.session_id
         await self._stop_process()
         self.task = task
@@ -124,26 +130,36 @@ class AcpEngine(Client):
         arguments = dict(cwd=task.repo_dir, additional_directories=[task.context_dir], mcp_servers=[])
         restored = False
         if task.session_id:
-            method = self.connection.resume_session if self.capabilities.resume_session else self.connection.load_session
-            if self.capabilities.resume_session or self.capabilities.load_session:
+            methods = []
+            if self.capabilities.resume_session:
+                methods.append(self.connection.resume_session)
+            if self.capabilities.load_session:
+                methods.append(self.connection.load_session)
+            for method in methods:
+                self.restoring = True
                 try:
                     session = await self._call(method(session_id=task.session_id, **arguments), timeout=20)
                     restored = True
+                    break
                 except AgentError as exc:
-                    if exc.code in {'agent_exited', 'agent_disconnected', 'agent_timeout', 'authentication_required'}:
+                    if exc.retryable or exc.code in {'agent_exited', 'agent_disconnected', 'agent_timeout',
+                                                   'authentication_required', 'quota_exhausted', 'agent_region_unavailable'}:
                         raise
+                finally:
+                    self.restoring = False
         if not restored:
             previous = task.session_id
             session = await self._call(self.connection.new_session(**arguments), timeout=20)
             task.session_id = session.session_id
             if previous:
-                self.recreated = True
+                task.recap_pending = True
                 self._emit(EngineEvent('system.session_recreated', {}))
         modes = getattr(session, 'modes', None)
         configs = getattr(session, 'config_options', None) or []
         models = tuple(v.value for c in configs if getattr(c, 'category', None) == 'model' for v in getattr(c, 'options', []) if hasattr(v, 'value'))
         self.capabilities = replace(self.capabilities, modes=tuple(m.id for m in modes.available_modes) if modes else (), models=models)
         self.normalizer.flush()
+        self.session_ready = True
         return task.session_id
 
     async def _refresh(self) -> None:
@@ -160,11 +176,12 @@ class AcpEngine(Client):
             raise AgentError('session_missing')
         self.running = True
         try:
-            if self.recreated:
+            if self.task.recap_pending:
                 from contribos.tasks.instructions import recovery_prompt
                 blocks = [s.TextContentBlock(text=recovery_prompt(self.task)), *blocks]
-                self.recreated = False
             result = await self._call(self.connection.prompt(session_id=session_id, prompt=blocks))
+            if result.stop_reason != 'cancelled':
+                self.task.recap_pending = False
             self.normalizer.flush()
             await self._refresh()
             self._emit(EngineEvent('turn.completed', {'stop_reason': result.stop_reason}))
@@ -181,13 +198,18 @@ class AcpEngine(Client):
     async def cancel(self, session_id: str) -> None:
         self._invalidate()
         if self.process and self.process.returncode is None:
-            await self.connection.cancel(session_id=session_id)
+            try:
+                await self.connection.cancel(session_id=session_id)
+            except (ConnectionError, OSError):
+                raise AgentError('agent_disconnected') from None
 
     async def set_mode(self, session_id: str, mode: str) -> None:
         if mode in self.capabilities.modes:
             await self._call(self.connection.set_session_mode(session_id=session_id, mode_id=mode), timeout=20)
 
     async def session_update(self, session_id: str, update: Any, **kwargs: Any) -> None:
+        if self.restoring and not self.replay_session_updates:
+            return
         if self.normalizer.update(update.model_dump(by_alias=True, exclude_none=True, mode='json')):
             await self._refresh()
 
@@ -258,13 +280,17 @@ class AcpEngine(Client):
             return
         self.closed = True
         self._invalidate()
-        await self._stop_process()
-        self.normalizer.flush()
-        self.queue.put_nowait(None)
+        try:
+            await self._stop_process()
+        finally:
+            self.normalizer.flush()
+            self.queue.put_nowait(None)
 
     async def _stop_process(self) -> None:
+        self.session_ready = False
         if self.connection:
-            await self.connection.close()
+            with contextlib.suppress(ConnectionError, OSError):
+                await self.connection.close()
         if self.stop_process and self.process:
             await self.stop_process()
         if self.process and self.process.returncode is None:

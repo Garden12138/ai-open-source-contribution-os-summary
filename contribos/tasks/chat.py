@@ -21,7 +21,7 @@ from typing import Any, TextIO
 from acp.schema import TextContentBlock
 
 from contribos.agent.acp_engine import AcpEngine
-from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, RequestResponse, TaskContext, TurnResult
+from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, RequestResponse, TaskContext, TurnResult, validate_answers
 from contribos.agent.profiles import AgentProfile, PROFILES
 from contribos.config import Settings
 from contribos.db import connect, migrate
@@ -88,16 +88,7 @@ def question_response(payload: dict[str, Any], line: str) -> RequestResponse:
         answers = {name: value}
     else:
         answers = json.loads(line)
-    if not isinstance(answers, dict) or not all(k in answers for k in schema.get('required', [])):
-        raise ValueError()
-    types = {'string': str, 'boolean': bool, 'integer': int, 'number': (int, float), 'array': list}
-    for name, value in answers.items():
-        spec = properties.get(name, {})
-        expected = types.get(spec.get('type'))
-        if expected and (not isinstance(value, expected) or (isinstance(value, bool) and spec.get('type') in {'integer', 'number'})):
-            raise ValueError()
-        if 'enum' in spec and value not in spec['enum']:
-            raise ValueError()
+    validate_answers(schema, answers)
     return RequestResponse(answers=answers)
 
 
@@ -179,7 +170,7 @@ class ChatSession:
 
     async def resume(self, task_id: str) -> None:
         row = self.connection.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
-        if not row or row['status'] not in {'ready', 'published'} or row['isolation'] != 'host':
+        if not row or row['status'] not in {'ready', 'published'} or row['isolation'] != 'host' or row['delete_requested']:
             raise SandboxError('task_not_resumable')
         if row['agent_profile'] != self.profile.id:
             raise SandboxError('agent_profile_mismatch')
@@ -187,12 +178,13 @@ class ChatSession:
         self.task = TaskContext(task_id, row['repo_full_name'], row['issue_number'], '', '',
             session_id=row['session_id'], trust_confirmed=True, issue=snapshot,
             linked_prs=snapshot.get('linked_prs', []), default_branch=row['default_branch'],
-            base_sha=row['base_sha'], work_branch=row['work_branch'])
+            base_sha=row['base_sha'], work_branch=row['work_branch'], recap_pending=bool(row['recap_pending']))
         self.sandbox.attach(self.task)
         self._lock_workspace()
         self.task.instructions = task_instructions(self.task)
         self.connection.execute("UPDATE turns SET status='interrupted',completed_at=? WHERE task_id=? AND status='running'", (utc_now(), task_id))
-        self.connection.execute("UPDATE tasks SET agent_state='idle',updated_at=? WHERE id=? AND agent_state=?", (utc_now(), task_id, row['agent_state']))
+        self.connection.execute("UPDATE tasks SET runtime_managed=0,agent_state='idle',updated_at=? WHERE id=? AND agent_state=?",
+                                (utc_now(), task_id, row['agent_state']))
         self.console.write(f'Task: {task_id}\nIsolation: host (previously trusted)\n')
 
     async def _read_input(self) -> None:
@@ -225,8 +217,8 @@ class ChatSession:
             self._event(EngineEvent('turn.failed', {'error_code': exc.code, 'message': exc.message}))
             self.console.write(f'[{exc.code}] {exc.message}\nUse /continue after correcting the problem.\n')
             return
-        self.connection.execute('UPDATE tasks SET session_id=?,agent_caps_json=?,updated_at=? WHERE id=?',
-            (sid, json.dumps(asdict(self.engine.capabilities)), utc_now(), self.task.task_id))
+        self.connection.execute('UPDATE tasks SET session_id=?,agent_caps_json=?,recap_pending=?,updated_at=? WHERE id=?',
+            (sid, json.dumps(asdict(self.engine.capabilities)), int(self.task.recap_pending), utc_now(), self.task.task_id))
         changed = self.connection.execute("UPDATE tasks SET agent_state='running',updated_at=? WHERE id=? AND agent_state IN ('idle','error')", (utc_now(), self.task.task_id)).rowcount
         if not changed:
             raise AgentError('task_busy')
@@ -266,7 +258,10 @@ class ChatSession:
             reason = result.stop_reason if isinstance(result, TurnResult) else None
             status = 'interrupted' if reason == 'cancelled' else ('failed' if isinstance(result, AgentError) else 'completed')
             self.connection.execute("UPDATE turns SET status=?,stop_reason=?,error_code=?,completed_at=? WHERE id=? AND status='running'", (status, reason, result.code if isinstance(result, AgentError) else None, utc_now(), self.turn_id))
-            self.connection.execute("UPDATE tasks SET agent_state=?,last_error_code=?,last_error_message=?,updated_at=? WHERE id=? AND agent_state='running'", ('error' if isinstance(result, AgentError) else 'idle', result.code if isinstance(result, AgentError) else None, result.message if isinstance(result, AgentError) else None, utc_now(), self.task.task_id))
+            self.connection.execute("""UPDATE tasks SET agent_state=?,last_error_code=?,last_error_message=?,
+                recap_pending=?,updated_at=? WHERE id=? AND agent_state='running'""",
+                ('error' if isinstance(result, AgentError) else 'idle', result.code if isinstance(result, AgentError) else None,
+                 result.message if isinstance(result, AgentError) else None, int(self.task.recap_pending), utc_now(), self.task.task_id))
             self.console.write(f'\n[{event.type}] ' + json.dumps(payload, ensure_ascii=False) + '\n> ')
             self.turn = None
             self.turn_id = None

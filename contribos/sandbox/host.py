@@ -2,18 +2,21 @@
 
 import asyncio
 import contextlib
+import fcntl
 import json
 import os
 import re
 import shutil
 import signal
+import tempfile
 from pathlib import Path
-from typing import Mapping
+from typing import BinaryIO, Mapping
 
 from contribos.agent.engine import TaskContext
 from contribos.agent.profiles import AgentProfile
 from contribos.config import Settings
 from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace
+from contribos.sandbox.processes import ProcessInfo, process_family, process_info
 from contribos.security import redact
 
 GIT_OPTIONS = ['-c', 'core.hooksPath=/dev/null', '-c', 'core.fsmonitor=false',
@@ -59,6 +62,9 @@ class HostSandbox:
         self.task: TaskContext | None = None
         self.processes: list[AgentProcess] = []
         self.environment: dict[str, str] = {}
+        self.lock: BinaryIO | None = None
+        self.recorded: set[tuple[int, int]] = set()
+        self.leaders: dict[int, int] = {}
 
     def attach(self, task: TaskContext) -> None:
         if not task.trust_confirmed or task.isolation != 'host':
@@ -119,7 +125,7 @@ class HostSandbox:
         if result.returncode:
             raise SandboxError('branch_creation_failed')
         self.write_context(task)
-        return Workspace(str(repo), str(context), task.default_branch, task.base_sha, task.work_branch)
+        return Workspace(str(repo), str(context), task.default_branch, task.base_sha, task.work_branch, str(root))
 
     def write_context(self, task: TaskContext) -> None:
         context = self._inside(task.context_dir)
@@ -133,6 +139,72 @@ class HostSandbox:
             if target.is_symlink():
                 raise SandboxError('unsafe_context_path')
             target.write_text(safe_text(content), encoding='utf-8')
+
+    async def write_task_context(self, task: TaskContext) -> None:
+        self.write_context(task)
+
+    async def restore(self, task: TaskContext) -> None:
+        self.attach(task)
+        self.claim_runtime()
+        if not self.processes:
+            self._reap_previous_group()
+
+    def claim_runtime(self) -> None:
+        if self.lock is not None:
+            return
+        fd = os.open(self.root / '.chat.lock', os.O_NOFOLLOW | os.O_CREAT | os.O_RDWR, 0o600)
+        handle = os.fdopen(fd, 'rb')
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            handle.close()
+            raise SandboxError('task_already_open') from None
+        self.lock = handle
+
+    def release_runtime(self) -> None:
+        if self.lock is not None:
+            self.lock.close()
+            self.lock = None
+
+    def _record_path(self) -> Path:
+        directory = self.settings.home / 'runtime'
+        if directory.is_symlink():
+            raise SandboxError('unsafe_runtime_path')
+        return directory / f'{self.root.name}.agent-processes.json'
+
+    def record_processes(self) -> set[tuple[int, int]]:
+        members = {(info.pid, info.started) for info in self.agent_processes()}
+        members.update((pid, started) for pid, started in self.recorded if self._still_running(pid, started))
+        if self.lock and self.processes and members != self.recorded:
+            path = self._record_path()
+            path.parent.mkdir(mode=0o700, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as record:
+                record.write(json.dumps({'group': self.processes[-1].pid, 'members': sorted(members)}).encode())
+            os.replace(record.name, path)
+            self.recorded = members
+        return members
+
+    def _reap_previous_group(self) -> None:
+        path = self._record_path()
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        except FileNotFoundError:
+            return
+        try:
+            with os.fdopen(fd, 'rb') as record:
+                info = json.loads(record.read(65536))
+            group = info['group']
+            members = set(map(tuple, info['members']))
+            if (type(group) is not int or group < 2 or any(type(pid) is not int or pid < 2
+                    or type(started) is not int or started <= 0 for pid, started in members)):
+                raise ValueError()
+        except (KeyError, TypeError, ValueError):
+            raise SandboxError('invalid_process_record') from None
+        leader = process_info(group)
+        if leader and leader.group == group and (group, leader.started) in members:
+            self._signal_group(group, signal.SIGKILL, leader.started)
+        self._signal_members(members, signal.SIGKILL)
+        path.unlink(missing_ok=True)
 
     async def exec(self, argv: list[str], cwd: str | None = None, timeout: float = 120) -> ExecResult:
         if not self.task or not argv:
@@ -177,6 +249,9 @@ class HostSandbox:
         except OSError:
             raise SandboxError('agent_start_failed') from None
         self.processes.append(proc)
+        if info := process_info(proc.pid):
+            self.leaders[proc.pid] = info.started
+        self.record_processes()
         return proc
 
     async def diff(self) -> str:
@@ -206,24 +281,89 @@ class HostSandbox:
         shutil.copyfile(source, destination)
         return destination
 
+    def agent_processes(self) -> set[ProcessInfo]:
+        return {info for process in self.processes
+                for info in self._owned_family(process.pid, self.leaders.get(process.pid)).values()}
+
+    @staticmethod
+    def _still_running(pid: int, started: int) -> bool:
+        info = process_info(pid)
+        return bool(info and not info.zombie and info.started == started)
+
+    @staticmethod
+    def _owned_family(group: int, started: int | None) -> dict[int, ProcessInfo]:
+        leader = process_info(group)
+        if leader is not None and started is not None and leader.started != started:
+            return {}
+        return process_family(group)
+
+    @classmethod
+    def _signal_members(cls, members: set[tuple[int, int]], sig: signal.Signals) -> None:
+        for pid, started in members:
+            if cls._still_running(pid, started):
+                with contextlib.suppress(ProcessLookupError):
+                    os.kill(pid, sig)
+
+    def force_stop(self) -> None:
+        members = self.recorded.copy()
+        for process in self.processes:
+            self._signal_group(process.pid, signal.SIGKILL, self.leaders.get(process.pid))
+        self._signal_members(members, signal.SIGKILL)
+
+    @classmethod
+    def _signal_group(cls, group: int, sig: signal.Signals, started: int | None) -> None:
+        family = cls._owned_family(group, started)
+        for info in family.values():
+            if info.group != group and process_info(info.pid) == info:
+                with contextlib.suppress(ProcessLookupError):
+                    os.kill(info.pid, sig)
+        if any(info.group == group for info in family.values()):
+            try:
+                os.killpg(group, sig)
+            except ProcessLookupError:
+                pass
+            except PermissionError:
+                if any(info.group == group for info in cls._owned_family(group, started).values()):
+                    raise
+
     async def stop(self) -> None:
         for proc in self.processes:
             # ACP adapters can own an app-server child; stop the entire owned group.
-            with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGTERM)
+            started = self.leaders.get(proc.pid)
+            self._signal_group(proc.pid, signal.SIGTERM, started)
             if proc.returncode is None:
                 try:
                     await asyncio.wait_for(proc.wait(), 2)
                 except TimeoutError:
-                    with contextlib.suppress(ProcessLookupError):
-                        os.killpg(proc.pid, signal.SIGKILL)
+                    self._signal_group(proc.pid, signal.SIGKILL, started)
                     await proc.wait()
-            with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGKILL)
+            self._signal_group(proc.pid, signal.SIGKILL, started)
+        self._signal_members(self.recorded, signal.SIGKILL)
         self.processes.clear()
+        self.leaders.clear()
+        self.recorded.clear()
+        if self.lock:
+            self._record_path().unlink(missing_ok=True)
 
     async def destroy(self) -> None:
         await self.stop()
-        if self.root:
-            shutil.rmtree(self.root)
-            self.root = None
+        try:
+            if self.root:
+                shutil.rmtree(self.root)
+                self.root = None
+        finally:
+            self.release_runtime()
+
+    async def destroy_task(self, task: TaskContext) -> None:
+        if self.root is None:
+            root = self.settings.home / 'workspaces' / task.task_id
+            if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', task.task_id) or any(
+                    path.is_symlink() for path in (root, *root.parents)):
+                raise SandboxError('unsafe_workspace_path')
+            if not root.exists():
+                return
+            self.root = root
+        self.claim_runtime()
+        if not self.processes:
+            self._reap_previous_group()
+        await self.destroy()

@@ -37,6 +37,8 @@ class TaskContext:
     linked_prs: list[dict[str, Any]] = field(default_factory=list)
     instructions: str = ""
     recap: str = ""
+    sandbox_ref: str | None = None
+    recap_pending: bool = False
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,21 @@ class RequestResponse:
     option_id: str | None = None
     answers: dict[str, Any] | None = None
     cancelled: bool = False
+
+
+def validate_answers(schema: dict[str, Any], answers: object) -> None:
+    properties = schema.get('properties') or {}
+    if not isinstance(answers, dict) or not all(key in answers for key in schema.get('required', [])):
+        raise ValueError('Missing required answers')
+    types = {'string': str, 'boolean': bool, 'integer': int, 'number': (int, float), 'array': list}
+    for name, value in answers.items():
+        spec = properties.get(name, {})
+        kind = spec.get('type')
+        expected = types.get(kind)
+        if expected and (not isinstance(value, expected) or isinstance(value, bool) and kind in {'integer', 'number'}):
+            raise ValueError('Invalid answer type')
+        if 'enum' in spec and value not in spec['enum']:
+            raise ValueError('Invalid answer option')
 
 
 class AgentError(RuntimeError):

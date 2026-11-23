@@ -267,13 +267,22 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
 - [ ] M2-5 `contribos chat --isolation …` 手动验证
 
 ### M3 任务运行时 + 对话 API
-- [ ] M3-1 `tasks/store.py`（CRUD、CAS）+ 测试
-- [ ] M3-2 `tasks/events.py`（规范化后处理、脱敏、落库、广播）+ 测试
-- [ ] M3-3 `tasks/supervisor.py`（队列、并发、排队/打断、取消与强制取消、权限请求）+ 测试
-- [ ] M3-4 自动重试、截断续跑 + 测试
-- [ ] M3-5 进程/服务/沙箱重启恢复、会话重建 + 测试
-- [ ] M3-6 `routes_tasks.py` 全部接口 + `GET /api/agents` + SSE + 契约测试
-- [ ] M3-7 手动：真实 Issue 上 HTTP 驱动、中途重启后继续
+- [x] M3-1 `tasks/store.py`（CRUD、CAS）+ 测试
+  验证：`pytest -q` 171 passed、3 skipped，覆盖迁移升级、消息幂等和并发数据库连接争抢同一轮。
+- [x] M3-2 `tasks/events.py`（规范化后处理、脱敏、落库、广播）+ 测试
+  验证：`pytest -q` 172 passed、3 skipped，覆盖事件落库与广播、重连补发、进行中快照和命令输出脱敏。
+- [x] M3-3 `tasks/supervisor.py`（队列、并发、排队/打断、取消与强制取消、权限请求）+ 测试
+  验证：`pytest -q` 182 passed、3 skipped，覆盖排队与打断、停止与继续、交互应答，以及两种强制取消场景的真实子进程终止。
+- [x] M3-4 自动重试、截断续跑 + 测试
+  验证：`pytest -q` 182 passed、3 skipped；替换时钟验证 15/60/180 秒退避，两种截断各续跑一次，认证、额度和地区错误均不重试。
+- [x] M3-5 进程/服务/沙箱重启恢复、会话重建 + 测试
+  验证：`pytest -q` 189 passed、3 skipped，覆盖 ACP 恢复、重建时附带指令/对话/diff、旧请求失效和假沙箱恢复；离线 HTTP 冒烟测试用 SIGKILL 重启服务并成功继续。
+- [x] M3-6 `routes_tasks.py` 全部接口 + `GET /api/agents` + SSE + 契约测试
+  验证：`pytest -q` 189 passed、3 skipped，覆盖新建任务隔离校验、应答、Last-Event-ID 补发、增量无 ID、断线后后台继续及 API/SSE/数据库脱敏；离线 curl 实测强制取消在 9.54 秒内停止子进程。
+- [x] M3-7 【需用户】手动：在真实 Issue 上用 curl 驱动对话，轮中重启后继续，并在 10 秒内停止长测试
+  验证：用户授权在 `Garden12138/contribos-acceptance-sandbox#1` 用 Codex 本机直跑。轮中 `SIGKILL` 后重启，经 curl 调用 `continue` 恢复中断前的上下文；另一次长测试经 `interrupt` 强制取消，子进程在 0.16 秒内停止。`pytest -q` 189 passed、3 skipped。
+
+  M3 当前规模：非测试 Python 3,596 行，前端 20 行，无 Rust。`compileall` 与 `git diff --check` 通过。
 
 ### M4 桌面应用：界面 + 外壳
 - [ ] M4-1 页面框架、导航、任务列表、新建任务面板（Agent 与隔离级别）

@@ -25,8 +25,8 @@ class ScriptedAgent(Agent):
         assert not client_capabilities.fs or not (client_capabilities.fs.read_text_file or client_capabilities.fs.write_text_file)
         assert not client_capabilities.terminal
         caps = s.AgentCapabilities(
-            load_session=self.scenario != 'no_restore',
-            session_capabilities=s.SessionCapabilities(resume={} if self.scenario == 'resume' else None),
+            load_session=self.scenario not in {'no_restore', 'exit_recreate'},
+            session_capabilities=s.SessionCapabilities(resume={} if self.scenario in {'resume', 'exit_resume'} else None),
         )
         return s.InitializeResponse(protocol_version=1, agent_capabilities=caps, auth_methods=[])
 
@@ -35,7 +35,8 @@ class ScriptedAgent(Agent):
         assert mcp_servers == []
         assert additional_directories and len(additional_directories) == 1
         self.cwd, self.context = Path(cwd), Path(additional_directories[0])
-        return s.NewSessionResponse(session_id='fake-session', modes=s.SessionModeState(
+        sid = f'fake-{os.getpid()}' if self.scenario == 'exit_recreate' else 'fake-session'
+        return s.NewSessionResponse(session_id=sid, modes=s.SessionModeState(
             current_mode_id='plan', available_modes=[s.SessionMode(id='plan', name='Plan'), s.SessionMode(id='build', name='Build')],
         ))
 
@@ -61,6 +62,23 @@ class ScriptedAgent(Agent):
     async def prompt(self, session_id: str, prompt: list[Any], **kwargs: Any) -> s.PromptResponse:
         self.cancelled.clear()
         scenario = self.scenario
+        if scenario in {'exit_resume', 'exit_recreate'} and prompt[-1].text == 'Crash now':
+            (self.cwd / 'preserved.txt').write_text('Current edits\n')
+            os._exit(23)
+        if scenario in {'no_cancel', 'leaves_child'}:
+            if prompt[-1].text == 'Run a long test':
+                child = await asyncio.create_subprocess_exec(sys.executable, '-c', 'import time; time.sleep(60)',
+                    stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL, start_new_session=scenario == 'leaves_child')
+                (self.cwd / 'child-pid').write_text(str(child.pid))
+                await self.message(session_id, 'Test is running\n')
+                if scenario == 'no_cancel':
+                    await child.wait()
+                else:
+                    await self.cancelled.wait()
+                return s.PromptResponse(stop_reason='cancelled')
+            await self.message(session_id, 'Agent is ready')
+            return s.PromptResponse(stop_reason='end_turn')
         if scenario == 'exit':
             os._exit(23)
         if scenario == 'error':
@@ -85,7 +103,7 @@ class ScriptedAgent(Agent):
                 await self.conn.read_text_file(session_id=session_id, path=str(self.cwd / 'input.txt'))
             except RequestError:
                 await self.message(session_id, 'client filesystem denied')
-        elif scenario in {'echo', 'resume', 'no_restore', 'load_fail'}:
+        elif scenario in {'echo', 'resume', 'no_restore', 'load_fail', 'exit_resume', 'exit_recreate'}:
             for block in prompt:
                 await self.message(session_id, block.text)
         elif scenario == 'environment':

@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from contribos import __version__
 from contribos.agent.profiles import agent_statuses
 from contribos.config import Settings, server_origin, validate_bind_host
-from contribos.security import LocalAuth, load_or_create_local_token, redact
+from contribos.security import redact
 
 
 def serve(settings: Settings) -> int:
@@ -20,12 +20,12 @@ def serve(settings: Settings) -> int:
     from contribos.web.app import create_app
 
     origin = server_origin(settings)
-    auth = LocalAuth(load_or_create_local_token(settings.local_token_path))
-    app = create_app(settings, auth=auth)
-    code = auth.issue_startup_code()
+    app = create_app(settings)
+    code = app.state.auth.issue_startup_code()
     print(f"Login (valid for 60 seconds, one use): {origin}/desktop/bootstrap?code={code}", flush=True)
     # Bootstrap URLs contain a login code; HTTP access logging must stay off.
-    uvicorn.run(app, host=validate_bind_host(settings.host), port=settings.port, access_log=False)
+    uvicorn.run(app, host=validate_bind_host(settings.host), port=settings.port, access_log=False,
+                timeout_graceful_shutdown=2)
     return 0
 
 

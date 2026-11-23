@@ -18,7 +18,7 @@ CSRF_HEADER = "X-CSRF-Token"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 _PATTERNS = (
-    (re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)"), "[REDACTED]"),
+    (re.compile(r"(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)"), "[REDACTED]"),
     (re.compile(r"\bsk-[A-Za-z0-9_-]+"), "[REDACTED]"),
     (re.compile(r"(?i)([\"']authorization[\"']\s*:\s*[\"'])[^\"'\r\n]*"), r"\1[REDACTED]"),
     (re.compile(r"(?im)(\bauthorization\s*[:=]\s*)[^\r\n]+"), r"\1[REDACTED]"),
