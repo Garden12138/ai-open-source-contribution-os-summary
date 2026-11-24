@@ -98,6 +98,30 @@ async def start(supervisor, store):
     return tid
 
 
+def test_diff_refresh_can_finish_during_an_edit_turn(tmp_path):
+    async def check():
+        settings = Settings(home=tmp_path)
+        with closing(connect(settings.database_path)) as db:
+            migrate(db)
+            store = TaskStore(db)
+            engine = GatedEngine()
+            supervisor = offline(settings, store, engine)
+            try:
+                task_id = await start(supervisor, store)
+                supervisor.send(task_id, 'hold-edit')
+                await until(lambda: 'hold-edit' in engine.calls)
+                engine.queue.put_nowait(EngineEvent('files.changed', {'status': 'completed', 'paths': ['example.md']}))
+                runtime = supervisor.runtimes[task_id]
+                await until(lambda: runtime.diff_job is not None and runtime.diff_job.done())
+                engine.release.set()
+                await until(lambda: store.get(task_id)['agent_state'] in {'idle', 'error'})
+                assert store.turns(task_id)[-1]['status'] == 'completed'
+            finally:
+                await supervisor.shutdown()
+
+    asyncio.run(check())
+
+
 def test_queue_interrupt_continue_and_concurrent_messages(tmp_path):
     async def check():
         settings = Settings(home=tmp_path)

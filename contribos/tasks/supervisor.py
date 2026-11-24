@@ -629,10 +629,6 @@ class TaskSupervisor:
 
     async def _debounced_diff(self, runtime: _Runtime) -> None:
         await asyncio.sleep(2)
-        if reason == 'cancelled':
-            self._finish(runtime, turn, reason, None)
-            await self._refresh_diff(runtime)
-            return
         await self._refresh_diff(runtime)
 
     async def _refresh_diff(self, runtime: _Runtime) -> None:
