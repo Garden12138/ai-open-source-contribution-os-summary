@@ -14,7 +14,7 @@ from pathlib import Path
 from contribos import __version__
 from contribos.agent.profiles import agent_statuses
 from contribos.config import Settings, server_origin, validate_bind_host
-from contribos.security import redact
+from contribos.security import redact, without_github_credentials
 
 
 def serve(settings: Settings, *, demo: bool = False, desktop: bool = False) -> int:
@@ -71,6 +71,7 @@ def doctor_checks(settings: Settings | None = None) -> list[CheckResult]:
         "python", "ok" if sys.version_info >= (3, 11) else "error",
         f"Python {platform.python_version()} (requires >=3.11)",
     )]
+    env = without_github_credentials(os.environ)
     for name in ("git", "gh"):
         executable = settings.tool(name) if settings else shutil.which(name)
         if executable is None:
@@ -81,7 +82,7 @@ def doctor_checks(settings: Settings | None = None) -> list[CheckResult]:
                 result = subprocess.run(
                     [executable, "--version"], stdin=subprocess.DEVNULL,
                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                    text=True, timeout=5, check=False,
+                    text=True, timeout=5, check=False, env=env,
                 )
                 detail = redact(result.stdout.strip())[:160] if result.returncode == 0 else "Git version check failed."
                 results.append(CheckResult(name, "ok" if result.returncode == 0 else "error",
@@ -91,7 +92,7 @@ def doctor_checks(settings: Settings | None = None) -> list[CheckResult]:
                 result = subprocess.run(
                     [executable, "auth", "status", "--hostname", "github.com"],
                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL, timeout=5, check=False,
+                    stderr=subprocess.DEVNULL, timeout=5, check=False, env=env,
                 )
                 results.append(CheckResult(
                     name, "ok" if result.returncode == 0 else "not_logged_in",

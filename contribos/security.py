@@ -7,7 +7,7 @@ import secrets
 import stat
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -16,6 +16,8 @@ SESSION_COOKIE = "contribos_session"
 CSRF_COOKIE = "contribos_csrf"
 CSRF_HEADER = "X-CSRF-Token"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+GITHUB_CREDENTIAL_VARS = frozenset({'CONTRIBOS_GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN',
+                                    'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN'})
 
 _PATTERNS = (
     (re.compile(r"(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)"), "[REDACTED]"),
@@ -30,6 +32,10 @@ def redact(text: str) -> str:
     for pattern, replacement in _PATTERNS:
         text = pattern.sub(replacement, text)
     return text
+
+
+def without_github_credentials(environment: Mapping[str, str]) -> dict[str, str]:
+    return {key: value for key, value in environment.items() if key not in GITHUB_CREDENTIAL_VARS}
 
 
 def _digest(value: str) -> str:

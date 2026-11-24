@@ -322,21 +322,31 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   验证：`cargo test --locked` 4 passed，新增 SSE 帧与任务定位参数测试；`pytest -q` 201 passed、5 skipped；系统通知点击回跳随 Finder 验收确认。
 - [x] M4-13 打包：PyInstaller sidecar + `cargo tauri build` 生成 `.app`
   验证：`pyinstaller packaging/contribos-backend.spec` 与 `cargo tauri build --ci -- --locked` 生成 Apple Silicon `.app`；`codesign --verify --deep --strict` 通过；包内 sidecar 在 2.14 秒通过 `/api/health`，静态资源、外壳鉴权、自动 doctor 和 SIGTERM 退出均通过；`pytest -q` 202 passed、4 skipped，`cargo test --locked` 4 passed，前端 10 passed。
-- [ ] M4-14 【需用户】从 Finder 启动 `.app` 完成验收（工具路径、J2/J3、关窗通知、退出后继续）；J3、关窗通知、退出后继续已通过，J2 新建任务因 GitHub 匿名限流受阻，在 M5-0 完成后补测
-  实测：Finder 启动与工具自检通过；在用户授权的 `Garden12138/contribos-acceptance-sandbox#1` 既有任务中，J3 对话、关窗后台完成、收到通知并在激活应用后定位任务、运行中退出确认、重开后点「继续」均通过。J2 已从桌面提交，待 GitHub 匿名配额恢复后复测 Issue 快照、工作区准备及首轮。
+- [x] M4-14 【需用户】从 Finder 启动 `.app` 完成验收（工具路径、J2/J3、关窗通知、退出后继续）
+  验证：M4 已通过 Finder 启动、自检、J3 对话、关窗通知定位、运行中退出确认及重开继续；用户委托在 M5-0 后从 Finder 启动新版，在临时数据目录中经 UI 从 `Garden12138/contribos-acceptance-sandbox#1` 新建 Codex 沙箱任务，快照有正文、默认分支 `main`、工作区 `ready`、首轮 `completed/end_turn`。打包、签名和侧车冒烟检查通过，`pytest -q` 205 passed、5 skipped，`cargo test --locked` 4 passed。
 
   M4 当前规模：非测试 Python 4,643 行，前端 1,588 行，外壳 Rust 600 行（含构建脚本）。`compileall` 和 `git diff --check` 通过。本地 macOS 产物采用 ad-hoc 签名，关闭 Hardened Runtime 以装载 PyInstaller 自解包的 Python 动态库。
   外壳依赖：`getrandom` 生成启动凭据，`reqwest` 与 `tokio` 处理回环请求、SSE 和超时，`serde` 与 `serde_json` 解析接口与配置，`libc` 发送 SIGTERM，`rfd` 显示原生对话框，`objc2` 接入 AppKit 原生退出回调。
 
 ### M5 发布 Draft PR + 跨 Agent 审查
-- [ ] M5-0 宿主 GitHub 客户端：令牌（`gh auth token` / `CONTRIBOS_GITHUB_TOKEN`）只在后端进程用于只读请求，不可用时退回匿名并提示限流；Issue 快照改用它；复测直接用 Issue URL 新建任务（M2 遗留）
-- [ ] M5-1 PR 文案轮（JSON 代码块 + 模板兜底）
-- [ ] M5-2 `publish/git_transfer.py` + 本地 bare 仓库测试（含 hooks 不执行、基线祖先校验）
-- [ ] M5-3 `publish/github_writer.py` + MockTransport 测试
-- [ ] M5-4 `publish/service.py`：预览、哈希、确认、步骤幂等、对账 + 测试
-- [ ] M5-5 发布面板 UI
-- [ ] M5-6 `review/service.py` + 审查卡片 + 预览中显示审查状态
+- [x] M5-0 宿主 GitHub 客户端：令牌（`gh auth token` / `CONTRIBOS_GITHUB_TOKEN`）只在后端进程用于只读请求，不可用时退回匿名并提示限流；Issue 快照改用它；复测直接用 Issue URL 新建任务（M2 遗留）
+  验证：`pytest -q` 205 passed、5 skipped，覆盖宿主认证、匿名限流提示与 Agent 环境、sbx 参数、事件及响应脱敏；`contribos chat --agent codex --isolation sbx` 从 `Garden12138/contribos-acceptance-sandbox#1` 的 URL 新建任务，默认分支 `main`、工作区 `ready`、首轮 `completed/end_turn`。
+- [x] M5-1 PR 文案轮（JSON 代码块 + 模板兜底）
+  验证：`pytest -q` 210 passed、5 skipped；假 Agent 验证实现会话复用、固定提示、落库轮次、末尾 JSON 与模板兜底。
+- [x] M5-2 `publish/git_transfer.py` + 本地 bare 仓库测试（含 hooks 不执行、基线祖先校验）
+  验证：`pytest -q` 211 passed、5 skipped；本地 bare 上游测试覆盖沙箱打包导出、基线与父提交校验、宿主作者与 DCO 签署、hooks 哨兵、diff 哈希、workflow/二进制标记和密钥阻断。
+- [x] M5-3 `publish/github_writer.py` + MockTransport 测试
+  验证：`pytest -q` 213 passed、5 skipped；MockTransport 验证 Fork、Draft PR 先查后做及响应丢失后复用；本地 bare 测试确认同 SHA 跳过、不同 SHA 原样保留，令牌只通过 Git 子进程环境注入。
+- [x] M5-4 `publish/service.py`：预览、哈希、确认、步骤幂等、对账 + 测试
+  验证：`pytest -q` 214 passed、5 skipped；回环 API、MockTransport 与本地 bare 仓库覆盖编辑后旧哈希失效、会话与 CSRF 确认、工作区变化拦截和响应丢失后对账复用远程分支与 PR。
+- [x] M5-5 发布面板 UI
+  验证：`pytest -q` 214 passed、5 skipped，`node --test contribos/web/static/tests` 11 passed；覆盖最新已保存预览才能确认，未知状态只能对账，发布后在对话中显示 PR 链接。
+- [x] M5-6 `review/service.py` + 审查卡片 + 预览中显示审查状态
+  验证：`pytest -q` 219 passed、5 skipped，`node --test contribos/web/static/tests` 11 passed；假 ACP 子进程覆盖独立会话、只读模式、权限卡片、损坏 JSON 原文、工作区改动使审查无效、将发现项发回实现会话和预览核对 diff 哈希。
 - [ ] M5-7 【需用户】真实发布到测试仓库，含一次跨 Agent 审查
+  待验收：宿主认证身份读取通过。请提供授权测试 Issue（当前 `gh` 账号须可创建或复用该仓库的 Fork），并在发布预览中确认 Draft PR。指定测试 Issue 的真实 Codex 沙箱已通过 bundle 导出、上游祖先校验和宿主 bare 提交重建。指定测试任务的临时副本中，Cursor 独立审查 Codex 的改动，返回 `request_changes` 和 3 条结构化发现，原实现会话标识保留。
+
+  M5 当前规模：非测试 Python 5,962 行，前端 1,927 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
 
 ### M6 发现模块
 - [ ] M6-1 移植 `domain.py`、`scoring.py` 及测试

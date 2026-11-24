@@ -1,5 +1,6 @@
 import asyncio
 import json
+import secrets
 import sys
 from pathlib import Path
 
@@ -126,6 +127,32 @@ def test_sandbox_contract(tmp_path):
     assert set(sandbox.context) == {'TASK.md', 'issue.md', 'linked_prs.json'}
     assert not sandbox.exists and sandbox.lock is None
     assert not list(tmp_path.glob('workspaces/*'))
+
+
+def test_real_sbx_launch_excludes_host_github_credentials(tmp_path, monkeypatch):
+    canary = secrets.token_urlsafe(32)
+    for key in ('CONTRIBOS_GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN', 'SSH_AUTH_SOCK'):
+        monkeypatch.setenv(key, canary)
+
+    async def spawn(*argv, env, **kwargs):
+        assert argv[:3] == ('/path/to/sbx', '--no-input', 'exec')
+        assert all(canary not in value for value in (*argv, *env.values()))
+        assert argv[argv.index('CONTRIBOS_GITHUB_TOKEN') - 1] == '-u'
+
+    class CheckedSbx(FakeSbx):
+        _spawn = SbxSandbox._spawn
+
+    async def check():
+        monkeypatch.setattr(Settings, 'tool', lambda self, name: '/path/to/sbx')
+        monkeypatch.setattr(asyncio, 'create_subprocess_exec', spawn)
+        sandbox = CheckedSbx(tmp_path)
+        await sandbox.prepare(sbx_task())
+        try:
+            await sandbox.spawn_agent(PROFILES['codex'])
+        finally:
+            await sandbox.destroy()
+
+    asyncio.run(check())
 
 
 @pytest.mark.parametrize('unsafe, error', [

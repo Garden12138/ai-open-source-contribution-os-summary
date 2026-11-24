@@ -6,8 +6,9 @@ import sqlite3
 import time
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from pathlib import Path, PurePosixPath
 from typing import Any, Literal, cast
 
@@ -17,10 +18,13 @@ from contribos.agent.acp_engine import AcpEngine
 from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, RequestResponse, TaskContext, validate_answers
 from contribos.agent.profiles import PROFILES, AgentProfile
 from contribos.config import Settings
+from contribos.github import GitHubClient
+from contribos.publish.draft import DRAFT_PROMPT, Draft, draft_from_response
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox
 from contribos.sandbox.read_file import __file__ as READ_FILE_PATH
-from contribos.tasks.events import RESOLUTION_EVENTS, TaskEvents
+from contribos.sandbox.sbx import SbxSandbox
+from contribos.tasks.events import REQUEST_EVENTS, RESOLUTION_EVENTS, TaskEvents
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
 from contribos.tasks.issue import IssueError, IssueRef, fetch_issue
 from contribos.tasks.store import TaskError, TaskStore
@@ -38,6 +42,7 @@ class _Runtime:
     sandbox: Sandbox
     profile: AgentProfile
     engine: AgentEngine | None = None
+    review_engine: AgentEngine | None = None
     reader: asyncio.Task[None] | None = None
     job: asyncio.Task[None] | None = None
     diff_job: asyncio.Task[None] | None = None
@@ -52,6 +57,7 @@ class _Runtime:
     last_activity: float = field(default_factory=time.monotonic)
     sandbox_suspended: bool = False
     allowed_tools: set[str] = field(default_factory=set)
+    operation: bool = False
 
 
 def _permission_key(payload: dict[str, Any]) -> str | None:
@@ -68,15 +74,22 @@ def _one_time_allow(payload: dict[str, Any]) -> str | None:
 
 class TaskSupervisor:
     def __init__(self, settings: Settings, store: TaskStore, *, events: TaskEvents | None = None,
-                 issue_loader: Callable[[IssueRef], Awaitable[dict[str, Any]]] = fetch_issue,
+                 issue_loader: Callable[[IssueRef], Awaitable[dict[str, Any]]] | None = None,
+                 github: GitHubClient | None = None,
                  sandbox_factories: dict[str, SandboxFactory] | None = None,
                  engine_factory: EngineFactory | None = None,
                  cancel_timeout: float = 10, sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
                  clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc)) -> None:
         self.store = store
+        self.settings = settings
         self.events = events or TaskEvents(store)
-        self.issue_loader = issue_loader
-        self.sandboxes = sandbox_factories if sandbox_factories is not None else {'host': lambda: HostSandbox(settings)}
+        self.github = github or GitHubClient(settings)
+        self.issue_loader = issue_loader or partial(fetch_issue, github=self.github)
+        self.sandboxes: dict[str, Callable[[AgentProfile], Sandbox]] = ({
+            'host': lambda _: HostSandbox(settings), 'sbx': lambda profile: SbxSandbox(settings, profile),
+        } if sandbox_factories is None else {
+            kind: lambda _, factory=factory: factory() for kind, factory in sandbox_factories.items()
+        })
         self.engine_factory = engine_factory or self._engine
         self.cancel_timeout = cancel_timeout
         self.sleep, self.clock = sleep, clock
@@ -89,11 +102,13 @@ class TaskSupervisor:
         return AcpEngine(lambda: sandbox.spawn_agent(profile), stop_process=sandbox.stop,
                          error_mapper=profile.classify_error, clean_text=self.store.clean, replay_session_updates=False)
 
-    def _sandbox(self, isolation: str) -> Sandbox:
+    def _sandbox(self, isolation: str, profile: AgentProfile) -> Sandbox:
         factory = self.sandboxes.get(isolation)
         if factory is None:
             raise TaskError('sandbox_unavailable', 'The selected execution environment is unavailable.', 503)
-        sandbox = factory()
+        sandbox = factory(profile)
+        if isinstance(sandbox, SbxSandbox) and not profile.sbx:
+            raise TaskError('sandbox_agent_unavailable', 'This Agent is unavailable in Docker Sandboxes.', 422)
         if sandbox.kind != isolation:
             raise TaskError('sandbox_unavailable', 'The selected execution environment is unavailable.', 503)
         return sandbox
@@ -114,7 +129,7 @@ class TaskSupervisor:
         owner = ref.repo.split('/', 1)[0].casefold()
         if trust_owner and (isolation != 'host' or trust_confirmed is not True):
             raise TaskError('host_trust_required', 'Confirm repository trust before adding the owner.', 403)
-        sandbox = self._sandbox(isolation)
+        sandbox = self._sandbox(isolation, profile)
         with self.store.transaction():
             trusted = self.store.setting('trusted_owners', [])
             known = owner in {name.casefold() for name in trusted}
@@ -137,7 +152,8 @@ class TaskSupervisor:
                 default_branch=row['default_branch'] or '', base_sha=row['base_sha'] or '',
                 work_branch=row['work_branch'] or '', sandbox_ref=row['sandbox_ref'],
                 recap_pending=bool(row['recap_pending']))
-            runtime = _Runtime(context, sandbox or self._sandbox(row['isolation']), PROFILES[row['agent_profile']])
+            profile = PROFILES[row['agent_profile']]
+            runtime = _Runtime(context, sandbox or self._sandbox(row['isolation'], profile), profile)
             if row['isolation'] == 'host':
                 runtime.allowed_tools = {key for event in self.events.remembered_permissions(task_id)
                                          if (key := _permission_key(event.payload)) and '[REDACTED]' not in key}
@@ -181,6 +197,8 @@ class TaskSupervisor:
              interrupt: bool = False, kind: str = 'user') -> sqlite3.Row:
         row = self.store.get(task_id)
         runtime = self._runtime(row)
+        if runtime.operation and runtime.turn_id is None:
+            raise TaskError('task_busy', 'Wait for the current task operation to finish.')
         if runtime.deleting:
             raise TaskError('task_deleting', 'This task is being deleted.')
         if not row['runtime_managed'] and row['status'] in {'ready', 'published'}:
@@ -202,6 +220,109 @@ class TaskSupervisor:
     def continue_task(self, task_id: str) -> sqlite3.Row:
         return self.send(task_id, CONTINUE_PROMPT, kind='continue')
 
+    def background(self, task_id: str, operation: Callable[[], Awaitable[None]]) -> None:
+        row = self.store.get(task_id)
+        if row['status'] not in {'ready', 'published'} or row['delete_requested']:
+            raise TaskError('task_not_ready', 'The task workspace is unavailable.')
+        runtime = self._runtime(row)
+        if self.closing or runtime.operation or row['agent_state'] not in {'idle', 'error'}:
+            raise TaskError('task_busy', 'Wait for the current task operation to finish.')
+        runtime.operation = True
+        runtime.job = asyncio.create_task(self._run_operation(runtime, operation, runtime.job))
+
+    async def _run_operation(self, runtime: _Runtime, operation: Callable[[], Awaitable[None]],
+                             previous: asyncio.Task[None] | None) -> None:
+        try:
+            if previous and not previous.done():
+                await previous
+            async with self.slots:
+                await operation()
+        finally:
+            runtime.operation = False
+            runtime.last_activity = time.monotonic()
+            if runtime.job is asyncio.current_task():
+                runtime.job = None
+            if self.store.get(runtime.context.task_id)['agent_state'] in {'queued', 'waiting_retry'}:
+                self._schedule(runtime)
+
+    async def workspace(self, task_id: str) -> tuple[TaskContext, Sandbox]:
+        runtime = self._runtime(self.store.get(task_id))
+        await self._restore_workspace(runtime)
+        return runtime.context, runtime.sandbox
+
+    async def draft_pr(self, task_id: str) -> Draft:
+        runtime = self._runtime(self.store.get(task_id))
+        turn = self.store.begin_auxiliary(task_id, 'pr_draft', DRAFT_PROMPT)
+        runtime.turn_id = turn['id']
+        runtime.stop.clear()
+        try:
+            await self._turn(runtime, turn)
+        finally:
+            runtime.turn_id = None
+        result = self.store.db.execute('SELECT status, stop_reason FROM turns WHERE id=?', (turn['id'],)).fetchone()
+        if result['status'] == 'interrupted' and runtime.stop.is_set():
+            raise TaskError('publish_preview_cancelled', 'Draft preparation was stopped.')
+        text = self.store.turn_text(turn['id']) if result['stop_reason'] == 'end_turn' else ''
+        return draft_from_response(text, runtime.context.issue_number)
+
+    async def review_turn(self, task_id: str, profile: AgentProfile, prompt: str) -> tuple[str, str]:
+        runtime = self._runtime(self.store.get(task_id))
+        await self._disconnect(runtime)
+        await self._restore_workspace(runtime)
+        turn = self.store.begin_auxiliary(task_id, 'review', prompt)
+        runtime.turn_id = turn['id']
+        runtime.stop.clear()
+        self._publish(runtime, 'turn.started', {'kind': 'review'})
+        engine = None
+        context = replace(runtime.context, session_id=None, recap='', recap_pending=False)
+        reader = None
+        chunks: list[str] = []
+        reason = None
+        error = None
+        try:
+            try:
+                engine = self.engine_factory(runtime.sandbox, profile)
+                runtime.review_engine = engine
+                sid = await engine.ensure_session(context)
+            except (AgentError, SandboxError, OSError):
+                raise AgentError('review_agent_unavailable', 'The review Agent could not start.') from None
+            reader = asyncio.create_task(self._read_review(runtime, engine, sid, chunks))
+            if profile.modes[0] in engine.capabilities.modes:
+                await engine.set_mode(sid, profile.modes[0])
+            reason = await self._prompt(runtime, sid, prompt, engine=engine)
+            if reason == 'cancelled':
+                raise AgentError('review_cancelled', 'The review was stopped.')
+            if reason != 'end_turn':
+                raise AgentError('review_incomplete', 'The review Agent did not complete its response.')
+        except AgentError as caught:
+            error = caught
+            raise
+        except asyncio.CancelledError:
+            reason = 'cancelled'
+            raise
+        except Exception:
+            error = AgentError('review_agent_failed', 'The review Agent could not complete the review.')
+            raise error from None
+        finally:
+            try:
+                if engine:
+                    await engine.close()
+                if reader:
+                    await reader
+            finally:
+                runtime.review_engine = None
+                self._expire_requests(task_id)
+                self._finish(runtime, turn, reason, error if reason != 'cancelled' else None)
+                runtime.turn_id = None
+        return sid, '\n'.join(chunks)
+
+    async def _read_review(self, runtime: _Runtime, engine: AgentEngine, session: str, chunks: list[str]) -> None:
+        async for event in engine.events(session):
+            if event.type == 'message.agent':
+                chunks.append(self.store.clean(event.payload.get('text', '')))
+            if event.type in REQUEST_EVENTS | RESOLUTION_EVENTS:
+                self.events.publish(runtime.context.task_id, runtime.turn_id, event)
+
     def refresh_issue(self, task_id: str) -> None:
         row = self.store.get(task_id)
         if row['status'] not in {'ready', 'published'} or row['delete_requested']:
@@ -214,8 +335,9 @@ class TaskSupervisor:
         context = runtime.context
         try:
             issue = await self.issue_loader(IssueRef(context.repo_full_name, context.issue_number))
-        except (IssueError, OSError):
-            self._publish(runtime, 'issue.refresh_failed', {'message': 'Could not refresh the GitHub Issue.'})
+        except (IssueError, OSError) as error:
+            message = error.message if isinstance(error, IssueError) else 'Could not refresh the GitHub Issue.'
+            self._publish(runtime, 'issue.refresh_failed', {'message': message})
             return
         self.store.update_issue(context.task_id, issue)
         self._publish(runtime, 'issue.updated')
@@ -235,7 +357,8 @@ class TaskSupervisor:
         self.store.get(task_id)
         runtime = self.runtimes.get(task_id)
         request = self.events.pending(task_id).get(request_id)
-        if not runtime or not runtime.engine or not request or runtime.turn_id != request.turn_id:
+        engine = (runtime.review_engine or runtime.engine) if runtime else None
+        if not engine or not request or runtime.turn_id != request.turn_id:
             raise TaskError('request_expired', 'This request has expired.')
         grant = None
         if request.type == 'permission.requested':
@@ -246,6 +369,8 @@ class TaskSupervisor:
             if option.get('kind') == 'reject_always':
                 response = RequestResponse(cancelled=True)
             if option.get('kind') == 'allow_always':
+                if runtime.review_engine is not None:
+                    raise TaskError('invalid_option', 'Choose a one-time option for this review.', 422)
                 once = _one_time_allow(request.payload)
                 grant = _permission_key(request.payload)
                 if not once or not grant or '[REDACTED]' in grant:
@@ -257,7 +382,7 @@ class TaskSupervisor:
             except ValueError:
                 raise TaskError('invalid_answers', 'Provide valid answers for this request.', 422) from None
         try:
-            await runtime.engine.respond(request_id, response)
+            await engine.respond(request_id, response)
         except AgentError as error:
             raise TaskError(error.code, error.message) from None
         if grant:
@@ -296,6 +421,8 @@ class TaskSupervisor:
 
     def delete(self, task_id: str) -> None:
         runtime = self._runtime(self.store.get(task_id))
+        if runtime.operation:
+            raise TaskError('task_busy', 'Wait for the current task operation to finish.')
         if not runtime.deleting:
             self.store.request_delete(task_id, True)
             runtime.deleting = True
@@ -339,7 +466,8 @@ class TaskSupervisor:
             return True
         except (IssueError, SandboxError, OSError) as error:
             code = str(error) if isinstance(error, (IssueError, SandboxError)) else 'workspace_setup_failed'
-            message = 'Could not prepare this task. Check the Issue and execution environment.'
+            message = (error.message if isinstance(error, IssueError) else
+                       'Could not prepare this task. Check the Issue and execution environment.')
             self.store.setup_failed(context.task_id, code, message)
             self._publish(runtime, 'task.setup_failed', {'error_code': code, 'message': message})
             return False
@@ -434,7 +562,7 @@ class TaskSupervisor:
                 job.cancel()
             await asyncio.gather(*jobs, return_exceptions=True)
 
-    async def _connect(self, runtime: _Runtime) -> str:
+    async def _restore_workspace(self, runtime: _Runtime) -> None:
         context = runtime.context
         if not context.repo_dir:
             await runtime.sandbox.restore(context)
@@ -443,6 +571,10 @@ class TaskSupervisor:
             self._instructions(context)
         if isinstance(runtime.sandbox, HostSandbox):
             runtime.sandbox.claim_runtime()
+
+    async def _connect(self, runtime: _Runtime) -> str:
+        await self._restore_workspace(runtime)
+        context = runtime.context
         if runtime.engine is None:
             if context.session_id:
                 context.recap = self._recap(context.task_id)
@@ -556,9 +688,10 @@ class TaskSupervisor:
         status = 'failed' if error else 'interrupted' if reason == 'cancelled' else 'completed'
         payload = {'error_code': error.code, 'message': error.message} if error else {'stop_reason': reason}
         count = turn['retry_count']
-        delay = RETRY_DELAYS[count] if error and error.retryable and count < len(RETRY_DELAYS) else None
+        auxiliary = turn['kind'] in {'pr_draft', 'review'}
+        delay = RETRY_DELAYS[count] if not auxiliary and error and error.retryable and count < len(RETRY_DELAYS) else None
         retry_at = (self.clock() + timedelta(seconds=delay)).isoformat() if delay is not None else None
-        auto_continue = reason in {'max_tokens', 'max_turn_requests'} and not turn['continuation_used']
+        auto_continue = not auxiliary and reason in {'max_tokens', 'max_turn_requests'} and not turn['continuation_used']
         self.store.finish(runtime.context.task_id, turn['id'], status, reason=reason,
                           error=(error.code, error.message) if error else None, retry_at=retry_at,
                           retry_count=count + 1 if retry_at else count, auto_continue=auto_continue,
@@ -568,8 +701,8 @@ class TaskSupervisor:
             self._publish(runtime, 'system.retry_scheduled', {'delay_seconds': delay, 'retry_count': count + 1,
                 'retry_at': retry_at, 'error_code': error.code})
 
-    async def _prompt(self, runtime: _Runtime, sid: str, text: str) -> str:
-        engine = runtime.engine
+    async def _prompt(self, runtime: _Runtime, sid: str, text: str, *, engine: AgentEngine | None = None) -> str:
+        engine = engine or runtime.engine
         host = runtime.sandbox if isinstance(runtime.sandbox, HostSandbox) else None
         baseline = host.record_processes() if host else set()
         prompt = asyncio.create_task(engine.prompt(sid, [TextContentBlock(text=self.store.clean(text))]))
@@ -638,7 +771,8 @@ class TaskSupervisor:
         except (OSError, SandboxError):
             self._publish(runtime, 'system.warning', {'code': 'idle_stop_failed'})
         finally:
-            runtime.job = None
+            if runtime.job is asyncio.current_task():
+                runtime.job = None
             if self.store.get(runtime.context.task_id)['agent_state'] in {'queued', 'waiting_retry'}:
                 self._schedule(runtime)
 

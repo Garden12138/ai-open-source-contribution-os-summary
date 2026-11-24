@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from contribos.agent.engine import RequestResponse
 from contribos.agent.profiles import PROFILES, AgentStatus, agent_statuses, check_profile
+from contribos.review.service import APPLY_PHRASES
 from contribos.tasks.issue import IssueError, parse_issue_url
 from contribos.tasks.store import TaskError
 from contribos.tasks.supervisor import TaskSupervisor
@@ -51,7 +52,7 @@ def _supervisor(request: Request) -> TaskSupervisor:
 
 def _agent_info(request: Request, status: AgentStatus) -> dict[str, Any]:
     profile = PROFILES[status.id]
-    supports = ['host'] + (['sbx'] if profile.sbx_agent else [])
+    supports = ['host'] + (['sbx'] if profile.sbx else [])
     if request.app.state.demo:
         supports = ['host', 'sbx', 'container']
     configured = request.app.state.supervisor.sandboxes
@@ -134,7 +135,11 @@ async def delete_task(request: Request, task_id: str) -> dict[str, str]:
 async def message(request: Request, task_id: str, body: MessageInput) -> dict[str, str]:
     if not body.text.strip():
         raise TaskError('invalid_message', 'Enter a message.', 422)
-    turn = _supervisor(request).send(task_id, body.text, body.client_message_id, interrupt=body.delivery == 'interrupt')
+    interrupt = body.delivery == 'interrupt'
+    if not request.app.state.demo and body.text.strip() in APPLY_PHRASES:
+        turn = request.app.state.reviews.apply(task_id, None, body.client_message_id, interrupt=interrupt)
+    else:
+        turn = _supervisor(request).send(task_id, body.text, body.client_message_id, interrupt=interrupt)
     return {'turn_id': turn['id'], 'status': 'queued'}
 
 

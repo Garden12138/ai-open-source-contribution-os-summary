@@ -22,6 +22,10 @@ from contribos.security import (
 )
 from contribos.tasks.store import TaskError, TaskStore
 from contribos.tasks.supervisor import TaskSupervisor
+from contribos.publish.service import Publisher
+from contribos.review.service import ReviewService
+from contribos.web.routes_publish import router as publish_router
+from contribos.web.routes_review import router as review_router
 from contribos.web.routes_tasks import router as task_router
 from contribos.web.routes_settings import router as settings_router
 from contribos.web.demo import demo_supervisor
@@ -70,6 +74,11 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
                 settings.tool_paths.update(store.setting('tool_paths', {}))
                 supervisor = demo_supervisor(settings, store) if demo else supervisor_factory(settings, store)
                 app.state.supervisor = supervisor
+                if not demo:
+                    app.state.publisher = Publisher(supervisor)
+                    app.state.publisher.recover()
+                    app.state.reviews = ReviewService(supervisor)
+                    app.state.reviews.recover()
                 if desktop:
                     app.state.desktop_notifications = DesktopNotifications(supervisor.events)
                     supervisor.events.on_event = app.state.desktop_notifications.on_task_event
@@ -175,6 +184,8 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
         return FileResponse(STATIC / "index.html")
 
     app.include_router(task_router)
+    app.include_router(publish_router)
+    app.include_router(review_router)
     app.include_router(settings_router)
     if desktop:
         app.include_router(desktop_router)

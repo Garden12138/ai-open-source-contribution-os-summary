@@ -17,6 +17,7 @@ class ScriptedAgent(Agent):
         self.cancelled = asyncio.Event()
         self.cwd = Path.cwd()
         self.context = self.cwd
+        self.mode = 'build' if self.scenario.startswith('review_') else 'plan'
 
     def on_connect(self, conn: Any) -> None:
         self.conn = conn
@@ -37,7 +38,7 @@ class ScriptedAgent(Agent):
         self.cwd, self.context = Path(cwd), Path(additional_directories[0])
         sid = f'fake-{os.getpid()}' if self.scenario == 'exit_recreate' else 'fake-session'
         return s.NewSessionResponse(session_id=sid, modes=s.SessionModeState(
-            current_mode_id='plan', available_modes=[s.SessionMode(id='plan', name='Plan'), s.SessionMode(id='build', name='Build')],
+            current_mode_id=self.mode, available_modes=[s.SessionMode(id='plan', name='Plan'), s.SessionMode(id='build', name='Build')],
         ))
 
     async def load_session(self, cwd: str, session_id: str, additional_directories: list[str] | None = None,
@@ -53,6 +54,7 @@ class ScriptedAgent(Agent):
         return s.ResumeSessionResponse()
 
     async def set_session_mode(self, session_id: str, mode_id: str, **kwargs: Any) -> s.SetSessionModeResponse:
+        self.mode = mode_id
         await self.conn.session_update(session_id, s.CurrentModeUpdate(current_mode_id=mode_id))
         return s.SetSessionModeResponse()
 
@@ -107,8 +109,23 @@ class ScriptedAgent(Agent):
             for block in prompt:
                 await self.message(session_id, block.text)
         elif scenario == 'environment':
-            keys = ('GITHUB_TOKEN', 'GH_TOKEN', 'SSH_AUTH_SOCK', 'GH_CONFIG_DIR', 'GIT_CONFIG_GLOBAL', 'GIT_TERMINAL_PROMPT')
+            keys = ('CONTRIBOS_GITHUB_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN', 'SSH_AUTH_SOCK', 'GH_CONFIG_DIR',
+                    'GIT_CONFIG_GLOBAL', 'GIT_TERMINAL_PROMPT')
             await self.message(session_id, json.dumps({k: os.environ.get(k) for k in keys}))
+        elif scenario.startswith('review_'):
+            assert self.mode == 'plan' and 'Diff excerpt' in prompt[-1].text
+            assert '+Changed' in prompt[-1].text
+            if scenario == 'review_permission':
+                permission = await self.conn.request_permission(session_id=session_id,
+                    tool_call=s.ToolCallProgress(tool_call_id='inspect-review', title='Read test sources', kind='read'),
+                    options=[s.PermissionOption(option_id='allow', name='Allow once', kind='allow_once')])
+                assert permission.outcome.option_id == 'allow'
+            if scenario == 'review_mutates':
+                (self.cwd / 'README.md').write_text('Modified by reviewer\n')
+            result = {'verdict': 'request_changes', 'summary': 'Add a regression test.', 'findings': [
+                {'severity': 'medium', 'file': 'README.md', 'line': 1, 'message': 'Cover the change with a test.'}]}
+            payload = '{broken' if scenario == 'review_malformed' else json.dumps(result)
+            await self.message(session_id, f'```json\n{payload}\n```')
         else:
             await self.conn.session_update(session_id, s.AgentThoughtChunk(content=s.TextContentBlock(text='Inspect ')))
             await self.conn.session_update(session_id, s.AgentThoughtChunk(content=s.TextContentBlock(text='the task.')))

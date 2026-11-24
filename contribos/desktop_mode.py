@@ -18,6 +18,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from uvicorn import Config, Server
 
+from contribos.security import without_github_credentials
 from contribos.tasks.events import REQUEST_EVENTS, TaskEvent, TaskEvents
 
 STARTUP_ENV = 'CONTRIBOS_STARTUP_CODE'
@@ -64,6 +65,7 @@ def login_path(shell: str | None = None, *, timeout: float = 5) -> tuple[str, bo
         with subprocess.Popen(
             [shell, '-l', '-c', r'printf "\nCONTRIBOS_PATH=%s\n" "$PATH"'],
             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, start_new_session=True,
+            env=without_github_credentials(os.environ),
         ) as process:
             try:
                 output, _ = process.communicate(timeout=timeout)

@@ -1,5 +1,7 @@
 import asyncio
 import json
+import secrets
+import subprocess
 
 import httpx
 
@@ -7,6 +9,7 @@ from contribos.agent.engine import EngineEvent
 from contribos.agent.fake import FakeEngine
 from contribos.agent.profiles import AgentStatus, PROFILES
 from contribos.config import Settings
+from contribos.github import GitHubClient
 from contribos.sandbox.base import ExecResult
 from contribos.tasks.supervisor import TaskSupervisor
 from contribos.web.app import create_app
@@ -14,6 +17,51 @@ from test_task_supervisor import FakeSandbox, issue_loader, until
 
 ORIGIN = 'http://127.0.0.1:8765'
 ISSUE = 'https://github.com/owner/repo/issues/1'
+
+
+def test_github_snapshot_never_persists_or_returns_host_token(tmp_path, monkeypatch, caplog):
+    canary = secrets.token_urlsafe(32)
+    settings = Settings(home=tmp_path)
+    monkeypatch.delenv('CONTRIBOS_GITHUB_TOKEN', raising=False)
+    monkeypatch.setattr(Settings, 'tool', lambda _, name: '/tools/' + name)
+
+    def gh(argv, **kwargs):
+        assert argv == ['/tools/gh', 'auth', 'token', '--hostname', 'github.com']
+        assert all(key not in kwargs['env'] for key in ('GITHUB_TOKEN', 'GH_TOKEN', 'CONTRIBOS_GITHUB_TOKEN'))
+        return subprocess.CompletedProcess(argv, 0, canary + '\n')
+
+    monkeypatch.setattr('contribos.github.subprocess.run', gh)
+
+    def read(request):
+        assert request.url.host == 'api.github.com' and request.headers['Authorization'] == 'Bearer ' + canary
+        assert canary not in str(request.url)
+        if request.url.path.endswith('/issues/1'):
+            return httpx.Response(200, json={'title': 'Issue ' + canary, 'body': 'Body ' + canary})
+        if request.url.path.endswith('/repos/owner/repo'):
+            return httpx.Response(200, json={'default_branch': 'main'})
+        return httpx.Response(200, json=[])
+
+    def factory(settings, store):
+        engine = FakeEngine()
+        return TaskSupervisor(settings, store, github=GitHubClient(settings, transport=httpx.MockTransport(read)),
+            sandbox_factories={'host': FakeSandbox}, engine_factory=lambda *_: engine)
+
+    async def check():
+        app = create_app(settings, supervisor_factory=factory)
+        headers = {'Authorization': 'Bearer ' + settings.local_token_path.read_text().strip()}
+        async with app.router.lifespan_context(app), httpx.AsyncClient(
+                transport=httpx.ASGITransport(app), base_url=ORIGIN, headers=headers) as client:
+            response = await client.post('/api/tasks', json={'issue_url': ISSUE, 'isolation': 'host', 'trust_confirmed': True})
+            assert response.status_code == 201
+            task_id = response.json()['task_id']
+            store = app.state.supervisor.store
+            await until(lambda: store.get(task_id)['agent_state'] == 'idle' and store.get(task_id)['status'] == 'ready')
+            task = await client.get(f'/api/tasks/{task_id}')
+            events = await client.get(f'/api/tasks/{task_id}/events')
+            assert task.json()['issue_snapshot']['body'] == 'Body [REDACTED]'
+            assert canary not in task.text + events.text + '\n'.join(store.db.iterdump()) + caplog.text
+
+    asyncio.run(check())
 
 
 def application(tmp_path, engine):

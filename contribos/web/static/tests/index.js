@@ -25,3 +25,12 @@ test('page assets follow the same-origin CSP without inline execution', () => {
   }
   assert.doesNotMatch(html, /(?:src|href)\s*=\s*["']\s*javascript:/i);
 });
+
+test('only an unchanged preview can be confirmed and unknown results can be reconciled', async () => {
+  const { publicationActions } = await import('../publish.js');
+  assert.equal(publicationActions('previewed', false, false).confirm, true);
+  assert.equal(publicationActions('previewed', false, true).confirm, false);
+  assert.equal(publicationActions('previewed', true, false).confirm, false);
+  assert.deepEqual(publicationActions('unknown', false, false), { prepare: false, confirm: false, reconcile: true });
+  assert.equal(publicationActions('superseded', false, false).confirm, false);
+});

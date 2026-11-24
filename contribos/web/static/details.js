@@ -1,6 +1,8 @@
 import { api, element } from './api.js';
 import { parseDiff } from './diff.js';
 import { externalURL, renderMarkdown } from './markdown.js';
+import { mountPublish } from './publish.js';
+import { mountReview } from './review.js';
 
 function externalLink(value, label) {
   const href = externalURL(value);
@@ -95,9 +97,13 @@ export function mountDetails(root, path, refreshTask) {
   let request = 0;
   let diffTimer;
   let fileIndex = 0;
+  const publishRoot = element('div');
+  const publish = mountPublish(publishRoot, path);
+  const reviewRoot = element('div');
+  const review = mountReview(reviewRoot, path);
 
   const navigation = [
-    ['diff', '改动'], ['issue', 'Issue'], ['usage', '用量'],
+    ['diff', '改动'], ['issue', 'Issue'], ['review', '审查'], ['publish', '发布'], ['usage', '用量'],
   ].map(([key, name]) => {
     const button = element('button', '', name);
     button.type = 'button';
@@ -105,6 +111,8 @@ export function mountDetails(root, path, refreshTask) {
     button.addEventListener('click', () => {
       tab = key;
       paint();
+      if (tab === 'publish') publish.refresh();
+      if (tab === 'review') review.refresh();
     });
     return [key, button];
   });
@@ -145,6 +153,8 @@ export function mountDetails(root, path, refreshTask) {
     if (tab === 'diff') renderDiff();
     if (tab === 'issue') renderIssue(task, body, refreshIssue, feedback);
     if (tab === 'usage') renderUsage(task, body);
+    if (tab === 'publish') body.append(publishRoot);
+    if (tab === 'review') body.append(reviewRoot);
   }
 
   async function loadDiff() {
@@ -180,9 +190,16 @@ export function mountDetails(root, path, refreshTask) {
     update(next) {
       const previous = task?.issue_snapshot;
       task = next;
+      publish.update(next);
+      review.update(next);
       if (tab === 'usage' || (tab === 'issue' && JSON.stringify(previous) !== JSON.stringify(next.issue_snapshot))) paint();
     },
     event(event) {
+      if (event.type.startsWith('review.')) review.event();
+      if (event.type.startsWith('publish.')) {
+        publish.event();
+        if (event.type === 'publish.succeeded') refreshTask();
+      }
       if (event.type === 'diff.updated') {
         clearTimeout(diffTimer);
         diffTimer = setTimeout(loadDiff, 120);
@@ -194,6 +211,8 @@ export function mountDetails(root, path, refreshTask) {
       }
     },
     close() {
+      publish.close();
+      review.close();
       closed = root.hidden = true;
       clearTimeout(diffTimer);
       root.replaceChildren();

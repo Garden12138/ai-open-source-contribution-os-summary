@@ -1,6 +1,5 @@
-"""Public GitHub issue snapshots; no GitHub credentials are requested or forwarded."""
+"""Public GitHub issue snapshots read by the host backend."""
 
-import json
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -8,10 +7,11 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from contribos.sandbox.host import safe_text
+from contribos.config import Settings
+from contribos.github import GitHubClient, GitHubError, GitHubReader
 
 
-class IssueError(RuntimeError):
+class IssueError(GitHubError):
     """Public, machine-readable GitHub read error."""
 
 
@@ -33,23 +33,25 @@ def parse_issue_url(url: str) -> IssueRef:
         raise IssueError('invalid_issue_url') from None
 
 
-async def fetch_issue(ref: IssueRef, client: httpx.AsyncClient | None = None) -> dict[str, Any]:
-    owned = client is None
-    client = client or httpx.AsyncClient(base_url='https://api.github.com', timeout=30, follow_redirects=False)
-    async def get(path: str) -> Any:
-        try:
-            response = await client.get(path, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'ContribOS/2'})
-            if response.status_code in {403, 429}:
-                raise IssueError('github_rate_limited')
-            response.raise_for_status()
-            return json.loads(safe_text(response.text))
-        except (httpx.HTTPError, ValueError):
-            raise IssueError('github_read_failed') from None
+async def fetch_issue(ref: IssueRef, client: httpx.AsyncClient | None = None, *,
+                      github: GitHubClient | None = None) -> dict[str, Any]:
+    try:
+        if client is not None:
+            return await _snapshot(ref, GitHubReader(client))
+        async with (github or GitHubClient(Settings())).read() as reader:
+            return await _snapshot(ref, reader)
+    except IssueError:
+        raise
+    except GitHubError as error:
+        raise IssueError(error.code, error.message) from None
+
+
+async def _snapshot(ref: IssueRef, reader: GitHubReader) -> dict[str, Any]:
     async def pages(path: str) -> list[dict[str, Any]]:
         items = []
         page = 1
         while True:
-            batch = await get(f'{path}?per_page=100&page={page}')
+            batch = await reader.get(f'{path}?per_page=100&page={page}')
             if not isinstance(batch, list):
                 raise IssueError('github_invalid_response')
             items.extend(batch)
@@ -58,10 +60,10 @@ async def fetch_issue(ref: IssueRef, client: httpx.AsyncClient | None = None) ->
             page += 1
     prefix = f'/repos/{ref.repo}'
     try:
-        issue = await get(f'{prefix}/issues/{ref.number}')
+        issue = await reader.get(f'{prefix}/issues/{ref.number}')
         if not isinstance(issue, dict) or 'pull_request' in issue:
             raise IssueError('url_is_not_an_issue')
-        repo = await get(prefix)
+        repo = await reader.get(prefix)
         comments = await pages(f'{prefix}/issues/{ref.number}/comments')
         timeline = await pages(f'{prefix}/issues/{ref.number}/timeline')
         linked = []
@@ -75,6 +77,3 @@ async def fetch_issue(ref: IssueRef, client: httpx.AsyncClient | None = None) ->
                 'linked_prs': linked, 'default_branch': repo['default_branch']}
     except (KeyError, TypeError, AttributeError):
         raise IssueError('github_invalid_response') from None
-    finally:
-        if owned:
-            await client.aclose()

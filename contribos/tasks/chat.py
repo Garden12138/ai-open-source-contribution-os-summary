@@ -22,6 +22,7 @@ from contribos.agent.acp_engine import AcpEngine
 from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, RequestResponse, TaskContext, TurnResult, validate_answers
 from contribos.agent.profiles import AgentProfile, PROFILES
 from contribos.config import Settings
+from contribos.github import GitHubClient
 from contribos.db import connect, migrate
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox, safe_text
@@ -41,7 +42,8 @@ class Terminal:
         self.transport: Any = None
 
     async def readline(self) -> str | None:
-        if stat.S_ISREG(os.fstat(sys.stdin.fileno()).st_mode):
+        mode = os.fstat(sys.stdin.fileno()).st_mode
+        if stat.S_ISREG(mode) or (stat.S_ISCHR(mode) and not sys.stdin.isatty()):
             value = sys.stdin.readline()
             return value.rstrip('\r\n') if value else None
         if self.reader is None:
@@ -375,7 +377,7 @@ class ChatSession:
 
 async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, trust_repo: bool = False,
                    isolation: str | None = None, resume_task: str | None = None, console: Terminal | None = None,
-                   loader: Callable[[IssueRef], Awaitable[dict[str, Any]]] = fetch_issue,
+                   loader: Callable[[IssueRef], Awaitable[dict[str, Any]]] | None = None,
                    sandbox: Sandbox | None = None,
                    engine_factory: Callable[..., AgentEngine] | None = None) -> int:
     console = console or Terminal()
@@ -396,21 +398,21 @@ async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, tru
             await session.resume(resume_task, isolation)
         else:
             session.select_sandbox(level)
-            snapshot = await loader(ref)
+            snapshot = await loader(ref) if loader else await fetch_issue(ref, github=GitHubClient(settings))
             await session.create(ref, snapshot, level)
         await session.converse(resume=bool(resume_task))
         return 0
     except (IssueError, SandboxError, AgentError) as exc:
         code = exc.code if isinstance(exc, AgentError) else str(exc)
         message = {
-            'github_rate_limited': 'Anonymous GitHub reads are rate-limited. Retry after the limit resets.',
             'sbx_unavailable': 'Install Docker Sandboxes and ensure sbx is on PATH.',
             'sbx_deny_all_required': 'Docker Sandboxes needs an initialized deny-all policy.',
             'sbx_network_policy_unsafe': 'Docker Sandboxes has egress rules outside the task allowlist. Check sbx policy ls.',
             'sbx_credential_policy_unsafe': 'Check sbx credential and SSH forwarding settings for sources outside the task profile.',
             'sbx_oauth_required': 'Configure the Docker Sandboxes OAuth credential for this Agent.',
             'sandbox_agent_unavailable': 'The selected Agent is unavailable in this isolation level.',
-        }.get(code, 'Chat could not proceed. Use contribos agents to inspect Agent setup.')
+        }.get(code, exc.message if isinstance(exc, IssueError) else
+              'Chat could not proceed. Use contribos agents to inspect Agent setup.')
         console.write(f'\n[{code}] {message}\n')
         return 1
     except (OSError, ValueError):

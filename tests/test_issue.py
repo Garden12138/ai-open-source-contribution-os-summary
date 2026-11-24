@@ -1,7 +1,11 @@
 import asyncio
+import secrets
 
 import httpx
 import pytest
+
+from contribos.config import Settings
+from contribos.github import GitHubClient, GitHubError
 
 from contribos.tasks.issue import IssueError, fetch_issue, parse_issue_url
 
@@ -46,3 +50,40 @@ def test_github_read_error_is_a_safe_code(status, code):
             with pytest.raises(IssueError, match=code):
                 await fetch_issue(parse_issue_url('https://github.com/owner/repo/issues/1'), client)
     asyncio.run(check())
+
+
+def test_invalid_token_falls_back_to_anonymous_with_rate_limit_hint(monkeypatch):
+    canary = secrets.token_urlsafe(32)
+    monkeypatch.setenv('CONTRIBOS_GITHUB_TOKEN', canary)
+    seen = []
+
+    def respond(request):
+        seen.append(request.headers.get('authorization'))
+        return httpx.Response(401 if len(seen) == 1 else 403, text=canary)
+
+    async def check():
+        github = GitHubClient(Settings(), transport=httpx.MockTransport(respond))
+        with pytest.raises(IssueError, match='github_rate_limited') as error:
+            await fetch_issue(parse_issue_url('https://github.com/owner/repo/issues/1'), github=github)
+        assert 'Anonymous GitHub API rate limit' in error.value.message
+        assert canary not in error.value.message
+
+    asyncio.run(check())
+    assert seen == ['Bearer ' + canary, None]
+
+
+def test_authenticated_reader_does_not_follow_redirects(monkeypatch):
+    monkeypatch.setenv('CONTRIBOS_GITHUB_TOKEN', secrets.token_urlsafe(32))
+    seen = []
+
+    def respond(request):
+        seen.append(request.url.host)
+        return httpx.Response(302, headers={'location': 'https://outside.invalid'})
+
+    async def check():
+        github = GitHubClient(Settings(), transport=httpx.MockTransport(respond))
+        async with github.read() as reader:
+            with pytest.raises(GitHubError, match='github_read_failed'):
+                await reader.get('/redirect')
+    asyncio.run(check())
+    assert seen == ['api.github.com']

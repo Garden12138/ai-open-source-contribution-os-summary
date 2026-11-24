@@ -37,6 +37,9 @@ class Preferences(BaseModel):
     resource_limits: ResourceLimits = Field(default_factory=ResourceLimits)
     concurrency: int = Field(default=2, strict=True, ge=1, le=64)
     tool_paths: dict[str, str] = Field(default_factory=dict)
+    git_author_name: str = Field(default='', max_length=128, pattern=r'^[^\x00-\x1f<>]*$')
+    git_author_email: str = Field(default='', max_length=320, pattern=r'^(?:[^\s<>@]+@[^\s<>@]+)?$')
+    git_dco_signoff: StrictBool = False
     notifications: dict[NotifyEvent, StrictBool] = Field(default_factory=lambda: dict.fromkeys(get_args(NotifyEvent), True))
 
     @field_validator('trusted_owners')

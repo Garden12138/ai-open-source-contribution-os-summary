@@ -70,10 +70,12 @@ def test_doctor_success_and_suppressed_auth_output(monkeypatch, capsys):
     import contribos.cli as cli
     monkeypatch.setattr(cli, "agent_statuses", lambda: [])
     canary = secrets.token_urlsafe(32)
+    monkeypatch.setenv('CONTRIBOS_GITHUB_TOKEN', canary)
     calls = []
     monkeypatch.setattr(cli.shutil, 'which', lambda name: '/tools/' + name)
     def run(argv, **kwargs):
         calls.append((argv, kwargs))
+        assert 'CONTRIBOS_GITHUB_TOKEN' not in kwargs['env']
         if argv[0].endswith('/gh'):
             assert kwargs['stdout'] == subprocess.DEVNULL
             assert kwargs['stderr'] == subprocess.DEVNULL

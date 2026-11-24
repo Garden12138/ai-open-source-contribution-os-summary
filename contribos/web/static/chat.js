@@ -1,6 +1,6 @@
 import { element } from './api.js';
 import { timeline } from './chat-events.js';
-import { renderMarkdown } from './markdown.js';
+import { externalURL, renderMarkdown } from './markdown.js';
 import { requestCard } from './requests.js';
 
 const eventTypes = [
@@ -12,6 +12,9 @@ const eventTypes = [
   'system.warning', 'system.runtime_failed', 'system.recovery_failed', 'system.cancel_forced', 'system.agent_exited',
   'turn.started', 'turn.completed', 'turn.failed', 'turn.interrupted',
   'diff.updated', 'issue.updated', 'issue.refresh_failed',
+  'publish.preparing', 'publish.previewed', 'publish.preview_failed', 'publish.confirmed', 'publish.running',
+  'publish.failed', 'publish.succeeded',
+  'review.started', 'review.completed', 'review.invalid', 'review.failed',
   'mode.changed', 'usage.updated', 'agent.other', 'stream.snapshot',
 ];
 
@@ -50,6 +53,16 @@ function cardFor(event, path, resume) {
   const { text = '', title, status } = payload;
   if (type === 'permission.requested' || type === 'question.asked') return requestCard(event, path);
   if (type === 'permission.resolved' && payload.auto) return element('p', 'activity', '权限已自动处理。');
+  if (type === 'publish.succeeded') {
+    const card = element('div', 'activity', 'Draft PR 已发布。');
+    const href = externalURL(payload.pr_url);
+    if (href) {
+      const link = element('a', '', '打开 PR');
+      Object.assign(link, { href, target: '_blank', rel: 'noopener noreferrer' });
+      card.append(' ', link);
+    }
+    return card;
+  }
   if (type.startsWith('message.')) {
     const card = element('article', type === 'message.user' ? 'message user-message' : 'message');
     card.append(element('h3', '', type === 'message.user' ? '你' : 'Agent'));

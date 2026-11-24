@@ -193,6 +193,24 @@ class TaskStore:
     def turns(self, task_id: str) -> list[sqlite3.Row]:
         return self.db.execute('SELECT * FROM turns WHERE task_id=? ORDER BY rowid', (task_id,)).fetchall()
 
+    def begin_auxiliary(self, task_id: str, kind: str, prompt: str) -> sqlite3.Row:
+        with self.transaction():
+            task = self.get(task_id)
+            state = task['agent_state']
+            if state not in {'idle', 'error'} or not self._agent_state(task_id, state, 'running'):
+                raise TaskError('task_busy', 'Wait for the current task operation to finish.')
+            if not task['runtime_managed']:
+                self.db.execute('UPDATE tasks SET runtime_managed=1 WHERE id=? AND runtime_managed=0', (task_id,))
+            turn = self._insert_turn(task_id, kind, self.clean(prompt), None)
+            self.db.execute("UPDATE turns SET status='running',started_at=? WHERE id=? AND status='queued'",
+                            (utc_now(), turn['id']))
+            return self.running(task_id)
+
+    def turn_text(self, turn_id: str) -> str:
+        events = self.db.execute("SELECT payload_json FROM task_events WHERE turn_id=? AND type='message.agent' ORDER BY seq",
+                                 (turn_id,))
+        return '\n'.join(json.loads(row[0]).get('text', '') for row in events)
+
     def _agent_state(self, task_id: str, previous: str, next_state: str,
                      error: tuple[str, str] | None = None) -> int:
         code, message = error or (None, None)

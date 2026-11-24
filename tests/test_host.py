@@ -112,7 +112,7 @@ def test_spawned_agent_really_has_no_github_credentials(tmp_path, local_repo, mo
                 assert canary not in json.dumps(event.payload)
                 if event.type == 'message.agent':
                     env = json.loads(event.payload['text'])
-                    assert all(env[k] is None for k in ('GITHUB_TOKEN', 'GH_TOKEN', 'SSH_AUTH_SOCK'))
+                    assert all(env[k] is None for k in ('CONTRIBOS_GITHUB_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN', 'SSH_AUTH_SOCK'))
                     assert Path(env['GH_CONFIG_DIR']).is_dir() and not list(Path(env['GH_CONFIG_DIR']).iterdir())
                     assert env['GIT_CONFIG_GLOBAL'] == os.devnull
                     assert env['GIT_TERMINAL_PROMPT'] == '0'

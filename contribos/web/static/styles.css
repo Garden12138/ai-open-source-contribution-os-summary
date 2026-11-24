@@ -146,6 +146,13 @@ code { background: #f3f5fb; border-radius: .25rem; }
 .detail-body { padding: .85rem; overflow-wrap: anywhere; }
 .detail-body h3 { font-size: 1rem; margin-bottom: .5rem; }
 .detail-controls { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .75rem; }
+.detail-tabs { flex-wrap: wrap; }
+.publish-editor, .publication-preview { display: grid; gap: .75rem; margin-top: .75rem; }
+.publish-editor label { display: grid; gap: .25rem; }
+.publish-editor input, .publish-editor textarea { min-width: 0; width: 100%; }
+.publish-editor .detail-controls { flex-wrap: wrap; }
+.publish-diff { max-height: 28rem; }
+.review-card { margin-top: .75rem; }
 .diff-files { width: 100%; }
 .diff-patch span { display: block; min-height: 1.4em; min-width: max-content; }
 .diff-hunk { color: #3e4a83; background: #e9edff; }

@@ -62,6 +62,17 @@ function preferences(root, config, save) {
     element('p', 'muted', '修改并发后重启后端生效。CPU、内存和磁盘上限用于沙箱。'),
     field('沙箱 CPU 核数', cpus), field('沙箱内存（MiB）', memory), field('沙箱磁盘（MiB）', disk));
 
+  const publishing = group(form, 'Git 提交作者');
+  const authorName = element('input');
+  Object.assign(authorName, { value: config.git_author_name, maxLength: 128 });
+  const authorEmail = element('input');
+  Object.assign(authorEmail, { value: config.git_author_email, maxLength: 320, type: 'email' });
+  const signoff = element('input');
+  Object.assign(signoff, { type: 'checkbox', checked: config.git_dco_signoff });
+  const signoffLabel = element('label', 'choice');
+  signoffLabel.append(signoff, '添加 DCO Signed-off-by');
+  publishing.append(field('作者姓名', authorName), field('作者邮箱', authorEmail), signoffLabel);
+
   const tools = group(form, '命令行工具路径');
   tools.append(element('p', 'muted', '填写可信可执行文件的绝对路径。留空时使用 PATH。'));
   const paths = config.tools.map(name => {
@@ -113,6 +124,9 @@ function preferences(root, config, save) {
         concurrency: concurrency.valueAsNumber,
         resource_limits: { cpus: cpus.valueAsNumber, memory_mib: memory.valueAsNumber, disk_mib: disk.valueAsNumber },
         tool_paths: Object.fromEntries(paths.map(([name, input]) => [name, input.value.trim()])),
+        git_author_name: authorName.value.trim(),
+        git_author_email: authorEmail.value.trim(),
+        git_dco_signoff: signoff.checked,
         notifications: Object.fromEntries(switches.map(([name, input]) => [name, input.checked])),
       } });
       status.textContent = '设置已保存。';
