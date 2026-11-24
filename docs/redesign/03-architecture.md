@@ -381,7 +381,7 @@ Cursor、Claude Code 的登录在 VM 内完成；支持无挂载的沙箱（`sbx
      作者/提交者/时间/提交信息全部由平台设置决定（需要 DCO 时加 `Signed-off-by`）；
    - 计算 `git diff --binary P C` 得到 `diff_hash`；扫描新增内容中的密钥模式（命中即阻止）；
      标记二进制文件、`.github/workflows/` 改动、超大改动。
-5. 预览内容：上游仓库、默认分支、`base_sha=P`、上游当前 HEAD 及落后提交数、Fork、分支名、`commit_sha=C`、
+5. 预览内容：上游仓库、默认分支、`base_sha=P`、上游当前 HEAD 及落后提交数、来源仓库、分支名、`commit_sha=C`、
    `diff_hash`、文件列表与统计、标题/正文、`draft=true`、检查项（Issue 是否 open、新关联 PR、
    最近一轮运行过的测试命令及结果、审查是否针对同一 `diff_hash` 及结论）、警告列表。
 6. `preview_hash = sha256(canonical_json(预览的实质字段))`；同任务之前的预览置为 `superseded`。
@@ -391,8 +391,9 @@ Cursor、Claude Code 的登录在 VM 内完成；支持无挂载的沙箱（`sbx
 
 - CAS：仅当该预览是任务最新预览且状态为 `previewed` 时转为 `confirmed`。
 - 步骤（每一步"先查后做"，天然幂等，结果写入 `publications.steps_json`）：
-  1. **Fork**：查询用户名下 Fork；不存在则 `POST /repos/{owner}/{repo}/forks` 并等待就绪（≤ 60 秒）。
-  2. **推送**：`git push <fork> C:refs/heads/<branch>`；远程已有同名分支且 SHA 相同则跳过，不同则失败（绝不 force）。
+  1. 第三方仓库使用用户名下对应的 Fork，缺失时创建并等待就绪（≤ 60 秒）。用户自有仓库可使用同仓新分支。
+     预览、确认和对账时核对 GitHub 用户与仓库所有者的账号 ID、仓库 ID、全名、推送权限、默认分支及来源分支保护。
+  2. **推送**：`git push <source> C:refs/heads/<branch>`；远程已有同名分支且 SHA 相同则跳过，不同则失败（绝不 force）。
      令牌通过环境变量注入 `http.extraHeader`，不出现在命令行参数或 URL 中。
   3. **建 PR**：先查 `head=<me>:<branch>` 的 PR，已存在则记录；否则 `POST /pulls`（`draft: true`）。
 - 中途异常 → 状态 `unknown`；"对账"即重新执行上述三步（先查后做，不会重复创建）。

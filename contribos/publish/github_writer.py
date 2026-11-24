@@ -19,6 +19,12 @@ class WriterError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class Account:
+    login: str
+    id: int
+
+
+@dataclass(frozen=True)
 class PullRequest:
     number: int
     url: str
@@ -42,22 +48,50 @@ class WriterSession:
         except (httpx.HTTPError, ValueError):
             raise WriterError('github_publish_request_failed') from None
 
-    async def identity(self) -> str:
+    async def identity(self) -> Account:
         identity = await self._request('GET', '/user')
         login = identity.get('login') if isinstance(identity, dict) else None
-        if not isinstance(login, str) or not re.fullmatch(r'[A-Za-z0-9-]{1,39}', login):
+        if (not isinstance(login, str) or not re.fullmatch(r'[A-Za-z0-9-]{1,39}', login)
+                or identity.get('type') != 'User' or type(identity.get('id')) is not int or identity['id'] <= 0):
             raise WriterError('github_identity_unavailable')
-        return login
+        return Account(login, identity['id'])
 
     @staticmethod
-    def destination(repo: str, login: str) -> str:
+    def destination(repo: str, account: Account) -> str:
         github_url(repo)
-        owner, name = repo.split('/')
-        if owner.casefold() == login.casefold():
-            raise WriterError('fork_owner_is_upstream')
-        fork = f'{login}/{name}'
-        github_url(fork)
-        return fork
+        _, name = repo.split('/')
+        return f'{account.login}/{name}'
+
+    async def owned_repository(self, repo: str, account: Account, branch: str, default: str,
+                               *, commit: str | None = None) -> int:
+        value = await self._request('GET', f'/repos/{repo}')
+        if not isinstance(value, dict):
+            raise WriterError('owned_destination_conflict')
+        owner, permissions = value.get('owner'), value.get('permissions')
+        if (repo.split('/')[0].casefold() != account.login.casefold()
+                or str(value.get('full_name')).casefold() != repo.casefold()
+                or not isinstance(owner, dict) or owner.get('type') != 'User'
+                or str(owner.get('login')).casefold() != account.login.casefold()
+                or type(owner.get('id')) is not int or owner['id'] != account.id
+                or type(value.get('id')) is not int or value['id'] <= 0
+                or not isinstance(permissions, dict) or permissions.get('push') is not True
+                or value.get('archived') or value.get('disabled')):
+            raise WriterError('owned_destination_conflict')
+        if value.get('default_branch') != default:
+            raise WriterError('default_branch_changed')
+        if branch == default or not re.fullmatch(r'contribos/issue-[1-9][0-9]*-[0-9a-f]{12}', branch):
+            raise WriterError('unsafe_publish_branch')
+        encoded = quote(branch, safe='')
+        if await self._request('GET', f'/repos/{repo}/rules/branches/{encoded}') != []:
+            raise WriterError('unsafe_publish_branch')
+        existing = await self._request('GET', f'/repos/{repo}/branches/{encoded}', missing=True)
+        if existing is not None:
+            if not isinstance(existing, dict) or existing.get('protected') is not False:
+                raise WriterError('unsafe_publish_branch')
+            tip = existing.get('commit')
+            if commit is None or not isinstance(tip, dict) or tip.get('sha') != commit:
+                raise WriterError('remote_branch_conflict')
+        return value['id']
 
     async def _fork_ready(self, upstream: str, fork: str) -> bool:
         value = await self._request('GET', f'/repos/{fork}', missing=True)
@@ -77,6 +111,8 @@ class WriterSession:
     async def ensure_fork(self, upstream: str, fork: str) -> str:
         github_url(upstream)
         github_url(fork)
+        if upstream.casefold() == fork.casefold():
+            raise WriterError('fork_destination_conflict')
         try:
             async with asyncio.timeout(self.fork_timeout):
                 value = await self._request('GET', f'/repos/{fork}', missing=True)
@@ -110,12 +146,16 @@ class WriterSession:
             value = existing[0]
         else:
             value = await self._request('POST', f'/repos/{repo}/pulls',
-                body={'title': title, 'body': body, 'head': head, 'base': base, 'draft': True})
+                body={'title': title, 'body': body, 'head': branch if repo.casefold() == fork.casefold() else head,
+                      'base': base, 'draft': True})
         pull = self._pull(repo, value)
         target = value.get('base')
         source = value.get('head')
         if (not isinstance(target, dict) or target.get('ref') != base or not isinstance(source, dict)
-                or source.get('sha') != commit or not existing and not pull.draft):
+                or source.get('ref') != branch or source.get('sha') != commit
+                or not isinstance(target.get('repo'), dict) or str(target['repo'].get('full_name')).casefold() != repo.casefold()
+                or not isinstance(source.get('repo'), dict) or str(source['repo'].get('full_name')).casefold() != fork.casefold()
+                or not existing and not pull.draft):
             raise WriterError('pull_request_conflict')
         return pull
 

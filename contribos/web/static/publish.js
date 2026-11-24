@@ -20,8 +20,8 @@ function previewDetails(preview) {
   const root = element('div', 'publication-preview');
   const details = element('dl', 'usage');
   const add = (label, value) => details.append(element('dt', '', label), element('dd', '', value));
-  add('上游', `${preview.repo} · ${preview.default_branch}`);
-  add('推送至', `${preview.fork} · ${preview.branch}`);
+  add('PR 目标分支', `${preview.repo} · ${preview.default_branch}`);
+  add('PR 来源分支', `${preview.fork} · ${preview.branch}`);
   add('基线', preview.base_sha);
   add('上游 HEAD', preview.upstream_sha);
   add('落后上游', `${preview.behind} 个提交`);

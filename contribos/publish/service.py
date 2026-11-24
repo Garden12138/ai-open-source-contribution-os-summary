@@ -22,7 +22,8 @@ TEST_COMMAND = re.compile(r'\b(?:pytest|(?:python|python3) -m unittest|node --te
 MESSAGES = {
     'git_author_required': 'Set a Git author name and email in Settings.',
     'github_login_required': 'Run gh auth login to prepare and publish a Draft PR.',
-    'fork_owner_is_upstream': 'Use an upstream repository that this GitHub account can fork.',
+    'owned_destination_conflict': 'The source repository must belong to the confirmed GitHub user and allow pushes.',
+    'unsafe_publish_branch': 'Publishing requires a new, unprotected ContribOS branch.',
     'fork_destination_conflict': 'The destination repository is not a writable fork of this upstream.',
     'remote_branch_conflict': 'The remote branch already points to a different commit.',
     'base_not_on_upstream': 'The workspace base no longer belongs to the upstream default branch.',
@@ -91,15 +92,19 @@ class Publisher:
             author = Author(self.store.setting('git_author_name', ''), self.store.setting('git_author_email', ''),
                             self.store.setting('git_dco_signoff', False))
             author.environment()
-            async with self.writer.open() as writer:
-                fork = writer.destination(task.repo_full_name, await writer.identity())
             issue = await self.supervisor.issue_loader(IssueRef(task.repo_full_name, task.issue_number))
             default = issue.get('default_branch') or task.default_branch
+            preview_id = uuid.uuid4().hex
+            branch = f'contribos/issue-{task.issue_number}-{preview_id[:12]}'
+            async with self.writer.open() as writer:
+                account = await writer.identity()
+                fork = writer.destination(task.repo_full_name, account)
+                owned_id = (await writer.owned_repository(task.repo_full_name, account, branch, default)
+                            if fork.casefold() == task.repo_full_name.casefold() else None)
             draft = await self.supervisor.draft_pr(task_id)
             if SECRET.search((draft.title + '\n' + draft.body).encode()):
                 raise TransferError('secret_detected')
             source = await snapshot_workspace(sandbox, task, default)
-            preview_id = uuid.uuid4().hex
             candidate = await export_candidate(sandbox, task, source)
             try:
                 result = await self.transfer.preview(task.repo_full_name, default, candidate, author,
@@ -115,7 +120,7 @@ class Publisher:
                 WHERE task_id=? ORDER BY rowid DESC LIMIT 1""", (task_id,)).fetchone()
             preview = {**asdict(result), 'source': asdict(source), 'base_sha': source.base, 'warnings': warnings,
                 'repo': task.repo_full_name, 'default_branch': default, 'fork': fork, 'author': asdict(author),
-                'branch': f'contribos/issue-{task.issue_number}-{preview_id[:12]}', 'draft': True,
+                'publisher_id': account.id, 'owned_repository_id': owned_id, 'branch': branch, 'draft': True,
                 'title': draft.title, 'body': draft.body, 'commit_message': draft.commit_message,
                 'checks': {'issue_state': issue.get('state'), 'new_linked_prs': [pr for pr in issue.get('linked_prs', [])
                     if (pr.get('html_url') or pr.get('number')) not in linked], 'tests': self._tests(task_id),
@@ -226,9 +231,16 @@ class Publisher:
                     raise TransferError('workspace_changed')
                 self._step(pub_id, steps, 'source_checked', True)
             async with self.writer.open() as writer:
-                if writer.destination(repo, await writer.identity()).casefold() != fork.casefold():
+                account = await writer.identity()
+                if (writer.destination(repo, account).casefold() != fork.casefold()
+                        or data.get('publisher_id', account.id) != account.id):
                     raise WriterError('github_account_changed')
-                self._step(pub_id, steps, 'fork', await writer.ensure_fork(repo, fork))
+                if repo.casefold() == fork.casefold():
+                    owned_id = await writer.owned_repository(repo, account, branch, default, commit=data['commit_sha'])
+                    if data.get('publisher_id') != account.id or data.get('owned_repository_id') != owned_id:
+                        raise WriterError('owned_destination_conflict')
+                else:
+                    self._step(pub_id, steps, 'fork', await writer.ensure_fork(repo, fork))
                 self._step(pub_id, steps, 'push', await writer.push(repo, fork, branch, data['commit_sha']))
                 pull = await writer.ensure_pull(repo, fork, branch, default, data['title'], data['body'], data['commit_sha'])
                 self._step(pub_id, steps, 'pull', asdict(pull))

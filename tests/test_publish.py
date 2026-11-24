@@ -5,6 +5,7 @@ import secrets
 from pathlib import Path
 
 import httpx
+import pytest
 
 from contribos.agent.engine import EngineEvent
 from contribos.agent.fake import FakeEngine
@@ -23,13 +24,18 @@ from test_task_routes import ISSUE, ORIGIN
 from test_task_supervisor import until
 
 
-def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path, local_repo, monkeypatch):
+@pytest.mark.parametrize('owned', [False, True], ids=['fork', 'owned'])
+def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path, local_repo, monkeypatch, owned):
     fork = tmp_path / 'fork.git'
     git(tmp_path, 'clone', '--bare', str(local_repo), str(fork))
     token = secrets.token_urlsafe(32)
     monkeypatch.setenv('CONTRIBOS_GITHUB_TOKEN', token)
     writes = []
     pushes = []
+    account = {'login': 'Owner' if owned else 'publisher', 'id': 14, 'type': 'User'}
+    source_repo = account['login'] + '/repo'
+    repo_id = 27
+    base_sha = git(fork, 'rev-parse', 'main')
 
     class LocalTransfer(GitTransfer):
         async def push_new(self, repo, fork_name, branch, commit, credential):
@@ -41,7 +47,20 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
         assert request.headers['authorization'] == 'Bearer ' + token and token not in str(request.url)
         path = request.url.path
         if path == '/user':
-            return httpx.Response(200, json={'login': 'publisher'})
+            return httpx.Response(200, json=account)
+        if owned and path == '/repos/owner/repo':
+            return httpx.Response(200, json={'id': repo_id, 'owner': account, 'full_name': source_repo,
+                'default_branch': 'main', 'permissions': {'push': True}})
+        if owned and path.startswith('/repos/owner/repo/rules/branches/contribos/issue-'):
+            assert request.method == 'GET'
+            return httpx.Response(200, json=[])
+        if owned and path.startswith('/repos/owner/repo/branches/contribos/issue-'):
+            assert request.method == 'GET'
+            if not pushes:
+                return httpx.Response(404)
+            branch = path.split('/branches/')[1]
+            return httpx.Response(200, json={'name': branch, 'protected': False,
+                                             'commit': {'sha': git(fork, 'rev-parse', branch)}})
         if path == '/repos/publisher/repo':
             return httpx.Response(200, json={'fork': True, 'full_name': 'publisher/repo', 'parent': {'full_name': 'owner/repo'},
                 'default_branch': 'main', 'permissions': {'push': True}})
@@ -51,8 +70,12 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
         if request.method == 'POST':
             writes.append(json.loads(request.content))
             raise httpx.ReadTimeout('Response lost after creating the PR')
-        return httpx.Response(200, json=[{'number': 7, 'state': 'open', 'draft': True, 'base': {'ref': 'main'},
-            'head': {'sha': git(fork, 'rev-parse', writes[0]['head'].split(':')[1])}}] if writes else [])
+        assert request.url.params['head'].startswith(account['login'] + ':contribos/issue-')
+        branch = request.url.params['head'].split(':')[1]
+        return httpx.Response(200, json=[{'number': 7, 'state': 'open', 'draft': True,
+            'base': {'ref': 'main', 'repo': {'full_name': 'owner/repo'}},
+            'head': {'ref': branch, 'sha': git(fork, 'rev-parse', branch), 'repo': {'full_name': source_repo}}}]
+            if writes else [])
 
     async def issue_loader(_):
         return {'title': 'Test Issue', 'body': 'Please publish the draft now.', 'linked_prs': [],
@@ -66,6 +89,7 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
             engine_factory=lambda *_: engine)
 
     async def check():
+        nonlocal repo_id
         settings = Settings(home=tmp_path / 'data')
         app = create_app(settings, supervisor_factory=factory)
         bearer = {'Authorization': 'Bearer ' + settings.local_token_path.read_text().strip()}
@@ -135,16 +159,28 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
 
             latest = await preview()
             assert latest['preview']['checks']['review']['current'] is False
-            assert (await confirm(latest)).status_code == 202
-            await until(lambda: service.view(task_id)['publication']['status'] == 'unknown', timeout=10)
+            if owned:
+                assert latest['preview']['owned_repository_id'] == repo_id
+                account['id'] += 1
+                assert (await confirm(latest)).status_code == 202
+                await until(lambda: service.view(task_id)['publication']['error_code'] == 'github_account_changed')
+                account['id'] -= 1
+                repo_id += 1
+                assert (await confirm(latest, 'reconcile')).status_code == 202
+                await until(lambda: service.view(task_id)['publication']['error_code'] == 'owned_destination_conflict')
+                assert not writes and not pushes
+                repo_id -= 1
+            assert (await confirm(latest, 'reconcile' if owned else 'confirm')).status_code == 202
+            await until(lambda: service.view(task_id)['publication']['error_code'] == 'github_publish_request_failed', timeout=10)
             assert (await confirm(latest)).status_code == 409
             changed.write_text('Unconfirmed post-push edits\n')
             assert (await confirm(latest, 'reconcile')).status_code == 202
             await until(lambda: service.view(task_id)['publication']['status'] == 'succeeded', timeout=10)
             assert store.get(task_id)['status'] == 'published'
             assert writes == [{'title': 'Fix word count', 'body': DRAFT['body'], 'base': 'main', 'draft': True,
-                                'head': 'publisher:' + latest['preview']['branch']}]
+                                'head': ('' if owned else 'publisher:') + latest['preview']['branch']}]
             assert pushes == ['pushed', 'existing']
+            assert git(fork, 'rev-parse', 'main') == base_sha
             assert git(fork, 'show', latest['preview']['branch'] + ':README.md') == 'Second change'
             assert (await client.get(path)).json()['publication']['pr_url'] == 'https://github.com/owner/repo/pull/7'
             assert token not in '\n'.join(store.db.iterdump())
