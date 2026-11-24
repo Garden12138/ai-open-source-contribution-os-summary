@@ -343,10 +343,10 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   验证：`pytest -q` 214 passed、5 skipped，`node --test contribos/web/static/tests` 11 passed；覆盖最新已保存预览才能确认，未知状态只能对账，发布后在对话中显示 PR 链接。
 - [x] M5-6 `review/service.py` + 审查卡片 + 预览中显示审查状态
   验证：`pytest -q` 219 passed、5 skipped，`node --test contribos/web/static/tests` 11 passed；假 ACP 子进程覆盖独立会话、只读模式、权限卡片、损坏 JSON 原文、工作区改动使审查无效、将发现项发回实现会话和预览核对 diff 哈希。
-- [ ] M5-7 【需用户】真实发布到测试仓库，含一次跨 Agent 审查
-  待验收：宿主认证身份读取通过。请提供授权测试 Issue（当前 `gh` 账号须可创建或复用该仓库的 Fork），并在发布预览中确认 Draft PR。指定测试 Issue 的真实 Codex 沙箱已通过 bundle 导出、上游祖先校验和宿主 bare 提交重建。指定测试任务的临时副本中，Cursor 独立审查 Codex 的改动，返回 `request_changes` 和 3 条结构化发现，原实现会话标识保留。
+- [x] M5-7 【需用户】真实发布到测试仓库，含一次跨 Agent 审查
+  验证：用户在桌面预览中确认后，Publisher 使用 `Garden12138` 的 Fork 创建了 [练习仓库 Draft PR #76](https://github.com/Call-for-Code/Practice-Pull-Requests/pull/76)。GitHub API 确认目标为 `main`，提交 `779bc13` 与预览一致，仅修正 `FIX_TYPO.md` 标题的拼写。仓库的 `mergify[bot]` 随后自动关闭了 PR。另在先前测试任务的临时副本中，Cursor 独立审查 Codex 的改动，返回 `request_changes` 和 3 条结构化发现，原实现会话标识保留。全量回归：Python 220 passed、5 skipped，前端 11 passed，桌面 4 passed。
 
-  M5 当前规模：非测试 Python 5,962 行，前端 1,927 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
+  M5 当前规模：非测试 Python 5,958 行，前端 1,927 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
 
 ### M6 发现模块
 - [ ] M6-1 移植 `domain.py`、`scoring.py` 及测试
