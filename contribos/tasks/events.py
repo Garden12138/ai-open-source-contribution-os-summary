@@ -4,7 +4,7 @@ import asyncio
 import json
 import re
 import sqlite3
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -36,6 +36,7 @@ class TaskEvents:
         self.store, self.heartbeat = store, heartbeat
         self.subscribers: dict[str, set[asyncio.Queue[TaskEvent | None]]] = {}
         self.progress: dict[str, dict[tuple[str | None, str], TaskEvent]] = {}
+        self.on_event: Callable[[TaskEvent], None] | None = None
 
     def publish(self, task_id: str, turn_id: str | None, event: EngineEvent) -> TaskEvent:
         event_type = event.type if re.fullmatch(r'[a-z][a-z0-9_.]*', event.type) else 'agent.other'
@@ -84,6 +85,8 @@ class TaskEvents:
             self.progress.pop(task_id, None)
 
     def notify(self, event: TaskEvent) -> None:
+        if self.on_event is not None:
+            self.on_event(event)
         for queue in tuple(self.subscribers.get(event.task_id, ())):
             try:
                 queue.put_nowait(event)

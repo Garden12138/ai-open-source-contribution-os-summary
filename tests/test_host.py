@@ -79,6 +79,9 @@ def test_independent_clone_branch_context_diff_and_disabled_hooks(tmp_path, loca
                 await sandbox.exec(['git', 'status'], cwd=str(local_repo))
             link = Path(ctx.repo_dir, 'outside')
             link.symlink_to(local_repo / 'README.md')
+            assert await sandbox.read_text('README.md') == (0, 'Changed\n')
+            assert await sandbox.read_text('outside') == (1, '')
+            assert await sandbox.read_text('../runtime/gitconfig') == (1, '')
             with pytest.raises(SandboxError):
                 await sandbox.export_file(str(link))
             exported = await sandbox.export_file(str(Path(ctx.repo_dir, 'new.txt')))

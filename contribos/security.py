@@ -96,8 +96,8 @@ class LocalAuth:
         self._sessions: dict[str, _Session] = {}
         self._lock = threading.Lock()
 
-    def issue_startup_code(self) -> str:
-        code = secrets.token_urlsafe(32)
+    def issue_startup_code(self, code: str | None = None) -> str:
+        code = secrets.token_urlsafe(32) if code is None else code
         with self._lock:
             self._startup = (_digest(code), self._clock() + 60)
         return code

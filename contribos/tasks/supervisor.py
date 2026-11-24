@@ -3,13 +3,12 @@
 import asyncio
 import json
 import sqlite3
-import sys
 import time
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Literal, cast
 
 from acp.schema import TextContentBlock
@@ -20,6 +19,7 @@ from contribos.agent.profiles import PROFILES, AgentProfile
 from contribos.config import Settings
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox
+from contribos.sandbox.read_file import __file__ as READ_FILE_PATH
 from contribos.tasks.events import RESOLUTION_EVENTS, TaskEvents
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
 from contribos.tasks.issue import IssueError, IssueRef, fetch_issue
@@ -29,29 +29,7 @@ SandboxFactory = Callable[[], Sandbox]
 EngineFactory = Callable[[Sandbox, AgentProfile], AgentEngine]
 Isolation = Literal['host', 'sbx', 'container']
 RETRY_DELAYS = (15, 60, 180)
-READ_FILE = """
-import os, stat, sys
-flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
-try:
-    directory = os.open('.', flags | os.O_DIRECTORY)
-    parts = sys.argv[1].split('/')
-    for part in parts[:-1]:
-        child = os.open(part, flags | os.O_DIRECTORY, dir_fd=directory)
-        os.close(directory)
-        directory = child
-    with os.fdopen(os.open(parts[-1], flags, dir_fd=directory), 'rb') as file:
-        if not stat.S_ISREG(os.fstat(file.fileno()).st_mode):
-            sys.exit(1)
-        data = file.read(1024 * 1024 + 1)
-except OSError:
-    sys.exit(1)
-try:
-    if len(data) > 1024 * 1024 or b'\\x00' in data:
-        sys.exit(2)
-    sys.stdout.buffer.write(data.decode('utf-8').encode('utf-8'))
-except UnicodeError:
-    sys.exit(2)
-"""
+READ_FILE = Path(READ_FILE_PATH).read_text(encoding='utf-8')
 
 
 @dataclass
@@ -303,15 +281,18 @@ class TaskSupervisor:
                     runtime.sandbox.attach(runtime.context)
                 else:
                     await runtime.sandbox.restore(runtime.context)
-            executable = sys.executable if isinstance(runtime.sandbox, HostSandbox) else 'python3'
-            result = await runtime.sandbox.exec([executable, '-I', '-S', '-c', READ_FILE, relative.as_posix()], timeout=10)
+            if isinstance(runtime.sandbox, HostSandbox):
+                status, output = await runtime.sandbox.read_text(relative.as_posix())
+            else:
+                result = await runtime.sandbox.exec(['python3', '-I', '-S', '-c', READ_FILE, relative.as_posix()], timeout=10)
+                status, output = result.returncode, result.stdout
         except (SandboxError, OSError):
             raise TaskError('workspace_unavailable', 'Could not read from this workspace.') from None
-        if result.returncode == 2:
+        if status == 2:
             raise TaskError('file_unavailable', 'Only UTF-8 text files up to 1 MiB can be viewed.', 422)
-        if result.returncode:
+        if status:
             raise TaskError('file_not_found', 'This workspace file is unavailable.', 404)
-        return {'path': self.store.clean(relative.as_posix()), 'text': self.store.clean(result.stdout)}
+        return {'path': self.store.clean(relative.as_posix()), 'text': self.store.clean(output)}
 
     def delete(self, task_id: str) -> None:
         runtime = self._runtime(self.store.get(task_id))
@@ -680,10 +661,12 @@ class TaskSupervisor:
             runtime.job.cancel()
             with suppress(asyncio.CancelledError):
                 await runtime.job
-        await self._disconnect(runtime)
-        if isinstance(runtime.sandbox, HostSandbox):
-            runtime.sandbox.release_runtime()
         task_id = runtime.context.task_id
         if turn_id and self.store.finish(task_id, turn_id, 'interrupted', reason='cancelled'):
             self.events.publish(task_id, turn_id, EngineEvent('turn.interrupted', {'stop_reason': 'cancelled'}))
-        self.events.close(task_id)
+        try:
+            await self._disconnect(runtime)
+        finally:
+            if isinstance(runtime.sandbox, HostSandbox):
+                runtime.sandbox.release_runtime()
+            self.events.close(task_id)

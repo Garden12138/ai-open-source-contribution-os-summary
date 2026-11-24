@@ -31,11 +31,12 @@
 | M3 | 任务运行时 + 对话 API | 用 HTTP 驱动完整对话；重启服务后能继续 | M1 |
 | M4 | 桌面应用：界面 + 外壳 | 从 Finder 打开 ContribOS.app，完成"粘贴链接 → 选 Agent 和隔离级别 → 对话 → 看改动"；关窗后任务继续，完成时收到系统通知 | M3；【需用户】安装 Rust 工具链 |
 | M5 | 发布 Draft PR + 跨 Agent 审查 | 在应用里确认后，测试仓库出现 Draft PR | M4；【需用户】gh 登录、测试仓库 |
-| M6 | 发现模块移植 + 首页 | 今日推荐、筛选、一键开始贡献 | M0（可与 M1–M5 并行） |
+| M6 | 发现模块移植 + 首页 | 今日推荐、筛选、一键开始贡献 | M5（复用 M5-0 的 GitHub 客户端） |
 | M7 | 安全加固 + 真实验收 | 隔离与凭据探针通过；3 个真实 Issue 端到端 | M2、M5、M6 |
 | M8 | v1 功能 | PR 跟踪、贡献记录、追加提交、开源 Agent + xcli、换 Agent 继续、旧数据导入、Linux 验证 | M7 |
 
-M2 可以和 M3 并行。M7 完成前，陌生仓库只能在沙箱里做；本机直跑只用于你自己的仓库。
+按顺序执行，不需要并行：剩余顺序为 M4（第二段）→ M5 → M6 → M7 → M8，与 `05-codex-prompts.md` 的段落顺序一致。
+M7 完成前，陌生仓库只能在沙箱里做；本机直跑只用于你自己的仓库。
 
 ## 3. 各里程碑说明
 
@@ -153,9 +154,10 @@ Origin/CSRF、非回环启动被拒绝）；`contribos serve` 在 `127.0.0.1:876
 - 审查：审查改动工作区时标记无效；JSON 解析失败时保留原文并提示。
 - 【需用户】真实发布到你的测试仓库，生成 Draft PR；至少一次审查由另一家 Agent 完成。
 
-### M6 发现模块移植 + 首页（可并行）
+### M6 发现模块移植 + 首页
 
-范围：从标签移植 `app/scoring.py`、`app/domain.py`、`app/github.py`（去掉 provenance 依赖）；重写
+范围：从标签移植 `app/scoring.py`、`app/domain.py`（去掉 provenance 依赖）；GitHub 读取复用 M5-0 的宿主客户端，
+旧版 `app/github.py` 只参考其搜索、ETag 缓存和重试逻辑；重写
 `discovery/service.py` 持久化；`routes_discovery.py`；发现视图（今日推荐、全部机会、筛选、收藏/忽略、扫描进度、
 "开始贡献"）；每日定时扫描；新增"已有关联 PR"和"外部 PR 合并情况"两个信号。
 
@@ -310,12 +312,21 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   验证：普通 `contribos serve` 的一次性登录通过；Chrome 上用 `contribos serve --demo` 完成粘贴 Issue、选择 Agent 和隔离、对话、排队/打断/停止/继续、改动自动刷新，轮中刷新恢复历史、进行中输出及待处理卡片；全量 Python 192 passed、3 skipped，前端 10 passed。
 
   M4 浏览器部分规模：非测试 Python 4,011 行，前端 1,588 行。`compileall` 与 `git diff --check` 通过。
-- [ ] M4-9 `desktop_mode.py`：启动参数、启动码/外壳令牌、通知事件流、状态接口、PATH 解析、优雅退出 + 测试
-- [ ] M4-10 【需用户】安装 Rust 工具链与 `tauri-cli`；`desktop/` 外壳：启动后端与就绪等待、主窗口（无 IPC）、导航拦截、单实例 + `cargo test`
-- [ ] M4-11 菜单栏图标与菜单、关窗隐藏、退出确认、开机启动开关
-- [ ] M4-12 系统通知（订阅通知事件流、点击定位任务）
-- [ ] M4-13 打包：PyInstaller sidecar + `cargo tauri build` 生成 `.app`
-- [ ] M4-14 【需用户】从 Finder 启动 `.app` 完成验收（工具路径、J2/J3、关窗通知、退出后继续）
+- [x] M4-9 `desktop_mode.py`：启动参数、启动码/外壳令牌、通知事件流、状态接口、PATH 解析、优雅退出 + 测试
+  验证：`pytest -q` 202 passed、4 skipped；覆盖启动码单次兑换、外壳令牌和其他身份隔离、通知过滤、状态、假登录 shell 与超时，以及真实回环 SSE 和 SIGTERM 后轮次为 `interrupted`。发布与每日推荐的生产触发点随 M5、M6 接入。
+- [x] M4-10 【需用户】安装 Rust 工具链与 `tauri-cli`；`desktop/` 外壳：启动后端与就绪等待、主窗口（无 IPC）、导航拦截、单实例 + `cargo test`
+  验证：本机已有 Rust 1.96、Tauri CLI 2.12.6；`cargo test --locked` 3 passed，覆盖就绪行、导航来源和 capability 配置；受限环境下 `pytest -q` 201 passed、5 skipped，真实 SIGTERM 已在允许绑定回环端口时通过。
+- [x] M4-11 菜单栏图标与菜单、关窗隐藏、退出确认、开机启动开关
+  验证：`cargo test --locked` 4 passed、`pytest -q` 202 passed、4 skipped；macOS 实测关窗保留后端，运行中 Cmd+Q 弹确认，确认后 SIGTERM 停止后端并持久化 `interrupted`。
+- [x] M4-12 系统通知（订阅通知事件流、点击定位任务）
+  验证：`cargo test --locked` 4 passed，新增 SSE 帧与任务定位参数测试；`pytest -q` 201 passed、5 skipped；系统通知点击回跳随 Finder 验收确认。
+- [x] M4-13 打包：PyInstaller sidecar + `cargo tauri build` 生成 `.app`
+  验证：`pyinstaller packaging/contribos-backend.spec` 与 `cargo tauri build --ci -- --locked` 生成 Apple Silicon `.app`；`codesign --verify --deep --strict` 通过；包内 sidecar 在 2.14 秒通过 `/api/health`，静态资源、外壳鉴权、自动 doctor 和 SIGTERM 退出均通过；`pytest -q` 202 passed、4 skipped，`cargo test --locked` 4 passed，前端 10 passed。
+- [ ] M4-14 【需用户】从 Finder 启动 `.app` 完成验收（工具路径、J2/J3、关窗通知、退出后继续）；J3、关窗通知、退出后继续已通过，J2 新建任务因 GitHub 匿名限流受阻，在 M5-0 完成后补测
+  实测：Finder 启动与工具自检通过；在用户授权的 `Garden12138/contribos-acceptance-sandbox#1` 既有任务中，J3 对话、关窗后台完成、收到通知并在激活应用后定位任务、运行中退出确认、重开后点「继续」均通过。J2 已从桌面提交，待 GitHub 匿名配额恢复后复测 Issue 快照、工作区准备及首轮。
+
+  M4 当前规模：非测试 Python 4,643 行，前端 1,588 行，外壳 Rust 600 行（含构建脚本）。`compileall` 和 `git diff --check` 通过。本地 macOS 产物采用 ad-hoc 签名，关闭 Hardened Runtime 以装载 PyInstaller 自解包的 Python 动态库。
+  外壳依赖：`getrandom` 生成启动凭据，`reqwest` 与 `tokio` 处理回环请求、SSE 和超时，`serde` 与 `serde_json` 解析接口与配置，`libc` 发送 SIGTERM，`rfd` 显示原生对话框，`objc2` 接入 AppKit 原生退出回调。
 
 ### M5 发布 Draft PR + 跨 Agent 审查
 - [ ] M5-0 宿主 GitHub 客户端：令牌（`gh auth token` / `CONTRIBOS_GITHUB_TOKEN`）只在后端进程用于只读请求，不可用时退回匿名并提示限流；Issue 快照改用它；复测直接用 Issue URL 新建任务（M2 遗留）

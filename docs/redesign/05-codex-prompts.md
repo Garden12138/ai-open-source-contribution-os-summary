@@ -1,7 +1,24 @@
 # 05 · Codex 提示词（逐里程碑复制使用）
 
-使用方法：每次新开一个 Codex 会话，先粘贴"通用前缀"，再粘贴对应里程碑的提示词。
+使用方法：每次新开一个 Codex 会话，先粘贴"通用前缀"，再粘贴下表中"下一步"那一段的提示词。
 一个里程碑做不完就开新会话，用同样的提示词，Codex 会从清单中下一个未勾选的条目继续。
+**全部按顺序做，不需要并行。** 通用前缀里已包含提交规则，不需要另发提交提示词。
+
+| 顺序 | 粘贴的段落 | 状态 |
+| --- | --- | --- |
+| 1 | M0 清场与新骨架 | 已完成 |
+| 2 | M1 ACP 接入 + 本机直跑 | 已完成 |
+| 3 | M1-9 准备与真实验收 | 已完成 |
+| 4 | M3 任务运行时 + 对话 API | 已完成 |
+| 5 | M2 沙箱后端 | 已完成 |
+| 6 | M4 第一段：界面 | 已完成 |
+| 7 | M4 第二段：外壳 | 已完成（M4-14 只差新建任务复测，因 GitHub 匿名限流移到第 8 步 M5-0 之后补做） |
+| 8 | M5 发布 Draft PR + 跨 Agent 审查（含 M5-0 与 M4-14 补测） | **下一步** |
+| 9 | M6 发现模块 | |
+| 10 | M7 安全加固 + 真实验收 | |
+| 11 | M8 v1 功能 | |
+
+从第 7 步起，表格顺序就是本文件从上到下的段落顺序。
 
 ## 通用前缀
 
@@ -17,6 +34,11 @@ docs/redesign/04-implementation-plan.md。不要阅读旧代码，除非下面�
 - 遇到【需用户】条目：写清楚需要用户提供或操作什么，跳过它继续做后面不依赖它的条目。
 - 不要写验收归档/证据索引/哈希清单类文档；不要引入方案版本、审批对象、多层预算、自研 Agent 循环、
   断网验证、为特定项目写的适配，或为单个 Agent 写的平行业务逻辑（差异只放在 agent/profiles.py）。
+- 提交（用户已授权本地提交，推送需另行说明）：开始前如果工作区有上一阶段未提交的改动，先跑完上述检查并提交，
+  提交信息用英文、按里程碑命名；本次结束时同样把本里程碑的成果提交。提交前确认没有 .env、数据库、
+  ~/.contribos 或 ~/.sbx 下的内容、令牌被加入。汇报中附上 git log --oneline -3。
+- 本里程碑全部完成时，把本文件（docs/redesign/05-codex-prompts.md）顶部表格中本段的状态改为"已完成"，
+  下一段标为"下一步"，随最后一次提交一起提交。
 - 结束时用中文简要汇报：完成了哪些条目、怎么验证的、还剩什么、有哪些需要用户做的事。
 ```
 
@@ -263,6 +285,9 @@ M4-14 需要用户从 Finder 启动 .app 按 04 文档 M4 验收逐项确认。
 目标：完成清单 M5（03 第 3.6、3.7 节是规格，逐条实现）。先做 M5-0：宿主 GitHub 客户端（AGENTS.md 第 4 条），
 只读请求与 Publisher 共用同一个令牌来源，令牌只在后端进程内存中使用；写测试确认它不会出现在 Agent 子进程环境、
 sbx 命令参数和事件中；完成后用 Issue URL 直接新建一次任务做复测。
+M5-0 完成后、继续 M5-1 之前，补做 M4-14：重新打包 .app，请用户从 Finder 启动，用
+https://github.com/Garden12138/contribos-acceptance-sandbox/issues/1 新建任务，确认 Issue 快照、工作区准备和 Codex 首轮都正常；
+用户确认后勾选 M4-14（M4-14 的其他验收项已在 M4 会话中通过，不必重做）。
 
 发布的关键约束：
 - 打包在任务的执行环境内完成（经 Sandbox.exec），bundle 经 Sandbox.export_file 导出；宿主从不对沙箱工作区执行 git。
@@ -285,13 +310,15 @@ sbx 命令参数和事件中；完成后用 Issue URL 直接新建一次任务�
 完成标准：测试通过；真实发布到用户的测试仓库（需要用户确认目标仓库和 gh 登录），至少一次跨 Agent 审查。
 ```
 
-## M6 发现模块（可与 M1–M5 并行）
+## M6 发现模块
 
 ```text
 目标：完成清单 M6（03 第 3.9 节，02 第 2 节 J1）。
 
-- 移植：git show legacy-v0.1-final:app/domain.py、app/scoring.py、app/github.py 到 contribos/discovery/，
+- 移植：git show legacy-v0.1-final:app/domain.py、app/scoring.py 到 contribos/discovery/，
   去掉 app.provenance 依赖（canonical_json 用 json.dumps(sort_keys=True, separators=(',',':')) 替代）。
+- GitHub 读取复用 M5-0 已实现的宿主 GitHub 客户端（令牌只在后端进程内使用），不要另写一套；
+  旧版 app/github.py 只参考其中的搜索、ETag 缓存和重试逻辑，并入现有客户端。
 - 重写 discovery/service.py 的持久化，使用 0001_init.sql 中的发现相关表。
 - 移植旧测试中仍适用的用例：git show legacy-v0.1-final:tests/test_scoring.py、tests/test_github.py、tests/test_service.py。
 - routes_discovery.py 与发现视图：今日推荐（3/3/2/2）、全部机会（筛选、收藏/忽略）、扫描进度、"开始贡献"
@@ -314,6 +341,9 @@ sbx 命令参数和事件中；完成后用 Issue URL 直接新建一次任务�
 - 威胁 T12：确认主窗口无 IPC 权限的配置测试仍然通过；CSP 生效；外部链接不在应用窗口内打开。
 - 产品级验收需要用户参与：协助用户在 3 个真实 Issue 上、只通过桌面应用走完全流程（≥1 Python、≥1 TypeScript、
   ≥1 在沙箱中、≥2 家 Agent 参与，至少一次关窗后通过通知回到任务），结果写 docs/redesign/acceptance-mvp.md（每个任务 ≤15 行）。
+- M7-6 Cursor 沙箱验收（需要用户在 VM 内登录）：用官方无挂载 kit 完成登录、推理、取消、恢复，凭据位置写入 agent-matrix.md。
+- M7-7 Antigravity 沙箱：尝试自建 kit；做不到就确认仅支持本机直跑，并在界面中把它的沙箱选项置灰、显示原因。
+  M7-6、M7-7 不阻塞 MVP，失败时记录原因即可。
 ```
 
 ## M8 v1 功能

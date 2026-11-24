@@ -16,6 +16,7 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8765
     tool_paths: dict[str, str] = field(default_factory=dict, compare=False)
+    login_path_resolved: bool | None = None
 
     def tool(self, name: str) -> str | None:
         return shutil.which(self.tool_paths.get(name) or name)

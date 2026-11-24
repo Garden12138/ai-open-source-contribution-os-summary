@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import os
 import platform
 import shutil
 import subprocess
@@ -16,20 +17,39 @@ from contribos.config import Settings, server_origin, validate_bind_host
 from contribos.security import redact
 
 
-def serve(settings: Settings, *, demo: bool = False) -> int:
+def serve(settings: Settings, *, demo: bool = False, desktop: bool = False) -> int:
     import uvicorn
 
+    from contribos.desktop_mode import DesktopMode, DesktopServer, login_path
     from contribos.web.app import create_app
 
     origin = server_origin(settings)
+    mode = None
+    smoke = False
+    if desktop:
+        if validate_bind_host(settings.host) != '127.0.0.1':
+            raise ValueError('Desktop mode requires the IPv4 loopback address.')
+        mode = DesktopMode.from_environment()
+        smoke = os.environ.pop('CONTRIBOS_DESKTOP_SMOKE', '0') == '1'
+        os.environ['PATH'], resolved = login_path()
+        settings = replace(settings, login_path_resolved=resolved)
 
     def run(config: Settings) -> None:
-        app = create_app(config, demo=demo)
-        code = app.state.auth.issue_startup_code()
-        print(f"Login (valid for 60 seconds, one use): {origin}/desktop/bootstrap?code={code}", flush=True)
         # Bootstrap URLs contain a login code; HTTP access logging must stay off.
-        uvicorn.run(app, host=validate_bind_host(config.host), port=config.port, access_log=False,
-                    timeout_graceful_shutdown=2)
+        app = create_app(config, demo=demo, desktop=mode)
+        options = dict(host=validate_bind_host(config.host), port=config.port, access_log=False,
+                       timeout_graceful_shutdown=2)
+        if mode:
+            def smoke_check() -> None:
+                result = doctor_report(replace(config, tool_paths=dict(config.tool_paths)))
+                available = sum(check['status'] == 'ok' for check in result)
+                print(f'CONTRIBOS_DOCTOR checks={len(result)} ok={available}', file=sys.stderr, flush=True)
+
+            DesktopServer(uvicorn.Config(app, **options), smoke_check=smoke_check if smoke else None).run()
+        else:
+            code = app.state.auth.issue_startup_code()
+            print(f"Login (valid for 60 seconds, one use): {origin}/desktop/bootstrap?code={code}", flush=True)
+            uvicorn.run(app, **options)
 
     if demo:
         with tempfile.TemporaryDirectory(prefix='contribos-demo-') as directory:
@@ -85,6 +105,10 @@ def doctor_checks(settings: Settings | None = None) -> list[CheckResult]:
     statuses = agent_statuses(settings) if settings else agent_statuses()
     results.extend(CheckResult(s.id, s.status, s.detail + (" Warning: " + s.isolation_warning if s.isolation_warning else "")) for s in statuses)
     if settings:
+        if settings.login_path_resolved is not None:
+            results.append(CheckResult('login_path', 'ok' if settings.login_path_resolved else 'warning',
+                'Loaded PATH from the login shell.' if settings.login_path_resolved
+                else 'Login shell PATH unavailable. Using the default PATH and configured tool paths.'))
         for name in ('node', 'sbx', 'docker'):
             executable = settings.tool(name)
             results.append(CheckResult(name, 'ok' if executable else 'missing', executable or 'Command not found.'))
@@ -125,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     server.add_argument("--host", default="127.0.0.1")
     server.add_argument("--port", default=8765, type=int)
     server.add_argument("--demo", action="store_true", help="Run an offline demonstration with temporary data")
+    server.add_argument("--desktop", action="store_true", help="Run as the desktop shell's backend")
     commands.add_parser("doctor", help="Check Python, git and GitHub login")
     commands.add_parser("agents", help="Check Agent installation, isolated login and configuration")
     chat = commands.add_parser("chat", help="Chat with an ACP Agent in an independent workspace")
@@ -149,8 +174,8 @@ def main(argv: list[str] | None = None) -> int:
         return doctor()
     if args.command == "serve":
         try:
-            return serve(Settings(host=args.host, port=args.port), demo=args.demo)
+            return serve(Settings(host=args.host, port=args.port), demo=args.demo, desktop=args.desktop)
         except ValueError:
-            parser.error("Cannot start: check the loopback host, port and local token file.")
+            parser.error("Cannot start: check the loopback host, port, local token file and desktop launch environment.")
     parser.print_help()
     return 0

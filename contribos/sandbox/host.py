@@ -17,6 +17,7 @@ from contribos.agent.profiles import AgentProfile
 from contribos.config import Settings
 from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace, context_files, workspace_diff
 from contribos.sandbox.processes import ProcessInfo, process_family, process_info
+from contribos.sandbox.read_file import read_workspace_file
 from contribos.security import redact
 
 GIT_OPTIONS = ['-c', 'core.hooksPath=/dev/null', '-c', 'core.fsmonitor=false',
@@ -200,6 +201,11 @@ class HostSandbox:
             self._signal_group(group, signal.SIGKILL, leader.started)
         self._signal_members(members, signal.SIGKILL)
         path.unlink(missing_ok=True)
+
+    async def read_text(self, path: str) -> tuple[int, str]:
+        if not self.task:
+            raise SandboxError('workspace_not_prepared')
+        return await asyncio.to_thread(read_workspace_file, str(self._inside(self.task.repo_dir)), path)
 
     async def exec(self, argv: list[str], cwd: str | None = None, timeout: float = 120) -> ExecResult:
         if not self.task or not argv:

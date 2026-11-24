@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException
 
 from contribos.config import Settings, server_origin
 from contribos.db import connect, migrate
+from contribos.desktop_mode import DesktopMode, DesktopNotifications, SHELL_PATHS, router as desktop_router
 from contribos.sandbox.host import safe_text
 from contribos.security import (
     CSRF_COOKIE, CSRF_HEADER, SAFE_METHODS, SESSION_COOKIE,
@@ -38,7 +39,7 @@ def error_response(status: int, code: str, message: str) -> JSONResponse:
 
 
 def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = None,
-               demo: bool = False,
+               demo: bool = False, desktop: DesktopMode | None = None,
                supervisor_factory: Callable[[Settings, TaskStore], TaskSupervisor] = TaskSupervisor) -> FastAPI:
     settings = settings or Settings()
     origin = server_origin(settings)  # Validate before filesystem access or startup.
@@ -48,6 +49,8 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     def clean(text: str) -> str:
         if local_token:
             text = text.replace(local_token, '[REDACTED]')
+        if desktop:
+            text = text.replace(desktop.shell_token, '[REDACTED]').replace(desktop.startup_code, '[REDACTED]')
         return safe_text(text)
 
     @asynccontextmanager
@@ -67,6 +70,10 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
                 settings.tool_paths.update(store.setting('tool_paths', {}))
                 supervisor = demo_supervisor(settings, store) if demo else supervisor_factory(settings, store)
                 app.state.supervisor = supervisor
+                if desktop:
+                    app.state.desktop_notifications = DesktopNotifications(supervisor.events)
+                    supervisor.events.on_event = app.state.desktop_notifications.on_task_event
+                    auth.issue_startup_code(desktop.startup_code)
                 try:
                     supervisor.start()
                     yield
@@ -91,7 +98,12 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
             path = request.url.path
             is_api = path == "/api" or path.startswith("/api/")
             is_health = path == "/api/health" and request.method in {"GET", "HEAD"}
-            if is_api and not is_health:
+            if desktop and path.rstrip('/') in SHELL_PATHS:
+                if not desktop.authorized(request.headers.get("authorization", "")):
+                    return error_response(401, "shell_authentication_required", "A desktop shell token is required.")
+                if request.method not in SAFE_METHODS:
+                    return error_response(405, "method_not_allowed", "This endpoint is read-only.")
+            elif is_api and not is_health:
                 authorization = request.headers.get("authorization", "")
                 scheme, _, token = authorization.partition(" ")
                 local_token = scheme.lower() == "bearer" and auth.valid_local_token(token)
@@ -164,5 +176,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
 
     app.include_router(task_router)
     app.include_router(settings_router)
+    if desktop:
+        app.include_router(desktop_router)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
     return app
