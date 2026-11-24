@@ -11,15 +11,40 @@
   <header class="topbar">
     <a class="brand" href="#">ContribOS</a>
     <nav aria-label="主导航">
-      <a id="tasks-nav" href="#" aria-current="page">任务</a>
+      <a id="discovery-nav" href="#" aria-current="page">发现</a>
+      <a id="tasks-nav" href="#tasks">任务</a>
       <a id="settings-nav" href="#settings">设置</a>
     </nav>
+    <button id="new-task" type="button">＋ 新建任务</button>
     <span id="demo-mode" class="badge" hidden>离线演示</span>
   </header>
   <main>
-    <div id="workspace" class="workspace">
+    <section id="discovery" class="discovery" aria-labelledby="discovery-title">
+      <div class="section-title"><h1 id="discovery-title">发现机会</h1>
+        <button id="scan-now" class="primary" type="button">立即扫描</button></div>
+      <details class="scan-options"><summary>扫描范围</summary>
+        <label>指定公开仓库 <input id="scan-repo" placeholder="owner/repo（可选）" maxlength="140"></label>
+      </details>
+      <p id="scan-status" class="muted" role="status"></p>
+      <div id="opportunity-views" class="discovery-views" aria-label="机会视图">
+        <button data-view="daily">今日推荐</button><button data-view="all">全部机会</button>
+        <button data-view="starred">已收藏</button><button data-view="ignored">已忽略</button>
+      </div>
+      <form id="opportunity-filters" class="filters" hidden>
+        <label>关键词<input name="q" type="search" placeholder="标题或仓库"></label>
+        <label>语言<input name="lang" placeholder="Python"></label>
+        <label>标签<input name="label" placeholder="good first issue"></label>
+        <label>赏金<select name="bounty"><option value="">不限</option><option value="true">有赏金</option><option value="false">无赏金</option></select></label>
+        <label>排序<select name="sort"><option value="score">总分</option><option value="updated">最近更新</option><option value="stars">仓库星数</option></select></label>
+        <label><input name="small" type="checkbox" value="true"> 只看小改动</label><button>应用筛选</button>
+      </form>
+      <p id="opportunities-status" class="muted" role="status"></p>
+      <div id="opportunities" class="opportunities"></div>
+      <button id="load-opportunities" type="button" hidden>加载更多</button>
+    </section>
+    <div id="workspace" class="workspace" hidden>
       <aside class="sidebar" aria-label="任务列表">
-        <div class="section-title"><h2>任务</h2><button id="new-task" class="primary" type="button">＋ 新建任务</button></div>
+        <div class="section-title"><h2>任务</h2></div>
         <p id="tasks-status" class="muted" role="status">正在加载任务…</p>
         <button id="retry-tasks" type="button" hidden>重新加载</button>
         <ul id="tasks" class="tasks"></ul>

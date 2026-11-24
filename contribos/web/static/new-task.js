@@ -13,6 +13,7 @@ let previousRepo;
 let loading = false;
 let submitting = false;
 let onCreated;
+let opportunity;
 
 function repository() {
   try {
@@ -113,14 +114,18 @@ async function load() {
   }
 }
 
+export function openNewTask(item) {
+  form.reset();
+  previousRepo = undefined;
+  opportunity = item;
+  issue.value = item?.url || '';
+  dialog.showModal();
+  if (!loading) load();
+}
+
 export function bindNewTask(callback) {
   onCreated = callback;
-  el('new-task').addEventListener('click', () => {
-    form.reset();
-    previousRepo = undefined;
-    dialog.showModal();
-    if (!loading) load();
-  });
+  el('new-task').addEventListener('click', () => openNewTask());
   el('close-task').addEventListener('click', () => dialog.close());
   el('retry-form').addEventListener('click', load);
   form.addEventListener('input', update);
@@ -132,7 +137,8 @@ export function bindNewTask(callback) {
     formStatus();
     try {
       const { task_id: id } = await api('/tasks', { method: 'POST', body: {
-        issue_url: issue.value, agent: agentSelect.value, isolation: selectedIsolation(),
+        ...(opportunity && opportunity.url === issue.value ? { opportunity_id: opportunity.id } : { issue_url: issue.value }),
+        agent: agentSelect.value, isolation: selectedIsolation(),
         trust_confirmed: confirmTrust.checked, trust_owner: !trustOwner.disabled && trustOwner.checked,
       } });
       dialog.close();

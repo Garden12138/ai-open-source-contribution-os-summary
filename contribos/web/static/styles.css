@@ -183,3 +183,26 @@ code { background: #f3f5fb; border-radius: .25rem; }
 @media (max-width: 36rem) {
   .settings-field { grid-template-columns: 1fr; gap: .2rem; }
 }
+
+.discovery { max-width: 76rem; margin: auto; padding: 2rem clamp(1rem, 4vw, 3rem); }
+.discovery .section-title h1 { margin: 0; }
+.scan-options { margin-bottom: .6rem; }
+.scan-options summary, .opportunity summary { cursor: pointer; }
+.discovery-views, .filters, .card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+.discovery-views { padding-block: .8rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+.discovery-views [aria-pressed="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); }
+.filters { align-items: end; margin-bottom: 1rem; }
+.filters label { display: grid; gap: .25rem; font-size: .9rem; }
+.filters label:has(input[type="checkbox"]) { display: flex; align-items: center; align-self: center; }
+.filters input:not([type="checkbox"]) { width: 11rem; }
+.opportunities { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: 1rem; }
+.opportunity { min-width: 0; border: 1px solid var(--border); background: var(--paper); padding: 1.1rem; border-radius: .65rem; }
+.opportunity .section-title { margin-bottom: .6rem; }
+.opportunity h2 { margin-bottom: .5rem; }
+.opportunity > p { margin-block: .55rem; }
+.risk { color: #744407; }
+.score-breakdown { display: grid; grid-template-columns: 1fr auto; max-width: 16rem; }
+.card-actions { margin-top: .8rem; }
+.card-actions a { font-size: .9rem; }
+.topbar { flex-wrap: wrap; }
+#load-opportunities { margin-top: 1rem; }

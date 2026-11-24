@@ -44,6 +44,17 @@ function preferences(root, config, save) {
   const policy = select([['plan', '评估并给出方案，等待回复'], ['implement', '直接实现']], config.first_turn_policy);
   general.append(field('默认 Agent', defaultAgent), field('审查 Agent', reviewAgent), field('首轮策略', policy));
 
+  const discovery = group(form, '每日发现');
+  const scanTime = element('input');
+  Object.assign(scanTime, { type: 'time', required: true, value: config.scan_time });
+  const languages = element('input');
+  languages.value = config.preferred_languages.join(', ');
+  const keywords = element('input');
+  keywords.value = config.strategic_keywords.join(', ');
+  const terms = input => input.value.split(/[,，]/).map(text => text.trim()).filter(Boolean);
+  discovery.append(field('每日扫描时间（本机时间）', scanTime), field('偏好语言（逗号分隔）', languages),
+    field('战略关键词（逗号分隔）', keywords));
+
   const execution = group(form, '隔离与可信 owner');
   const sandbox = select(['sbx', 'container'].map(kind => [
     kind, `${isolationLabel(kind)} · ${config.available_isolation.includes(kind) ? '可用' : '未配置'}`,
@@ -116,6 +127,7 @@ function preferences(root, config, save) {
     }
     try {
       await api('/settings', { method: 'PUT', body: {
+        scan_time: scanTime.value, preferred_languages: terms(languages), strategic_keywords: terms(keywords),
         default_agent: defaultAgent.value,
         review_agent: reviewAgent.value || null,
         first_turn_policy: policy.value,

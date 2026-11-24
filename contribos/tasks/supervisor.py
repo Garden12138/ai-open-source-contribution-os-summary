@@ -18,6 +18,7 @@ from contribos.agent.acp_engine import AcpEngine
 from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, RequestResponse, TaskContext, validate_answers
 from contribos.agent.profiles import PROFILES, AgentProfile
 from contribos.config import Settings
+from contribos.discovery.service import DiscoveryService
 from contribos.github import GitHubClient
 from contribos.publish.draft import DRAFT_PROMPT, Draft, draft_from_response
 from contribos.sandbox.base import Sandbox, SandboxError
@@ -84,6 +85,7 @@ class TaskSupervisor:
         self.settings = settings
         self.events = events or TaskEvents(store)
         self.github = github or GitHubClient(settings)
+        self.discovery = DiscoveryService(store, self.github)
         self.issue_loader = issue_loader or partial(fetch_issue, github=self.github)
         self.sandboxes: dict[str, Callable[[AgentProfile], Sandbox]] = ({
             'host': lambda _: HostSandbox(settings), 'sbx': lambda profile: SbxSandbox(settings, profile),
@@ -168,6 +170,7 @@ class TaskSupervisor:
         self.events.publish(runtime.context.task_id, runtime.turn_id, EngineEvent(kind, payload or {}))
 
     def start(self) -> None:
+        self.discovery.recover()
         self.maintenance = asyncio.create_task(self._sweep_idle())
         for task in self.store.recoverable():
             task_id = task['id']
@@ -774,6 +777,7 @@ class TaskSupervisor:
 
     async def shutdown(self) -> None:
         self.closing = True
+        await self.discovery.close()
         if self.maintenance:
             self.maintenance.cancel()
             with suppress(asyncio.CancelledError):

@@ -34,3 +34,14 @@ test('only an unchanged preview can be confirmed and unknown results can be reco
   assert.deepEqual(publicationActions('unknown', false, false), { prepare: false, confirm: false, reconcile: true });
   assert.equal(publicationActions('superseded', false, false).confirm, false);
 });
+
+test('all opportunities encodes filters and daily picks keep their own order', async () => {
+  const { listQuery } = await import('../discovery.js');
+  const fields = [['q', 'a&b '], ['lang', 'Python'], ['bounty', 'false'], ['label', '']];
+  const all = listQuery('all', fields, 30);
+  assert.equal(new URLSearchParams(all.toString()).get('q'), 'a&b');
+  assert.equal(all.get('offset'), '30');
+  assert.equal(all.get('bounty'), 'false');
+  assert.equal(all.has('label'), false);
+  assert.equal(listQuery('daily', fields, 0).has('lang'), false);
+});

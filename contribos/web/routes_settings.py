@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 from contribos.agent.profiles import PROFILES
+from contribos.discovery.domain import DiscoveryRules
 from contribos.tasks.store import TaskError
 
 router = APIRouter(prefix='/api/settings')
@@ -29,6 +30,11 @@ class ResourceLimits(BaseModel):
 class Preferences(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
+    scan_time: str = Field(default='09:00', pattern=r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+    preferred_languages: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
+        default_factory=lambda: list(DiscoveryRules().preferred_languages), max_length=30)
+    strategic_keywords: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
+        default_factory=lambda: list(DiscoveryRules().strategic_keywords), max_length=30)
     trusted_owners: list[Owner] = Field(default_factory=list, max_length=1000)
     default_agent: str = 'codex'
     review_agent: str | None = None

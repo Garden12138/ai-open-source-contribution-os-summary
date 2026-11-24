@@ -24,6 +24,7 @@ from contribos.tasks.store import TaskError, TaskStore
 from contribos.tasks.supervisor import TaskSupervisor
 from contribos.publish.service import Publisher
 from contribos.review.service import ReviewService
+from contribos.web.routes_discovery import router as discovery_router
 from contribos.web.routes_publish import router as publish_router
 from contribos.web.routes_review import router as review_router
 from contribos.web.routes_tasks import router as task_router
@@ -81,10 +82,13 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
                     app.state.reviews.recover()
                 if desktop:
                     app.state.desktop_notifications = DesktopNotifications(supervisor.events)
+                    supervisor.discovery.notify_ready = lambda: app.state.desktop_notifications.publish('discovery.daily_ready')
                     supervisor.events.on_event = app.state.desktop_notifications.on_task_event
                     auth.issue_startup_code(desktop.startup_code)
                 try:
                     supervisor.start()
+                    if not demo:
+                        supervisor.discovery.schedule()
                     yield
                 finally:
                     await supervisor.shutdown()
@@ -183,6 +187,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     async def index() -> FileResponse:
         return FileResponse(STATIC / "index.html")
 
+    app.include_router(discovery_router)
     app.include_router(task_router)
     app.include_router(publish_router)
     app.include_router(review_router)

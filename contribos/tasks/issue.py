@@ -46,6 +46,15 @@ async def fetch_issue(ref: IssueRef, client: httpx.AsyncClient | None = None, *,
         raise IssueError(error.code, error.message) from None
 
 
+def linked_pull_requests(timeline: list[dict]) -> list[dict]:
+    linked = []
+    for event in timeline:
+        source = (event.get('source') or {}).get('issue') or {}
+        if event.get('event') == 'cross-referenced' and 'pull_request' in source:
+            linked.append({key: source.get(key) for key in ('number', 'title', 'html_url', 'state', 'pull_request')})
+    return linked
+
+
 async def _snapshot(ref: IssueRef, reader: GitHubReader) -> dict[str, Any]:
     async def pages(path: str) -> list[dict[str, Any]]:
         items = []
@@ -66,11 +75,7 @@ async def _snapshot(ref: IssueRef, reader: GitHubReader) -> dict[str, Any]:
         repo = await reader.get(prefix)
         comments = await pages(f'{prefix}/issues/{ref.number}/comments')
         timeline = await pages(f'{prefix}/issues/{ref.number}/timeline')
-        linked = []
-        for event in timeline:
-            source = event.get('source', {}).get('issue', {})
-            if event.get('event') == 'cross-referenced' and 'pull_request' in source:
-                linked.append({key: source.get(key) for key in ('number', 'title', 'html_url', 'state', 'pull_request')})
+        linked = linked_pull_requests(timeline)
         return {'title': issue.get('title', ''), 'body': issue.get('body') or '', 'state': issue.get('state'),
                 'assignees': [a.get('login') for a in issue.get('assignees', [])],
                 'comments': [{'body': c.get('body') or ''} for c in comments],

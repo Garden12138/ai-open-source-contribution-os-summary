@@ -349,12 +349,21 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   M5 当前规模：非测试 Python 5,958 行，前端 1,927 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
 
 ### M6 发现模块
-- [ ] M6-1 移植 `domain.py`、`scoring.py` 及测试
-- [ ] M6-2 移植 `github.py` 及测试
-- [ ] M6-3 `discovery/service.py` 持久化重写 + 测试
-- [ ] M6-4 `routes_discovery.py` + 契约测试
-- [ ] M6-5 发现视图 UI、每日定时扫描
-- [ ] M6-6 新信号：关联 PR、外部 PR 合并情况
+- [x] M6-1 移植 `domain.py`、`scoring.py` 及测试
+  验证：`pytest -q` 228 passed、5 skipped；覆盖硬过滤、七维评分、赏金解析、3/3/2/2 配额与不足时补位。
+- [x] M6-2 移植 `github.py` 及测试
+  验证：`pytest -q` 238 passed、5 skipped；MockTransport 覆盖固定分页大小、304 复用、限流与网络重试、非法响应、拒绝跨源跳转。
+- [x] M6-3 `discovery/service.py` 持久化重写 + 测试
+  验证：`pytest -q` 241 passed、5 skipped；覆盖搜索去重、元数据缓存与失败后重取、标记保留、推荐原子替换、重复触发和中断恢复。
+- [x] M6-4 `routes_discovery.py` + 契约测试
+  验证：`pytest -q` 242 passed、5 skipped；假 GitHub 的 API 契约测试覆盖后台扫描、SSE、筛选与排序、标记切换和按机会 ID 新建任务。
+- [x] M6-5 发现视图 UI、每日定时扫描
+  验证：`pytest -q` 243 passed、5 skipped，前端 12 passed；覆盖本机定时、重启去重、推荐通知和视图筛选，首页复用 M4 的任务确认面板。
+- [x] M6-6 新信号：关联 PR、外部 PR 合并情况
+  验证：`pytest -q` 247 passed、5 skipped，回环 SIGTERM 测试单独补跑通过；前端 12 passed。假数据覆盖关联 PR 分页、90 天边界、外部作者判定、零样本和评分变化。
+
+  M6 真实验收：浏览器首页扫描自有仓库，推荐 `Garden12138/contribos-acceptance-sandbox#1`，显示未发现关联 PR、近 90 天无已关闭的外部 PR。点击“开始贡献”预填链接，确认 Codex 沙箱后进入任务对话，首轮完成，临时任务与沙箱已清理。3/3/2/2 配额及类别重叠由离线测试验证。
+  M6 规模：非测试 Python 6,867 行，前端 2,182 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
 
 ### M7 安全加固 + 真实验收
 - [ ] M7-1 威胁表（03 第 7 节）逐项测试补齐
