@@ -1,4 +1,4 @@
-import { agentLogin, api, el, element, isolationLabel } from './api.js';
+import { agentLogin, api, el, element, isolationAvailable, isolationLabel } from './api.js';
 
 const dialog = el('task-dialog');
 const form = el('task-form');
@@ -40,6 +40,16 @@ function update() {
   if (!config) return;
   const repo = repository();
   const trusted = config.trusted_owners.some(owner => owner.toLowerCase() === repo?.split('/')[0]);
+  const agent = agents.find(candidate => candidate.id === agentSelect.value);
+  const radios = Array.from(form.querySelectorAll('input[name=isolation]'));
+  for (const radio of radios) {
+    radio.disabled = !isolationAvailable(agent, radio.value);
+    if (radio.disabled) radio.checked = false;
+  }
+  if (!selectedIsolation()) {
+    const sandbox = radios.find(radio => radio.value === config.sandbox_backend && !radio.disabled);
+    if (sandbox) sandbox.checked = true;
+  }
   const isolation = selectedIsolation();
   if (previousRepo !== repo || isolation !== 'host') {
     confirmTrust.checked = trustOwner.checked = false;
@@ -49,30 +59,17 @@ function update() {
   confirmTrust.required = isolation === 'host';
   trustOwner.disabled = !confirmTrust.checked || trusted;
   if (trustOwner.disabled) trustOwner.checked = false;
-  const usable = agent => agent.available_isolation.includes(isolation) &&
-    (isolation !== 'host' || (agent.installed && ['ok', 'unknown'].includes(agent.status)));
-  const current = agentSelect.value;
-  agentSelect.replaceChildren(new Option('请选择 Agent', ''));
-  for (const agent of agents) {
-    const status = agent.installed ? agentLogin(agent.login) : '未安装';
-    const option = new Option(`${agent.name} · ${status}`, agent.id);
-    option.disabled = !usable(agent);
-    agentSelect.append(option);
-  }
-  agentSelect.value = [current, config.default_agent, agents.find(usable)?.id]
-    .find(id => agents.some(agent => agent.id === id && usable(agent))) || '';
   const hint = el('agent-hint');
   hint.replaceChildren();
-  for (const agent of agents) {
-    if (agent.id !== agentSelect.value && usable(agent) && agent.login === 'logged_in') continue;
-    const detail = [];
-    if (!agent.installed || agent.status === 'error') detail.push(agent.detail);
-    if (!agent.available_isolation.includes(isolation)) detail.push('当前隔离级别不可用。');
-    if (agent.login !== 'logged_in' && agent.login_hint) detail.push(`登录指引：${agent.login_hint}`);
-    if (agent.isolation_warning && agent.id === agentSelect.value) detail.push(agent.isolation_warning);
-    if (detail.length) hint.append(element('p', '', `${agent.name} · ${detail.join(' ')}`));
+  if (agent) {
+    if (agent.status !== 'ok') hint.append(element('p', '', agent.detail));
+    if (agent.login !== 'logged_in' && agent.login_hint) hint.append(element('p', '', agent.login_hint));
+    if (agent.isolation_warning) hint.append(element('p', '', agent.isolation_warning));
   }
-  create.disabled = loading || submitting || !repo || !agentSelect.value ||
+  el('isolation-hint').textContent = agent?.sandbox_unavailable_reason ||
+    (config.available_isolation.includes(config.sandbox_backend) ? '陌生仓库默认在沙箱内运行。'
+      : '当前沙箱后端不可用。请在设置中查看状态，或为可信仓库明确选择本机直跑。');
+  create.disabled = loading || submitting || !repo || !isolation ||
     (isolation === 'host' && !confirmTrust.checked);
 }
 
@@ -88,7 +85,9 @@ async function load() {
   try {
     [config, { agents }] = await Promise.all([api('/settings'), api('/agents')]);
     const options = el('isolation-options');
-    const hint = el('isolation-hint');
+    agentSelect.replaceChildren(...agents.map(agent =>
+      new Option(`${agent.name} · ${agent.installed ? agentLogin(agent.login) : '本机未安装'}`, agent.id)));
+    agentSelect.value = agents.some(agent => agent.id === config.default_agent) ? config.default_agent : agents[0]?.id || '';
     const defaultSandbox = config.sandbox_backend;
     for (const kind of [defaultSandbox, ...['sbx', 'container'].filter(value =>
       value !== defaultSandbox && config.available_isolation.includes(value)), 'host']) {
@@ -101,10 +100,7 @@ async function load() {
       label.append(input, isolationLabel(kind));
       options.append(label);
     }
-    hint.textContent = config.available_isolation.includes(defaultSandbox)
-      ? '陌生仓库默认在沙箱内运行。'
-      : '当前沙箱后端不可用。请在设置中查看状态，或为可信仓库明确选择本机直跑。';
-    hint.hidden = false;
+    el('isolation-hint').hidden = false;
   } catch (error) {
     formStatus(error.message);
     el('retry-form').hidden = false;

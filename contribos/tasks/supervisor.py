@@ -24,6 +24,7 @@ from contribos.publish.draft import DRAFT_PROMPT, Draft, draft_from_response
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox
 from contribos.sandbox.read_file import __file__ as READ_FILE_PATH
+from contribos.sandbox.resources import DISK_ERRORS, resource_limits
 from contribos.sandbox.sbx import SbxSandbox
 from contribos.tasks.events import REQUEST_EVENTS, RESOLUTION_EVENTS, TaskEvents
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
@@ -135,7 +136,7 @@ class TaskSupervisor:
         with self.store.transaction():
             trusted = self.store.setting('trusted_owners', [])
             known = owner in {name.casefold() for name in trusted}
-            if isolation == 'host' and not known and trust_confirmed is not True:
+            if isolation == 'host' and trust_confirmed is not True:
                 raise TaskError('host_trust_required', 'Confirm repository trust to run on the host.', 403)
             row = self.store.create(ref, profile.id, isolation, opportunity_id)
             if trust_owner and not known:
@@ -156,11 +157,33 @@ class TaskSupervisor:
                 recap_pending=bool(row['recap_pending']))
             profile = PROFILES[row['agent_profile']]
             runtime = _Runtime(context, sandbox or self._sandbox(row['isolation'], profile), profile)
+            if isinstance(runtime.sandbox, SbxSandbox):
+                runtime.sandbox.read_extra_domains = lambda: self.store.setting('sandbox_extra_domains', [])
+                runtime.sandbox.resource_limits = lambda: resource_limits(self.store.setting('resource_limits', {}))
+                runtime.sandbox.on_resource_pause = lambda code: self._resource_pause(runtime, code)
+                if row['last_error_code'] in DISK_ERRORS:
+                    runtime.sandbox.disk_error = row['last_error_code']
             if row['isolation'] == 'host':
                 runtime.allowed_tools = {key for event in self.events.remembered_permissions(task_id)
                                          if (key := _permission_key(event.payload)) and '[REDACTED]' not in key}
             self.runtimes[task_id] = runtime
         return self.runtimes[task_id]
+
+    def _resource_pause(self, runtime: _Runtime, code: str) -> None:
+        task_id = runtime.context.task_id
+        message = DISK_ERRORS.get(code, 'Check the sandbox resource settings, then continue.')
+        runtime.stop.set()
+        runtime.wake.set()
+        runtime.recovery = None
+        if self.store.get(task_id)['status'] == 'preparing':
+            runtime.context.sandbox_ref = runtime.sandbox.vm_id
+            self.store.pause_preparation(task_id, runtime.sandbox.vm_id, code, message)
+        elif turn := self.store.running(task_id):
+            self.store.finish(task_id, turn['id'], 'interrupted', reason='cancelled', error=(code, message))
+            self._publish(runtime, 'turn.interrupted', {'reason': code})
+        else:
+            self.store.recovery_failed(task_id, code, message)
+        self._publish(runtime, 'system.runtime_failed', {'error_code': code, 'message': message})
 
     def _schedule(self, runtime: _Runtime) -> None:
         if not self.closing and not runtime.deleting and (runtime.job is None or runtime.job.done()):
@@ -194,7 +217,24 @@ class TaskSupervisor:
                 continue
             if task['agent_state'] in {'running', 'waiting_retry'}:
                 runtime.recovery = 'service_restart'
+            elif (isinstance(runtime.sandbox, SbxSandbox) and task['status'] != 'preparing'
+                  and task['agent_state'] in {'idle', 'error'}):
+                runtime.job = asyncio.create_task(self._stop_after_restart(runtime))
+                continue
             self._schedule(runtime)
+
+    async def _stop_after_restart(self, runtime: _Runtime) -> None:
+        # An idle VM can still contain background processes after a backend crash.
+        try:
+            async with self.slots:
+                await runtime.sandbox.stop_saved(runtime.context)
+                runtime.sandbox_suspended = True
+        except (SandboxError, OSError):
+            self._publish(runtime, 'system.warning', {'code': 'sandbox_stop_unavailable'})
+        finally:
+            runtime.job = None
+            if self.store.get(runtime.context.task_id)['agent_state'] in {'queued', 'waiting_retry'}:
+                self._schedule(runtime)
 
     def send(self, task_id: str, text: str, client_message_id: str | None = None, *,
              interrupt: bool = False, kind: str = 'user') -> sqlite3.Row:
@@ -204,6 +244,9 @@ class TaskSupervisor:
             raise TaskError('task_busy', 'Wait for the current task operation to finish.')
         if runtime.deleting:
             raise TaskError('task_deleting', 'This task is being deleted.')
+        paused = isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error
+        if paused and ((runtime.job and not runtime.job.done()) or runtime.sandbox.stopping_for_disk):
+            raise TaskError('sandbox_pausing', 'Wait for the sandbox to stop, then continue.')
         if not row['runtime_managed'] and row['status'] in {'ready', 'published'}:
             if isinstance(runtime.sandbox, HostSandbox):
                 try:
@@ -214,13 +257,26 @@ class TaskSupervisor:
             self.store.adopt(task_id)
         turn, created = self.store.enqueue(task_id, text, client_message_id, kind=kind, interrupt=interrupt)
         if created:
+            if paused:
+                runtime.sandbox.disk_error = None
+                runtime.recovery = 'resource_pause'
             self.events.notify_message(turn)
             if interrupt:
                 self.interrupt(task_id)
             self._schedule(runtime)
         return turn
 
-    def continue_task(self, task_id: str) -> sqlite3.Row:
+    def continue_task(self, task_id: str) -> sqlite3.Row | None:
+        row = self.store.get(task_id)
+        if row['status'] == 'setup_failed' and row['last_error_code'] in DISK_ERRORS:
+            runtime = self._runtime(row)
+            if (runtime.job and not runtime.job.done()) or runtime.sandbox.stopping_for_disk:
+                raise TaskError('sandbox_pausing', 'Wait for the sandbox to stop, then continue.')
+            if not self.store.retry_preparation(task_id, row['last_error_code']):
+                raise TaskError('task_busy', 'The task cannot restart preparation.')
+            runtime.sandbox.disk_error = None
+            self._schedule(runtime)
+            return None
         return self.send(task_id, CONTINUE_PROMPT, kind='continue')
 
     def background(self, task_id: str, operation: Callable[[], Awaitable[None]]) -> None:
@@ -228,6 +284,8 @@ class TaskSupervisor:
         if row['status'] not in {'ready', 'published'} or row['delete_requested']:
             raise TaskError('task_not_ready', 'The task workspace is unavailable.')
         runtime = self._runtime(row)
+        if row['last_error_code'] in DISK_ERRORS:
+            raise TaskError(row['last_error_code'], DISK_ERRORS[row['last_error_code']])
         if self.closing or runtime.operation or row['agent_state'] not in {'idle', 'error'}:
             raise TaskError('task_busy', 'Wait for the current task operation to finish.')
         runtime.operation = True
@@ -454,6 +512,8 @@ class TaskSupervisor:
         try:
             context.issue = self.store.sanitize(await self.issue_loader(IssueRef(context.repo_full_name, context.issue_number)))
             context.linked_prs = context.issue.get('linked_prs', [])
+            if isinstance(runtime.sandbox, SbxSandbox) and context.sandbox_ref:
+                await runtime.sandbox.discard_preparation(context)
             workspace = await runtime.sandbox.prepare(context)
             context.repo_dir, context.context_dir = workspace.repo_dir, workspace.context_dir
             context.default_branch, context.base_sha, context.work_branch = (
@@ -461,6 +521,8 @@ class TaskSupervisor:
             context.sandbox_ref = workspace.reference
             self._instructions(context)
             await runtime.sandbox.write_task_context(context)
+            if isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error:
+                return False
             if isinstance(runtime.sandbox, HostSandbox):
                 runtime.sandbox.claim_runtime()
             self.store.ready(context.task_id, context.issue, context.default_branch, context.base_sha,
@@ -468,6 +530,8 @@ class TaskSupervisor:
             self._publish(runtime, 'task.ready')
             return True
         except (IssueError, SandboxError, OSError) as error:
+            if isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error:
+                return False
             code = str(error) if isinstance(error, (IssueError, SandboxError)) else 'workspace_setup_failed'
             message = (error.message if isinstance(error, IssueError) else
                        'Could not prepare this task. Check the Issue and execution environment.')
@@ -505,6 +569,8 @@ class TaskSupervisor:
         if self.store.get(task_id)['status'] == 'preparing' and not await self._prepare(runtime):
             return
         while not self.closing and not runtime.deleting:
+            if isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error:
+                return
             if runtime.recovery is not None:
                 source, runtime.recovery = runtime.recovery, None
                 if not await self._recover(runtime, source):
@@ -536,6 +602,9 @@ class TaskSupervisor:
     async def _recover(self, runtime: _Runtime, reason: str) -> bool:
         task_id = runtime.context.task_id
         await self._disconnect(runtime)
+        if reason == 'resource_pause':
+            runtime.context.repo_dir = runtime.context.context_dir = ''
+            return True
         try:
             await runtime.sandbox.restore(runtime.context)
             self._instructions(runtime.context)
@@ -543,6 +612,8 @@ class TaskSupervisor:
                 await self._refresh_diff(runtime)
             await self._connect(runtime)
         except (AgentError, SandboxError, OSError) as error:
+            if isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error:
+                return False
             code = error.code if isinstance(error, AgentError) else 'workspace_unavailable'
             message = error.message if isinstance(error, AgentError) else 'Could not restore the workspace. Check the execution environment.'
             await self._disconnect(runtime)
@@ -567,6 +638,10 @@ class TaskSupervisor:
 
     async def _restore_workspace(self, runtime: _Runtime) -> None:
         context = runtime.context
+        if context.repo_dir and isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.network_policy_changed():
+            # End existing connections before a newly restricted policy becomes effective.
+            await self._disconnect(runtime)
+            context.repo_dir = context.context_dir = ''
         if not context.repo_dir:
             await runtime.sandbox.restore(context)
             runtime.sandbox_suspended = False
@@ -577,6 +652,8 @@ class TaskSupervisor:
 
     async def _connect(self, runtime: _Runtime) -> str:
         await self._restore_workspace(runtime)
+        if isinstance(runtime.sandbox, SbxSandbox):
+            await runtime.sandbox.check_resources()
         context = runtime.context
         if runtime.engine is None:
             if context.session_id:
@@ -620,6 +697,7 @@ class TaskSupervisor:
             if event.type in {'mode.changed', 'usage.updated'}:
                 self.store.agent_update(runtime.context.task_id, event.type, event.payload)
             if (event.type == 'system.agent_exited' and runtime.engine is engine
+                    and not (isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error)
                     and runtime.recovery != 'forced_cancel'):
                 runtime.disconnected = True
                 runtime.recovery = 'agent_exit'
@@ -635,7 +713,7 @@ class TaskSupervisor:
         await self._refresh_diff(runtime)
 
     async def _refresh_diff(self, runtime: _Runtime) -> None:
-        if not runtime.context.repo_dir:
+        if not runtime.context.repo_dir or (isinstance(runtime.sandbox, SbxSandbox) and runtime.sandbox.disk_error):
             return
         try:
             diff = await runtime.sandbox.diff()
@@ -691,10 +769,12 @@ class TaskSupervisor:
         delay = RETRY_DELAYS[count] if not auxiliary and error and error.retryable and count < len(RETRY_DELAYS) else None
         retry_at = (self.clock() + timedelta(seconds=delay)).isoformat() if delay is not None else None
         auto_continue = not auxiliary and reason in {'max_tokens', 'max_turn_requests'} and not turn['continuation_used']
-        self.store.finish(runtime.context.task_id, turn['id'], status, reason=reason,
+        changed = self.store.finish(runtime.context.task_id, turn['id'], status, reason=reason,
                           error=(error.code, error.message) if error else None, retry_at=retry_at,
                           retry_count=count + 1 if retry_at else count, auto_continue=auto_continue,
                           continuation_used=bool(turn['continuation_used']))
+        if not changed:
+            return
         self._publish(runtime, f'turn.{status}', payload)
         if retry_at:
             self._publish(runtime, 'system.retry_scheduled', {'delay_seconds': delay, 'retry_count': count + 1,
@@ -749,14 +829,16 @@ class TaskSupervisor:
     async def _sweep_idle(self) -> None:
         while True:
             await asyncio.sleep(60)
-            now = time.monotonic()
-            for runtime in tuple(self.runtimes.values()):
-                if runtime.deleting or (runtime.job and not runtime.job.done()):
-                    continue
-                age = now - runtime.last_activity
-                suspend = age >= 7200 and bool(runtime.context.repo_dir) and not runtime.sandbox_suspended
-                if suspend or (age >= 1800 and runtime.engine is not None):
-                    runtime.job = asyncio.create_task(self._suspend_idle(runtime, suspend))
+            self._check_idle(time.monotonic())
+
+    def _check_idle(self, now: float) -> None:
+        for runtime in tuple(self.runtimes.values()):
+            if runtime.deleting or (runtime.job and not runtime.job.done()):
+                continue
+            age = now - runtime.last_activity
+            suspend = age >= 7200 and bool(runtime.context.repo_dir) and not runtime.sandbox_suspended
+            if suspend or (age >= 1800 and runtime.engine is not None):
+                runtime.job = asyncio.create_task(self._suspend_idle(runtime, suspend))
 
     async def _suspend_idle(self, runtime: _Runtime, suspend: bool) -> None:
         try:
@@ -802,5 +884,8 @@ class TaskSupervisor:
             await self._disconnect(runtime)
         finally:
             if isinstance(runtime.sandbox, HostSandbox):
+                runtime.sandbox.release_runtime()
+            elif isinstance(runtime.sandbox, SbxSandbox) and not runtime.deleting:
+                await runtime.sandbox.stop()
                 runtime.sandbox.release_runtime()
             self.events.close(task_id)

@@ -16,6 +16,11 @@ export async function api(path, { method = 'GET', body, signal } = {}) {
 
 export const el = id => document.getElementById(id);
 export const taskPath = id => `/tasks/${encodeURIComponent(id)}`;
+export function isolationAvailable(agent, kind) {
+  return Boolean(agent?.available_isolation.includes(kind)) &&
+    (kind !== 'host' || (agent.installed && ['ok', 'unknown'].includes(agent.status)));
+}
+
 export const isolationLabel = kind => ({ host: '本机直跑', sbx: '沙箱', container: '容器沙箱' }[kind] || kind);
 export const agentLogin = status => ({ logged_in: '已登录', not_logged_in: '未登录', unknown: '登录状态未知' }[status] || '登录状态未知');
 

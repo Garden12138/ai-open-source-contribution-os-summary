@@ -34,6 +34,29 @@ def redact(text: str) -> str:
     return text
 
 
+def clean_environment(source: Mapping[str, str], runtime_dir: Path) -> dict[str, str]:
+    """Remove inherited credential/config overrides and isolate default credential files."""
+    blocked = {'SSH_AUTH_SOCK', 'SSH_AGENT_PID', 'SSH_ASKPASS', 'SSH_ASKPASS_REQUIRE', 'BASH_ENV', 'ENV',
+               'ZDOTDIR', 'NODE_OPTIONS', 'PYTHONPATH', 'PYTHONHOME', 'CODEX_HOME', 'CODEX_CONFIG', 'CODEX_PATH',
+               'DEFAULT_AUTH_REQUEST', 'MODEL_PROVIDER', 'INITIAL_AGENT_MODE', 'APP_SERVER_LOGS',
+               'CURSOR_CONFIG_DIR', 'CODEX_REMOTE_AUTH_TOKEN', 'NETRC', 'CURL_HOME', 'DOCKER_CONFIG',
+               'AWS_SHARED_CREDENTIALS_FILE', 'NPM_CONFIG_USERCONFIG', 'KUBECONFIG', 'GNUPGHOME'}
+    env = {k: v for k, v in source.items() if k not in blocked and not k.upper().startswith(
+        ('GIT_', 'GCM_', 'GH_', 'GITHUB_', 'CONTRIBOS_', 'LD_', 'DYLD_')) and not k.upper().endswith(
+        ('_TOKEN', '_API_KEY', '_PASSWORD', '_SECRET_ACCESS_KEY'))}
+    env.update(HOME=str(runtime_dir / 'home'), USERPROFILE=str(runtime_dir / 'home'),
+        XDG_CONFIG_HOME=str(runtime_dir / 'home' / '.config'),
+        GH_CONFIG_DIR=str(runtime_dir / 'gh'), GIT_CONFIG_GLOBAL=str(runtime_dir / 'gitconfig'),
+        GIT_CONFIG_SYSTEM=os.devnull, GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0',
+        GIT_ASKPASS='/usr/bin/false', SSH_ASKPASS='/usr/bin/false', GIT_SSH_COMMAND='/usr/bin/false',
+        GIT_CONFIG_COUNT='5', GIT_CONFIG_KEY_0='credential.helper', GIT_CONFIG_VALUE_0='',
+        GIT_CONFIG_KEY_1='core.hooksPath', GIT_CONFIG_VALUE_1=os.devnull,
+        GIT_CONFIG_KEY_2='core.fsmonitor', GIT_CONFIG_VALUE_2='false',
+        GIT_CONFIG_KEY_3='http.extraHeader', GIT_CONFIG_VALUE_3='',
+        GIT_CONFIG_KEY_4='credential.interactive', GIT_CONFIG_VALUE_4='false')
+    return env
+
+
 def without_github_credentials(environment: Mapping[str, str]) -> dict[str, str]:
     return {key: value for key, value in environment.items() if key not in GITHUB_CREDENTIAL_VARS}
 

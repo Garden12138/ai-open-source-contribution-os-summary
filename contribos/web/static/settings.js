@@ -7,7 +7,7 @@ const notificationNames = {
   publish_result: '发布结果',
   daily_recommendations: '每日推荐就绪',
 };
-const checkLabels = { ok: '正常', missing: '未安装', not_logged_in: '未登录', error: '检查失败', unknown: '状态未知' };
+const checkLabels = { not_run: '未检测', unavailable: '无法检测', ok: '正常', missing: '未安装', not_logged_in: '未登录', error: '检查失败', unknown: '状态未知' };
 
 function select(options, value) {
   const field = element('select');
@@ -62,15 +62,21 @@ function preferences(root, config, save) {
   const owners = element('textarea');
   owners.rows = 3;
   owners.value = config.trusted_owners.join('\n');
-  execution.append(field('默认沙箱后端', sandbox), field('可信 owner（每行一个）', owners));
+  const domains = element('textarea');
+  domains.rows = 3;
+  domains.value = config.sandbox_extra_domains.join('\n');
+  execution.append(field('默认沙箱后端', sandbox), field('可信 owner（每行一个）', owners),
+    field('沙箱额外放行的 HTTPS 域名（每行一个）', domains),
+    element('p', 'muted', '额外域名使用 443 端口，下次访问工作区时生效。使用上游代理时，请在 sbx 的沙箱代理例外中加入这些域名，以便校验解析地址。'));
 
   const resources = group(form, '资源上限');
   const concurrency = numberInput(config.concurrency, 64);
   const cpus = numberInput(config.resource_limits.cpus, 1024);
   const memory = numberInput(config.resource_limits.memory_mib, 2147483647);
+  memory.min = 512;
   const disk = numberInput(config.resource_limits.disk_mib, 2147483647);
   resources.append(field('同时运行的轮次', concurrency),
-    element('p', 'muted', '修改并发后重启后端生效。CPU、内存和磁盘上限用于沙箱。'),
+    element('p', 'muted', '并发设置在后端重启后生效。CPU 和内存上限在创建沙箱时分配。磁盘用量超过上限时暂停任务，调整上限后可继续。'),
     field('沙箱 CPU 核数', cpus), field('沙箱内存（MiB）', memory), field('沙箱磁盘（MiB）', disk));
 
   const publishing = group(form, 'Git 提交作者');
@@ -133,6 +139,7 @@ function preferences(root, config, save) {
         first_turn_policy: policy.value,
         sandbox_backend: sandbox.value,
         trusted_owners: trusted,
+        sandbox_extra_domains: domains.value.split(/\n/).map(value => value.trim()).filter(Boolean),
         concurrency: concurrency.valueAsNumber,
         resource_limits: { cpus: cpus.valueAsNumber, memory_mib: memory.valueAsNumber, disk_mib: disk.valueAsNumber },
         tool_paths: Object.fromEntries(paths.map(([name, input]) => [name, input.value.trim()])),
@@ -190,6 +197,7 @@ function setAgents(root, { agents }) {
     if (agent.available_isolation.length) card.append(element('p', 'muted',
       `可用隔离级别：${agent.available_isolation.map(isolationLabel).join('、')}`));
     if (agent.login_hint && agent.login !== 'logged_in') card.append(element('code', 'login-hint', agent.login_hint));
+    if (agent.sandbox_unavailable_reason) card.append(element('p', 'muted', agent.sandbox_unavailable_reason));
     if (agent.isolation_warning) card.append(element('p', 'warning', agent.isolation_warning));
     root.append(card);
   }

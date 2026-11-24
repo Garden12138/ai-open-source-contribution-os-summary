@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 from contribos.agent.profiles import PROFILES
 from contribos.discovery.domain import DiscoveryRules
+from contribos.sandbox.resources import ResourceLimits
+from contribos.sandbox.sbx import normalize_egress_domains
 from contribos.tasks.store import TaskError
 
 router = APIRouter(prefix='/api/settings')
@@ -19,14 +21,6 @@ NotifyEvent = Literal['turn_completed', 'request_waiting', 'turn_error', 'publis
 Owner = Annotated[str, Field(pattern=r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$')]
 
 
-class ResourceLimits(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-
-    cpus: int = Field(default=2, strict=True, ge=1, le=1024)
-    memory_mib: int = Field(default=4096, strict=True, ge=1, le=2**31 - 1)
-    disk_mib: int = Field(default=10240, strict=True, ge=1, le=2**31 - 1)
-
-
 class Preferences(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
@@ -35,6 +29,7 @@ class Preferences(BaseModel):
         default_factory=lambda: list(DiscoveryRules().preferred_languages), max_length=30)
     strategic_keywords: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
         default_factory=lambda: list(DiscoveryRules().strategic_keywords), max_length=30)
+    sandbox_extra_domains: list[str] = Field(default_factory=list, max_length=100)
     trusted_owners: list[Owner] = Field(default_factory=list, max_length=1000)
     default_agent: str = 'codex'
     review_agent: str | None = None
@@ -47,6 +42,11 @@ class Preferences(BaseModel):
     git_author_email: str = Field(default='', max_length=320, pattern=r'^(?:[^\s<>@]+@[^\s<>@]+)?$')
     git_dco_signoff: StrictBool = False
     notifications: dict[NotifyEvent, StrictBool] = Field(default_factory=lambda: dict.fromkeys(get_args(NotifyEvent), True))
+
+    @field_validator('sandbox_extra_domains')
+    @classmethod
+    def normalize_domains(cls, domains: list[str]) -> list[str]:
+        return normalize_egress_domains(domains)
 
     @field_validator('trusted_owners')
     @classmethod

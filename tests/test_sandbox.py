@@ -10,39 +10,61 @@ from contribos.agent.engine import TaskContext
 from contribos.agent.profiles import PROFILES
 from contribos.config import Settings
 from contribos.sandbox.base import Sandbox, SandboxError
-from contribos.sandbox.sbx import CONTEXT, REPO, ROOT, SbxSandbox
+from contribos.sandbox.sbx import CONTEXT, PACKAGE_DOMAINS, PRIVATE_NETWORKS, REPO, ROOT, SbxSandbox, normalize_egress_domains
 
 
 class FakeSbx(SbxSandbox):
     """Model the external sbx CLI behind the production Sandbox interface."""
 
-    def __init__(self, home: Path):
-        super().__init__(Settings(home=home), PROFILES['codex'])
+    def __init__(self, home: Path, **kwargs):
+        super().__init__(Settings(home=home), PROFILES['codex'], **kwargs)
         self.exists = False
         self.state = 'stopped'
         self.context: dict[str, str] = {}
         self.received: list[tuple[str, ...]] = []
         self.extra_rules: list[dict] = []
+        self.scoped_rules: list[dict] = []
+        self.proxy = {'proxy.sandbox': 'direct'}
         self.configured_service = 'openai'
         self.mounts: list[str] = []
+        self.writable_layer = 0
+        self.volume_bytes = 0
 
     async def _call(self, *args, timeout=60, data=None):
         self.received.append(args)
         match args:
+            case ('ls', '-q'):
+                return 0, (self.name if self.exists else '').encode(), b''
+            case ('df', '--verbose', '--json'):
+                result = {'containers': [{'name': self.name, 'local_volumes': 1, 'size': self.writable_layer}],
+                          'volumes': [{'name': self.name + '-docker', 'size': self.volume_bytes}]}
             case ('secret', 'ls', *rest):
                 result = {'secrets': [{'name': self.configured_service, 'type': 'service',
                                        'secret': '(oauth configured)'}], 'custom_secrets': []}
             case ('settings', 'get', 'ssh.agentSocketPath'):
                 return 0, b'\n', b''
+            case ('settings', 'get', key):
+                return 0, self.proxy.get(key, '').encode(), b''
             case ('policy', 'ls', *rest):
-                result = {'rules': [{'id': 'default-deny-all', 'status': 'active', 'decision': 'deny'}]
-                          + self.extra_rules}
-            case ('policy', 'allow', *rest):
-                assert args[3:5] == ('--sandbox', self.name)
+                result = {'rules': [{'id': 'default-deny-all', 'scope': 'global', 'status': 'active',
+                                     'resource_type': 'network', 'resources': ['**'], 'decision': 'deny', 'editable': False,
+                                     'actions': ['net:connect:tcp', 'net:connect:udp']}] + self.extra_rules + self.scoped_rules}
+            case ('policy', 'allow', 'network', '--sandbox', name, domains):
+                assert name == self.name
+                self.scoped_rules.extend({'id': domain, 'status': 'active', 'scope': 'sandbox:' + name,
+                    'resource_type': 'network', 'decision': 'allow', 'resources': [domain],
+                    'actions': ['net:connect:tcp'], 'editable': True} for domain in domains.split(','))
+                return 0, b'', b''
+            case ('policy', 'rm', 'network', '--sandbox', name, '--id', rule_id, '--force'):
+                assert name == self.name
+                self.scoped_rules = [r for r in self.scoped_rules if r.get('id') != rule_id]
                 return 0, b'', b''
             case ('create', *rest):
                 assert args[-1] == self.profile.sbx.workload
                 assert '--mount' not in args and '--static-mcp' in args and '--skills' in args
+                self.scoped_rules.append({'scope': 'sandbox:' + self.name, 'status': 'active', 'decision': 'deny',
+                    'resource_type': 'network', 'resources': args[args.index('--deny-network') + 1].split(','),
+                    'actions': ['net:connect:tcp', 'net:connect:udp']})
                 self.exists = True
                 return 0, b'', b''
             case ('inspect', *rest):
@@ -165,8 +187,8 @@ def test_sbx_refuses_unsafe_configuration(tmp_path, unsafe, error):
     if unsafe == 'vault':
         sandbox.configured_service = 'github'
     if unsafe == 'egress':
-        sandbox.extra_rules.append({'status': 'active', 'resource_type': 'network',
-                                    'decision': 'allow', 'resources': ['**']})
+        sandbox.extra_rules.append({'scope': 'global', 'status': 'active', 'resource_type': 'network',
+                                    'decision': 'allow', 'resources': ['**'], 'actions': ['net:connect:tcp']})
     if unsafe == 'mount':
         sandbox.mounts.append('/unexpected')
     with pytest.raises(SandboxError, match=error):
@@ -190,3 +212,100 @@ def test_sbx_paths_and_replaced_workspace_are_rejected(tmp_path):
             await sandbox.restore(task)
         assert not any(call[0] == 'rm' for call in sandbox.received)
     asyncio.run(check())
+
+
+@pytest.mark.parametrize('domain', [
+    '**', '*.packages.example.org', '-example.org', 'example.org:80', 'https://example.org',
+    'example.org/path', 'a,b.example.org', '127.0.0.1', '169.254.169.254', '[::1]', '127.0.0.0/8',
+    'localhost', 'store.localhost', 'host.docker.internal', 'packages.local', 'service.home.arpa',
+])
+def test_egress_accepts_only_exact_public_hostnames(domain):
+    with pytest.raises(ValueError):
+        normalize_egress_domains([domain])
+
+
+def test_sbx_egress_scoped_to_task_and_reconciled_before_restore(tmp_path):
+    async def check():
+        task = sbx_task()
+        sandbox = FakeSbx(tmp_path, extra_domains=['Packages.Example.org', 'packages.example.org'])
+        await sandbox.create_empty(task)
+        task.sandbox_ref = sandbox.vm_id
+        approved = {r['resources'][0] for r in sandbox.scoped_rules if r['decision'] == 'allow'}
+        assert approved == set(PACKAGE_DOMAINS + sandbox.profile.sbx.domains + ('packages.example.org:443',))
+        assert any(set(r['resources']) == set(PRIVATE_NETWORKS) for r in sandbox.scoped_rules)
+        assert not any(call[0] == 'exec' for call in sandbox.received)
+        sandbox.release_runtime()
+        resumed = FakeSbx(tmp_path, extra_domains=['downloads.example.org'])
+        resumed.exists, resumed.scoped_rules = True, sandbox.scoped_rules.copy()
+        await resumed.restore(task)
+        approved = {r['resources'][0] for r in resumed.scoped_rules if r['decision'] == 'allow'}
+        assert 'downloads.example.org:443' in approved and 'packages.example.org:443' not in approved
+        assert not any(call[0] == 'exec' for call in resumed.received)
+        await resumed.destroy()
+
+    asyncio.run(check())
+
+
+def test_sbx_restore_refuses_drift_in_private_network_policy(tmp_path):
+    async def check():
+        sandbox = FakeSbx(tmp_path)
+        task = sbx_task()
+        await sandbox.prepare(task)
+        deny = next(r for r in sandbox.scoped_rules if r['decision'] == 'deny')
+        deny['resources'].remove('169.254.0.0/16')
+        sandbox.received.clear()
+        with pytest.raises(SandboxError, match='sbx_private_network_policy_missing'):
+            await sandbox.restore(task)
+        assert not any(call[0] == 'exec' for call in sandbox.received)
+        assert sandbox.state == 'stopped' and sandbox.lock is None
+
+    asyncio.run(check())
+
+
+@pytest.mark.parametrize('bypass', ['packages.example.org', '*.example.org'])
+def test_custom_domains_require_private_address_checks_on_actual_route(tmp_path, bypass):
+    async def check():
+        sandbox = FakeSbx(tmp_path, extra_domains=['packages.example.org'])
+        sandbox.proxy = {'proxy': 'system'}
+        with pytest.raises(SandboxError, match='sbx_custom_domains_require_direct_route'):
+            await sandbox.create_empty(sbx_task())
+        assert not any(call[0] == 'create' for call in sandbox.received)
+        sandbox.proxy['no_proxy.sandbox'] = bypass
+        await sandbox.create_empty(sbx_task())
+        await sandbox.destroy()
+
+    asyncio.run(check())
+
+
+@pytest.mark.parametrize('rule', [
+    {'resource_type': 'unexpected'},
+    {'actions': ['net:connect:tcp', 'net:connect:udp']},
+    {'scope': 'organization', 'resources': ['unlisted.example.org:443']},
+    {'scope': 'sandbox:opaque-vm-id', 'resources': ['**']},
+])
+def test_unsafe_effective_permissions_prevent_guest_execution(tmp_path, rule):
+    sandbox = FakeSbx(tmp_path)
+    sandbox.extra_rules = [{'status': 'active', 'scope': 'global', 'resource_type': 'network',
+                            'decision': 'allow', 'resources': ['github.com:443'], 'actions': ['net:connect:tcp'],
+                            **rule}]
+    with pytest.raises(SandboxError, match='sbx_network_policy_unsafe'):
+        asyncio.run(sandbox.prepare(sbx_task()))
+    assert not any(call[0] == 'exec' for call in sandbox.received)
+
+
+@pytest.mark.parametrize('reported', [
+    {}, {'secrets': [], 'custom_secrets': [{}]},
+    {'secrets': [], 'custom_secrets': [], 'env_only_count': 1},
+    {'secrets': [], 'custom_secrets': [], 'shadowed_services': ['github']},
+])
+def test_sandbox_scoped_credential_report_fails_closed_before_creation(tmp_path, reported):
+    class CredentialScope(FakeSbx):
+        async def _json(self, *args, error):
+            if args[:3] == ('secret', 'ls', '--sandbox'):
+                return reported
+            return await super()._json(*args, error=error)
+
+    sandbox = CredentialScope(tmp_path)
+    with pytest.raises(SandboxError, match='sbx_credential_policy_unsafe'):
+        asyncio.run(sandbox.prepare(sbx_task()))
+    assert not any(call[0] in {'create', 'exec'} for call in sandbox.received)

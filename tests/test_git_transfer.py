@@ -35,6 +35,10 @@ def test_guest_bundle_and_host_bare_rebuild_skip_hooks(tmp_path, local_repo):
         cache = transfer._cache(ctx.repo_full_name)
         cache.mkdir(parents=True)
         git(cache, 'init', '--bare')
+        (cache / 'info' / 'attributes').write_text('README.md diff=custom filter=custom\n')
+        for setting in ('diff.custom.command', 'diff.custom.textconv', 'filter.custom.clean', 'filter.custom.smudge'):
+            git(cache, 'config', setting, '/usr/bin/false')
+        git(cache, 'config', 'filter.custom.required', 'true')
         marker = tmp_path / 'hook-ran'
         for folder in (repo_dir / '.git/hooks', cache / 'hooks'):
             for name in ('pre-commit', 'post-checkout', 'reference-transaction'):

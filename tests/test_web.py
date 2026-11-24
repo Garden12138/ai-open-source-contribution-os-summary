@@ -41,10 +41,21 @@ def test_health_static_and_migrated_database(web):
     assert client.get('/static/../security.py').status_code == 404
     assert client.get('/static/.env').status_code == 404
     response = client.get('/')
-    assert "script-src 'self'" in response.headers['content-security-policy']
-    assert "frame-ancestors 'none'" in response.headers['content-security-policy']
     assert response.headers['referrer-policy'] == 'no-referrer'
     assert (client.app.state.settings.database_path).is_file()
+
+
+@pytest.mark.parametrize('path', ['/', '/static/index.html', '/desktop/bootstrap', '/api/tasks'])
+def test_strict_csp_is_enforced_on_html_and_error_responses(web, path):
+    response = web[0].get(path)
+    directives = dict(rule.strip().split(' ', 1) for rule in response.headers['content-security-policy'].split(';'))
+    assert directives == {
+        'default-src': "'none'", 'script-src': "'self'", 'style-src': "'self'",
+        'connect-src': "'self'", 'img-src': "'self' data:", 'font-src': "'self'",
+        'base-uri': "'none'", 'form-action': "'self'", 'frame-ancestors': "'none'",
+        'object-src': "'none'",
+    }
+    assert response.headers['x-content-type-options'] == 'nosniff'
 
 
 @pytest.mark.parametrize('method', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
@@ -167,6 +178,7 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
     assert client.get('/api/settings', headers=auth).json()['concurrency'] == 2
     preferences = {
         'trusted_owners': ['Owner', 'owner', 'another-owner'],
+        'sandbox_extra_domains': ['Mirror.Example.com', 'mirror.example.com'],
         'default_agent': 'cursor',
         'review_agent': 'codex',
         'sandbox_backend': 'container',
@@ -179,6 +191,7 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
     assert response.is_success
     saved = client.get('/api/settings', headers=auth).json()
     assert saved['trusted_owners'] == ['owner', 'another-owner']
+    assert saved['sandbox_extra_domains'] == ['mirror.example.com']
     assert saved['default_agent'] == 'cursor' and saved['review_agent'] == 'codex'
     assert saved['first_turn_policy'] == 'implement' and saved['sandbox_backend'] == 'container'
     assert saved['resource_limits']['cpus'] == 3 and saved['resource_limits']['memory_mib'] == 4096
@@ -187,6 +200,7 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
     monkeypatch.setattr('shutil.which', lambda path: path)
     assert client.app.state.settings.tool('git') == '/custom/git'
     for invalid in ({'tool_paths': {'git': './git'}}, {'tool_paths': {'bash': '/bin/bash'}},
+                    {'sandbox_extra_domains': ['host.docker.internal']}, {'sandbox_extra_domains': ['*.com']},
                     {'resource_limits': {'cpus': 0}}, {'trusted_owners': ['owner/repo']},
                     {'notifications': {'turn_completed': 'false'}}, {'default_agent': 'missing'}):
         assert client.put('/api/settings', headers=auth, json=invalid).status_code == 422
@@ -242,3 +256,20 @@ def test_demo_uses_sample_tasks_and_simulated_backends(tmp_path, monkeypatch):
         }).is_success
         diff = wait_for(lambda: client.get(base + '/diff').json()['diff_text'])
         assert '+        raise ValueError("Count must be a non-negative integer")' in diff
+
+
+def test_antigravity_reports_host_only_and_rejects_sandbox_creation(web, monkeypatch):
+    from contribos.web.demo import demo_statuses
+
+    client, _, token, _ = web
+    headers = {'Authorization': f'Bearer {token}'}
+    monkeypatch.setattr('contribos.web.routes_tasks.agent_statuses', lambda _: demo_statuses())
+    info = next(agent for agent in client.get('/api/agents', headers=headers).json()['agents']
+                if agent['id'] == 'antigravity')
+    assert info['available_isolation'] == ['host']
+    assert info['sandbox_unavailable_reason']
+    result = client.post('/api/tasks', headers=headers, json={
+        'agent': 'antigravity', 'isolation': 'sbx', 'issue_url': 'https://github.com/owner/repo/issues/1',
+    })
+    assert result.status_code == 422 and result.json()['error']['code'] == 'sandbox_agent_unavailable'
+    assert client.get('/api/tasks', headers=headers).json()['tasks'] == []

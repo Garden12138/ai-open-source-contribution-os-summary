@@ -57,7 +57,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); margi
 .task-link[aria-current] { box-shadow: inset 3px 0 var(--accent); }
 .task-link span, .muted { color: var(--muted); font-size: .9rem; }
 .conversation { min-width: 0; background: var(--paper); }
-.task-header { padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 1rem; border-bottom: 1px solid var(--border); }
+.task-header { position: sticky; top: 0; z-index: 1; background: var(--paper); padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 1rem; border-bottom: 1px solid var(--border); }
 .task-header p { margin-bottom: 0; }
 .task-meta { display: flex; gap: .4rem; margin-bottom: .65rem; }
 .task-meta:empty { display: none; }

@@ -72,6 +72,9 @@
       </div>
       <label for="issue-url">GitHub Issue 链接</label>
       <input id="issue-url" type="url" required maxlength="2048" placeholder="https://github.com/owner/repo/issues/123" autofocus>
+      <label for="agent">Agent</label>
+      <select id="agent" required aria-describedby="agent-hint"></select>
+      <div id="agent-hint" class="muted"></div>
       <fieldset>
         <legend>隔离级别</legend>
         <div id="isolation-options"></div>
@@ -82,9 +85,6 @@
         <label class="choice"><input id="confirm-trust" type="checkbox"> 我信任这个仓库</label>
         <label class="choice"><input id="trust-owner" type="checkbox" disabled> 将该 owner 加入可信列表</label>
       </div>
-      <label for="agent">Agent</label>
-      <select id="agent" required aria-describedby="agent-hint"></select>
-      <div id="agent-hint" class="muted"></div>
       <p id="form-status" class="error" role="status" hidden></p>
       <div class="actions">
         <button id="retry-form" type="button" hidden>重新加载</button>

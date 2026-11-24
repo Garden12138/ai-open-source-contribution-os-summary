@@ -19,6 +19,7 @@ from contribos.tasks.instructions import CONTINUE_PROMPT
 from contribos.tasks.issue import IssueRef
 from contribos.tasks.store import TaskError, TaskStore
 from contribos.tasks.supervisor import TaskSupervisor
+from test_sandbox import FakeSbx
 
 REF = IssueRef('owner/repo', 1)
 
@@ -96,6 +97,40 @@ async def start(supervisor, store):
     tid = supervisor.create(REF, isolation='host', trust_confirmed=True)['id']
     await until(lambda: store.get(tid)['status'] == 'ready' and store.get(tid)['agent_state'] == 'idle')
     return tid
+
+
+def test_live_task_reloads_egress_preferences_before_continue(tmp_path):
+    async def check():
+        settings = Settings(home=tmp_path)
+        with closing(connect(settings.database_path)) as db:
+            migrate(db)
+            store = TaskStore(db)
+            sandbox = FakeSbx(tmp_path)
+            supervisor = TaskSupervisor(settings, store, issue_loader=issue_loader,
+                sandbox_factories={'sbx': lambda: sandbox}, engine_factory=lambda *_: FakeEngine())
+            try:
+                store.set_setting('sandbox_extra_domains', ['packages.example.org'])
+                tid = supervisor.create(REF, isolation='sbx')['id']
+                await until(lambda: store.get(tid)['status'] == 'ready' and store.get(tid)['agent_state'] == 'idle')
+                runtime = supervisor.runtimes[tid]
+                for domains in (['downloads.example.org'], []):
+                    previous = runtime.engine
+                    previous_domains = set(sandbox.extra_domains)
+                    sandbox.received.clear()
+                    store.set_setting('sandbox_extra_domains', domains)
+                    supervisor.continue_task(tid)
+                    await until(lambda: store.get(tid)['agent_state'] == 'idle')
+                    assert store.turns(tid)[-1]['status'] == 'completed'
+                    assert runtime.sandbox is sandbox and runtime.engine is not previous
+                    allows = {r['resources'][0] for r in sandbox.scoped_rules if r['decision'] == 'allow'}
+                    assert all(f'{domain}:443' in allows for domain in domains)
+                    assert all(f'{domain}:443' not in allows for domain in previous_domains - set(domains))
+                    commands = [call[0] for call in sandbox.received]
+                    assert commands.index('stop') < commands.index('policy') < commands.index('exec')
+            finally:
+                await supervisor.shutdown()
+
+    asyncio.run(check())
 
 
 def test_diff_refresh_can_finish_during_an_edit_turn(tmp_path):

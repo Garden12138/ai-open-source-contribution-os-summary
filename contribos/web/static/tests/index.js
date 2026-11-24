@@ -45,3 +45,18 @@ test('all opportunities encodes filters and daily picks keep their own order', a
   assert.equal(all.has('label'), false);
   assert.equal(listQuery('daily', fields, 0).has('lang'), false);
 });
+
+test('task isolation stays in the conversation header while the feed scrolls', () => {
+  const header = html.match(/<header class="task-header">([\s\S]*?)<\/header>/)[1];
+  assert.match(header, /id="task-meta"/);
+  const styles = readFileSync(join(__dirname, '..', 'styles.css'), 'utf8');
+  assert.match(styles, /\.task-header\s*\{[^}]*position:\s*sticky/);
+});
+
+test('a host-only Agent disables sandbox choices and still requires local availability', async () => {
+  const { isolationAvailable } = await import('../api.js');
+  const agent = { available_isolation: ['host'], installed: true, status: 'unknown' };
+  assert.equal(isolationAvailable(agent, 'host'), true);
+  assert.equal(isolationAvailable(agent, 'sbx'), false);
+  assert.equal(isolationAvailable({ ...agent, installed: false }, 'host'), false);
+});

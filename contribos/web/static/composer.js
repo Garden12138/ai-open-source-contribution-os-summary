@@ -53,7 +53,9 @@ export function mountComposer(root, path, refresh) {
     interrupt.disabled = !canSend;
     stop.hidden = !stopping;
     stop.disabled = busy || !ready;
-    resume.hidden = !ready || stopping || task?.agent_state === 'queued';
+    const pausedSetup = task?.status === 'setup_failed' && !task.deleting
+      && ['sandbox_disk_limit', 'sandbox_disk_unavailable'].includes(task.last_error_code);
+    resume.hidden = (!ready && !pausedSetup) || stopping || task?.agent_state === 'queued';
     resume.disabled = busy;
     const activity = ready
       ? [running ? '运行中，发送的新消息将排队。' : '', queued ? `${queued} 轮等待执行。` : ''].filter(Boolean).join(' ')

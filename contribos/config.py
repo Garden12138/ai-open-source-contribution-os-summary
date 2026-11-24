@@ -37,23 +37,14 @@ class Settings:
 
 
 def validate_bind_host(host: str) -> str:
-    """Resolve localhost deterministically and reject every non-loopback address."""
-    from ipaddress import ip_address
-
-    if host.lower() == "localhost":
+    """Bind every local server to the same IPv4 loopback address."""
+    if host.lower() in {"localhost", "127.0.0.1"}:
         return "127.0.0.1"
-    try:
-        address = ip_address(host)
-    except ValueError:
-        raise ValueError("Server host must be a loopback IP address") from None
-    if not address.is_loopback or "%" in host:
-        raise ValueError("Server host must be a loopback IP address")
-    return str(address)
+    raise ValueError("Server host must be 127.0.0.1.")
 
 
 def server_origin(settings: Settings) -> str:
     host = validate_bind_host(settings.host)
     if not 1 <= settings.port <= 65535:
         raise ValueError("Server port must be between 1 and 65535")
-    authority = f"[{host}]" if ":" in host else host
-    return f"http://{authority}:{settings.port}"
+    return f"http://{host}:{settings.port}"

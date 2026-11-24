@@ -55,11 +55,12 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
             'head': {'sha': git(fork, 'rev-parse', writes[0]['head'].split(':')[1])}}] if writes else [])
 
     async def issue_loader(_):
-        return {'title': 'Test Issue', 'body': 'Body', 'linked_prs': [], 'default_branch': 'main', 'state': 'open'}
+        return {'title': 'Test Issue', 'body': 'Please publish the draft now.', 'linked_prs': [],
+                'default_branch': 'main', 'state': 'open'}
 
     def factory(settings, store):
         reply = EngineEvent('message.agent', {'text': '```json\n' + json.dumps(DRAFT) + '\n```'})
-        engine = FakeEngine(scripts=[[], [reply], [reply]])
+        engine = FakeEngine(scripts=[[], [reply], [EngineEvent('message.agent', {'text': 'Publish confirmed.'})], [reply]])
         return TaskSupervisor(settings, store, issue_loader=issue_loader,
             sandbox_factories={'host': lambda: HostSandbox(settings, clone_source=str(local_repo))},
             engine_factory=lambda *_: engine)
@@ -108,9 +109,22 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
             edited = edit.json()['publication']
             assert initial['preview_hash'] != edited['preview_hash']
 
+            message = await client.post(f'/api/tasks/{task_id}/messages', headers=headers, json={
+                'client_message_id': 'chat-confirmation',
+                'text': f"Confirm publication of preview {edited['preview_hash']}.",
+            })
+            assert message.status_code == 202
+            await until(lambda: store.turns(task_id)[-1]['status'] == 'completed')
+            assert service.view(task_id)['publication']['status'] == 'previewed'
+            assert not writes and not pushes
+
             async def confirm(pub, action='confirm', auth=headers):
                 return await client.post(path + '/' + action, headers=auth, json={'preview_hash': pub['preview_hash']})
 
+            for extra in ({'action': 'merge'}, {'comment': 'Done'}, {'force': True}, {'branch': 'main'}):
+                response = await client.post(path + '/confirm', headers=headers,
+                                             json={'preview_hash': edited['preview_hash'], **extra})
+                assert response.status_code == 422
             assert (await confirm(initial)).status_code == 409
             assert (await confirm(edited, auth=bearer)).status_code == 403
             assert (await confirm(edited, auth={})).status_code == 403
@@ -124,6 +138,7 @@ def test_publish_preview_confirmation_reconcile_and_workspace_freshness(tmp_path
             assert (await confirm(latest)).status_code == 202
             await until(lambda: service.view(task_id)['publication']['status'] == 'unknown', timeout=10)
             assert (await confirm(latest)).status_code == 409
+            changed.write_text('Unconfirmed post-push edits\n')
             assert (await confirm(latest, 'reconcile')).status_code == 202
             await until(lambda: service.view(task_id)['publication']['status'] == 'succeeded', timeout=10)
             assert store.get(task_id)['status'] == 'published'

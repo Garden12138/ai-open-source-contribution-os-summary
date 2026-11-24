@@ -10,6 +10,7 @@ from pathlib import Path
 
 from contribos.agent.engine import AgentError
 from contribos.config import Settings
+from contribos.security import clean_environment
 
 RETRYABLE = (r'rate.?limit', r'\b429\b', r'overload', r'\b503\b', r'temporar', r'timed? ?out', r'connection (?:reset|refused)', r'network', r'ECONNRESET')
 AUTH_ERRORS = (r'authenticat', r'unauthori[sz]ed', r'not logged in', r'login required', r'\b401\b', r'invalid.*(?:key|token)')
@@ -22,6 +23,78 @@ REGION_ERRORS = (
 )
 
 
+CODEX_CREDENTIAL_PROBE = r'''
+import base64, json, os, pathlib, re, stat, sys, tomllib
+home = pathlib.Path.home()
+config_dir = pathlib.Path(os.environ["CODEX_HOME"])
+config = tomllib.loads((config_dir / "config.toml").read_text())
+auth = json.loads((config_dir / "auth.json").read_text())
+assert auth == {"OPENAI_API_KEY": "proxy-managed"}
+assert config["model_providers"]["sandboxd"]["experimental_bearer_token"] == "oai-oat01-proxy-managed"
+# Docker Learn documents this exact, nonfunctional GitHub proxy sentinel.
+github_sentinel = b"gho_" + b"sbxproxymanaged" + b"0" * 21
+placeholders = {b"", b"proxy-managed", b"oai-oat01-proxy-managed", github_sentinel}
+github_vars = {"GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "CONTRIBOS_GITHUB_TOKEN"}
+for key in github_vars:
+    value = os.fsencode(os.getenv(key, ""))
+    assert value in ({b""} if sys.argv[1] == "agent" else placeholders)
+assert not os.getenv("SSH_AUTH_SOCK")
+pattern = re.compile(rb"gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{24,}|"
+                     rb"-----BEGIN (?P<pem>[A-Z ]*PRIVATE KEY)-----\s+(?:Proc-Type:[^\n]*\nDEK-Info:[^\n]*\n\s*)?"
+                     rb"[A-Za-z0-9+/=\r\n]{32,}-----END (?P=pem)-----|"
+                     rb"eyJ[A-Za-z0-9_-]{15,}[.]eyJ[A-Za-z0-9_-]{15,}[.][A-Za-z0-9_-]{15,}")
+
+def check_secrets(data):
+    # The generated VM hostname contains "sk-" in "ctask-" followed by a UUID.
+    data = data.replace(os.fsencode(sys.argv[2]), b" ")
+    for match in pattern.finditer(data):
+        if match[0] == github_sentinel:
+            continue
+        if data[max(0, match.start() - 8):match.start()] == b"__oailb=" and match[0].startswith(b"eyJ"):
+            # The load-balancer cookie has routing and expiry claims, without account identity.
+            payload = match[0].split(b".")[1]
+            claims = json.loads(base64.urlsafe_b64decode(payload + b"=" * (-len(payload) % 4)))
+            if set(claims) == {"host", "iss", "aud", "exp", "iat"}:
+                continue
+        raise ValueError()
+
+for key, value in os.environ.items():
+    data = os.fsencode(value)
+    if key.upper().endswith(("_TOKEN", "_API_KEY", "_PASSWORD", "_SECRET_ACCESS_KEY")):
+        assert data in placeholders
+    check_secrets(data)
+
+xdg = pathlib.Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
+gh = pathlib.Path(os.environ.get("GH_CONFIG_DIR", xdg / "gh"))
+known = {home / p for p in (".config/gh/hosts.yml", ".git-credentials", ".netrc", ".aws/credentials", ".npmrc",
+                            ".pypirc", ".gitconfig", ".ssh/id_ed25519", ".ssh/id_rsa", ".docker/config.json")}
+known.update((xdg / "git/credentials", xdg / "git/config", gh / "hosts.yml"))
+for env in ("AWS_SHARED_CREDENTIALS_FILE", "NETRC", "NPM_CONFIG_USERCONFIG", "GIT_CONFIG_GLOBAL"):
+    if os.getenv(env) and os.getenv(env) != os.devnull:
+        known.add(pathlib.Path(os.environ[env]))
+field = re.compile(rb"(?im)(?:^|[/:\s])(?:oauth_token|_authToken|_auth|password|_password|token|"
+                   rb"aws_secret_access_key|aws_session_token)[ \t]*(?:[=:][ \t]*|[ \t]+)[\"']?([^\"'\s#;]+)")
+for path in known:
+    if not path.exists():
+        continue
+    info = path.stat()
+    assert stat.S_ISREG(info.st_mode) and info.st_size <= 16_000_000
+    data = path.read_bytes()
+    check_secrets(data)
+    for value in field.findall(data):
+        assert value in placeholders or re.fullmatch(rb"\$\{[A-Za-z_][A-Za-z0-9_]*\}", value)
+    for value in re.findall(rb"https?://[^/\s@]*:([^/\s@]+)@", data):
+        assert value in placeholders
+    assert not re.search(rb"(?i)\bauthorization:\s*(?:basic|bearer)\s+\S+", data)
+    if path.name == "config.json" and path.parent.name == ".docker":
+        assert not any(entry.get("auth") or entry.get("identitytoken") for entry in json.loads(data).get("auths", {}).values())
+
+for path in config_dir.rglob("*"):
+    if not path.is_symlink() and path.is_file() and path.stat().st_size <= 16_000_000:
+        check_secrets(path.read_bytes())
+'''
+
+
 @dataclass(frozen=True)
 class SbxProfile:
     workload: str
@@ -29,6 +102,7 @@ class SbxProfile:
     auth_mode: str
     service: str
     domains: tuple[str, ...]
+    credential_probe: str = ''
     environment: dict[str, str] = field(default_factory=dict)
 
 
@@ -45,6 +119,7 @@ class AgentProfile:
     config_isolation: str
     host_args: tuple[str, ...] = ()
     environment: dict[str, str] = field(default_factory=dict)
+    sandbox_unavailable_reason: str = ''
     isolation_warning: str = ''
     auth_check_reliable: bool = True
     version_stderr: bool = False
@@ -99,6 +174,7 @@ PROFILES = {
                                                  'features': {'apps': False, 'plugins': False}})},
         modes=('read-only', 'workspace-write'), sbx_agent='codex',
         sbx=SbxProfile(
+            credential_probe=CODEX_CREDENTIAL_PROBE,
             workload='docker.io/sbx/codex@sha256:b0d764924b6b47965b862c63cb5c3326b9f57d6dbb9e40cfc483577ba461667a',
             kit='docker.io/sbx/codex-acp@sha256:97209faa5012af3f3012d8d66768e249883c90409ba2a5a9af4aa39299ca2b85',
             auth_mode='oauth · openai',
@@ -119,9 +195,11 @@ PROFILES = {
                      'XDG_CONFIG_HOME': '{config_dir}/.config', 'CURSOR_CONFIG_DIR': '{config_dir}',
                      'AGENT_CLI_CREDENTIAL_STORE': 'file'},
         host_args=('--sandbox', 'enabled'), sbx_agent='cursor',
+        sandbox_unavailable_reason='官方 kit 尚待在 VM 内登录并验证取消与恢复。',
         isolation_warning='MCP/plugin isolation still needs live verification.'),
     'antigravity': AgentProfile(
-        id='antigravity', name='Antigravity', command=('agy', 'acp'), detect=('agy', 'acp', '--help'), version=('agy', '--version'),
+        id='antigravity', name='Antigravity', sandbox_unavailable_reason='自建 kit 的 ACP 会话需要在 VM 内登录，推理和恢复待验收。当前仅支持本机直跑。',
+        command=('agy', 'acp'), detect=('agy', 'acp', '--help'), version=('agy', '--version'),
         auth_check=('agy', 'models'), auth_check_reliable=False,
         version_stderr=True,
         login_command=('agy', 'acp', '--app-data-dir', 'contribos-antigravity', '--gemini-dir', '{config_dir}/gemini', '--login'),
@@ -154,7 +232,8 @@ def check_profile(profile: AgentProfile, settings: Settings) -> AgentStatus:
     if not executable:
         return AgentStatus(profile.id, 'missing', None, '', 'unknown', login_hint, profile.install_hint, profile.isolation_warning)
     # Checks never inherit token-bearing variables, and their diagnostics are discarded.
-    env = {k: os.environ[k] for k in ('PATH', 'HOME', 'TMPDIR', 'SYSTEMROOT') if k in os.environ}
+    env = clean_environment({k: os.environ[k] for k in ('PATH', 'TMPDIR', 'SYSTEMROOT') if k in os.environ},
+                            settings.home / 'runtime' / 'profile-checks' / profile.id)
     env = settings.tool_environment({**env, **profile.env(settings)})
     version = ''
     login = 'unknown'

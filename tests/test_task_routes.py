@@ -163,7 +163,10 @@ def test_trusted_owner_and_opportunity_can_create_host_task(tmp_path):
             db.execute("INSERT INTO repositories VALUES ('owner/repo', '{}', '2026')")
             db.execute("""INSERT INTO opportunities(id,repo_full_name,issue_number,title,url,state,first_seen_at,last_seen_at)
                 VALUES ('opp','owner/repo',1,'Issue',?,'open','2026','2026')""", (ISSUE,))
-            response = await client.post('/api/tasks', json={'opportunity_id': 'opp', 'isolation': 'host'})
+            new = {'opportunity_id': 'opp', 'isolation': 'host'}
+            assert (await client.post('/api/tasks', json=new)).status_code == 403
+            assert (await client.get('/api/tasks')).json()['tasks'] == []
+            response = await client.post('/api/tasks', json={**new, 'trust_confirmed': True})
             assert response.status_code == 201
             tid = response.json()['task_id']
             await until(lambda: app.state.supervisor.store.get(tid)['agent_state'] == 'idle')

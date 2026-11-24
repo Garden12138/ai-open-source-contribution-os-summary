@@ -366,13 +366,24 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   M6 规模：非测试 Python 6,867 行，前端 2,182 行，外壳 Rust 600 行。`compileall`、`git diff --check` 通过。
 
 ### M7 安全加固 + 真实验收
-- [ ] M7-1 威胁表（03 第 7 节）逐项测试补齐
-- [ ] M7-2 沙箱出网策略设置 + 探针 + doctor 检查
-- [ ] M7-3 本机直跑护栏（可信列表、风险确认、隔离标识）
-- [ ] M7-4 资源与磁盘监控
+- [x] M7-1 威胁表（03 第 7 节）逐项测试补齐
+  验证：`pytest -q` 286 passed、6 skipped，前端 14 passed，桌面 4 passed。T1–T3 覆盖任务信任、凭据和网络策略；T4–T7 覆盖聊天不能发布、bare Git、脱敏和 MCP；T8–T11 覆盖资源暂停、回环身份、预览与推送边界；T12 覆盖无 IPC、HTTP CSP、Markdown 与外链分流。
+- [x] M7-2 沙箱出网策略设置 + 探针 + doctor 检查
+  验证：`pytest -q` 304 passed、6 skipped，前端 14 passed；实机探针文件 14 passed，含回环与 LAN 金丝雀、PyPI/npm、原始 VM 与 Agent 环境及凭据文件检查。`contribos doctor --probe-sandbox` 用临时 VM 实测，设置页显示最近结果与采样时间。
+  策略按 sbx 的连接主机名执行；共享 IP 上的域名隔离受 [Docker 本地网络规则限制](https://docs.docker.com/ai/governance/local/network-rules/#hostname-blocking-limitations)。
+- [x] M7-3 本机直跑护栏（可信列表、风险确认、隔离标识）
+  验证：`pytest -q` 304 passed、6 skipped，前端 14 passed。覆盖可信 owner 的逐任务风险确认、CLI 默认沙箱、本机子进程的凭据清理和固定的任务隔离标识。
+- [x] M7-4 资源与磁盘监控
+  验证：`pytest -q` 304 passed、6 skipped，前端 14 passed。真实无挂载 VM 分配 1 核与 1 GiB；写入 4 MiB 后将磁盘阈值降为 1 MiB，告警并停机，调高后原 VM 恢复且文件完整。回归覆盖准备中断、重启、队列和 CLI 持锁。
 - [ ] M7-5 【需用户】3 个真实 Issue 产品级验收，写 `acceptance-mvp.md`
+  待用户指定 3 个开放 Issue（含 Python、TypeScript），从 Finder 启动桌面应用逐项中断并继续、审查、确认发布 Draft PR；合计覆盖两家 Agent、一次沙箱任务及一次关窗通知回跳。收到真实结果后填写验收记录。
 - [ ] M7-6 【需用户】Cursor 沙箱验收：官方无挂载 kit 内登录、推理、取消、恢复，凭据位置写入 `agent-matrix.md`（不阻塞 MVP）
-- [ ] M7-7 Antigravity 沙箱：自建 kit 验收，或确认仅支持本机直跑并在界面中置灰沙箱选项（不阻塞 MVP）
+  待用户在官方无挂载 Cursor VM 内完成交互登录，再验证 ACP 推理、取消、原会话恢复和登录后的凭据位置。
+- [x] M7-7 Antigravity 沙箱：自建 kit 验收，或确认仅支持本机直跑并在界面中置灰沙箱选项（不阻塞 MVP）
+  验证：`pytest -q` 304 passed、6 skipped，前端 14 passed。真实构建 Antigravity v3 kit 并在无挂载 VM 内运行 ACP。会话返回 authentication_required，产品采用本机直跑；API 拒绝沙箱任务，界面置灰并解释原因。
+
+  M7 本机桌面包已重建，签名校验通过。包内 sidecar 的 `doctor --probe-sandbox` 五项通过，回环会话、CSP、设置及最近探针结果读取通过。
+  M7 当前规模：非测试 Python 7,494 行，前端 2,193 行，外壳 Rust 591 行。
 
 ### M8 v1 功能
 - [ ] M8-1 PR Tracker

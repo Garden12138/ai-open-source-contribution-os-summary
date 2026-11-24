@@ -19,7 +19,11 @@ def test_commands_config_isolation_and_safe_checks(name, tmp_path, monkeypatch):
     monkeypatch.setattr(shutil, 'which', lambda command: '/tools/' + command)
     calls = []
     def execute(argv, **kwargs):
-        assert 'GITHUB_TOKEN' not in kwargs['env']
+        env = kwargs['env']
+        assert 'GITHUB_TOKEN' not in env and 'SSH_AUTH_SOCK' not in env
+        assert all(str(tmp_path) in env[key] for key in ('HOME', 'GH_CONFIG_DIR', 'GIT_CONFIG_GLOBAL'))
+        assert env['GIT_TERMINAL_PROMPT'] == '0' and env['GIT_CONFIG_NOSYSTEM'] == '1'
+        assert env['GIT_CONFIG_KEY_0'] == 'credential.helper' and env['GIT_CONFIG_VALUE_0'] == ''
         assert kwargs['stderr'] in {subprocess.DEVNULL, subprocess.PIPE}
         calls.append((argv, kwargs))
         output = json.dumps({'isAuthenticated': True}) if 'status' in argv and '--format' in argv else '1.2.3'

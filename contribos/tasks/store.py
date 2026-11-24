@@ -87,7 +87,8 @@ class TaskStore:
 
     def recoverable(self) -> list[sqlite3.Row]:
         return self.db.execute('''SELECT * FROM tasks WHERE delete_requested=1 OR (runtime_managed=1 AND
-            (status='preparing' OR agent_state IN ('running','waiting_retry','queued')))''').fetchall()
+            (status='preparing' OR agent_state IN ('running','waiting_retry','queued')
+             OR (isolation='sbx' AND sandbox_ref IS NOT NULL AND status IN ('ready','published','setup_failed'))))''').fetchall()
 
     def ready(self, task_id: str, issue: Message, default_branch: str, base_sha: str, work_branch: str,
               sandbox_ref: str | None = None) -> None:
@@ -104,6 +105,16 @@ class TaskStore:
     def setup_failed(self, task_id: str, code: str, message: str) -> None:
         self.db.execute('''UPDATE tasks SET status='setup_failed',last_error_code=?,last_error_message=?,
             updated_at=? WHERE id=? AND status='preparing' ''', (code, self.clean(message), utc_now(), task_id))
+
+    def pause_preparation(self, task_id: str, ref: str, code: str, message: str) -> None:
+        self.db.execute("""UPDATE tasks SET status='setup_failed',agent_state='error',sandbox_ref=?,
+            last_error_code=?,last_error_message=?,updated_at=? WHERE id=? AND status='preparing'""",
+            (ref, code, self.clean(message), utc_now(), task_id))
+
+    def retry_preparation(self, task_id: str, code: str) -> bool:
+        return bool(self.db.execute("""UPDATE tasks SET status='preparing',agent_state='idle',last_error_code=NULL,
+            last_error_message=NULL,updated_at=? WHERE id=? AND status='setup_failed' AND last_error_code=?
+            AND delete_requested=0""", (utc_now(), task_id, code)).rowcount)
 
     def update_issue(self, task_id: str, issue: Message) -> None:
         self.db.execute('''UPDATE tasks SET issue_snapshot_json=?,title=?,updated_at=?

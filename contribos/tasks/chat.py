@@ -27,7 +27,9 @@ from contribos.db import connect, migrate
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox, safe_text
 from contribos.sandbox.sbx import SbxSandbox
+from contribos.sandbox.resources import DISK_ERRORS, resource_limits
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
+from contribos.tasks.store import TaskStore
 from contribos.tasks.issue import IssueError, IssueRef, fetch_issue, parse_issue_url
 
 
@@ -141,10 +143,28 @@ class ChatSession:
         elif isolation == 'host':
             self.sandbox = HostSandbox(self.settings)
         elif isolation == 'sbx' and self.profile.sbx:
+            store = TaskStore(self.connection)
             self.sandbox = SbxSandbox(self.settings, self.profile)
+            self.sandbox.read_extra_domains = lambda: store.setting('sandbox_extra_domains', [])
+            self.sandbox.resource_limits = lambda: resource_limits(store.setting('resource_limits', {}))
+            self.sandbox.on_resource_pause = self._resource_pause
         else:
             raise SandboxError('sandbox_agent_unavailable')
         return self.sandbox
+
+    def _resource_pause(self, code: str) -> None:
+        message = DISK_ERRORS.get(code, 'Check the sandbox resource settings, then continue.')
+        store = TaskStore(self.connection)
+        if store.get(self.task.task_id)['status'] == 'preparing':
+            self.task.sandbox_ref = self.sandbox.vm_id
+            store.pause_preparation(self.task.task_id, self.sandbox.vm_id, code, message)
+        elif self.turn_id:
+            store.finish(self.task.task_id, self.turn_id, 'interrupted', reason='cancelled', error=(code, message))
+        else:
+            store.recovery_failed(self.task.task_id, code, message)
+        self.messages.clear()
+        self._event(EngineEvent('system.runtime_failed', {'error_code': code, 'message': message}))
+        self.inbox.put_nowait(('resource_pause', code))
 
     async def create(self, ref: IssueRef, snapshot: dict[str, Any], isolation: str) -> None:
         sandbox = self.select_sandbox(isolation)
@@ -160,7 +180,13 @@ class ChatSession:
              safe_text(json.dumps(snapshot)), now, now))
         label = 'host (trusted repository)' if sandbox.kind == 'host' else sandbox.kind
         self.console.write(f'Task: {task_id}\nIsolation: {label}\nPreparing independent workspace...\n')
+        await self._prepare(sandbox)
+
+    async def _prepare(self, sandbox: Sandbox) -> None:
+        task_id = self.task.task_id
         try:
+            if isinstance(sandbox, SbxSandbox) and self.task.sandbox_ref:
+                await sandbox.discard_preparation(self.task)
             workspace = await sandbox.prepare(self.task)
             self.task.repo_dir, self.task.context_dir = workspace.repo_dir, workspace.context_dir
             self.task.default_branch, self.task.base_sha, self.task.work_branch = (
@@ -168,6 +194,8 @@ class ChatSession:
             self.task.sandbox_ref = workspace.reference
             self.task.instructions = task_instructions(self.task)
             await sandbox.write_task_context(self.task)
+            if isinstance(sandbox, SbxSandbox) and sandbox.disk_error:
+                raise SandboxError(sandbox.disk_error)
             if isinstance(sandbox, HostSandbox):
                 sandbox.claim_runtime()
             self.connection.execute('''UPDATE tasks SET status='ready',default_branch=?,base_sha=?,work_branch=?,
@@ -179,7 +207,9 @@ class ChatSession:
 
     async def resume(self, task_id: str, isolation: str | None = None) -> None:
         row = self.connection.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
-        if not row or row['status'] not in {'ready', 'published'} or row['delete_requested']:
+        paused_setup = bool(row and not row['runtime_managed'] and row['status'] == 'setup_failed'
+                            and row['last_error_code'] in DISK_ERRORS)
+        if not row or (row['status'] not in {'ready', 'published'} and not paused_setup) or row['delete_requested']:
             raise SandboxError('task_not_resumable')
         if row['agent_profile'] != self.profile.id:
             raise SandboxError('agent_profile_mismatch')
@@ -192,7 +222,12 @@ class ChatSession:
             issue=snapshot, sandbox_ref=row['sandbox_ref'],
             linked_prs=snapshot.get('linked_prs', []), default_branch=row['default_branch'],
             base_sha=row['base_sha'], work_branch=row['work_branch'], recap_pending=bool(row['recap_pending']))
-        await sandbox.restore(self.task)
+        if paused_setup:
+            if not TaskStore(self.connection).retry_preparation(task_id, row['last_error_code']):
+                raise SandboxError('task_not_resumable')
+            await self._prepare(sandbox)
+        else:
+            await sandbox.restore(self.task)
         self.task.instructions = task_instructions(self.task)
         self.connection.execute("UPDATE turns SET status='interrupted',completed_at=? WHERE task_id=? AND status='running'", (utc_now(), task_id))
         self.connection.execute("UPDATE tasks SET runtime_managed=0,agent_state='idle',updated_at=? WHERE id=? AND agent_state=?",
@@ -219,6 +254,8 @@ class ChatSession:
         if self.turn is not None:
             self.messages.append(message)
             return
+        if isinstance(self.sandbox, SbxSandbox) and self.sandbox.network_policy_changed():
+            await self.sandbox.restore(self.task)
         if not first:
             rows = self.connection.execute("SELECT type,payload_json FROM task_events WHERE task_id=? AND type IN ('message.user','message.agent') ORDER BY seq DESC LIMIT 12", (self.task.task_id,)).fetchall()
             recap = '\n'.join(r['type'] + ': ' + json.loads(r['payload_json']).get('text', '') for r in reversed(rows))
@@ -342,6 +379,8 @@ class ChatSession:
                 kind, value = await self.inbox.get()
                 if kind == 'event':
                     await self._display_event(value)
+                elif kind == 'resource_pause':
+                    raise SandboxError(value)
                 elif kind == 'interrupt':
                     self.messages.clear()
                     await self._interrupt()
@@ -383,7 +422,7 @@ async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, tru
     console = console or Terminal()
     session: ChatSession | None = None
     try:
-        level = isolation or (sandbox.kind if sandbox else 'host')
+        level = isolation or (sandbox.kind if sandbox else ('host' if trust_repo else 'sbx'))
         if trust_repo and level != 'host':
             raise SandboxError('host_trust_requires_host')
         if not resume_task:
@@ -405,6 +444,8 @@ async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, tru
     except (IssueError, SandboxError, AgentError) as exc:
         code = exc.code if isinstance(exc, AgentError) else str(exc)
         message = {
+            **DISK_ERRORS,
+            'sandbox_resource_config_invalid': 'Check sandbox resource limits. Memory must be at least 512 MiB.',
             'sbx_unavailable': 'Install Docker Sandboxes and ensure sbx is on PATH.',
             'sbx_deny_all_required': 'Docker Sandboxes needs an initialized deny-all policy.',
             'sbx_network_policy_unsafe': 'Docker Sandboxes has egress rules outside the task allowlist. Check sbx policy ls.',

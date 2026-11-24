@@ -5,9 +5,11 @@ import asyncio
 import os
 import platform
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
+from contextlib import closing
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
@@ -27,8 +29,6 @@ def serve(settings: Settings, *, demo: bool = False, desktop: bool = False) -> i
     mode = None
     smoke = False
     if desktop:
-        if validate_bind_host(settings.host) != '127.0.0.1':
-            raise ValueError('Desktop mode requires the IPv4 loopback address.')
         mode = DesktopMode.from_environment()
         smoke = os.environ.pop('CONTRIBOS_DESKTOP_SMOKE', '0') == '1'
         os.environ['PATH'], resolved = login_path()
@@ -121,15 +121,50 @@ def doctor_checks(settings: Settings | None = None) -> list[CheckResult]:
     return results
 
 
+def _sandbox_checks(settings: Settings, *, run: bool = False) -> list[CheckResult]:
+    from contribos.agent.profiles import PROFILES
+    from contribos.db import connect, migrate
+    from contribos.sandbox.base import SandboxError
+    from contribos.sandbox.probes import CHECKS, probe_empty_vm
+    from contribos.sandbox.resources import resource_limits
+    from contribos.sandbox.sbx import SbxSandbox
+    from contribos.tasks.store import TaskStore, utc_now
+
+    snapshot = {}
+    if run:
+        try:
+            with closing(connect(settings.database_path)) as db:
+                migrate(db)
+                store = TaskStore(db)
+                settings.tool_paths.update(store.setting('tool_paths', {}))
+                vm = SbxSandbox(settings, PROFILES['codex'], extra_domains=store.setting('sandbox_extra_domains', []))
+                vm.resource_limits = lambda: resource_limits(store.setting('resource_limits', {}))
+                checks = asyncio.run(probe_empty_vm(vm))
+                snapshot = {'time': utc_now(), 'checks': checks}
+                store.set_setting('last_sandbox_probe', snapshot)
+        except (ValueError, OSError, SandboxError, sqlite3.Error):
+            return [CheckResult('sandbox_probe', 'error', 'Could not complete or save the sandbox check.')]
+    elif settings.database_path.is_file():
+        try:
+            with closing(sqlite3.connect(settings.database_path.as_uri() + '?mode=ro', uri=True)) as db:
+                snapshot = TaskStore(db).setting('last_sandbox_probe', {})
+        except (ValueError, sqlite3.Error):
+            return [CheckResult('sandbox_probe', 'error', 'Could not read the last sandbox check.')]
+    if not snapshot:
+        return [CheckResult('sandbox_probe', 'not_run', 'Run contribos doctor --probe-sandbox to check a fresh VM.')]
+    return [CheckResult(name, snapshot['checks'][name], detail + ' · ' + snapshot['time'])
+            for name, detail in CHECKS.items()]
+
+
 def doctor_report(settings: Settings | None = None) -> list[dict[str, str]]:
-    return [asdict(result) for result in doctor_checks(settings)]
+    return [asdict(result) for result in doctor_checks(settings) + _sandbox_checks(settings or Settings())]
 
 
-def doctor() -> int:
-    results = doctor_checks()
+def doctor(*, probe_sandbox: bool = False) -> int:
+    results = doctor_checks() + _sandbox_checks(Settings(), run=probe_sandbox)
     for result in results:
         print(f"{result.name}: [{result.status}] {result.detail}")
-    return 0 if all(result.status == "ok" for result in results) else 1
+    return int(any(result.status != "ok" and (result.status != "not_run" or probe_sandbox) for result in results))
 
 
 def agents() -> int:
@@ -151,7 +186,8 @@ def main(argv: list[str] | None = None) -> int:
     server.add_argument("--port", default=8765, type=int)
     server.add_argument("--demo", action="store_true", help="Run an offline demonstration with temporary data")
     server.add_argument("--desktop", action="store_true", help="Run as the desktop shell's backend")
-    commands.add_parser("doctor", help="Check Python, git and GitHub login")
+    diagnostics = commands.add_parser("doctor", help="Check prerequisites and show the last sandbox probe")
+    diagnostics.add_argument("--probe-sandbox", action="store_true", help="Test isolation in a disposable task VM")
     commands.add_parser("agents", help="Check Agent installation, isolated login and configuration")
     chat = commands.add_parser("chat", help="Chat with an ACP Agent in an independent workspace")
     chat.add_argument("issue_url", nargs="?")
@@ -172,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "agents":
         return agents()
     if args.command == "doctor":
-        return doctor()
+        return doctor(probe_sandbox=args.probe_sandbox)
     if args.command == "serve":
         try:
             return serve(Settings(host=args.host, port=args.port), demo=args.demo, desktop=args.desktop)

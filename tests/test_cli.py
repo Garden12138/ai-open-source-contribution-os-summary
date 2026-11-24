@@ -7,6 +7,11 @@ from contribos.cli import main
 from contribos.config import Settings
 
 
+@pytest.fixture(autouse=True)
+def isolated_cli_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("CONTRIBOS_HOME", str(tmp_path))
+
+
 def test_cli_help(capsys):
     with pytest.raises(SystemExit) as result:
         main(["--help"])
@@ -28,8 +33,8 @@ def test_local_data_directory(tmp_path, monkeypatch):
     assert (settings.host, settings.port) == ("127.0.0.1", 8765)
 
 
-@pytest.mark.parametrize('host', ['0.0.0.0', '::', '192.168.1.1', 'example.com', '127.0.0.1.evil.example'])
-def test_non_loopback_start_rejected(host, tmp_path, monkeypatch):
+@pytest.mark.parametrize('host', ['0.0.0.0', '::', '::1', '127.0.0.2', '192.168.1.1', 'example.com', '127.0.0.1.evil.example'])
+def test_start_rejects_any_other_bind_address(host, tmp_path, monkeypatch):
     monkeypatch.setenv('CONTRIBOS_HOME', str(tmp_path / 'unused'))
     with pytest.raises(SystemExit) as result:
         main(['serve', '--host', host])

@@ -172,9 +172,27 @@ def test_trust_rejection_happens_before_snapshot_or_database(tmp_path):
         raise AssertionError('Must not read GitHub')
     settings = Settings(home=tmp_path / 'unused')
     result = asyncio.run(run_chat(settings, 'codex', 'https://github.com/owner/repo/issues/1',
-        console=ScriptConsole(['no']), loader=forbidden))
+        isolation='host', console=ScriptConsole(['no']), loader=forbidden))
     assert result == 2
     assert not settings.home.exists()
+
+
+def test_cli_without_explicit_host_choice_defaults_to_sandbox(tmp_path, monkeypatch):
+    from contribos.tasks.chat import ChatSession
+    from contribos.tasks.issue import IssueError
+
+    selected = []
+    original = ChatSession.select_sandbox
+    def select(session, level):
+        selected.append(level)
+        return original(session, level)
+    async def loader(ref):
+        raise IssueError('issue_unavailable')
+
+    monkeypatch.setattr(ChatSession, 'select_sandbox', select)
+    code = asyncio.run(run_chat(Settings(home=tmp_path), 'codex', 'https://github.com/owner/repo/issues/1',
+                                console=ScriptConsole(), loader=loader))
+    assert code == 1 and selected == ['sbx']
 
 
 def test_sbx_chat_uses_saved_isolation_on_resume(tmp_path):
@@ -187,7 +205,7 @@ def test_sbx_chat_uses_saved_isolation_on_resume(tmp_path):
                     engine_factory=lambda *_: FakeEngine())
 
     async def check():
-        assert await run_chat(sandbox.settings, 'codex', issue, isolation='sbx', loader=loader, **session_args()) == 0
+        assert await run_chat(sandbox.settings, 'codex', issue, loader=loader, **session_args()) == 0
         db = connect(sandbox.settings.database_path)
         try:
             row = db.execute('SELECT id,isolation,sandbox_ref,session_id FROM tasks').fetchone()

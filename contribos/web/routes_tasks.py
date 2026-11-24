@@ -58,6 +58,7 @@ def _agent_info(request: Request, status: AgentStatus) -> dict[str, Any]:
     configured = request.app.state.supervisor.sandboxes
     return request.app.state.supervisor.store.sanitize({
         **asdict(status), 'name': profile.name, 'installed': status.executable is not None,
+        'sandbox_unavailable_reason': profile.sandbox_unavailable_reason if 'sbx' not in supports else '',
         'isolation': supports, 'available_isolation': [kind for kind in supports if kind in configured],
     })
 
@@ -151,6 +152,8 @@ async def interrupt(request: Request, task_id: str) -> dict[str, bool]:
 @router.post('/tasks/{task_id}/continue', status_code=202)
 async def continue_task(request: Request, task_id: str) -> dict[str, str]:
     turn = _supervisor(request).continue_task(task_id)
+    if turn is None:
+        return {'status': 'preparing'}
     return {'turn_id': turn['id'], 'status': 'queued'}
 
 

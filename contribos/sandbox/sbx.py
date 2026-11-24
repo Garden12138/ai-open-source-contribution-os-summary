@@ -6,6 +6,7 @@ import json
 import os
 import re
 import tempfile
+from collections.abc import Callable, Sequence
 from contextlib import suppress
 from pathlib import Path, PurePosixPath
 from typing import Any, BinaryIO
@@ -15,6 +16,7 @@ from contribos.agent.profiles import AgentProfile
 from contribos.config import Settings
 from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace, context_files, workspace_diff
 from contribos.sandbox.host import GIT_OPTIONS, clean_environment, safe_text
+from contribos.sandbox.resources import ResourceLimits, writable_bytes
 
 ROOT = PurePosixPath('/home/agent/workspace')
 REPO, CONTEXT = str(ROOT / 'repo'), str(ROOT / 'context')
@@ -56,16 +58,52 @@ with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb")
 '''
 
 
+def normalize_egress_domains(domains: Sequence[str]) -> list[str]:
+    """Return exact public DNS names suitable for a TCP/443 sandbox rule."""
+    if not isinstance(domains, (tuple, list)) or len(domains) > 100:
+        raise ValueError('Provide up to 100 additional domains.')
+    result = []
+    for value in domains:
+        domain = value.strip().lower() if isinstance(value, str) and value.isascii() else ''
+        labels = domain.split('.')
+        if (len(domain) > 253 or len(labels) < 2
+                or not re.fullmatch(r'[a-z]{2,63}|xn--[a-z0-9-]+', labels[-1])
+                or not all(re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', label) for label in labels)
+                or labels[-1] in {'localhost', 'local', 'localdomain', 'internal', 'lan', 'home', 'arpa'}):
+            raise ValueError('Provide an exact public DNS hostname without a scheme, wildcard, port or path.')
+        if domain not in result:
+            result.append(domain)
+    return result
+
+
 class SbxSandbox:
     kind = 'sbx'
+    disk_check_interval = 15
 
-    def __init__(self, settings: Settings, profile: AgentProfile) -> None:
+    def __init__(self, settings: Settings, profile: AgentProfile, *, extra_domains: Sequence[str] = ()) -> None:
         self.settings = settings
         self.profile = profile
+        self.extra_domains = tuple(normalize_egress_domains(extra_domains))
+        self.read_extra_domains: Callable[[], Sequence[str]] = lambda: extra_domains
         self.name = ''
         self.vm_id = ''
         self.lock: BinaryIO | None = None
         self.agent: AgentProcess | None = None
+        self.resource_limits: Callable[[], ResourceLimits] = ResourceLimits
+        self.on_resource_pause: Callable[[str], None] = lambda _: None
+        self.disk_error: str | None = None
+        self._monitor: asyncio.Task[None] | None = None
+        self._measure_lock = asyncio.Lock()
+        self._stop_lock = asyncio.Lock()
+
+    def _configured_domains(self) -> tuple[str, ...]:
+        try:
+            return tuple(normalize_egress_domains(self.read_extra_domains()))
+        except ValueError:
+            raise SandboxError('invalid_egress_domains') from None
+
+    def network_policy_changed(self) -> bool:
+        return set(self._configured_domains()) != set(self.extra_domains)
 
     def _attach(self, task: TaskContext) -> None:
         if task.isolation != self.kind or not self.profile.sbx:
@@ -96,7 +134,8 @@ class SbxSandbox:
             self.lock.close()
             self.lock = None
 
-    async def _spawn(self, *args: str, interactive: bool = False, stderr: int = asyncio.subprocess.PIPE) -> AgentProcess:
+    async def _spawn(self, *args: str, interactive: bool = False, stdout: int = asyncio.subprocess.PIPE,
+                     stderr: int = asyncio.subprocess.PIPE) -> AgentProcess:
         executable = self.settings.tool('sbx')
         if not executable:
             raise SandboxError('sbx_unavailable')
@@ -106,7 +145,7 @@ class SbxSandbox:
         try:
             return await asyncio.create_subprocess_exec(executable, '--no-input', *args, env=environment,
                 stdin=asyncio.subprocess.PIPE if interactive else asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE, stderr=stderr, start_new_session=True, limit=50 * 1024 * 1024)
+                stdout=stdout, stderr=stderr, start_new_session=True, limit=50 * 1024 * 1024)
         except OSError:
             raise SandboxError('sbx_unavailable') from None
 
@@ -148,31 +187,99 @@ class SbxSandbox:
         assert profile is not None
         for scope in (('--global',), ('--sandbox', self.name)):
             secrets = await self._json('secret', 'ls', *scope, '--json', error='sbx_credentials_unavailable')
-            if secrets.get('custom_secrets') or any(
-                s.get('type') != 'service' or s.get('name') != profile.service or s.get('secret') != '(oauth configured)'
-                for s in (secrets.get('secrets') or [])
-            ):
+            if (not isinstance(secrets.get('secrets'), list) or secrets.get('custom_secrets') != []
+                    or secrets.get('env_only_count', 0) or secrets.get('shadowed_services')
+                    or any(not isinstance(s, dict) or s.get('type') != 'service' or s.get('name') != profile.service
+                           or s.get('secret') != '(oauth configured)' for s in secrets['secrets'])):
                 raise SandboxError('sbx_credential_policy_unsafe')
         socket_path = await self._checked('settings', 'get', 'ssh.agentSocketPath', error='sbx_credentials_unavailable')
         if socket_path.strip():
             raise SandboxError('sbx_credential_policy_unsafe')
 
-    async def _check_policy(self, *, scoped: bool) -> None:
+    async def _check_extra_routes(self) -> None:
+        if not self.extra_domains:
+            return
+
+        async def setting(name: str) -> str:
+            raw = await self._checked('settings', 'get', name, error='sbx_network_policy_unavailable')
+            return raw.decode(errors='replace').strip()
+
+        # An upstream proxy that resolves a custom domain bypasses sbx's destination CIDR check.
+        if (await setting('proxy.sandbox') or await setting('proxy')) == 'direct':
+            return
+        bypass = await setting('no_proxy.sandbox') or await setting('no_proxy')
+        hosts = {host.strip().lower() for host in bypass.split(',')}
+        suffixes = tuple(host[1:] for host in hosts if host.startswith('*.'))
+        if '*' not in hosts and any(domain not in hosts and not domain.endswith(suffixes)
+                                    for domain in self.extra_domains):
+            raise SandboxError('sbx_custom_domains_require_direct_route')
+
+    async def _check_policy(self, *, scoped: bool, reconcile: bool = False) -> None:
         profile = self.profile.sbx
         assert profile is not None
         scope = (self.name,) if scoped else ()
         policy = await self._json('policy', 'ls', *scope, '--json', error='sbx_network_policy_unavailable')
-        approved = set(PACKAGE_DOMAINS + profile.domains)
-        active = [rule for rule in policy.get('rules', []) if rule.get('status') == 'active'
-                  and (not rule.get('scope', '').startswith('sandbox:')
-                       or scoped and rule['scope'] == f'sandbox:{self.name}')]
-        if not any(r.get('id') == 'default-deny-all' for r in active):
+        rules = policy.get('rules')
+        if not isinstance(rules, list) or not all(isinstance(r, dict) and isinstance(r.get('scope'), str)
+                and r.get('status') in ('active', 'inactive') and isinstance(r.get('resource_type'), str)
+                and all(isinstance(r.get(key), list) and all(isinstance(value, str) for value in r[key])
+                        for key in ('actions', 'resources')) for r in rules):
+            raise SandboxError('sbx_network_policy_unavailable')
+        approved = set(PACKAGE_DOMAINS + profile.domains) | {f'{domain}:443' for domain in self.extra_domains}
+        # A scoped query already returns the effective policy for this VM, including its kit and organization.
+        active = [rule for rule in rules if rule['status'] == 'active'
+                  and (scoped or not rule['scope'].startswith('sandbox:'))]
+        transports = {'net:connect:tcp', 'net:connect:udp'}
+        if not any(r.get('id') == 'default-deny-all' and r.get('decision') == 'deny'
+                   and r.get('scope') == 'global' and r.get('resource_type') == 'network'
+                   and r.get('editable') is False and r.get('resources') == ['**']
+                   and set(r.get('actions', [])) == transports for r in active):
             raise SandboxError('sbx_deny_all_required')
+        allowed, denied = set(), set()
+        obsolete = []
         for rule in active:
-            kind = rule.get('resource_type', '')
-            if kind.startswith(('network', 'http')) and rule.get('decision') == 'allow':
-                if not set(rule.get('resources', [])) <= approved or 'net:connect:udp' in rule.get('actions', []):
+            kind = rule['resource_type']
+            if kind in {'filesystem:read', 'filesystem:write'} and all(a.startswith('fs:') for a in rule['actions']):
+                continue
+            resources = set(rule['resources'])
+            actions = set(rule['actions'])
+            if rule.get('decision') == 'deny':
+                if kind == 'network' and transports <= actions:
+                    denied.update(resources)
+                continue
+            if (rule.get('decision') != 'allow' or not resources
+                    or kind != 'network' or actions != {'net:connect:tcp'}):
+                raise SandboxError('sbx_network_policy_unsafe')
+            if resources - approved:
+                # Remove retired hostname entries only from this task's editable rules.
+                if not (reconcile and rule.get('editable') is True and rule.get('id')
+                        and rule.get('scope') == f'sandbox:{self.name}' and len(resources) == 1):
                     raise SandboxError('sbx_network_policy_unsafe')
+                host, _, port = next(iter(resources)).rpartition(':')
+                try:
+                    normalize_egress_domains([host])
+                except ValueError:
+                    raise SandboxError('sbx_network_policy_unsafe') from None
+                if port != '443':
+                    raise SandboxError('sbx_network_policy_unsafe')
+                obsolete.append(rule['id'])
+            else:
+                allowed.update(resources)
+        if not scoped:
+            return
+        if set(PRIVATE_NETWORKS) - denied:
+            raise SandboxError('sbx_private_network_policy_missing')
+        missing = approved - allowed
+        if reconcile and (obsolete or missing):
+            for rule_id in obsolete:
+                await self._checked('policy', 'rm', 'network', '--sandbox', self.name, '--id', rule_id, '--force',
+                                    error='sbx_network_policy_unavailable')
+            if missing:
+                await self._checked('policy', 'allow', 'network', '--sandbox', self.name, ','.join(sorted(missing)),
+                                    error='sbx_network_policy_unavailable')
+            await self._check_policy(scoped=True)
+        elif missing:
+            raise SandboxError('sbx_network_policy_incomplete')
 
     async def _inspect(self) -> dict[str, Any]:
         return await self._json('inspect', self.name, '--json', error='sbx_workspace_missing')
@@ -190,27 +297,52 @@ class SbxSandbox:
             raise SandboxError('sbx_workspace_unsafe')
         if info.get('auth_mode') != profile.auth_mode:
             raise SandboxError('sbx_oauth_required')
-        await self._check_policy(scoped=True)
 
-    async def prepare(self, task: TaskContext) -> Workspace:
-        if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', task.repo_full_name) or any(
-                part in {'.', '..'} for part in task.repo_full_name.split('/')):
-            raise SandboxError('invalid_repository')
+    async def create_empty(self, task: TaskContext) -> None:
+        self.extra_domains = self._configured_domains()
         self._attach(task)
         profile = self.profile.sbx
         assert profile is not None
         try:
             await self._check_secrets()
+            await self._check_extra_routes()
             await self._check_policy(scoped=False)
-            await self._checked('create', '--name', self.name, '--skills', 'off', '--static-mcp', 'none',
+            limits = self.resource_limits()
+            await self._checked('create', '--cpus', str(limits.cpus), '--memory', f'{limits.memory_mib}m',
+                '--name', self.name, '--skills', 'off', '--static-mcp', 'none',
                 '--deny-network', ','.join(PRIVATE_NETWORKS), '--no-progress', '--kit', profile.kit,
                 profile.workload, error='sbx_create_failed', timeout=600)
             self.vm_id = (await self._inspect()).get('id') or ''
             if not self.vm_id:
                 raise SandboxError('sbx_workspace_unsafe')
-            await self._checked('policy', 'allow', 'network', '--sandbox', self.name, ','.join(PACKAGE_DOMAINS),
-                error='sbx_network_policy_unavailable')
             await self._verify_workspace()
+            await self._check_policy(scoped=True, reconcile=True)
+        except BaseException:
+            await self._discard_created()
+            raise
+
+    async def _discard_created(self) -> None:
+        try:
+            with suppress(SandboxError, OSError):
+                await self.destroy()
+        finally:
+            self.release_runtime()
+
+    async def discard_preparation(self, task: TaskContext) -> None:
+        if task.sandbox_ref:
+            # An interrupted initial clone has no usable baseline. Only remove the VM recorded for that attempt.
+            self._attach(task)
+            if self.name in (await self._checked('ls', '-q', error='sbx_workspace_unavailable')).decode().splitlines():
+                self.vm_id = task.sandbox_ref
+                await self.destroy()
+            task.sandbox_ref = None
+
+    async def prepare(self, task: TaskContext) -> Workspace:
+        if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', task.repo_full_name) or any(
+                part in {'.', '..'} for part in task.repo_full_name.split('/')):
+            raise SandboxError('invalid_repository')
+        await self.create_empty(task)
+        try:
             task.repo_dir, task.context_dir = REPO, CONTEXT
             source = f'https://github.com/{task.repo_full_name}.git'
             await self._git('clone', '--filter=blob:none', '--', source, REPO, cwd=str(ROOT), timeout=300)
@@ -224,31 +356,84 @@ class SbxSandbox:
             task.sandbox_ref = self.vm_id
             return Workspace(REPO, CONTEXT, task.default_branch, task.base_sha, task.work_branch, self.vm_id)
         except BaseException:
-            try:
-                with suppress(SandboxError, OSError):
-                    await self.destroy()
-            finally:
-                self.release_runtime()
+            if self.disk_error:
+                await self.stop()
+            else:
+                await self._discard_created()
             raise
 
     async def restore(self, task: TaskContext) -> None:
         self._attach(task)
         self.vm_id = task.sandbox_ref or ''
         try:
-            await self._check_secrets()
             await self._verify_workspace()
             await self.stop()
+            self.extra_domains = self._configured_domains()
+            await self._check_secrets()
+            await self._check_extra_routes()
+            await self._check_policy(scoped=True, reconcile=True)
             task.repo_dir, task.context_dir = REPO, CONTEXT
         except BaseException:
             self.release_runtime()
             raise
 
-    def _exec_args(self, argv: list[str], cwd: str, *, interactive: bool = False) -> list[str]:
+    async def stop_saved(self, task: TaskContext) -> None:
+        self._attach(task)
+        try:
+            self.vm_id = task.sandbox_ref or ''
+            await self.stop()
+        finally:
+            self.release_runtime()
+
+    async def _check_disk(self) -> None:
+        try:
+            report = await self._json('df', '--verbose', '--json', error='sandbox_disk_unavailable')
+            used = writable_bytes(report, self.name)
+        except (SandboxError, OSError):
+            raise SandboxError('sandbox_disk_unavailable') from None
+        if used > self.resource_limits().disk_mib * 1024**2:
+            raise SandboxError('sandbox_disk_limit')
+
+    async def _watch_disk(self) -> None:
+        while not self.disk_error:
+            await asyncio.sleep(self.disk_check_interval)
+            try:
+                await self._check_disk()
+            except SandboxError as error:
+                self.disk_error = str(error)
+                self.on_resource_pause(self.disk_error)
+        while self.vm_id and self.lock:
+            try:
+                await self.stop()
+                return
+            except (OSError, SandboxError):
+                await asyncio.sleep(5)
+
+    async def check_resources(self) -> None:
+        async with self._measure_lock:
+            if self.disk_error:
+                raise SandboxError(self.disk_error)
+            if self._monitor is None or self._monitor.done():
+                try:
+                    await self._check_disk()
+                except SandboxError as error:
+                    self.disk_error = str(error)
+                    self.on_resource_pause(self.disk_error)
+                    self._monitor = asyncio.create_task(self._watch_disk())
+                    raise
+                self._monitor = asyncio.create_task(self._watch_disk())
+
+    @property
+    def stopping_for_disk(self) -> bool:
+        return bool(self.disk_error and self._monitor and not self._monitor.done())
+
+    async def _exec_args(self, argv: list[str], cwd: str, *, interactive: bool = False) -> list[str]:
         target = PurePosixPath(cwd)
         if not self.vm_id or not self.lock:
             raise SandboxError('workspace_not_prepared')
         if not target.is_relative_to(ROOT) or '..' in target.parts:
             raise SandboxError('path_outside_workspace')
+        await self.check_resources()
         return ['exec', *(['-i'] if interactive else []), '-w', str(target), self.name, '--', 'env', *GUEST_ENV, *argv]
 
     async def exec(self, argv: list[str], cwd: str | None = None, timeout: float = 120) -> ExecResult:
@@ -257,7 +442,8 @@ class SbxSandbox:
         if PurePosixPath(argv[0]).name == 'git':
             argv = [argv[0], *GIT_OPTIONS, *argv[1:]]
         command = ['timeout', '--kill-after=2', str(timeout), *argv]
-        code, stdout, stderr = await self._call(*self._exec_args(command, cwd or REPO), timeout=timeout + 15)
+        args = await self._exec_args(command, cwd or REPO)
+        code, stdout, stderr = await self._call(*args, timeout=timeout + 15)
         return ExecResult(code, safe_text(stdout.decode(errors='replace')), safe_text(stderr.decode(errors='replace')))
 
     async def _git(self, *args: str, cwd: str | None = None, timeout: float = 120) -> str:
@@ -267,7 +453,7 @@ class SbxSandbox:
         return result.stdout
 
     async def write_task_context(self, task: TaskContext) -> None:
-        args = self._exec_args(['python3', '-c', WRITE_CONTEXT, CONTEXT], str(ROOT), interactive=True)
+        args = await self._exec_args(['python3', '-c', WRITE_CONTEXT, CONTEXT], str(ROOT), interactive=True)
         data = {name: safe_text(contents) for name, contents in context_files(task).items()}
         code, _, _ = await self._call(*args, data=json.dumps(data).encode())
         if code:
@@ -276,12 +462,41 @@ class SbxSandbox:
     async def diff(self) -> str:
         return await workspace_diff(self)
 
+    async def probe_credentials(self) -> str:
+        profile = self.profile.sbx
+        if not profile or not profile.credential_probe:
+            return 'unavailable'
+        if not self.vm_id or not self.lock:
+            raise SandboxError('workspace_not_prepared')
+        await self._verify_workspace()
+        await self._check_secrets()
+        await self._check_extra_routes()
+        await self._check_policy(scoped=True)
+        command = ['python3', '-I', '-S', '-c', profile.credential_probe]
+        for mode in ('raw', 'agent'):
+            if mode == 'raw':
+                await self.check_resources()
+                args = ['exec', '-w', str(ROOT), self.name, '--', *command, mode, self.name]
+            else:
+                args = await self._exec_args([*(f'{k}={v}' for k, v in profile.environment.items()),
+                                              *command, mode, self.name], str(ROOT))
+            process = await self._spawn(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+            try:
+                if await asyncio.wait_for(process.wait(), 60):
+                    return 'error'
+            except (TimeoutError, asyncio.CancelledError):
+                await self._kill(process)
+                raise
+        return 'ok'
+
     async def spawn_agent(self, profile: AgentProfile) -> AgentProcess:
         if profile != self.profile or not profile.sbx:
             raise SandboxError('sandbox_agent_unavailable')
         await self._check_secrets()
         await self._verify_workspace()
-        args = self._exec_args([*(f'{k}={v}' for k, v in profile.sbx.environment.items()), *profile.command], REPO,
+        await self._check_extra_routes()
+        await self._check_policy(scoped=True)
+        args = await self._exec_args([*(f'{k}={v}' for k, v in profile.sbx.environment.items()), *profile.command], REPO,
                                interactive=True)
         self.agent = await self._spawn(*args, interactive=True, stderr=asyncio.subprocess.DEVNULL)
         return self.agent
@@ -290,7 +505,7 @@ class SbxSandbox:
         source = PurePosixPath(path)
         if not source.is_relative_to(ROOT) or '..' in source.parts or source == ROOT:
             raise SandboxError('path_outside_workspace')
-        args = self._exec_args(['python3', '-c', EXPORT, str(source), str(ROOT)], str(ROOT))
+        args = await self._exec_args(['python3', '-c', EXPORT, str(source), str(ROOT)], str(ROOT))
         process = await self._spawn(*args, stderr=asyncio.subprocess.DEVNULL)
         destination = None
         try:
@@ -312,6 +527,14 @@ class SbxSandbox:
             raise
 
     async def stop(self) -> None:
+        async with self._stop_lock:
+            await self._stop_vm()
+        if self._monitor and self._monitor is not asyncio.current_task():
+            self._monitor.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._monitor
+
+    async def _stop_vm(self) -> None:
         if self.vm_id and self.lock:
             info = await self._inspect()
             if info.get('id') != self.vm_id:

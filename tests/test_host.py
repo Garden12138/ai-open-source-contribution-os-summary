@@ -43,7 +43,8 @@ def task():
 def test_clean_environment_removes_all_inherited_credential_overrides(tmp_path):
     canary = secrets.token_urlsafe(32)
     env = clean_environment({key: canary for key in ('GITHUB_TOKEN', 'GH_TOKEN', 'SSH_AUTH_SOCK', 'CONTRIBOS_GITHUB_TOKEN',
-        'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_VALUE_100', 'GIT_ASKPASS', 'SSH_ASKPASS', 'NODE_OPTIONS')}, tmp_path)
+        'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_VALUE_100', 'GIT_ASKPASS', 'SSH_ASKPASS', 'NODE_OPTIONS',
+        'HOMEBREW_GITHUB_API_TOKEN', 'GCM_INTERACTIVE', 'OPENAI_API_KEY', 'AWS_SECRET_ACCESS_KEY', 'KUBECONFIG')}, tmp_path)
     assert canary not in json.dumps(env)
     assert env['GH_CONFIG_DIR'] == str(tmp_path / 'gh')
     assert env['GIT_TERMINAL_PROMPT'] == '0'
