@@ -1,4 +1,5 @@
 import asyncio
+import json
 from contextlib import closing
 
 from contribos.agent.engine import EngineEvent
@@ -18,7 +19,8 @@ def test_event_redaction_replay_and_snapshot(tmp_path):
             turn = store.claim(tid)['id']
             events = TaskEvents(store)
             first = events.publish(tid, turn, EngineEvent('turn.started'))
-            events.publish(tid, turn, EngineEvent('message.delta', {'text': 'in progress'}))
+            in_progress = 'in progress ' + 'x' * 17000
+            events.publish(tid, turn, EngineEvent('message.delta', {'text': in_progress}))
             canary = 'ghp_' + 'canary0123456789'
             command = events.publish(tid, turn, EngineEvent('command.completed', {
                 'output_tail': 'x' * 17000 + canary,
@@ -30,7 +32,9 @@ def test_event_redaction_replay_and_snapshot(tmp_path):
             replay = await anext(stream)
             assert replay.startswith(f'id: {command.seq}\n')
             assert canary not in replay and '[REDACTED]' in replay
-            assert (await anext(stream)).startswith('event: stream.snapshot')
+            snapshot = await anext(stream)
+            assert snapshot.startswith('event: stream.snapshot')
+            assert json.loads(snapshot.splitlines()[1].removeprefix('data: '))['payload']['items'][0]['payload']['text'] == in_progress
             assert (await anext(stream)) == live.sse()
             assert not live.sse().startswith('id:')
             assert len(events.history(tid)) == 2

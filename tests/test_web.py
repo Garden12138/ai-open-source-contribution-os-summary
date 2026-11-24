@@ -145,7 +145,7 @@ def test_errors_never_echo_secrets(web, caplog, capsys):
 def test_doctor_endpoint_requires_auth_and_uses_same_checks(web, monkeypatch):
     import contribos.cli as cli
     client, _, token, _ = web
-    monkeypatch.setattr(cli, 'doctor_report', lambda: [{'name': 'python', 'status': 'ok', 'detail': 'Python >=3.11'}])
+    monkeypatch.setattr(cli, 'doctor_report', lambda *_: [{'name': 'python', 'status': 'ok', 'detail': 'Python >=3.11'}])
     assert client.get('/api/doctor').status_code == 401
     response = client.get('/api/doctor', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
@@ -158,3 +158,87 @@ def test_default_http_port_authority(tmp_path, host_header):
     app = create_app(Settings(home=tmp_path, port=80), auth=auth)
     with TestClient(app, base_url='http://127.0.0.1') as client:
         assert client.get('/api/health', headers={'Host': host_header}).status_code == 200
+
+
+def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
+    client, _, token, _ = web
+    auth = {'Authorization': f'Bearer {token}'}
+    assert client.get('/api/settings').status_code == 401
+    assert client.get('/api/settings', headers=auth).json()['concurrency'] == 2
+    preferences = {
+        'trusted_owners': ['Owner', 'owner', 'another-owner'],
+        'default_agent': 'cursor',
+        'review_agent': 'codex',
+        'sandbox_backend': 'container',
+        'first_turn_policy': 'implement',
+        'resource_limits': {'cpus': 3},
+        'tool_paths': {'git': '/custom/git', 'gh': ''},
+        'notifications': {'turn_completed': False},
+    }
+    response = client.put('/api/settings', headers=auth, json=preferences)
+    assert response.is_success
+    saved = client.get('/api/settings', headers=auth).json()
+    assert saved['trusted_owners'] == ['owner', 'another-owner']
+    assert saved['default_agent'] == 'cursor' and saved['review_agent'] == 'codex'
+    assert saved['first_turn_policy'] == 'implement' and saved['sandbox_backend'] == 'container'
+    assert saved['resource_limits']['cpus'] == 3 and saved['resource_limits']['memory_mib'] == 4096
+    assert saved['notifications']['turn_completed'] is False and saved['notifications']['request_waiting'] is True
+    assert saved['tool_paths'] == {'git': '/custom/git'}
+    monkeypatch.setattr('shutil.which', lambda path: path)
+    assert client.app.state.settings.tool('git') == '/custom/git'
+    for invalid in ({'tool_paths': {'git': './git'}}, {'tool_paths': {'bash': '/bin/bash'}},
+                    {'resource_limits': {'cpus': 0}}, {'trusted_owners': ['owner/repo']},
+                    {'notifications': {'turn_completed': 'false'}}, {'default_agent': 'missing'}):
+        assert client.put('/api/settings', headers=auth, json=invalid).status_code == 422
+    assert client.get('/api/settings', headers=auth).json() == saved
+
+
+def test_demo_uses_sample_tasks_and_simulated_backends(tmp_path, monkeypatch):
+    import time
+    from functools import partial
+
+    from contribos.web.demo import demo_supervisor
+
+    def external_call(*args, **kwargs):
+        raise AssertionError('Demo should never check or contact real tools.')
+
+    monkeypatch.setattr('contribos.web.app.demo_supervisor', partial(demo_supervisor, delay=0))
+    monkeypatch.setattr('contribos.web.routes_tasks.agent_statuses', external_call)
+    monkeypatch.setattr('contribos.cli.doctor_report', external_call)
+    monkeypatch.setattr('httpx.AsyncClient', external_call)
+    auth = LocalAuth(secrets.token_urlsafe(32))
+    app = create_app(Settings(home=tmp_path), auth=auth, demo=True)
+
+    with TestClient(app, base_url=ORIGIN) as client:
+        login(client, auth)
+        headers = {'Origin': ORIGIN, CSRF_HEADER: client.cookies[CSRF_COOKIE]}
+
+        def wait_for(predicate):
+            until = time.monotonic() + 3
+            while time.monotonic() < until:
+                if value := predicate():
+                    return value
+                time.sleep(0.01)
+            pytest.fail('Demo task did not advance')
+
+        sample = client.get('/api/tasks').json()
+        assert sample['demo'] and sample['tasks'][0]['repo_full_name'] == 'contribos-demo/example'
+        assert client.get('/api/doctor').json()['checks'][0]['name'] == 'demo'
+        assert client.get('/api/agents').json()['agents'][0]['detail'] == '离线模拟 Agent'
+        new = client.post('/api/tasks', headers=headers, json={
+            'issue_url': 'https://github.com/contribos-demo/example/issues/43',
+            'agent': 'cursor', 'isolation': 'sbx',
+        })
+        assert new.status_code == 201
+        base = '/api/tasks/' + new.json()['task_id']
+        task = lambda: client.get(base).json()
+        wait_for(lambda: task()['status'] == 'ready' and task()['agent_state'] == 'idle')
+        assert client.post(base + '/messages', headers=headers, json={
+            'text': 'Implement the plan', 'client_message_id': 'demo-test',
+        }).status_code == 202
+        pending = wait_for(lambda: task()['pending_requests'])[0]['payload']['request_id']
+        assert client.post(base + f'/requests/{pending}/respond', headers=headers, json={
+            'answers': {'scope': '输入校验', 'note': 'Keep compatibility'},
+        }).is_success
+        diff = wait_for(lambda: client.get(base + '/diff').json()['diff_text'])
+        assert '+        raise ValueError("Count must be a non-negative integer")' in diff

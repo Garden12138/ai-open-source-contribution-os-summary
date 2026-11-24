@@ -1,6 +1,7 @@
 """Local runtime paths and server defaults."""
 
 import os
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -14,6 +15,16 @@ class Settings:
     home: Path = field(default_factory=default_home)
     host: str = "127.0.0.1"
     port: int = 8765
+    tool_paths: dict[str, str] = field(default_factory=dict, compare=False)
+
+    def tool(self, name: str) -> str | None:
+        return shutil.which(self.tool_paths.get(name) or name)
+
+    def tool_environment(self, environment: dict[str, str]) -> dict[str, str]:
+        node = self.tool_paths.get('node')
+        if node and Path(node).name == 'node':
+            return {**environment, 'PATH': os.pathsep.join((str(Path(node).parent), environment.get('PATH', os.defpath)))}
+        return environment
 
     @property
     def database_path(self) -> Path:

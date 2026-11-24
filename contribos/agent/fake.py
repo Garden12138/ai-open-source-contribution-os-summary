@@ -8,10 +8,12 @@ from contribos.agent.engine import AgentCapabilities, AgentError, ContentBlock, 
 
 
 class FakeEngine:
-    def __init__(self, scripts: list[list[EngineEvent]] | None = None, *, hold_turn: bool = False) -> None:
+    def __init__(self, scripts: list[list[EngineEvent]] | None = None, *, hold_turn: bool = False,
+                 event_delay: float = 0) -> None:
         self.capabilities = AgentCapabilities(load_session=True, modes=('plan', 'build'))
         self.scripts = list(scripts or [[EngineEvent('message.agent', {'text': 'Ready to work offline.'})]])
         self.hold_turn = hold_turn
+        self.event_delay = event_delay
         self.queue: asyncio.Queue[EngineEvent | None] = asyncio.Queue()
         self.pending: dict[str, asyncio.Future[RequestResponse]] = {}
         self.prompts: list[list[ContentBlock]] = []
@@ -53,7 +55,7 @@ class FakeEngine:
                     self.queue.put_nowait(event)
                 if event.type == 'turn.failed':
                     raise AgentError(event.payload.get('error_code', 'fake_error'))
-                await asyncio.sleep(0)
+                await asyncio.sleep(self.event_delay)
             if self.hold_turn and not self.cancelled.is_set():
                 await self.cancelled.wait()
             reason = 'cancelled' if self.cancelled.is_set() else 'end_turn'

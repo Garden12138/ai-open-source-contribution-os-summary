@@ -61,8 +61,11 @@ class TaskEvents:
             key = (turn_id, kind if kind.endswith('.delta') else str(event.payload.get('tool_call_id')))
             if kind.endswith('.delta'):
                 previous = progress[key].payload['text'] if key in progress else ''
+                text = previous + event.payload.get('text', '')
+                if kind == 'reasoning.delta':
+                    text = clipped(text, 4096)
                 event = TaskEvent(task_id, turn_id, kind,
-                                  {'text': clipped(previous + event.payload.get('text', ''), 16384, tail=True)},
+                                  {'text': text},
                                   event.created_at)
             if len(progress) >= 64 and key not in progress:
                 del progress[next(iter(progress))]
@@ -130,6 +133,22 @@ class TaskEvents:
                 else:
                     requests.pop(request_id, None)
         return requests
+
+    def remembered_permissions(self, task_id: str) -> list[TaskEvent]:
+        rows = self.store.db.execute("""SELECT * FROM task_events WHERE task_id=? AND
+            type IN ('permission.requested', 'permission.remembered') ORDER BY seq""", (task_id,))
+        requests: dict[str, TaskEvent] = {}
+        remembered = []
+        for row in rows:
+            event = self.from_row(row)
+            request_id = event.payload.get('request_id')
+            if not isinstance(request_id, str):
+                continue
+            if event.type == 'permission.requested':
+                requests[request_id] = event
+            elif request_id in requests:
+                remembered.append(requests.pop(request_id))
+        return remembered
 
     async def stream(self, task_id: str, after: int = 0) -> AsyncIterator[str]:
         queue: asyncio.Queue[TaskEvent | None] = asyncio.Queue(maxsize=256)

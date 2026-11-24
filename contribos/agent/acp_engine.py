@@ -243,7 +243,9 @@ class AcpEngine(Client):
     async def create_elicitation(self, message: str, mode: Any, **kwargs: Any) -> Any:
         if not isinstance(mode, (s.ElicitationFormSessionMode, s.ElicitationFormRequestMode)):
             return s.DeclineElicitationResponse()
-        result = await self._ask('question', {'message': message, 'schema': mode.requested_schema.model_dump(by_alias=True)})
+        result = await self._ask('question', {
+            'message': message, 'schema': mode.requested_schema.model_dump(by_alias=True, exclude_none=True),
+        })
         return s.CancelElicitationResponse() if result.cancelled else s.AcceptElicitationResponse(content=result.answers or {})
 
     async def complete_elicitation(self, elicitation_id: str, **kwargs: Any) -> None:

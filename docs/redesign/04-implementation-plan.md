@@ -260,11 +260,18 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   M1 当前规模：非测试 Python 2,051 行，前端 20 行，无 Rust。全量离线测试 168 passed、3 skipped，`compileall` 和 `git diff --check` 通过。
 
 ### M2 沙箱后端
-- [ ] M2-1 【需用户】安装并登录 `sbx`，设置 Codex 订阅 OAuth
-- [ ] M2-2 Spike（03 第 3.5.6 节），写 `spike-sandbox.md`，补 `agent-matrix.md` 沙箱列
-- [ ] M2-3 `sandbox/sbx.py`（或备选 `sandbox/container.py` + `relay/` + 出网代理）
-- [ ] M2-4 Sandbox 契约测试 + 可选集成测试 + 凭据/宿主访问探针
-- [ ] M2-5 `contribos chat --isolation …` 手动验证
+- [x] M2-1 【需用户】安装并登录 `sbx`，设置 Codex 订阅 OAuth
+  验证：宿主 CLI v0.54.0、Docker 已登录、OpenAI OAuth 已登记；系统代理为 `127.0.0.1:6738`，`sbx settings get proxy` 为 `system`；为未初始化的本地策略设置 `deny-all`；`pytest -q` 192 passed、3 skipped。
+- [x] M2-2 Spike（03 第 3.5.6 节），写 `spike-sandbox.md`，补 `agent-matrix.md` 沙箱列
+  验证：v0.54.0 实测关键项 1–5 通过。真实 Codex ACP 编辑、3 项单测、取消、bundle 导出和同会话恢复通过。OAuth 占位及宿主回环/LAN 探针通过；`pytest -q` 192 passed、3 skipped。
+- [x] M2-3 `sandbox/sbx.py`（或备选 `sandbox/container.py` + `relay/` + 出网代理）
+  验证：`pytest -q` 192 passed、3 skipped；真实 VM 通过准备、上下文读取、干净 diff、停止后恢复和销毁。
+- [x] M2-4 Sandbox 契约测试 + 可选集成测试 + 凭据/宿主访问探针
+  验证：`pytest -q` 197 passed、4 skipped；启用 `CONTRIBOS_IT_SBX=1` 后集成测试 1 passed，覆盖真实一轮 diff、VM 内生成 bundle、二进制导出、停止后恢复、OAuth 占位和宿主回环阻断。
+- [x] M2-5 `contribos chat --isolation …` 手动验证
+  验证：用自有 Issue 的公开网页快照进入真实 CLI 创建流程，Codex 在 VM 两轮完成方案与修复，6 项单测通过，`/diff` 有两文件改动。原样运行 `contribos chat --isolation sbx --resume TASK_ID` 恢复同一会话。直接从 Issue URL 新建遇 GitHub 匿名 REST 限流，待解除后复测。全量 198 passed、4 skipped。
+
+  M2 工作树规模为非测试 Python 4,408 行、前端 1,588 行，无 Rust。`compileall` 与 `git diff --check` 通过。
 
 ### M3 任务运行时 + 对话 API
 - [x] M3-1 `tasks/store.py`（CRUD、CAS）+ 测试
@@ -285,14 +292,24 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   M3 当前规模：非测试 Python 3,596 行，前端 20 行，无 Rust。`compileall` 与 `git diff --check` 通过。
 
 ### M4 桌面应用：界面 + 外壳
-- [ ] M4-1 页面框架、导航、任务列表、新建任务面板（Agent 与隔离级别）
-- [ ] M4-2 `chat.js`：SSE、消息与活动卡片、Markdown 安全渲染 + `node --test`
-- [ ] M4-3 权限卡片、提问卡片
-- [ ] M4-4 输入框：排队/打断发送、停止、继续、快捷短语
-- [ ] M4-5 右侧面板：改动、Issue、用量
-- [ ] M4-6 设置与自检页（Agent 状态、可信 owner、沙箱后端、默认/审查 Agent、工具路径、通知开关）
-- [ ] M4-7 `--demo` 离线演示模式
-- [ ] M4-8 手动：浏览器模式完成 J2/J3，刷新后完整恢复
+- [x] M4-1 页面框架、导航、任务列表、新建任务面板（Agent 与隔离级别）
+  验证：`pytest -q` 189 passed、3 skipped；`node --test contribos/web/static/tests` 2 passed，覆盖新建入口、CSP 和显式信任后才加入可信列表。
+- [x] M4-2 `chat.js`：SSE、消息与活动卡片、Markdown 安全渲染 + `node --test`
+  验证：`pytest -q` 189 passed、3 skipped；前端 6 passed，覆盖 Markdown XSS、事件去重、命令归并和进行中快照恢复。
+- [x] M4-3 权限卡片、提问卡片
+  验证：`pytest -q` 192 passed、3 skipped；前端 10 passed，覆盖权限仅在同一任务及参数匹配时生效、重启后恢复授权、请求应答和失效状态回放。
+- [x] M4-4 输入框：排队/打断发送、停止、继续、快捷短语
+  验证：`pytest -q` 190 passed、3 skipped；前端 8 passed，覆盖 Enter、Shift+Enter 和输入法组合键，运行时测试覆盖队列、打断和继续。
+- [x] M4-5 右侧面板：改动、Issue、用量
+  验证：`pytest -q` 190 passed、3 skipped；前端 10 passed，覆盖后台刷新 Issue、统一 diff 分组、带空格和转义的路径及二进制改动。
+- [x] M4-6 设置与自检页（Agent 状态、可信 owner、沙箱后端、默认/审查 Agent、工具路径、通知开关）
+  验证：`pytest -q` 191 passed、3 skipped；前端 10 passed，覆盖设置鉴权、校验、持久化与工具路径解析。
+- [x] M4-7 `--demo` 离线演示模式
+  验证：`pytest -q` 192 passed、3 skipped；前端 10 passed，覆盖预置任务、新建模拟任务、回答提问和生成 diff，全程使用假实现。
+- [x] M4-8 手动：浏览器模式完成 J2/J3，刷新后完整恢复
+  验证：普通 `contribos serve` 的一次性登录通过；Chrome 上用 `contribos serve --demo` 完成粘贴 Issue、选择 Agent 和隔离、对话、排队/打断/停止/继续、改动自动刷新，轮中刷新恢复历史、进行中输出及待处理卡片；全量 Python 192 passed、3 skipped，前端 10 passed。
+
+  M4 浏览器部分规模：非测试 Python 4,011 行，前端 1,588 行。`compileall` 与 `git diff --check` 通过。
 - [ ] M4-9 `desktop_mode.py`：启动参数、启动码/外壳令牌、通知事件流、状态接口、PATH 解析、优雅退出 + 测试
 - [ ] M4-10 【需用户】安装 Rust 工具链与 `tauri-cli`；`desktop/` 外壳：启动后端与就绪等待、主窗口（无 IPC）、导航拦截、单实例 + `cargo test`
 - [ ] M4-11 菜单栏图标与菜单、关窗隐藏、退出确认、开机启动开关
@@ -301,6 +318,7 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
 - [ ] M4-14 【需用户】从 Finder 启动 `.app` 完成验收（工具路径、J2/J3、关窗通知、退出后继续）
 
 ### M5 发布 Draft PR + 跨 Agent 审查
+- [ ] M5-0 宿主 GitHub 客户端：令牌（`gh auth token` / `CONTRIBOS_GITHUB_TOKEN`）只在后端进程用于只读请求，不可用时退回匿名并提示限流；Issue 快照改用它；复测直接用 Issue URL 新建任务（M2 遗留）
 - [ ] M5-1 PR 文案轮（JSON 代码块 + 模板兜底）
 - [ ] M5-2 `publish/git_transfer.py` + 本地 bare 仓库测试（含 hooks 不执行、基线祖先校验）
 - [ ] M5-3 `publish/github_writer.py` + MockTransport 测试
@@ -323,6 +341,8 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
 - [ ] M7-3 本机直跑护栏（可信列表、风险确认、隔离标识）
 - [ ] M7-4 资源与磁盘监控
 - [ ] M7-5 【需用户】3 个真实 Issue 产品级验收，写 `acceptance-mvp.md`
+- [ ] M7-6 【需用户】Cursor 沙箱验收：官方无挂载 kit 内登录、推理、取消、恢复，凭据位置写入 `agent-matrix.md`（不阻塞 MVP）
+- [ ] M7-7 Antigravity 沙箱：自建 kit 验收，或确认仅支持本机直跑并在界面中置灰沙箱选项（不阻塞 MVP）
 
 ### M8 v1 功能
 - [ ] M8-1 PR Tracker

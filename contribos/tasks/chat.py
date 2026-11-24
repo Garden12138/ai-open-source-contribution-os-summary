@@ -2,7 +2,6 @@
 
 import asyncio
 import contextlib
-import fcntl
 import json
 import os
 import re
@@ -15,7 +14,6 @@ from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import asdict
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, TextIO
 
 from acp.schema import TextContentBlock
@@ -25,8 +23,9 @@ from contribos.agent.engine import AgentEngine, AgentError, EngineEvent, Request
 from contribos.agent.profiles import AgentProfile, PROFILES
 from contribos.config import Settings
 from contribos.db import connect, migrate
-from contribos.sandbox.base import SandboxError
+from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox, safe_text
+from contribos.sandbox.sbx import SbxSandbox
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
 from contribos.tasks.issue import IssueError, IssueRef, fetch_issue, parse_issue_url
 
@@ -94,10 +93,10 @@ def question_response(payload: dict[str, Any], line: str) -> RequestResponse:
 
 class ChatSession:
     def __init__(self, settings: Settings, profile: AgentProfile, console: Terminal, *,
-                 sandbox: HostSandbox | None = None,
-                 engine_factory: Callable[[HostSandbox, AgentProfile, Callable[[], Awaitable[None]]], AgentEngine] | None = None) -> None:
+                 sandbox: Sandbox | None = None,
+                 engine_factory: Callable[[Sandbox, AgentProfile, Callable[[], Awaitable[None]]], AgentEngine] | None = None) -> None:
         self.settings, self.profile, self.console = settings, profile, console
-        self.sandbox = sandbox or HostSandbox(settings)
+        self.sandbox = sandbox
         self.engine_factory = engine_factory or self._make_engine
         self.engine: AgentEngine | None = None
         self.connection = connect(settings.database_path)
@@ -114,11 +113,10 @@ class ChatSession:
         self.inbox: asyncio.Queue[tuple[str, Any]] = asyncio.Queue()
         self.eof = False
         self.quitting = False
-        self.lock: TextIO | None = None
         self.current_diff = ''
         self.message_streamed = False
 
-    def _make_engine(self, sandbox: HostSandbox, profile: AgentProfile, refresh: Callable[[], Awaitable[None]]) -> AgentEngine:
+    def _make_engine(self, sandbox: Sandbox, profile: AgentProfile, refresh: Callable[[], Awaitable[None]]) -> AgentEngine:
         values = tuple(v for k, v in os.environ.items() if v and any(p in k.upper() for p in ('TOKEN', 'SECRET', 'API_KEY', 'PASSWORD')))
         return AcpEngine(lambda: sandbox.spawn_agent(profile), refresh_diff=refresh,
                          stop_process=sandbox.stop, error_mapper=profile.classify_error, secrets=values)
@@ -134,58 +132,71 @@ class ChatSession:
         self._event(event)
         self.console.write('[diff updated]\n')
 
-    def _lock_workspace(self) -> None:
-        path = Path(self.task.repo_dir).parent / '.chat.lock'
-        if path.is_symlink():
-            raise SandboxError('unsafe_workspace_path')
-        self.lock = path.open('a')
-        try:
-            fcntl.flock(self.lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            self.lock.close()
-            self.lock = None
-            raise SandboxError('task_already_open') from None
+    def select_sandbox(self, isolation: str) -> Sandbox:
+        if self.sandbox is not None:
+            if self.sandbox.kind != isolation:
+                raise SandboxError('task_isolation_mismatch')
+        elif isolation == 'host':
+            self.sandbox = HostSandbox(self.settings)
+        elif isolation == 'sbx' and self.profile.sbx:
+            self.sandbox = SbxSandbox(self.settings, self.profile)
+        else:
+            raise SandboxError('sandbox_agent_unavailable')
+        return self.sandbox
 
-    async def create(self, ref: IssueRef, snapshot: dict[str, Any]) -> None:
+    async def create(self, ref: IssueRef, snapshot: dict[str, Any], isolation: str) -> None:
+        sandbox = self.select_sandbox(isolation)
         snapshot = json.loads(safe_text(json.dumps(snapshot, ensure_ascii=False)))
         task_id = uuid.uuid4().hex
-        self.task = TaskContext(task_id, ref.repo, ref.number, '', '', trust_confirmed=True,
+        self.task = TaskContext(task_id, ref.repo, ref.number, '', '', isolation=sandbox.kind,
+            trust_confirmed=sandbox.kind == 'host',
             issue=snapshot, linked_prs=snapshot.get('linked_prs', []))
         now = utc_now()
         self.connection.execute('''INSERT INTO tasks(id,repo_full_name,issue_number,title,agent_profile,isolation,
-            issue_snapshot_json,created_at,updated_at) VALUES (?,?,?,?,?,'host',?,?,?)''',
-            (task_id, ref.repo, ref.number, snapshot['title'], self.profile.id, safe_text(json.dumps(snapshot)), now, now))
-        self.console.write(f'Task: {task_id}\nIsolation: host (trusted repository)\nPreparing independent workspace...\n')
+            issue_snapshot_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)''',
+            (task_id, ref.repo, ref.number, snapshot['title'], self.profile.id, sandbox.kind,
+             safe_text(json.dumps(snapshot)), now, now))
+        label = 'host (trusted repository)' if sandbox.kind == 'host' else sandbox.kind
+        self.console.write(f'Task: {task_id}\nIsolation: {label}\nPreparing independent workspace...\n')
         try:
-            await self.sandbox.prepare(self.task)
+            workspace = await sandbox.prepare(self.task)
+            self.task.repo_dir, self.task.context_dir = workspace.repo_dir, workspace.context_dir
+            self.task.default_branch, self.task.base_sha, self.task.work_branch = (
+                workspace.default_branch, workspace.base_sha, workspace.work_branch)
+            self.task.sandbox_ref = workspace.reference
             self.task.instructions = task_instructions(self.task)
-            self.sandbox.write_context(self.task)
-            self._lock_workspace()
+            await sandbox.write_task_context(self.task)
+            if isinstance(sandbox, HostSandbox):
+                sandbox.claim_runtime()
             self.connection.execute('''UPDATE tasks SET status='ready',default_branch=?,base_sha=?,work_branch=?,
                 sandbox_ref=?,updated_at=? WHERE id=? AND status='preparing' ''',
-                (self.task.default_branch, self.task.base_sha, self.task.work_branch, str(self.sandbox.root), utc_now(), task_id))
+                (self.task.default_branch, self.task.base_sha, self.task.work_branch, workspace.reference, utc_now(), task_id))
         except (SandboxError, OSError):
             self.connection.execute("UPDATE tasks SET status='setup_failed',last_error_code='workspace_setup_failed',updated_at=? WHERE id=? AND status='preparing'", (utc_now(), task_id))
             raise
 
-    async def resume(self, task_id: str) -> None:
+    async def resume(self, task_id: str, isolation: str | None = None) -> None:
         row = self.connection.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
-        if not row or row['status'] not in {'ready', 'published'} or row['isolation'] != 'host' or row['delete_requested']:
+        if not row or row['status'] not in {'ready', 'published'} or row['delete_requested']:
             raise SandboxError('task_not_resumable')
         if row['agent_profile'] != self.profile.id:
             raise SandboxError('agent_profile_mismatch')
+        if isolation and isolation != row['isolation']:
+            raise SandboxError('task_isolation_mismatch')
+        sandbox = self.select_sandbox(row['isolation'])
         snapshot = json.loads(row['issue_snapshot_json'])
         self.task = TaskContext(task_id, row['repo_full_name'], row['issue_number'], '', '',
-            session_id=row['session_id'], trust_confirmed=True, issue=snapshot,
+            session_id=row['session_id'], isolation=sandbox.kind, trust_confirmed=sandbox.kind == 'host',
+            issue=snapshot, sandbox_ref=row['sandbox_ref'],
             linked_prs=snapshot.get('linked_prs', []), default_branch=row['default_branch'],
             base_sha=row['base_sha'], work_branch=row['work_branch'], recap_pending=bool(row['recap_pending']))
-        self.sandbox.attach(self.task)
-        self._lock_workspace()
+        await sandbox.restore(self.task)
         self.task.instructions = task_instructions(self.task)
         self.connection.execute("UPDATE turns SET status='interrupted',completed_at=? WHERE task_id=? AND status='running'", (utc_now(), task_id))
         self.connection.execute("UPDATE tasks SET runtime_managed=0,agent_state='idle',updated_at=? WHERE id=? AND agent_state=?",
                                 (utc_now(), task_id, row['agent_state']))
-        self.console.write(f'Task: {task_id}\nIsolation: host (previously trusted)\n')
+        label = 'host (previously trusted)' if sandbox.kind == 'host' else sandbox.kind
+        self.console.write(f'Task: {task_id}\nIsolation: {label}\n')
 
     async def _read_input(self) -> None:
         while True:
@@ -279,6 +290,9 @@ class ChatSession:
         except TimeoutError:
             await self.sandbox.stop()
             self.console.write('\nAgent did not stop in time; process stopped. Use /continue to reconnect.\n')
+        else:
+            if self.sandbox.kind == 'sbx':
+                await self.sandbox.stop()
 
     async def _input(self, line: str | None) -> None:
         if line is None:
@@ -348,39 +362,56 @@ class ChatSession:
                     await job
 
     async def close(self) -> None:
-        await self.sandbox.stop()
-        if self.lock:
-            self.lock.close()
-        self.console.close()
-        self.connection.close()
+        try:
+            if self.sandbox:
+                with contextlib.suppress(OSError, SandboxError):
+                    await self.sandbox.stop()
+        finally:
+            if isinstance(self.sandbox, (HostSandbox, SbxSandbox)):
+                self.sandbox.release_runtime()
+            self.console.close()
+            self.connection.close()
 
 
 async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, trust_repo: bool = False,
-                   resume_task: str | None = None, console: Terminal | None = None,
+                   isolation: str | None = None, resume_task: str | None = None, console: Terminal | None = None,
                    loader: Callable[[IssueRef], Awaitable[dict[str, Any]]] = fetch_issue,
-                   sandbox: HostSandbox | None = None,
+                   sandbox: Sandbox | None = None,
                    engine_factory: Callable[..., AgentEngine] | None = None) -> int:
     console = console or Terminal()
     session: ChatSession | None = None
     try:
+        level = isolation or (sandbox.kind if sandbox else 'host')
+        if trust_repo and level != 'host':
+            raise SandboxError('host_trust_requires_host')
         if not resume_task:
             ref = parse_issue_url(issue_url or '')
-            if not trust_repo:
+            if level == 'host' and not trust_repo:
                 console.write(f'本机直跑 {ref.repo}：Agent 和仓库代码将以你的用户身份运行。仅用于你信任的仓库。\n输入 yes 确认信任并选择本机直跑：')
                 if await console.readline() != 'yes':
                     console.write('\n[host_trust_required] No task was created.\n')
                     return 2
         session = ChatSession(settings, PROFILES[agent], console, sandbox=sandbox, engine_factory=engine_factory)
         if resume_task:
-            await session.resume(resume_task)
+            await session.resume(resume_task, isolation)
         else:
+            session.select_sandbox(level)
             snapshot = await loader(ref)
-            await session.create(ref, snapshot)
+            await session.create(ref, snapshot, level)
         await session.converse(resume=bool(resume_task))
         return 0
     except (IssueError, SandboxError, AgentError) as exc:
         code = exc.code if isinstance(exc, AgentError) else str(exc)
-        console.write(f'\n[{code}] Chat could not proceed. Use contribos agents to inspect Agent setup.\n')
+        message = {
+            'github_rate_limited': 'Anonymous GitHub reads are rate-limited. Retry after the limit resets.',
+            'sbx_unavailable': 'Install Docker Sandboxes and ensure sbx is on PATH.',
+            'sbx_deny_all_required': 'Docker Sandboxes needs an initialized deny-all policy.',
+            'sbx_network_policy_unsafe': 'Docker Sandboxes has egress rules outside the task allowlist. Check sbx policy ls.',
+            'sbx_credential_policy_unsafe': 'Check sbx credential and SSH forwarding settings for sources outside the task profile.',
+            'sbx_oauth_required': 'Configure the Docker Sandboxes OAuth credential for this Agent.',
+            'sandbox_agent_unavailable': 'The selected Agent is unavailable in this isolation level.',
+        }.get(code, 'Chat could not proceed. Use contribos agents to inspect Agent setup.')
+        console.write(f'\n[{code}] {message}\n')
         return 1
     except (OSError, ValueError):
         console.write('\n[chat_unavailable] Could not open the local task or terminal.\n')

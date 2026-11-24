@@ -24,8 +24,10 @@
    （Docker Sandboxes microVM 或任务容器）内运行。本机直跑只能由用户在创建任务时明确选择。
 2. 平台从不在宿主上对沙箱内的工作区执行 git 或任何仓库代码，只接收导出的 bundle。
 3. 沙箱不挂载宿主目录、不挂 Docker socket；模型凭据优先由宿主侧代理注入，必须放进沙箱的登录令牌要在 UI 标注。
-4. GitHub 凭据只给 Publisher。任何 Agent 进程（包括本机直跑）都不能拿到 GitHub 令牌：
-   清理 `GITHUB_TOKEN`、`GH_TOKEN`、`SSH_AUTH_SOCK`，并让 `gh` / git 的凭据入口失效。
+4. GitHub 令牌只在宿主后端进程内使用：只读请求（Issue 快照、发现扫描、PR 跟踪）和 Publisher 的写操作。
+   任何 Agent 进程和沙箱（包括本机直跑）都不能拿到 GitHub 令牌：清理 `GITHUB_TOKEN`、`GH_TOKEN`、`SSH_AUTH_SOCK`，
+   并让 `gh` / git 的凭据入口失效；沙箱后端中不得存在能向沙箱注入 GitHub 凭据的配置（创建沙箱前校验，存在即拒绝）。
+   只读请求带令牌不改变写操作的规则：第三方写入仍只能经下一条的 Publisher 确认流程。
 5. 第三方 GitHub 写操作只能由 Publisher 执行，并且必须由 UI 按钮确认、绑定最新预览的 `preview_hash`。
    聊天文字、模型输出、仓库或 Issue 内容都不构成授权。
 6. Publisher 只能：建 Fork、推送新分支或快进推送、创建/更新 PR、标记 ready。禁止 force-push、合并、

@@ -22,6 +22,8 @@ from contribos.security import (
 from contribos.tasks.store import TaskError, TaskStore
 from contribos.tasks.supervisor import TaskSupervisor
 from contribos.web.routes_tasks import router as task_router
+from contribos.web.routes_settings import router as settings_router
+from contribos.web.demo import demo_supervisor
 
 STATIC = Path(__file__).with_name("static")
 CSP = (
@@ -36,6 +38,7 @@ def error_response(status: int, code: str, message: str) -> JSONResponse:
 
 
 def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = None,
+               demo: bool = False,
                supervisor_factory: Callable[[Settings, TaskStore], TaskSupervisor] = TaskSupervisor) -> FastAPI:
     settings = settings or Settings()
     origin = server_origin(settings)  # Validate before filesystem access or startup.
@@ -60,7 +63,9 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
             try:
                 migrate(database)
                 app.state.db = database
-                supervisor = supervisor_factory(settings, TaskStore(database, clean))
+                store = TaskStore(database, clean)
+                settings.tool_paths.update(store.setting('tool_paths', {}))
+                supervisor = demo_supervisor(settings, store) if demo else supervisor_factory(settings, store)
                 app.state.supervisor = supervisor
                 try:
                     supervisor.start()
@@ -73,6 +78,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.auth = auth
     app.state.settings = settings
+    app.state.demo = demo
 
     @app.middleware("http")
     async def local_security(
@@ -137,7 +143,9 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
     def doctor_endpoint() -> dict[str, list[dict[str, str]]]:
         from contribos.cli import doctor_report
 
-        return {"checks": doctor_report()}
+        if demo:
+            return {"checks": [{"name": "demo", "status": "ok", "detail": "Offline simulation."}]}
+        return {"checks": app.state.supervisor.store.sanitize(doctor_report(settings))}
 
     @app.get("/desktop/bootstrap")
     async def bootstrap(code: str = "") -> Response:
@@ -155,5 +163,6 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
         return FileResponse(STATIC / "index.html")
 
     app.include_router(task_router)
+    app.include_router(settings_router)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
     return app

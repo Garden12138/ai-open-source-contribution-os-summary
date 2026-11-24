@@ -65,7 +65,7 @@ class RequestResponse:
 
 def validate_answers(schema: dict[str, Any], answers: object) -> None:
     properties = schema.get('properties') or {}
-    if not isinstance(answers, dict) or not all(key in answers for key in schema.get('required', [])):
+    if not isinstance(answers, dict) or not all(key in answers for key in (schema.get('required') or [])):
         raise ValueError('Missing required answers')
     types = {'string': str, 'boolean': bool, 'integer': int, 'number': (int, float), 'array': list}
     for name, value in answers.items():
@@ -74,7 +74,10 @@ def validate_answers(schema: dict[str, Any], answers: object) -> None:
         expected = types.get(kind)
         if expected and (not isinstance(value, expected) or isinstance(value, bool) and kind in {'integer', 'number'}):
             raise ValueError('Invalid answer type')
-        if 'enum' in spec and value not in spec['enum']:
+        options = spec.get('enum')
+        if spec.get('oneOf'):
+            options = [item['const'] for item in spec['oneOf']]
+        if options is not None and value not in options:
             raise ValueError('Invalid answer option')
 
 

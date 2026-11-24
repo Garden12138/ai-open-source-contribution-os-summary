@@ -56,6 +56,11 @@ class TaskStore:
         row = self.db.execute('SELECT value_json FROM settings WHERE key = ?', (key,)).fetchone()
         return json.loads(row[0]) if row else default
 
+    def set_setting(self, key: str, value: Any) -> None:
+        self.db.execute('''INSERT INTO settings VALUES (?, ?, ?) ON CONFLICT(key)
+            DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at''',
+            (key, self.encode(value), utc_now()))
+
     def opportunity(self, opportunity_id: str) -> IssueRef:
         row = self.db.execute('SELECT repo_full_name,issue_number FROM opportunities WHERE id=?',
                               (opportunity_id,)).fetchone()
@@ -99,6 +104,11 @@ class TaskStore:
     def setup_failed(self, task_id: str, code: str, message: str) -> None:
         self.db.execute('''UPDATE tasks SET status='setup_failed',last_error_code=?,last_error_message=?,
             updated_at=? WHERE id=? AND status='preparing' ''', (code, self.clean(message), utc_now(), task_id))
+
+    def update_issue(self, task_id: str, issue: Message) -> None:
+        self.db.execute('''UPDATE tasks SET issue_snapshot_json=?,title=?,updated_at=?
+            WHERE id=? AND status IN ('ready','published') AND delete_requested=0''',
+            (self.encode(issue), self.clean(issue.get('title') or self.get(task_id)['title']), utc_now(), task_id))
 
     def adopt(self, task_id: str) -> None:
         with self.transaction():

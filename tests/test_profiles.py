@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 import json
 from types import SimpleNamespace
@@ -15,7 +16,7 @@ def test_commands_config_isolation_and_safe_checks(name, tmp_path, monkeypatch):
     profile = PROFILES[name]
     settings = Settings(home=tmp_path)
     monkeypatch.setenv('GITHUB_TOKEN', 'unused')
-    monkeypatch.setattr(module.shutil, 'which', lambda command: '/tools/' + command)
+    monkeypatch.setattr(shutil, 'which', lambda command: '/tools/' + command)
     calls = []
     def execute(argv, **kwargs):
         assert 'GITHUB_TOKEN' not in kwargs['env']
@@ -63,9 +64,9 @@ def test_agents_and_doctor_share_statuses(monkeypatch, capsys):
 def test_missing_and_failed_checks(tmp_path, monkeypatch):
     import contribos.agent.profiles as module
     profile = PROFILES['codex']
-    monkeypatch.setattr(module.shutil, 'which', lambda command: None)
+    monkeypatch.setattr(shutil, 'which', lambda command: None)
     assert 'npm i -g' in check_profile(profile, Settings(home=tmp_path)).detail
-    monkeypatch.setattr(module.shutil, 'which', lambda command: command)
+    monkeypatch.setattr(shutil, 'which', lambda command: command)
     def fail(*args, **kwargs):
         raise OSError('private failure')
     monkeypatch.setattr(module.subprocess, 'run', fail)
@@ -75,7 +76,7 @@ def test_missing_and_failed_checks(tmp_path, monkeypatch):
 
 def test_cursor_exit_zero_is_not_proof_of_login(tmp_path, monkeypatch):
     import contribos.agent.profiles as module
-    monkeypatch.setattr(module.shutil, 'which', lambda command: command)
+    monkeypatch.setattr(shutil, 'which', lambda command: command)
     def execute(argv, **kwargs):
         output = json.dumps({'isAuthenticated': False}) if 'status' in argv else '2026.11.13'
         return SimpleNamespace(returncode=0, stdout=output, stderr='')
@@ -114,7 +115,7 @@ def test_cursor_uses_same_isolated_home_for_status_launch_and_login(tmp_path, mo
     assert f'HOME={directory}' in profile.login_hint(settings)
     assert 'AGENT_CLI_CREDENTIAL_STORE=file' in profile.login_hint(settings)
 
-    monkeypatch.setattr(module.shutil, 'which', lambda command: command)
+    monkeypatch.setattr(shutil, 'which', lambda command: command)
 
     def execute(argv, **kwargs):
         assert kwargs['env']['HOME'] == directory

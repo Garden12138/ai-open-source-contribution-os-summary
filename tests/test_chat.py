@@ -11,12 +11,14 @@ from pathlib import Path
 import pytest
 
 from contribos.agent.acp_engine import AcpEngine
+from contribos.agent.fake import FakeEngine
 from contribos.agent.profiles import PROFILES
 from contribos.config import Settings
 from contribos.db import connect
 from contribos.sandbox.host import HostSandbox
 from contribos.tasks.chat import Terminal, question_response, run_chat
 from test_host import local_repo
+from test_sandbox import FakeSbx
 
 SCRIPT = Path(__file__).with_name('fake_acp_agent.py').resolve()
 
@@ -173,6 +175,32 @@ def test_trust_rejection_happens_before_snapshot_or_database(tmp_path):
         console=ScriptConsole(['no']), loader=forbidden))
     assert result == 2
     assert not settings.home.exists()
+
+
+def test_sbx_chat_uses_saved_isolation_on_resume(tmp_path):
+    sandbox = FakeSbx(tmp_path)
+    issue = 'https://github.com/owner/repo/issues/1'
+
+    def session_args():
+        return dict(sandbox=sandbox, console=ScriptConsole(react=lambda c, text: c.lines.put_nowait(None)
+                    if '[turn.completed]' in text else None),
+                    engine_factory=lambda *_: FakeEngine())
+
+    async def check():
+        assert await run_chat(sandbox.settings, 'codex', issue, isolation='sbx', loader=loader, **session_args()) == 0
+        db = connect(sandbox.settings.database_path)
+        try:
+            row = db.execute('SELECT id,isolation,sandbox_ref,session_id FROM tasks').fetchone()
+            assert row['isolation'] == 'sbx' and row['sandbox_ref'] == 'fake-vm'
+            assert await run_chat(sandbox.settings, 'codex', None, isolation='host',
+                                  resume_task=row['id'], **session_args()) == 1
+            assert await run_chat(sandbox.settings, 'codex', None, resume_task=row['id'], **session_args()) == 0
+            assert db.execute('SELECT session_id FROM tasks').fetchone()[0] == row['session_id']
+            assert db.execute("SELECT count(*) FROM turns WHERE status='completed'").fetchone()[0] == 2
+        finally:
+            db.close()
+
+    asyncio.run(asyncio.wait_for(check(), 5))
 
 
 def test_question_validation_and_terminal_control_stripping():

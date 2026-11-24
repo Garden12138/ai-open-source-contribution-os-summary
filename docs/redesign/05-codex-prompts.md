@@ -155,6 +155,8 @@ docs/redesign/04-implementation-plan.md 的 M1、docs/redesign/agent-matrix.md�
 目标：完成清单 M2（03 第 3.5.4–3.5.6 节）。
 
 - M2-1 需要用户：brew install docker/tap/sbx、sbx login、sbx secret set openai --oauth。
+  用户通过本机代理出网（系统代理 127.0.0.1:6738）；先确认 sbx settings get proxy 的值和 sbx diagnose 的结果，
+  再做 Spike。所有 sbx 命令都在你的沙箱之外运行，避免守护进程继承临时环境变量。
 - 先查阅 sbx 当前版本的 CLI 帮助和官方文档（创建无挂载沙箱、在沙箱内执行命令、网络策略、
   宿主服务访问、文件导出、停止/启动），再逐项完成 03 第 3.5.6 节的 Spike，结论写 docs/redesign/spike-sandbox.md
   （≤60 行），并在 agent-matrix.md 补充每个 Agent 的沙箱列（可行性、凭据位置）。
@@ -258,7 +260,9 @@ M4-14 需要用户从 Finder 启动 .app 按 04 文档 M4 验收逐项确认。
 ## M5 发布 Draft PR + 跨 Agent 审查
 
 ```text
-目标：完成清单 M5（03 第 3.6、3.7 节是规格，逐条实现）。
+目标：完成清单 M5（03 第 3.6、3.7 节是规格，逐条实现）。先做 M5-0：宿主 GitHub 客户端（AGENTS.md 第 4 条），
+只读请求与 Publisher 共用同一个令牌来源，令牌只在后端进程内存中使用；写测试确认它不会出现在 Agent 子进程环境、
+sbx 命令参数和事件中；完成后用 Issue URL 直接新建一次任务做复测。
 
 发布的关键约束：
 - 打包在任务的执行环境内完成（经 Sandbox.exec），bundle 经 Sandbox.export_file 导出；宿主从不对沙箱工作区执行 git。

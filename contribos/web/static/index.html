@@ -5,12 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ContribOS</title>
   <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
 </head>
 <body>
+  <header class="topbar">
+    <a class="brand" href="#">ContribOS</a>
+    <nav aria-label="主导航">
+      <a id="tasks-nav" href="#" aria-current="page">任务</a>
+      <a id="settings-nav" href="#settings">设置</a>
+    </nav>
+    <span id="demo-mode" class="badge" hidden>离线演示</span>
+  </header>
   <main>
-    <h1>ContribOS</h1>
-    <p>本地开源贡献副驾驶</p>
-    <p>后端已就绪。任务对话、机会发现和桌面应用将按实施计划接入。</p>
+    <div id="workspace" class="workspace">
+      <aside class="sidebar" aria-label="任务列表">
+        <div class="section-title"><h2>任务</h2><button id="new-task" class="primary" type="button">＋ 新建任务</button></div>
+        <p id="tasks-status" class="muted" role="status">正在加载任务…</p>
+        <button id="retry-tasks" type="button" hidden>重新加载</button>
+        <ul id="tasks" class="tasks"></ul>
+      </aside>
+      <section class="conversation" aria-labelledby="task-title">
+        <header class="task-header">
+          <div id="task-meta" class="task-meta"></div>
+          <h1 id="task-title">贡献任务</h1>
+          <p id="task-status" class="muted" role="status">选择任务或粘贴 GitHub Issue 链接开始。</p>
+        </header>
+        <div id="chat"></div>
+      </section>
+      <aside id="details" class="details" aria-label="任务详情" hidden></aside>
+    </div>
+    <section id="settings" class="settings" hidden>
+      <h1>设置</h1>
+      <div id="settings-body"></div>
+    </section>
   </main>
+  <dialog id="task-dialog" aria-labelledby="new-task-title">
+    <form id="task-form">
+      <div class="section-title">
+        <h2 id="new-task-title">新建任务</h2>
+        <button id="close-task" type="button" aria-label="关闭新建任务">关闭</button>
+      </div>
+      <label for="issue-url">GitHub Issue 链接</label>
+      <input id="issue-url" type="url" required maxlength="2048" placeholder="https://github.com/owner/repo/issues/123" autofocus>
+      <fieldset>
+        <legend>隔离级别</legend>
+        <div id="isolation-options"></div>
+        <p id="isolation-hint" class="muted" hidden></p>
+      </fieldset>
+      <div id="host-warning" class="warning" hidden>
+        <p>本机直跑时，Agent 和仓库代码可能读取本机文件及用户目录中的凭据。请确认你信任该仓库。</p>
+        <label class="choice"><input id="confirm-trust" type="checkbox"> 我信任这个仓库</label>
+        <label class="choice"><input id="trust-owner" type="checkbox" disabled> 将该 owner 加入可信列表</label>
+      </div>
+      <label for="agent">Agent</label>
+      <select id="agent" required aria-describedby="agent-hint"></select>
+      <div id="agent-hint" class="muted"></div>
+      <p id="form-status" class="error" role="status" hidden></p>
+      <div class="actions">
+        <button id="retry-form" type="button" hidden>重新加载</button>
+        <button id="create-task" class="primary" type="submit" disabled>创建任务</button>
+      </div>
+    </form>
+  </dialog>
 </body>
 </html>

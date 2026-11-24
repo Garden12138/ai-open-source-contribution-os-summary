@@ -347,6 +347,8 @@ Cursor、Claude Code 的登录在 VM 内完成；支持无挂载的沙箱（`sbx
 5. 能把 VM 内的文件导出到宿主（bundle）；沙箱停止后再启动，工作区和 Agent 会话可恢复。
 6. Cursor、Antigravity 在沙箱内的可行性与凭据位置（记录到 `agent-matrix.md`）。
 7. 访问宿主上 xcli 的受控方式（记录结论，M8 使用）。
+8. 宿主经本机代理出网时（用户环境：系统代理 `127.0.0.1:6738`），`sbx settings set proxy system` 等上游代理设置
+   对守护进程和沙箱流量都生效：沙箱内能访问 GitHub、包仓库和所选 Agent 的模型端点；记录模型服务的地区限制表现。
 
 结论写入 `docs/redesign/spike-sandbox.md`（≤ 60 行）。
 
@@ -405,7 +407,10 @@ Cursor、Claude Code 的登录在 VM 内完成；支持无挂载的沙箱（`sbx
 #### GitHub 凭据
 
 使用时执行 `gh auth token` 读取（不落库、不写日志），或用环境变量 `CONTRIBOS_GITHUB_TOKEN`。
-GitHub 凭据**只给 Publisher**，任何 Agent 进程都拿不到（见 3.5.3 的环境清理）。
+GitHub 令牌**只在宿主后端进程内使用**：只读请求（Issue 快照、发现扫描、PR 跟踪）带令牌以避免匿名限流
+（匿名每小时 60 次，搜索接口更严），写操作只经 Publisher。任何 Agent 进程和沙箱都拿不到（见 3.5.3 的环境清理；
+Docker Sandboxes 中若存在可注入 GitHub 凭据的 secret，创建沙箱前即拒绝）。令牌不可用时只读请求退回匿名，
+并在界面上提示限流原因。
 修改 `.github/workflows/` 的推送需要 `workflow` 权限，预览中提示。
 
 ### 3.7 独立审查
@@ -597,7 +602,7 @@ schema_migrations(version PK, applied_at)
 | 威胁 | 对策 |
 | --- | --- |
 | T1 恶意仓库代码危害宿主 | 陌生仓库默认在沙箱（microVM 或容器）中执行；本机直跑只对可信列表中的 owner 开放，非列表仓库需逐任务确认风险 |
-| T2 窃取凭据 | GitHub 凭据只给 Publisher，任何 Agent 进程都拿不到；Docker Sandboxes 由宿主代理注入模型凭据（Codex 订阅 OAuth、API Key），需在 VM 内登录的 Agent 在 UI 标注"凭据在沙箱内"；自管容器只用中继令牌；本机直跑清理环境变量和 git/gh 凭据入口 |
+| T2 窃取凭据 | GitHub 令牌只在宿主后端进程内使用（只读请求与 Publisher），任何 Agent 进程和沙箱都拿不到，sbx 中存在 GitHub 类 secret 时拒绝建沙箱；Docker Sandboxes 由宿主代理注入模型凭据（Codex 订阅 OAuth、API Key），需在 VM 内登录的 Agent 在 UI 标注"凭据在沙箱内"；自管容器只用中继令牌；本机直跑清理环境变量和 git/gh 凭据入口 |
 | T3 访问宿主或内网服务 | 沙箱出网默认拒绝、按策略放行；自管容器用出网代理拒绝私网/回环/元数据地址；API 变更接口要求 CSRF 或本地令牌 |
 | T4 Prompt 注入诱导外部写入 | Agent 环境中没有 GitHub 写凭据；外部写只能由 UI 按钮触发并绑定预览哈希；聊天文字和模型输出都不算授权 |
 | T5 发布或查看时执行仓库代码 | 宿主只操作 bare 仓库对象：不 checkout、`core.hooksPath=/dev/null`、不运行 LFS/filters；从不在宿主上对沙箱工作区执行 git |
@@ -688,5 +693,5 @@ ADR-04 取消"API 不得持有 Docker socket"、"四个信任域物理分离"；
 ADR-06 取消"每步消费前序哈希"的不可变来源链；ADR-08 把形态从浏览器访问的本地服务改为桌面应用，新增 Rust 外壳
 （界面本身仍是原生 HTML/CSS/JS，不涉及旧规则中"引入前端框架需 ADR"的条款）；
 产品范围上把 Phase 2–10 路线图替换为 `04-implementation-plan.md` 的里程碑。
-保留并强化：陌生仓库代码不在宿主执行、GitHub 凭据只给 Publisher、秘密不进日志/事件/响应、第三方写只经确认、
+保留并强化：陌生仓库代码不在宿主执行、GitHub 令牌只在宿主后端使用且写操作只经 Publisher、秘密不进日志/事件/响应、第三方写只经确认、
 发布不 force/merge/不跑 hooks、仅回环监听 + CSRF。用户确认后，用 `AGENTS.proposed.md` 替换根目录 `AGENTS.md` 生效。

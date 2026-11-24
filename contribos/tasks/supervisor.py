@@ -63,6 +63,7 @@ class _Runtime:
     reader: asyncio.Task[None] | None = None
     job: asyncio.Task[None] | None = None
     diff_job: asyncio.Task[None] | None = None
+    issue_job: asyncio.Task[None] | None = None
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     wake: asyncio.Event = field(default_factory=asyncio.Event)
     turn_id: str | None = None
@@ -72,6 +73,19 @@ class _Runtime:
     disconnected: bool = False
     last_activity: float = field(default_factory=time.monotonic)
     sandbox_suspended: bool = False
+    allowed_tools: set[str] = field(default_factory=set)
+
+
+def _permission_key(payload: dict[str, Any]) -> str | None:
+    tool = payload.get('tool_call')
+    if not isinstance(tool, dict) or not (tool.get('rawInput') or tool.get('locations')):
+        return None
+    return json.dumps({k: v for k, v in tool.items() if k != 'toolCallId'}, sort_keys=True, ensure_ascii=False)
+
+
+def _one_time_allow(payload: dict[str, Any]) -> str | None:
+    return next((option.get('optionId') for option in payload.get('options', [])
+                 if option.get('kind') == 'allow_once'), None)
 
 
 class TaskSupervisor:
@@ -107,7 +121,8 @@ class TaskSupervisor:
         return sandbox
 
     def create(self, ref: IssueRef, *, agent: str | None = None, isolation: Isolation | None = None,
-               trust_confirmed: bool = False, opportunity_id: str | None = None) -> sqlite3.Row:
+               trust_confirmed: bool = False, trust_owner: bool = False,
+               opportunity_id: str | None = None) -> sqlite3.Row:
         if self.store.clean(ref.repo) != ref.repo or not 0 < ref.number <= 2**63 - 1:
             raise TaskError('invalid_issue_url', 'Provide a GitHub Issue URL.', 422)
         if agent is None:
@@ -119,11 +134,17 @@ class TaskSupervisor:
             configured = self.store.setting('sandbox_backend', 'sbx')
             isolation = configured if configured in {'sbx', 'container'} else 'sbx'
         owner = ref.repo.split('/', 1)[0].casefold()
-        trusted = self.store.setting('trusted_owners', [])
-        if isolation == 'host' and trust_confirmed is not True and owner not in {name.casefold() for name in trusted}:
-            raise TaskError('host_trust_required', 'Confirm repository trust to run on the host.', 403)
+        if trust_owner and (isolation != 'host' or trust_confirmed is not True):
+            raise TaskError('host_trust_required', 'Confirm repository trust before adding the owner.', 403)
         sandbox = self._sandbox(isolation)
-        row = self.store.create(ref, profile.id, isolation, opportunity_id)
+        with self.store.transaction():
+            trusted = self.store.setting('trusted_owners', [])
+            known = owner in {name.casefold() for name in trusted}
+            if isolation == 'host' and not known and trust_confirmed is not True:
+                raise TaskError('host_trust_required', 'Confirm repository trust to run on the host.', 403)
+            row = self.store.create(ref, profile.id, isolation, opportunity_id)
+            if trust_owner and not known:
+                self.store.set_setting('trusted_owners', [*trusted, owner])
         runtime = self._runtime(row, sandbox)
         self._schedule(runtime)
         return row
@@ -138,8 +159,11 @@ class TaskSupervisor:
                 default_branch=row['default_branch'] or '', base_sha=row['base_sha'] or '',
                 work_branch=row['work_branch'] or '', sandbox_ref=row['sandbox_ref'],
                 recap_pending=bool(row['recap_pending']))
-            self.runtimes[task_id] = _Runtime(context, sandbox or self._sandbox(row['isolation']),
-                                              PROFILES[row['agent_profile']])
+            runtime = _Runtime(context, sandbox or self._sandbox(row['isolation']), PROFILES[row['agent_profile']])
+            if row['isolation'] == 'host':
+                runtime.allowed_tools = {key for event in self.events.remembered_permissions(task_id)
+                                         if (key := _permission_key(event.payload)) and '[REDACTED]' not in key}
+            self.runtimes[task_id] = runtime
         return self.runtimes[task_id]
 
     def _schedule(self, runtime: _Runtime) -> None:
@@ -200,6 +224,24 @@ class TaskSupervisor:
     def continue_task(self, task_id: str) -> sqlite3.Row:
         return self.send(task_id, CONTINUE_PROMPT, kind='continue')
 
+    def refresh_issue(self, task_id: str) -> None:
+        row = self.store.get(task_id)
+        if row['status'] not in {'ready', 'published'} or row['delete_requested']:
+            raise TaskError('task_not_ready', 'The Issue snapshot is unavailable.')
+        runtime = self._runtime(row)
+        if runtime.issue_job is None or runtime.issue_job.done():
+            runtime.issue_job = asyncio.create_task(self._refresh_issue(runtime))
+
+    async def _refresh_issue(self, runtime: _Runtime) -> None:
+        context = runtime.context
+        try:
+            issue = await self.issue_loader(IssueRef(context.repo_full_name, context.issue_number))
+        except (IssueError, OSError):
+            self._publish(runtime, 'issue.refresh_failed', {'message': 'Could not refresh the GitHub Issue.'})
+            return
+        self.store.update_issue(context.task_id, issue)
+        self._publish(runtime, 'issue.updated')
+
     def interrupt(self, task_id: str) -> bool:
         self.store.get(task_id)
         runtime = self.runtimes.get(task_id)
@@ -217,10 +259,20 @@ class TaskSupervisor:
         request = self.events.pending(task_id).get(request_id)
         if not runtime or not runtime.engine or not request or runtime.turn_id != request.turn_id:
             raise TaskError('request_expired', 'This request has expired.')
+        grant = None
         if request.type == 'permission.requested':
             options = request.payload.get('options', [])
-            if response.option_id is None or not any(option.get('optionId') == response.option_id for option in options):
+            option = next((item for item in options if item.get('optionId') == response.option_id), None)
+            if response.option_id is None or option is None:
                 raise TaskError('invalid_option', 'Choose a permission option from this request.', 422)
+            if option.get('kind') == 'reject_always':
+                response = RequestResponse(cancelled=True)
+            if option.get('kind') == 'allow_always':
+                once = _one_time_allow(request.payload)
+                grant = _permission_key(request.payload)
+                if not once or not grant or '[REDACTED]' in grant:
+                    raise TaskError('invalid_option', 'Choose a one-time option for this request.', 422)
+                response = RequestResponse(option_id=once)
         else:
             try:
                 validate_answers(request.payload.get('schema') or {}, response.answers)
@@ -230,6 +282,9 @@ class TaskSupervisor:
             await runtime.engine.respond(request_id, response)
         except AgentError as error:
             raise TaskError(error.code, error.message) from None
+        if grant:
+            runtime.allowed_tools.add(grant)
+            self._publish(runtime, 'permission.remembered', {'request_id': request_id})
 
     async def read_file(self, task_id: str, path: str) -> dict[str, str]:
         row = self.store.get(task_id)
@@ -430,6 +485,18 @@ class TaskSupervisor:
             # Turn state is written once, after prompt completion and cancellation checks.
             if event.type in {'turn.completed', 'turn.failed'}:
                 continue
+            if event.type == 'permission.requested':
+                key = _permission_key(event.payload)
+                option_id = _one_time_allow(event.payload)
+                request_id = event.payload.get('request_id')
+                if key in runtime.allowed_tools and option_id and request_id:
+                    try:
+                        await engine.respond(request_id, RequestResponse(option_id=option_id))
+                    except AgentError:
+                        pass
+                    else:
+                        self._publish(runtime, 'permission.resolved', {'auto': True, 'option_id': option_id})
+                        continue
             request_id = event.payload.get('request_id')
             if request_id and event.type in RESOLUTION_EVENTS and request_id not in self.events.pending(runtime.context.task_id):
                 continue
@@ -605,6 +672,10 @@ class TaskSupervisor:
 
     async def _stop(self, runtime: _Runtime) -> None:
         turn_id = runtime.turn_id
+        if runtime.issue_job:
+            runtime.issue_job.cancel()
+            with suppress(asyncio.CancelledError):
+                await runtime.issue_job
         if runtime.job and not runtime.job.done():
             runtime.job.cancel()
             with suppress(asyncio.CancelledError):

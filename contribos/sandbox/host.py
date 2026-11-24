@@ -15,7 +15,7 @@ from typing import BinaryIO, Mapping
 from contribos.agent.engine import TaskContext
 from contribos.agent.profiles import AgentProfile
 from contribos.config import Settings
-from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace
+from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace, context_files, workspace_diff
 from contribos.sandbox.processes import ProcessInfo, process_family, process_info
 from contribos.security import redact
 
@@ -129,12 +129,7 @@ class HostSandbox:
 
     def write_context(self, task: TaskContext) -> None:
         context = self._inside(task.context_dir)
-        for filename, content in {
-            'TASK.md': task.instructions,
-            'issue.md': f"# {task.issue.get('title', '')}\n\n{task.issue.get('body', '')}\n\nComments:\n" +
-                        '\n\n'.join(str(c.get('body', '')) for c in task.issue.get('comments', [])),
-            'linked_prs.json': json.dumps(task.linked_prs, ensure_ascii=False, indent=2),
-        }.items():
+        for filename, content in context_files(task).items():
             target = context / filename
             if target.is_symlink():
                 raise SandboxError('unsafe_context_path')
@@ -213,6 +208,8 @@ class HostSandbox:
         command = list(argv)
         if Path(command[0]).name == 'git':
             command[1:1] = GIT_OPTIONS
+        if command[0] == 'git':
+            command[0] = self.settings.tool_paths.get('git') or command[0]
         try:
             proc = await asyncio.create_subprocess_exec(*command, cwd=workdir, env=self.environment,
                 stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -237,9 +234,11 @@ class HostSandbox:
                 raise SandboxError('unsafe_agent_config')
         config.mkdir(parents=True, mode=0o700, exist_ok=True)
         # Shell sandboxes can deny reads of the platform's runtime directory.
-        env = {**self.environment, **profile.env(self.settings), 'GIT_CONFIG_GLOBAL': os.devnull}
+        env = self.settings.tool_environment({
+            **self.environment, **profile.env(self.settings), 'GIT_CONFIG_GLOBAL': os.devnull,
+        })
         command = profile.argv(self.settings)
-        executable = shutil.which(command[0])
+        executable = self.settings.tool(profile.command[0])
         if not executable:
             raise SandboxError('agent_not_installed')
         try:
@@ -255,22 +254,7 @@ class HostSandbox:
         return proc
 
     async def diff(self) -> str:
-        result = await self.exec(['git', 'diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', '--'])
-        if result.returncode:
-            raise SandboxError('diff_failed')
-        status = await self.exec(['git', 'ls-files', '--others', '--exclude-standard', '-z'])
-        if status.returncode:
-            raise SandboxError('diff_failed')
-        chunks = [result.stdout]
-        for filename in status.stdout.split('\0'):
-            if not filename:
-                continue
-            # no-index diff displays new files without mutating the index.
-            extra = await self.exec(['git', 'diff', '--no-index', '--no-ext-diff', '--no-textconv', '--binary', '--', '/dev/null', filename])
-            if extra.returncode not in {0, 1}:
-                raise SandboxError('diff_failed')
-            chunks.append(extra.stdout)
-        return ''.join(chunks)
+        return await workspace_diff(self)
 
     async def export_file(self, path: str) -> Path:
         source = self._inside(path)

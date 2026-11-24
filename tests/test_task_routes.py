@@ -60,8 +60,11 @@ def test_task_routes_identity_creation_and_actions(tmp_path, monkeypatch):
                 assert (await client.post('/api/tasks', json={'issue_url': 'https://untrusted.test'})).status_code == 422
                 assert (await client.post('/api/tasks', json={'issue_url': ISSUE, 'opportunity_id': 'x'})).status_code == 422
                 assert (await client.get('/api/tasks')).json() == {'tasks': []}
-                response = await client.post('/api/tasks', json={**new, 'trust_confirmed': True})
+                assert (await client.post('/api/tasks', json={**new, 'trust_owner': True})).status_code == 403
+                assert (await client.get('/api/settings')).json()['trusted_owners'] == []
+                response = await client.post('/api/tasks', json={**new, 'trust_confirmed': True, 'trust_owner': True})
                 assert response.status_code == 201
+                assert (await client.get('/api/settings')).json()['trusted_owners'] == ['owner']
                 tid = response.json()['task_id']
                 base = f'/api/tasks/{tid}'
                 await until(lambda: supervisor.store.get(tid)['agent_state'] == 'idle')
@@ -69,6 +72,13 @@ def test_task_routes_identity_creation_and_actions(tmp_path, monkeypatch):
                 assert task['issue_snapshot']['title'] == 'Test Issue'
                 assert task['isolation'] == 'host'
                 assert (await client.get('/api/tasks')).json()['tasks'][0]['id'] == tid
+                async def refreshed_issue(_):
+                    return {'title': 'Updated issue', 'body': 'Updated body'}
+
+                supervisor.issue_loader = refreshed_issue
+                assert (await client.post(base + '/issue/refresh')).status_code == 202
+                await until(lambda: supervisor.store.get(tid)['title'] == 'Updated issue')
+                assert (await client.get(base)).json()['issue_snapshot']['body'] == 'Updated body'
                 msg = {'text': 'Implement', 'client_message_id': 'idempotent'}
                 accepted = await client.post(base + '/messages', json=msg)
                 repeat = await client.post(base + '/messages', json={**msg, 'delivery': 'interrupt'})
@@ -189,4 +199,49 @@ def test_sse_reconnect_redaction_and_request_responses(tmp_path, monkeypatch):
             assert canary not in (await client.get(base + '/events')).text
             assert canary not in (await client.get(base)).text
             assert canary not in ''.join(row[0] for row in app.state.db.execute('SELECT payload_json FROM task_events'))
+    asyncio.run(check())
+
+
+def test_remembered_permission_is_exact_and_task_scoped(tmp_path):
+    def permission(request_id, command):
+        return EngineEvent('permission.requested', {
+            'request_id': request_id,
+            'tool_call': {'toolCallId': request_id, 'kind': 'execute', 'rawInput': {'command': command}},
+            'options': [
+                {'optionId': 'once', 'kind': 'allow_once'},
+                {'optionId': 'always', 'kind': 'allow_always'},
+            ],
+        })
+
+    async def check():
+        engine = FakeEngine(scripts=[
+            [permission('first', 'pytest'), permission('same', 'pytest'), permission('different', 'pytest -q')],
+        ])
+        app, headers = application(tmp_path, engine)
+        async with app.router.lifespan_context(app), httpx.AsyncClient(
+                transport=httpx.ASGITransport(app), base_url=ORIGIN, headers=headers) as client:
+            supervisor = app.state.supervisor
+            body = {'issue_url': ISSUE, 'isolation': 'host', 'trust_confirmed': True}
+            tid = (await client.post('/api/tasks', json=body)).json()['task_id']
+            await until(lambda: 'first' in supervisor.events.pending(tid))
+            assert (await client.post(f'/api/tasks/{tid}/requests/first/respond', json={'option_id': 'always'})).is_success
+            await until(lambda: 'different' in supervisor.events.pending(tid))
+            history = supervisor.events.history(tid)
+            assert any(event.type == 'permission.resolved' and event.payload.get('auto') for event in history)
+            assert not any(event.payload.get('option_id') == 'always' for event in history)
+            assert (await client.post(f'/api/tasks/{tid}/requests/different/respond', json={'option_id': 'once'})).is_success
+            await until(lambda: supervisor.store.get(tid)['agent_state'] == 'idle')
+            supervisor.engine_factory = lambda *_: FakeEngine(scripts=[[permission('other', 'pytest')]])
+            second = (await client.post('/api/tasks', json=body)).json()['task_id']
+            await until(lambda: 'other' in supervisor.events.pending(second))
+        app, headers = application(tmp_path, FakeEngine(scripts=[[permission('restart', 'pytest')]]))
+        async with app.router.lifespan_context(app), httpx.AsyncClient(
+                transport=httpx.ASGITransport(app), base_url=ORIGIN, headers=headers) as client:
+            assert (await client.post(f'/api/tasks/{tid}/messages', json={
+                'text': 'Run this again', 'client_message_id': 'restart-message',
+            })).status_code == 202
+            supervisor = app.state.supervisor
+            await until(lambda: supervisor.store.get(tid)['agent_state'] == 'idle')
+            assert sum(event.type == 'permission.resolved' and event.payload.get('auto') is True
+                       for event in supervisor.events.history(tid)) == 2
     asyncio.run(check())

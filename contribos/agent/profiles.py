@@ -4,7 +4,6 @@ import os
 import json
 import re
 import shlex
-import shutil
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -21,6 +20,16 @@ REGION_ERRORS = (
     r'(?:not supported|not available|unavailable|cannot be used)[^.!?]{0,90}(?:country|region|territory|location)',
     r'geo(?:graphic)?[_ -]?(?:blocked|restricted|restriction)',
 )
+
+
+@dataclass(frozen=True)
+class SbxProfile:
+    workload: str
+    kit: str
+    auth_mode: str
+    service: str
+    domains: tuple[str, ...]
+    environment: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -43,12 +52,16 @@ class AgentProfile:
     retryable_patterns: tuple[str, ...] = RETRYABLE
     modes: tuple[str, str] = ('plan', 'build')
     sbx_agent: str | None = None
+    sbx: SbxProfile | None = None
 
     def config_dir(self, settings: Settings) -> Path:
         return settings.home / 'agent-homes' / self.id
 
     def render(self, values: tuple[str, ...], settings: Settings) -> list[str]:
-        return [v.replace('{config_dir}', str(self.config_dir(settings))) for v in values]
+        command = [v.replace('{config_dir}', str(self.config_dir(settings))) for v in values]
+        if command:
+            command[0] = settings.tool_paths.get(command[0]) or command[0]
+        return command
 
     def argv(self, settings: Settings) -> list[str]:
         return self.render(self.command + self.host_args, settings)
@@ -84,7 +97,18 @@ PROFILES = {
         environment={'CODEX_HOME': '{config_dir}', 'INITIAL_AGENT_MODE': 'workspace-write',
                      'CODEX_CONFIG': json.dumps({'sandbox_mode': 'workspace-write', 'approval_policy': 'on-request',
                                                  'features': {'apps': False, 'plugins': False}})},
-        modes=('read-only', 'workspace-write'), sbx_agent='codex'),
+        modes=('read-only', 'workspace-write'), sbx_agent='codex',
+        sbx=SbxProfile(
+            workload='docker.io/sbx/codex@sha256:b0d764924b6b47965b862c63cb5c3326b9f57d6dbb9e40cfc483577ba461667a',
+            kit='docker.io/sbx/codex-acp@sha256:97209faa5012af3f3012d8d66768e249883c90409ba2a5a9af4aa39299ca2b85',
+            auth_mode='oauth · openai',
+            service='openai',
+            domains=('api.openai.com:443', 'openai.com:443', 'auth.openai.com:443', 'chatgpt.com:443',
+                     'files.openai.com:443', 'releases.openai.com:443', 'dhi.io:80'),
+            environment={'CODEX_CONFIG': json.dumps({
+                'features': {'apps': False, 'plugins': False},
+                'mcp_servers': {'mcp-gateway': {'enabled': False}},
+            })})),
     'cursor': AgentProfile(
         id='cursor', name='Cursor', command=('cursor-agent', 'acp'), detect=('cursor-agent', 'acp', '--help'),
         version=('cursor-agent', '--version'), auth_check=('cursor-agent', 'status', '--format', 'json'),
@@ -125,13 +149,13 @@ class AgentStatus:
 
 
 def check_profile(profile: AgentProfile, settings: Settings) -> AgentStatus:
-    executable = shutil.which(profile.command[0])
+    executable = settings.tool(profile.command[0])
     login_hint = profile.login_hint(settings)
     if not executable:
         return AgentStatus(profile.id, 'missing', None, '', 'unknown', login_hint, profile.install_hint, profile.isolation_warning)
     # Checks never inherit token-bearing variables, and their diagnostics are discarded.
     env = {k: os.environ[k] for k in ('PATH', 'HOME', 'TMPDIR', 'SYSTEMROOT') if k in os.environ}
-    env.update(profile.env(settings))
+    env = settings.tool_environment({**env, **profile.env(settings)})
     version = ''
     login = 'unknown'
     status = 'error'

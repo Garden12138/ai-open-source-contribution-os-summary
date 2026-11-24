@@ -25,4 +25,7 @@ contribos = ["migrations/*.sql", "web/static/*.html", "web/static/*.css", "web/s
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-markers = ["agents: opt-in real Agent CLI acceptance on an explicitly trusted user-owned issue"]
+markers = [
+    "agents: opt-in real Agent CLI acceptance on an explicitly trusted user-owned issue",
+    "sandbox: opt-in Docker Sandboxes acceptance on an explicitly supplied user-owned issue",
+]

@@ -24,3 +24,9 @@ contribos chat --agent codex https://github.com/OWNER/REPO/issues/NUMBER
 
 CLI 在建任务前要求明确确认信任并选择本机直跑。之后可用 `/continue`、`/diff`，退出后可用 `contribos chat --agent codex --resume TASK_ID`。
 可选真实测试需显式设置 `CONTRIBOS_IT_AGENTS=codex`、`CONTRIBOS_IT_ISSUE_URL=<自有Issue>`、`CONTRIBOS_IT_TRUST_REPO=1`，再运行 `pytest -q -m agents`；不会自动批准宿主权限升级，工作区保留供检查。MCP/插件隔离仍须人工核实。
+
+| Agent | 沙箱可行性 | 凭据位置 |
+| --- | --- | --- |
+| Codex | 官方 kit 与 ACP mixin 通过 M2 编辑、测试、取消和恢复实测。 | 订阅 OAuth 存宿主钥匙串，sbx 代理注入，VM 中为占位值。 |
+| Cursor | v2026.11.22-e9042b2 的官方无挂载 kit 提供 ACP 命令。登录与推理待验收，M2 暂未启用。 | OAuth 登录由沙箱触发，Docker 文档说明令牌交换由宿主代理接管。本次 VM 未登录。 [Docker Cursor 文档](https://docs.docker.com/ai/sandboxes/agents/cursor/) |
+| Antigravity | v0.54.0 无内置 kit。官方 Linux CLI 支持 ACP，自定义 kit 与地区可用性待验证。 | CLI 登录凭据存在运行环境，可使用其原生密钥环。沙箱代理方案待验证。 [Google ACP 文档](https://antigravity.google/docs/cli/acp/) |
