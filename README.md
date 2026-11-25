@@ -39,6 +39,7 @@ node --test contribos/web/static/tests
 ## 文档
 
 - [产品规格](docs/redesign/02-product-spec.md)
+- [2026-11-25 桌面试用反馈与 Hive 任务对话](docs/redesign/feedback-2026-11-25.md)
 - [技术架构与架构图](docs/redesign/03-architecture.md#2-总体架构)
 - [实施计划与进度](docs/redesign/04-implementation-plan.md#6-进度清单)
 - [Agent 指南](AGENTS.md)
