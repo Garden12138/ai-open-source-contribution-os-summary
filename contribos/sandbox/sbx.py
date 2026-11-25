@@ -2,6 +2,7 @@
 
 import asyncio
 import fcntl
+import ipaddress
 import json
 import os
 import re
@@ -11,9 +12,9 @@ from contextlib import suppress
 from pathlib import Path, PurePosixPath
 from typing import Any, BinaryIO
 
-from contribos.agent.engine import TaskContext
-from contribos.agent.profiles import AgentProfile
-from contribos.config import Settings
+from contribos.agent.engine import AgentError, TaskContext
+from contribos.agent.profiles import AgentProfile, provider_key
+from contribos.config import OpenModel, Settings
 from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace, context_files, workspace_diff
 from contribos.sandbox.host import GIT_OPTIONS, clean_environment, safe_text
 from contribos.sandbox.resources import ResourceLimits, writable_bytes
@@ -43,7 +44,7 @@ GUEST_ENV = [v for key in CREDENTIAL_VARS for v in ('-u', key)] + [
 WRITE_CONTEXT = '''
 import json, pathlib, sys
 directory = pathlib.Path(sys.argv[1])
-directory.mkdir(mode=0o700, exist_ok=True)
+directory.mkdir(mode=0o700, exist_ok=True, parents=True)
 for name, content in json.load(sys.stdin).items():
     (directory / name).write_text(content, encoding="utf-8")
 '''
@@ -83,6 +84,7 @@ class SbxSandbox:
     def __init__(self, settings: Settings, profile: AgentProfile, *, extra_domains: Sequence[str] = ()) -> None:
         self.settings = settings
         self.profile = profile
+        self.model = OpenModel.model_validate(settings.open_model) if profile.open_model else None
         self.extra_domains = tuple(normalize_egress_domains(extra_domains))
         self.read_extra_domains: Callable[[], Sequence[str]] = lambda: extra_domains
         self.name = ''
@@ -95,6 +97,26 @@ class SbxSandbox:
         self._monitor: asyncio.Task[None] | None = None
         self._measure_lock = asyncio.Lock()
         self._stop_lock = asyncio.Lock()
+
+    @property
+    def _xcli_host(self) -> str | None:
+        if self.model and self.model.provider == 'xcli':
+            return f'localhost:{self.model.xcli_port}'
+        return None
+
+    def _private_denies(self) -> tuple[str, ...]:
+        if not self._xcli_host:
+            return PRIVATE_NETWORKS
+        # sbx maps host.docker.internal to localhost. Keep explicit IP denies on
+        # every package/extra domain port, including DNS resolutions to 127.0.0.1.
+        rest = ipaddress.ip_network('127.0.0.0/8').address_exclude(ipaddress.ip_network('127.0.0.1/32'))
+        return (tuple(v for v in PRIVATE_NETWORKS if v not in {'localhost', 'host.docker.internal', '127.0.0.0/8'})
+                + tuple(str(network) for network in rest) + ('127.0.0.1:80', '127.0.0.1:443'))
+
+    def _secret_host(self) -> str | None:
+        if self._xcli_host:
+            return 'localhost' if os.environ.get('CONTRIBOS_XCLI_API_KEY') else None
+        return 'api.deepseek.com' if self.model else None
 
     def _configured_domains(self) -> tuple[str, ...]:
         try:
@@ -187,7 +209,17 @@ class SbxSandbox:
         assert profile is not None
         for scope in (('--global',), ('--sandbox', self.name)):
             secrets = await self._json('secret', 'ls', *scope, '--json', error='sbx_credentials_unavailable')
-            if (not isinstance(secrets.get('secrets'), list) or secrets.get('custom_secrets') != []
+            custom = secrets.get('custom_secrets')
+            # Static values are masked in the metadata. Dynamic sources include a source descriptor.
+            key = provider_key(self.model) if self._secret_host() else ''
+            allowed_custom = (self.vm_id and self._secret_host() and scope == ('--sandbox', self.name)
+                              and isinstance(custom, list) and len(custom) == 1 and isinstance(custom[0], dict)
+                              and set(custom[0]) == {'scope', 'targets', 'env', 'placeholder', 'secret'}
+                              and custom[0].get('scope') == self.name and custom[0].get('targets') == [self._secret_host()]
+                              and custom[0].get('env') == 'CONTRIBOS_PROVIDER_KEY'
+                              and custom[0].get('secret') == f'{key[:6]}******...******{key[-4:]}'
+                              and custom[0].get('placeholder') == 'contribos-model-proxy')
+            if (not isinstance(secrets.get('secrets'), list) or (custom != [] and not allowed_custom)
                     or secrets.get('env_only_count', 0) or secrets.get('shadowed_services')
                     or any(not isinstance(s, dict) or s.get('type') != 'service' or s.get('name') != profile.service
                            or s.get('secret') != '(oauth configured)' for s in secrets['secrets'])):
@@ -226,6 +258,8 @@ class SbxSandbox:
                         for key in ('actions', 'resources')) for r in rules):
             raise SandboxError('sbx_network_policy_unavailable')
         approved = set(PACKAGE_DOMAINS + profile.domains) | {f'{domain}:443' for domain in self.extra_domains}
+        if self.model and self.model.provider == 'deepseek':
+            approved.add('api.deepseek.com:443')
         # A scoped query already returns the effective policy for this VM, including its kit and organization.
         active = [rule for rule in rules if rule['status'] == 'active'
                   and (scoped or not rule['scope'].startswith('sandbox:'))]
@@ -237,6 +271,7 @@ class SbxSandbox:
             raise SandboxError('sbx_deny_all_required')
         allowed, denied = set(), set()
         obsolete = []
+        model_route = False
         for rule in active:
             kind = rule['resource_type']
             if kind in {'filesystem:read', 'filesystem:write'} and all(a.startswith('fs:') for a in rule['actions']):
@@ -246,6 +281,13 @@ class SbxSandbox:
             if rule.get('decision') == 'deny':
                 if kind == 'network' and transports <= actions:
                     denied.update(resources)
+                continue
+            if (kind == 'http' and rule.get('decision') == 'allow' and scoped and self._xcli_host
+                    and rule['scope'] == f'sandbox:{self.name}' and rule.get('editable') is True
+                    and rule.get('methods') == ['POST'] and actions == {'http:request:post'}
+                    and resources == {self._xcli_host} and rule.get('http_targets') == [
+                        {'host': self._xcli_host, 'path': '/v1/chat/completions'}]):
+                model_route = True
                 continue
             if (rule.get('decision') != 'allow' or not resources
                     or kind != 'network' or actions != {'net:connect:tcp'}):
@@ -267,18 +309,23 @@ class SbxSandbox:
                 allowed.update(resources)
         if not scoped:
             return
-        if set(PRIVATE_NETWORKS) - denied:
+        if set(self._private_denies()) - denied:
             raise SandboxError('sbx_private_network_policy_missing')
         missing = approved - allowed
-        if reconcile and (obsolete or missing):
+        missing_model = bool(self._xcli_host and not model_route)
+        if reconcile and (obsolete or missing or missing_model):
             for rule_id in obsolete:
                 await self._checked('policy', 'rm', 'network', '--sandbox', self.name, '--id', rule_id, '--force',
                                     error='sbx_network_policy_unavailable')
             if missing:
                 await self._checked('policy', 'allow', 'network', '--sandbox', self.name, ','.join(sorted(missing)),
                                     error='sbx_network_policy_unavailable')
+            if missing_model:
+                await self._checked('policy', 'allow', 'network', '--sandbox', self.name, self._xcli_host,
+                                    '--method', 'POST', '--path', '/v1/chat/completions',
+                                    error='sbx_network_policy_unavailable')
             await self._check_policy(scoped=True)
-        elif missing:
+        elif missing or missing_model:
             raise SandboxError('sbx_network_policy_incomplete')
 
     async def _inspect(self) -> dict[str, Any]:
@@ -289,7 +336,7 @@ class SbxSandbox:
         assert profile is not None
         info = await self._inspect()
         if (info.get('id') != self.vm_id or info.get('agent') != self.profile.sbx_agent
-                or info.get('kits') != [profile.workload, profile.kit]
+                or info.get('kits') != [item for item in (profile.workload, profile.kit) if item]
                 or info.get('effective_working_dir') != str(ROOT)
                 or info.get('host_mounts') != [] or info.get('runtime_mounts') != []
                 or info.get('mcp_mode') != 'static' or info.get('mcp_servers') != []
@@ -304,19 +351,30 @@ class SbxSandbox:
         profile = self.profile.sbx
         assert profile is not None
         try:
+            if self.model:
+                if not self.model.model or (self._xcli_host and self.model.xcli_port == self.settings.port):
+                    raise SandboxError('model_not_configured')
+                try:
+                    provider_key(self.model)
+                except AgentError as error:
+                    raise SandboxError(error.code) from None
             await self._check_secrets()
             await self._check_extra_routes()
             await self._check_policy(scoped=False)
             limits = self.resource_limits()
             await self._checked('create', '--cpus', str(limits.cpus), '--memory', f'{limits.memory_mib}m',
                 '--name', self.name, '--skills', 'off', '--static-mcp', 'none',
-                '--deny-network', ','.join(PRIVATE_NETWORKS), '--no-progress', '--kit', profile.kit,
+                '--deny-network', ','.join(self._private_denies()), '--no-progress', *(['--kit', profile.kit] if profile.kit else []),
                 profile.workload, error='sbx_create_failed', timeout=600)
             self.vm_id = (await self._inspect()).get('id') or ''
             if not self.vm_id:
                 raise SandboxError('sbx_workspace_unsafe')
             await self._verify_workspace()
             await self._check_policy(scoped=True, reconcile=True)
+            if profile.install:
+                result = await self.exec(list(profile.install), cwd=str(ROOT), timeout=600)
+                if result.returncode:
+                    raise SandboxError('sandbox_agent_install_failed')
         except BaseException:
             await self._discard_created()
             raise
@@ -496,8 +554,26 @@ class SbxSandbox:
         await self._verify_workspace()
         await self._check_extra_routes()
         await self._check_policy(scoped=True)
-        args = await self._exec_args([*(f'{k}={v}' for k, v in profile.sbx.environment.items()), *profile.command], REPO,
-                               interactive=True)
+        environment = dict(profile.sbx.environment)
+        if self.model:
+            if self._secret_host():
+                # sbx evaluates the host alias as localhost before substituting the placeholder.
+                code, _, _ = await self._call('secret', 'set-custom', '--sandbox', self.name, '--host', self._secret_host(),
+                                              '--env', 'CONTRIBOS_PROVIDER_KEY', '--placeholder', 'contribos-model-proxy',
+                                              '--value-stdin', data=provider_key(self.model).encode())
+                if code:
+                    raise SandboxError('model_credentials_unavailable')
+                await self._check_secrets()
+            directory = str(ROOT / 'runtime' / profile.id)
+            model_env, files = profile.model_environment(self.model, directory, guest=True)
+            environment.update(profile.isolated_env(directory), **model_env)
+            if files:
+                write = await self._exec_args(['python3', '-I', '-c', WRITE_CONTEXT, directory], str(ROOT), interactive=True)
+                code, _, _ = await self._call(*write, data=json.dumps(files).encode())
+                if code:
+                    raise SandboxError('model_config_write_failed')
+        args = await self._exec_args([*(f'{k}={v}' for k, v in environment.items()), *(profile.sbx.command or profile.command)],
+                                     REPO, interactive=True)
         self.agent = await self._spawn(*args, interactive=True, stderr=asyncio.subprocess.DEVNULL)
         return self.agent
 

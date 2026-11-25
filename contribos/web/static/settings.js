@@ -44,7 +44,22 @@ function preferences(root, config, save) {
   const policy = select([['plan', '评估并给出方案，等待回复'], ['implement', '直接实现']], config.first_turn_policy);
   general.append(field('默认 Agent', defaultAgent), field('审查 Agent', reviewAgent), field('首轮策略', policy));
 
+  const modelGroup = group(form, 'OpenCode 与 OpenHands 模型');
+  const provider = select([['deepseek', 'DeepSeek'], ['xcli', 'xcli 兼容网关']], config.open_model.provider);
+  const model = element('input');
+  Object.assign(model, { value: config.open_model.model, maxLength: 150 });
+  const port = numberInput(config.open_model.xcli_port, 65535);
+  port.min = 1024;
+  const portField = field('宿主回环网关端口', port);
+  const togglePort = () => { portField.hidden = provider.value !== 'xcli'; };
+  togglePort();
+  provider.addEventListener('change', togglePort);
+  modelGroup.append(field('模型服务', provider), field('服务提供的模型 ID', model), portField,
+    element('p', 'muted', 'DeepSeek 密钥使用后端环境变量 DEEPSEEK_API_KEY。xcli 需要支持 OpenAI chat/completions 的回环网关，密钥可通过 CONTRIBOS_XCLI_API_KEY 提供。沙箱内只接收代理占位值，访问回环网关仅放行模型请求路径。'));
+
   const discovery = group(form, '每日发现');
+  const autoScan = element('input');
+  Object.assign(autoScan, { type: 'checkbox', checked: config.auto_scan_enabled });
   const scanTime = element('input');
   Object.assign(scanTime, { type: 'time', required: true, value: config.scan_time });
   const languages = element('input');
@@ -52,7 +67,7 @@ function preferences(root, config, save) {
   const keywords = element('input');
   keywords.value = config.strategic_keywords.join(', ');
   const terms = input => input.value.split(/[,，]/).map(text => text.trim()).filter(Boolean);
-  discovery.append(field('每日扫描时间（本机时间）', scanTime), field('偏好语言（逗号分隔）', languages),
+  discovery.append(field('自动扫描', autoScan), field('每日扫描时间（本机时间）', scanTime), field('偏好语言（逗号分隔）', languages),
     field('战略关键词（逗号分隔）', keywords));
 
   const execution = group(form, '隔离与可信 owner');
@@ -134,8 +149,10 @@ function preferences(root, config, save) {
     try {
       await api('/settings', { method: 'PUT', body: {
         scan_time: scanTime.value, preferred_languages: terms(languages), strategic_keywords: terms(keywords),
+        auto_scan_enabled: autoScan.checked,
         default_agent: defaultAgent.value,
         review_agent: reviewAgent.value || null,
+        open_model: { provider: provider.value, model: model.value.trim(), xcli_port: port.valueAsNumber },
         first_turn_policy: policy.value,
         sandbox_backend: sandbox.value,
         trusted_owners: trusted,

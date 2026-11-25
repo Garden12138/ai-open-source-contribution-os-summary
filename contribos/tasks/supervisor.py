@@ -20,6 +20,7 @@ from contribos.agent.profiles import PROFILES, AgentProfile
 from contribos.config import Settings
 from contribos.discovery.service import DiscoveryService
 from contribos.github import GitHubClient
+from contribos.tracker import PRTracker
 from contribos.publish.draft import DRAFT_PROMPT, Draft, draft_from_response
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.host import HostSandbox
@@ -28,6 +29,7 @@ from contribos.sandbox.resources import DISK_ERRORS, resource_limits
 from contribos.sandbox.sbx import SbxSandbox
 from contribos.tasks.events import REQUEST_EVENTS, RESOLUTION_EVENTS, TaskEvents
 from contribos.tasks.instructions import CONTINUE_PROMPT, first_prompt, task_instructions
+from contribos.tasks.pr_feedback import feedback_prompt
 from contribos.tasks.issue import IssueError, IssueRef, fetch_issue
 from contribos.tasks.store import TaskError, TaskStore
 
@@ -87,6 +89,7 @@ class TaskSupervisor:
         self.events = events or TaskEvents(store)
         self.github = github or GitHubClient(settings)
         self.discovery = DiscoveryService(store, self.github)
+        self.tracker = PRTracker(store, self.github, self.events)
         self.issue_loader = issue_loader or partial(fetch_issue, github=self.github)
         self.sandboxes: dict[str, Callable[[AgentProfile], Sandbox]] = ({
             'host': lambda _: HostSandbox(settings), 'sbx': lambda profile: SbxSandbox(settings, profile),
@@ -126,6 +129,8 @@ class TaskSupervisor:
         profile = PROFILES.get(agent)
         if profile is None:
             raise TaskError('unknown_agent', 'The selected Agent does not exist.', 422)
+        if not profile.accepted:
+            raise TaskError('agent_pending_acceptance', 'This Agent is awaiting integration acceptance.', 422)
         if isolation is None:
             configured = self.store.setting('sandbox_backend', 'sbx')
             isolation = configured if configured in {'sbx', 'container'} else 'sbx'
@@ -237,9 +242,18 @@ class TaskSupervisor:
                 self._schedule(runtime)
 
     def send(self, task_id: str, text: str, client_message_id: str | None = None, *,
-             interrupt: bool = False, kind: str = 'user') -> sqlite3.Row:
+             interrupt: bool = False, kind: str = 'user', switch_to: str | None = None) -> sqlite3.Row:
         row = self.store.get(task_id)
         runtime = self._runtime(row)
+        if switch_to is not None:
+            if switch_to not in PROFILES:
+                raise TaskError('unknown_agent', 'The selected Agent does not exist.', 422)
+            if not PROFILES[switch_to].accepted:
+                raise TaskError('agent_pending_acceptance', 'This Agent is awaiting integration acceptance.', 422)
+            if runtime.operation or self.closing:
+                raise TaskError('task_busy', 'Wait for the current task operation to finish.')
+            if isinstance(runtime.sandbox, SbxSandbox) and switch_to != runtime.sandbox.profile.id:
+                raise TaskError('sandbox_agent_unavailable', 'The selected Agent is unavailable in this task VM.', 422)
         if runtime.operation and runtime.turn_id is None:
             raise TaskError('task_busy', 'Wait for the current task operation to finish.')
         if runtime.deleting:
@@ -255,7 +269,8 @@ class TaskSupervisor:
                 except (OSError, SandboxError):
                     raise TaskError('workspace_unavailable', 'This workspace is unavailable or already open.') from None
             self.store.adopt(task_id)
-        turn, created = self.store.enqueue(task_id, text, client_message_id, kind=kind, interrupt=interrupt)
+        turn, created = self.store.enqueue(task_id, text, client_message_id, kind=kind, interrupt=interrupt,
+                                          switch_to=switch_to)
         if created:
             if paused:
                 runtime.sandbox.disk_error = None
@@ -651,18 +666,29 @@ class TaskSupervisor:
             runtime.sandbox.claim_runtime()
 
     async def _connect(self, runtime: _Runtime) -> str:
+        context = runtime.context
+        profile = self.store.get(context.task_id)['agent_profile']
+        if runtime.profile.id != profile:
+            await self._disconnect(runtime)
+            runtime.profile = PROFILES[profile]
+            context.session_id, context.recap_pending = None, True
         await self._restore_workspace(runtime)
         if isinstance(runtime.sandbox, SbxSandbox):
             await runtime.sandbox.check_resources()
-        context = runtime.context
+        switching = context.session_id is None and context.recap_pending
         if runtime.engine is None:
-            if context.session_id:
+            if context.recap_pending:
+                self.store.save_diff(context.task_id, await runtime.sandbox.diff())
+            if context.session_id or context.recap_pending:
                 context.recap = self._recap(context.task_id)
             runtime.engine = self.engine_factory(runtime.sandbox, runtime.profile)
             runtime.reader = asyncio.create_task(self._read(runtime, runtime.engine))
         sid = await runtime.engine.ensure_session(context)
         context.session_id = sid
-        self.store.session(context.task_id, sid, asdict(runtime.engine.capabilities), recap_pending=context.recap_pending)
+        with self.store.transaction():
+            self.store.session(context.task_id, sid, asdict(runtime.engine.capabilities), recap_pending=context.recap_pending)
+            if switching:
+                self._publish(runtime, 'system.session_recreated', {'reason': 'agent_switch', 'agent': profile})
         return sid
 
     def _recap(self, task_id: str) -> str:
@@ -733,8 +759,10 @@ class TaskSupervisor:
                 reason = 'cancelled'
             else:
                 text = turn['prompt_text'] if turn['prompt_text'] is not None else first_prompt(runtime.context)
+                if text.strip().casefold() in {'处理 review 意见', '处理review意见', '处理 pr 审查意见'}:
+                    text = await feedback_prompt(self.store, self.github, runtime.context.task_id)
                 had_recap = runtime.context.recap_pending
-                reason = await self._prompt(runtime, sid, text)
+                reason = 'cancelled' if runtime.stop.is_set() else await self._prompt(runtime, sid, text)
                 if had_recap and not runtime.context.recap_pending:
                     self.store.recap_delivered(runtime.context.task_id, sid)
         except AgentError as caught:
@@ -859,6 +887,7 @@ class TaskSupervisor:
 
     async def shutdown(self) -> None:
         self.closing = True
+        await self.tracker.close()
         await self.discovery.close()
         if self.maintenance:
             self.maintenance.cancel()

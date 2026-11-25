@@ -88,3 +88,66 @@ def test_guest_bundle_and_host_bare_rebuild_skip_hooks(tmp_path, local_repo):
             await sandbox.destroy()
 
     asyncio.run(check())
+
+
+def test_followup_conflict_and_remote_branch_race(tmp_path, local_repo):
+    async def check():
+        upstream = tmp_path / 'upstream.git'
+        git(tmp_path, 'clone', '--bare', str(local_repo), str(upstream))
+        settings = Settings(home=tmp_path / 'data')
+        transfer = GitTransfer(settings, upstream_url=lambda _: str(upstream))
+        guest = HostSandbox(settings, clone_source=str(upstream))
+        ctx = task()
+        await guest.prepare(ctx)
+        cache = transfer._cache(ctx.repo_full_name)
+        readme = Path(ctx.repo_dir) / 'README.md'
+        async def preview(parent=None):
+            source = await snapshot_workspace(guest, ctx, 'main')
+            bundle = await export_candidate(guest, ctx, source)
+            try:
+                return await transfer.preview(ctx.repo_full_name, 'main', bundle, AUTHOR, 'Edit readme',
+                                              uuid.uuid4().hex, parent_sha=parent)
+            finally:
+                bundle.bundle.unlink()
+        try:
+            readme.write_text('Published tree\n')
+            first = await preview()
+            branch = 'contribos/issue-1-0123456789ab'
+            credential = secrets.token_urlsafe(32)
+            await transfer._push_branch(cache, str(upstream), branch, first.commit_sha, credential, allow_file=True)
+            (local_repo / 'docs.md').write_text('Independent upstream change\n')
+            git(local_repo, 'add', 'docs.md')
+            author = ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid']
+            git(local_repo, *author, 'commit', '-m', 'Add docs')
+            git(local_repo, 'push', str(upstream), 'main')
+            readme.write_text('Followup tree\n')
+            next_commit = (await preview(first.commit_sha)).commit_sha
+            (local_repo / 'README.md').write_text('Changed on upstream\n')
+            git(local_repo, *author, 'commit', '-am', 'Conflicting upstream change')
+            git(local_repo, 'push', str(upstream), 'main')
+            with pytest.raises(TransferError, match='followup_rebase_required'):
+                await preview(first.commit_sha)
+
+            class ConcurrentTransfer(GitTransfer):
+                async def _git(self, cache, *args, **kwargs):
+                    output = await super()._git(cache, *args, **kwargs)
+                    if args[0] == 'ls-remote':
+                        if new_tip:
+                            git(upstream, 'update-ref', 'refs/heads/' + branch, new_tip)
+                        else:
+                            git(upstream, 'update-ref', '-d', 'refs/heads/' + branch)
+                    return output
+
+            for new_tip in (first.upstream_sha, git(upstream, 'rev-parse', 'main'), None):
+                git(upstream, 'update-ref', 'refs/heads/' + branch, first.commit_sha)
+                with pytest.raises(TransferError, match='push_failed'):
+                    await ConcurrentTransfer(settings)._push_branch(cache, str(upstream), branch, next_commit,
+                        credential, parent=first.commit_sha, allow_file=True)
+                assert git(upstream, 'for-each-ref', '--format=%(objectname)', 'refs/heads/' + branch) == (new_tip or '')
+            with pytest.raises(TransferError, match='followup_rebase_required'):
+                await transfer._push_branch(cache, str(upstream), branch, next_commit, credential,
+                                             parent=first.upstream_sha, allow_file=True)
+        finally:
+            await guest.destroy()
+
+    asyncio.run(check())

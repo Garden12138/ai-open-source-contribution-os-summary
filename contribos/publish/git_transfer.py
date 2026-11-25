@@ -204,7 +204,7 @@ class GitTransfer:
         await self._git(cache, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
 
     async def preview(self, repo: str, branch: str, candidate: Candidate, author: Author,
-                      message: str, preview_id: str) -> GitPreview:
+                      message: str, preview_id: str, *, parent_sha: str | None = None) -> GitPreview:
         cache = self._cache(repo)
         author_env = author.environment()
         if not re.fullmatch(r'[0-9a-f]{32}', preview_id):
@@ -218,17 +218,19 @@ class GitTransfer:
                 '--no-write-fetch-head', '--filter=blob:none', 'origin', f'+{upstream}:{tracking}',
                 allow_file=url != github_url(repo), error='upstream_fetch_failed')
             base = _oid(candidate.source.base)
-            await self._git(cache, 'merge-base', '--is-ancestor', base, tracking, error='base_not_on_upstream')
+            await self._git(cache, 'merge-base', '--is-ancestor', base, tracking,
+                            error='followup_rebase_required' if parent_sha else 'base_not_on_upstream')
             upstream_sha = _oid((await self._git(cache, 'rev-parse', tracking)).decode())
             ref = f'refs/contribos/import/{preview_id}'
             try:
-                return await self._build(cache, candidate, base, upstream_sha, author, author_env, message, ref, preview_id)
+                return await self._build(cache, candidate, base, upstream_sha, author, author_env, message,
+                                         ref, preview_id, _oid(parent_sha) if parent_sha else base)
             finally:
                 with suppress(TransferError):
                     await self._git(cache, 'update-ref', '-d', ref)
 
     async def _build(self, cache: Path, candidate: Candidate, base: str, upstream: str, author: Author,
-                     author_env: dict[str, str], message: str, ref: str, preview_id: str) -> GitPreview:
+                     author_env: dict[str, str], message: str, ref: str, preview_id: str, parent: str) -> GitPreview:
         path = str(candidate.bundle.resolve(strict=True))
         listed = (await self._git(cache, 'bundle', 'list-heads', path)).decode(errors='replace').splitlines()
         if listed != [f'{_oid(candidate.commit)} {candidate.ref}'] or not re.fullmatch(
@@ -252,12 +254,14 @@ class GitTransfer:
         check_secret(message.encode())
         if author.signoff:
             message = message.rstrip() + f'\n\nSigned-off-by: {author.name} <{author.email}>'
-        commit = _oid((await self._git(cache, 'commit-tree', tree, '-p', base, '-F', '-',
+        commit = _oid((await self._git(cache, 'commit-tree', tree, '-p', parent, '-F', '-',
                                       data=(message.rstrip() + '\n').encode(), settings=author_env)).decode())
-        patch = await self._git(cache, 'diff', *DIFF, '--binary', base, commit, '--')
+        if parent != base and upstream != base:
+            await self._git(cache, 'merge-tree', '--write-tree', upstream, commit, error='followup_rebase_required')
+        patch = await self._git(cache, 'diff', *DIFF, '--binary', parent, commit, '--')
         if not patch:
             raise TransferError('no_publishable_changes')
-        stats = await self._git(cache, 'diff', *DIFF, '--numstat', '-z', base, commit, '--')
+        stats = await self._git(cache, 'diff', *DIFF, '--numstat', '-z', parent, commit, '--')
         files = []
         for line in stats.split(b'\0')[:-1]:
             added, deleted, filename = line.split(b'\t', 2)
@@ -296,18 +300,27 @@ class GitTransfer:
         cache = self._cache(repo)
         return await self._push_branch(cache, github_url(fork), branch, commit, token)
 
+    async def push_followup(self, repo: str, fork: str, branch: str, commit: str, parent: str, token: str) -> str:
+        return await self._push_branch(self._cache(repo), github_url(fork), branch, commit, token, parent=parent)
+
     async def _push_branch(self, cache: Path, url: str, branch: str, commit: str, token: str,
-                           *, allow_file: bool = False) -> str:
+                           *, parent: str | None = None, allow_file: bool = False) -> str:
         ref = f'refs/heads/{branch}'
         await self._git(cache, 'check-ref-format', ref)
         commit = _oid(commit)
+        if parent is not None:
+            parents = await self._git(cache, 'rev-list', '--parents', '-n', '1', commit)
+            if parents.decode().split() != [commit, _oid(parent)]:
+                raise TransferError('followup_rebase_required')
         result = await self._git(cache, 'ls-remote', '--heads', url, ref, token=token,
                                  allow_file=allow_file, error='remote_branch_lookup_failed')
-        if result:
-            if result.strip() == f'{commit}\t{ref}'.encode():
-                return 'existing'
+        if result.strip() == f'{commit}\t{ref}'.encode():
+            return 'existing'
+        expected = f'{parent}\t{ref}'.encode() if parent else b''
+        if result.strip() != expected:
             raise TransferError('remote_branch_conflict')
-        # An empty lease permits creation only, including when the ref appears after ls-remote.
-        await self._git(cache, 'push', '--porcelain', f'--force-with-lease={ref}:', url, f'{commit}:{ref}',
+        # Compare-and-swap the advertised ref. An empty lease only creates; a parent lease
+        # only advances by the single verified child above, including during concurrent pushes.
+        await self._git(cache, 'push', '--porcelain', f'--force-with-lease={ref}:{parent or ""}', url, f'{commit}:{ref}',
                         token=token, allow_file=allow_file, error='push_failed')
         return 'pushed'

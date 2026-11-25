@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any
 
+from contribos.discovery.domain import has_bounty_signal
 from contribos.security import redact
 from contribos.tasks.issue import IssueRef
 from contribos.tasks.instructions import CONTINUE_PROMPT
@@ -18,6 +19,19 @@ Message = dict[str, Any]
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def contribution_metadata(row: sqlite3.Row, previous: Message | None = None) -> Message:
+    previous = previous or {}
+    data = {**previous, **{k: v for k, v in json.loads(row['data_json']).items() if v is not None}}
+    issue = json.loads(row['issue_snapshot_json'] or '{}')
+    bounty = issue.get('has_bounty')
+    if bounty is None:
+        bounty = has_bounty_signal(' '.join((issue.get('title') or '', issue.get('body') or '')))
+    return {**data, 'title': data.get('title') or row['published_title'] or row['issue_title'],
+            'created_at': data.get('created_at') or row['published_at'],
+            'language': data.get('language') or row['repo_language'] or issue.get('language'),
+            'has_bounty': bool(row['bounty'] or bounty or previous.get('has_bounty') or data.get('has_bounty'))}
 
 
 class TaskError(Exception):
@@ -152,9 +166,38 @@ class TaskStore:
                 self.db.execute('''UPDATE tasks SET tokens_input=COALESCE(?,tokens_input),
                     tokens_output=COALESCE(?,tokens_output),updated_at=? WHERE id=?''', (*tokens, utc_now(), task_id))
 
+    def contributions(self, *, retiring_task: str | None = None) -> sqlite3.Cursor:
+        query = """SELECT p.*, t.title AS issue_title, t.issue_snapshot_json,
+            json_extract(r.data_json,'$.language') AS repo_language,
+            json_extract(o.score_json,'$.has_bounty') AS bounty, pub.finished_at AS published_at,
+            json_extract(pub.preview_json,'$.title') AS published_title
+            FROM pull_requests p LEFT JOIN tasks t ON t.id=p.task_id
+            LEFT JOIN opportunities o ON o.repo_full_name=t.repo_full_name COLLATE NOCASE AND o.issue_number=t.issue_number
+            LEFT JOIN repositories r ON r.full_name=p.repo_full_name COLLATE NOCASE
+            LEFT JOIN publications pub ON pub.id=(SELECT q.id FROM publications q WHERE q.task_id=p.task_id
+                AND q.kind='create_pr' AND q.status='succeeded' ORDER BY q.finished_at LIMIT 1)"""
+        if retiring_task is None:
+            return self.db.execute(query + ' GROUP BY p.id ORDER BY p.task_id IS NULL, p.id')
+        return self.db.execute(query + """ WHERE p.task_id=? OR (p.task_id IS NULL AND EXISTS (
+            SELECT 1 FROM pull_requests target WHERE target.task_id=? AND target.number=p.number
+            AND target.repo_full_name=p.repo_full_name COLLATE NOCASE))
+            GROUP BY p.id ORDER BY p.merged DESC, julianday(p.last_synced_at) DESC, p.task_id IS NULL""",
+            (retiring_task, retiring_task))
+
     def delete(self, task_id: str) -> None:
         with self.transaction():
             row = self.get(task_id)
+            records = self.contributions(retiring_task=task_id).fetchall()
+            if records:
+                # Preserve the most recent remote state; merging a PR is irreversible.
+                latest = records[0]
+                metadata = {}
+                for record in reversed(records):
+                    metadata = contribution_metadata(record, metadata)
+                for duplicate in records[1:]:
+                    self.db.execute('DELETE FROM pull_requests WHERE id=?', (duplicate['id'],))
+                self.db.execute('UPDATE pull_requests SET task_id=NULL,data_json=? WHERE id=?',
+                                (self.encode(metadata), latest['id']))
             self.db.execute('DELETE FROM tasks WHERE id=? AND status=?', (task_id, row['status']))
 
     def request_delete(self, task_id: str, requested: bool) -> None:
@@ -171,7 +214,7 @@ class TaskStore:
         return self.db.execute('SELECT * FROM turns WHERE id=?', (turn_id,)).fetchone()
 
     def enqueue(self, task_id: str, text: str, client_message_id: str | None = None, *,
-                kind: str = 'user', interrupt: bool = False) -> tuple[sqlite3.Row, bool]:
+                kind: str = 'user', interrupt: bool = False, switch_to: str | None = None) -> tuple[sqlite3.Row, bool]:
         with self.transaction():
             task = self.get(task_id)
             if client_message_id is not None:
@@ -186,6 +229,14 @@ class TaskStore:
                 raise TaskError('task_not_ready', 'This task cannot accept messages yet.')
             if task['delete_requested']:
                 raise TaskError('task_deleting', 'This task is being deleted.')
+            if switch_to is not None:
+                if task['agent_profile'] == switch_to:
+                    raise TaskError('agent_unchanged', 'Choose a different Agent.')
+                if task['agent_state'] not in {'idle', 'error'} or self.next_turn(task_id):
+                    raise TaskError('task_busy', 'Stop the current turn and finish queued messages before switching.')
+                self.db.execute('''UPDATE tasks SET agent_profile=?,session_id=NULL,agent_caps_json='{}',
+                    mode=NULL,model=NULL,recap_pending=1 WHERE id=? AND agent_profile=?''',
+                    (switch_to, task_id, task['agent_profile']))
             priority = 2 if interrupt or task['agent_state'] == 'error' else 0
             turn = self._insert_turn(task_id, kind, self.clean(text), client_message_id, priority=priority)
             self.db.execute("""INSERT INTO task_events(task_id,turn_id,type,payload_json,created_at)

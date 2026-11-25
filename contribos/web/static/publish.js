@@ -8,6 +8,11 @@ const warnings = {
   draft_template: 'Agent 未返回有效的 PR 文案，已使用模板。',
 };
 
+const confirmLabels = {
+  create_pr: '确认发布 Draft PR', push_followup: '确认追加提交',
+  update_pr: '确认更新 PR 文案', mark_ready: '确认标记 Ready for review',
+};
+
 export function publicationActions(status, busy, dirty) {
   return {
     prepare: !busy && !['confirmed', 'running', 'unknown', 'succeeded'].includes(status),
@@ -22,7 +27,21 @@ function previewDetails(preview) {
   const add = (label, value) => details.append(element('dt', '', label), element('dd', '', value));
   add('PR 目标分支', `${preview.repo} · ${preview.default_branch}`);
   add('PR 来源分支', `${preview.fork} · ${preview.branch}`);
+  if (preview.number) add('PR', `#${preview.number}`);
+  if (preview.kind === 'mark_ready' || preview.kind === 'update_pr') {
+    add('当前提交', preview.commit_sha);
+    if (preview.kind === 'mark_ready') add('状态变更', 'Draft → Ready for review');
+    root.append(details, element('p', '', preview.current_pr.title));
+    if (preview.kind === 'update_pr') {
+      root.append(element('pre', '', preview.current_pr.body));
+      if (preview.title !== preview.current_pr.title || preview.body !== preview.current_pr.body) {
+        root.append(element('h4', '', '预览文案'), element('p', '', preview.title), element('pre', '', preview.body));
+      }
+    }
+    return root;
+  }
   add('基线', preview.base_sha);
+  if (preview.parent_sha) add('已发布的父提交', preview.parent_sha);
   add('上游 HEAD', preview.upstream_sha);
   add('落后上游', `${preview.behind} 个提交`);
   add('提交', preview.commit_sha);
@@ -117,7 +136,7 @@ export function mountPublish(root, path) {
       root.append(feedback);
     }
     if (view?.preparing || ['confirmed', 'running'].includes(status)) {
-      const progress = element('p', 'muted', view?.preparing ? '正在准备发布预览…' : '正在发布 Draft PR…');
+      const progress = element('p', 'muted', view?.preparing ? '正在准备发布预览…' : '正在执行已确认的操作…');
       progress.setAttribute('role', 'status');
       root.append(progress);
     }
@@ -125,22 +144,36 @@ export function mountPublish(root, path) {
     if (publicationActions(status, busy, false).prepare && task?.status === 'ready') {
       root.append(button(pub ? '重新准备 PR' : '准备 PR', () => action('/preview', 'POST')));
     }
-    if (!pub) return;
-    if (status === 'succeeded') {
-      const link = element('a', '', `打开 PR #${pub.pr_number}`);
-      link.href = externalURL(pub.pr_url) || '#';
+    if (view.pull) {
+      const link = element('a', '', `打开 PR #${view.pull.number}`);
+      link.href = externalURL(view.pull.url) || '#';
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      root.append(element('p', '', 'Draft PR 已发布。'), link);
+      root.append(link);
+      if (view.pull.state === 'open' && !busy && !['unknown', 'confirmed', 'running'].includes(status)) {
+        const actions = element('div', 'detail-controls');
+        const prepare = (label, kind) => button(label, () => action('/preview', 'POST', { kind }));
+        actions.append(prepare('预览追加提交', 'push_followup'), prepare('编辑 PR 文案', 'update_pr'));
+        if (view.pull.draft) actions.append(prepare('预览 Ready for review', 'mark_ready'));
+        root.append(actions);
+      }
     }
+    if (!pub) return;
     if (status === 'unknown') {
       root.append(element('p', 'warning', '发布结果待核实。对账会查询并继续原先确认的发布。'));
       const reconcile = button('对账并继续', () => action('/reconcile', 'POST', { preview_hash: pub.preview_hash }));
       reconcile.disabled = !publicationActions(status, busy, false).reconcile;
       root.append(reconcile);
     }
-    if (status === 'previewed') renderEditor(pub, busy);
     root.append(previewDetails(pub.preview));
+    if (status === 'previewed') {
+      if (['create_pr', 'update_pr'].includes(pub.kind)) renderEditor(pub, busy);
+      else {
+        const confirm = button(confirmLabels[pub.kind], () => action('/confirm', 'POST', { preview_hash: pub.preview_hash }), 'primary');
+        confirm.disabled = busy;
+        root.append(confirm);
+      }
+    }
   }
 
   function renderEditor(pub, busy) {
@@ -156,12 +189,15 @@ export function mountPublish(root, path) {
       form.append(wrapper);
     }
     const save = button('保存文案', () => action(`/preview/${encodeURIComponent(pub.id)}`, 'PATCH', { title: draft.title, body: draft.body }));
-    const confirm = button('确认发布 Draft PR', () => action('/confirm', 'POST', { preview_hash: pub.preview_hash }), 'primary');
+    const confirm = button(confirmLabels[pub.kind], () => action('/confirm', 'POST', { preview_hash: pub.preview_hash }), 'primary');
     function edit() {
       draft = { id: pub.id, title: title.value, body: body.value };
       const dirty = draft.title !== pub.preview.title || draft.body !== pub.preview.body;
       save.disabled = busy || !dirty || !draft.title.trim();
       confirm.disabled = !publicationActions(pub.status, busy, dirty).confirm;
+      if (pub.kind === 'update_pr' && draft.title === pub.preview.current_pr.title && draft.body === pub.preview.current_pr.body) {
+        confirm.disabled = true;
+      }
     }
     edit();
     title.addEventListener('input', edit);

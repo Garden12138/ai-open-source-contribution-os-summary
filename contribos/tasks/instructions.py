@@ -38,4 +38,4 @@ def first_prompt(task: TaskContext) -> str:
 
 
 def recovery_prompt(task: TaskContext) -> str:
-    return task.instructions + '\nThe previous session could not be restored. Recent conversation and current changes:\n' + task.recap
+    return task.instructions + '\nContinue in this new session. Recent conversation and current changes:\n' + task.recap

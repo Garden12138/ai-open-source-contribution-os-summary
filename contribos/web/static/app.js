@@ -1,5 +1,6 @@
 import { api, el, element, isolationLabel, taskPath } from './api.js';
 import { mountDiscovery } from './discovery.js';
+import { mountContributions } from './contributions.js';
 import { bindNewTask, openNewTask } from './new-task.js';
 import { mountChat } from './chat.js';
 import { mountComposer } from './composer.js';
@@ -14,6 +15,7 @@ let composer;
 let details;
 let closeSettings;
 let closeDiscovery;
+let closeContributions;
 let refreshTimer;
 const statusLabels = {
   preparing: '正在准备', setup_failed: '准备失败', published: '已发布', idle: '空闲',
@@ -86,19 +88,24 @@ function navigate() {
   clearTimeout(refreshTimer);
   const hash = location.hash;
   const settings = hash === '#settings';
+  const contributions = hash === '#contributions';
   const discovery = !hash || hash === '#' || hash === '#discovery';
   closeDiscovery?.();
   closeDiscovery = undefined;
+  closeContributions?.();
+  closeContributions = undefined;
+  el('contributions').hidden = !contributions;
   el('discovery').hidden = !discovery;
   el('settings').hidden = !settings;
-  el('workspace').hidden = settings || discovery;
-  const nav = discovery ? 'discovery-nav' : settings ? 'settings-nav' : 'tasks-nav';
-  for (const id of ['discovery-nav', 'tasks-nav', 'settings-nav']) {
+  el('workspace').hidden = settings || discovery || contributions;
+  const nav = discovery ? 'discovery-nav' : settings ? 'settings-nav' : contributions ? 'contributions-nav' : 'tasks-nav';
+  for (const id of ['discovery-nav', 'tasks-nav', 'settings-nav', 'contributions-nav']) {
     if (id === nav) el(id).setAttribute('aria-current', 'page');
     else el(id).removeAttribute('aria-current');
   }
   if (discovery) closeDiscovery = mountDiscovery(openNewTask);
   if (settings) closeSettings = mountSettings(el('settings-body'));
+  if (contributions) closeContributions = mountContributions(el('contributions-body'));
   activeId = hash.match(/^#task\/([a-zA-Z0-9_-]+)$/)?.[1];
   ++detailVersion;
   renderList();

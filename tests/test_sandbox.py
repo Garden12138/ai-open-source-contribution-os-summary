@@ -8,7 +8,7 @@ import pytest
 
 from contribos.agent.engine import TaskContext
 from contribos.agent.profiles import PROFILES
-from contribos.config import Settings
+from contribos.config import OpenModel, Settings
 from contribos.sandbox.base import Sandbox, SandboxError
 from contribos.sandbox.sbx import CONTEXT, PACKAGE_DOMAINS, PRIVATE_NETWORKS, REPO, ROOT, SbxSandbox, normalize_egress_domains
 
@@ -26,6 +26,7 @@ class FakeSbx(SbxSandbox):
         self.scoped_rules: list[dict] = []
         self.proxy = {'proxy.sandbox': 'direct'}
         self.configured_service = 'openai'
+        self.model_secret = []
         self.mounts: list[str] = []
         self.writable_layer = 0
         self.volume_bytes = 0
@@ -40,7 +41,13 @@ class FakeSbx(SbxSandbox):
                           'volumes': [{'name': self.name + '-docker', 'size': self.volume_bytes}]}
             case ('secret', 'ls', *rest):
                 result = {'secrets': [{'name': self.configured_service, 'type': 'service',
-                                       'secret': '(oauth configured)'}], 'custom_secrets': []}
+                                       'secret': '(oauth configured)'}],
+                          'custom_secrets': self.model_secret if '--sandbox' in rest else []}
+            case ('secret', 'set-custom', '--sandbox', name, '--host', host, '--env', env, '--placeholder', placeholder, '--value-stdin'):
+                key = data.decode()
+                self.model_secret = [{'scope': name, 'targets': [host], 'env': env, 'placeholder': placeholder,
+                                      'secret': f'{key[:6]}******...******{key[-4:]}'}]
+                return 0, b'', b''
             case ('settings', 'get', 'ssh.agentSocketPath'):
                 return 0, b'\n', b''
             case ('settings', 'get', key):
@@ -54,6 +61,11 @@ class FakeSbx(SbxSandbox):
                 self.scoped_rules.extend({'id': domain, 'status': 'active', 'scope': 'sandbox:' + name,
                     'resource_type': 'network', 'decision': 'allow', 'resources': [domain],
                     'actions': ['net:connect:tcp'], 'editable': True} for domain in domains.split(','))
+                return 0, b'', b''
+            case ('policy', 'allow', 'network', '--sandbox', name, host, '--method', 'POST', '--path', path):
+                self.scoped_rules.append({'status': 'active', 'scope': 'sandbox:' + name, 'editable': True,
+                    'resource_type': 'http', 'decision': 'allow', 'resources': [host], 'actions': ['http:request:post'],
+                    'methods': ['POST'], 'http_targets': [{'host': host, 'path': path}]})
                 return 0, b'', b''
             case ('policy', 'rm', 'network', '--sandbox', name, '--id', rule_id, '--force'):
                 assert name == self.name
@@ -71,7 +83,7 @@ class FakeSbx(SbxSandbox):
                 if not self.exists:
                     return 1, b'', b''
                 result = {'id': 'fake-vm', 'agent': self.profile.sbx_agent, 'state': self.state,
-                          'kits': [self.profile.sbx.workload, self.profile.sbx.kit], 'effective_working_dir': str(ROOT),
+                          'kits': [v for v in (self.profile.sbx.workload, self.profile.sbx.kit) if v], 'effective_working_dir': str(ROOT),
                           'host_mounts': self.mounts, 'runtime_mounts': [], 'mcp_mode': 'static', 'mcp_servers': [],
                           'auth_mode': self.profile.sbx.auth_mode}
             case ('exec', *rest):
@@ -309,3 +321,38 @@ def test_sandbox_scoped_credential_report_fails_closed_before_creation(tmp_path,
     with pytest.raises(SandboxError, match='sbx_credential_policy_unsafe'):
         asyncio.run(sandbox.prepare(sbx_task()))
     assert not any(call[0] in {'create', 'exec'} for call in sandbox.received)
+
+
+@pytest.mark.parametrize('provider', ['deepseek', 'xcli'])
+@pytest.mark.parametrize('agent', ['opencode', 'openhands'])
+def test_model_proxy_keeps_keys_out_of_command_lines_and_checks_scoped_rules(tmp_path, monkeypatch, provider, agent):
+    key = secrets.token_hex(24)
+    monkeypatch.setenv('DEEPSEEK_API_KEY' if provider == 'deepseek' else 'CONTRIBOS_XCLI_API_KEY', key)
+
+    async def check():
+        sandbox = FakeSbx(tmp_path)
+        sandbox.profile = PROFILES[agent]
+        sandbox.model = OpenModel(provider=provider, model='selected-model', xcli_port=11777)
+        task = sbx_task()
+        await sandbox.prepare(task)
+        try:
+            process = await sandbox.spawn_agent(sandbox.profile)
+            await process.communicate(b'')
+            assert all(key not in arg for argv in sandbox.received for arg in argv)
+            assert key not in str(sandbox.context)
+            assert sandbox.model_secret[0]['targets'] == ['localhost' if provider == 'xcli' else 'api.deepseek.com']
+            if provider == 'xcli':
+                route = next(r for r in sandbox.scoped_rules if r['resource_type'] == 'http')
+                assert route['http_targets'] == [{'host': 'localhost:11777', 'path': '/v1/chat/completions'}]
+                assert not any('localhost:11777' in r['resources'] for r in sandbox.scoped_rules if r['resource_type'] == 'network')
+                route['http_targets'][0]['path'] = '/**'
+                with pytest.raises(SandboxError, match='sbx_network_policy_unsafe'):
+                    await sandbox.spawn_agent(sandbox.profile)
+                route['http_targets'][0]['path'] = '/v1/chat/completions'
+            sandbox.model_secret[0]['targets'].append('api.github.com')
+            with pytest.raises(SandboxError, match='sbx_credential_policy_unsafe'):
+                await sandbox.spawn_agent(sandbox.profile)
+        finally:
+            await sandbox.destroy()
+
+    asyncio.run(check())

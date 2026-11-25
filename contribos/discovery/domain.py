@@ -14,6 +14,10 @@ _BOUNTY_AMOUNT_PATTERNS = (
 _BOUNTY_WORD_PATTERN = re.compile(r"\b(?:bounty|reward|paid)\b", re.IGNORECASE)
 
 
+def has_bounty_signal(text: str) -> bool:
+    return bool(_BOUNTY_WORD_PATTERN.search(text)) or any(word in text for word in ("赏金", "奖金"))
+
+
 @dataclass(frozen=True, slots=True)
 class DiscoveryRules:
     preferred_languages: tuple[str, ...] = ("Python", "TypeScript", "JavaScript")
@@ -80,10 +84,7 @@ class IssueFacts:
 
     @property
     def has_bounty_signal(self) -> bool:
-        text = self.searchable_text
-        return bool(_BOUNTY_WORD_PATTERN.search(text)) or any(
-            word in text for word in ("赏金", "奖金")
-        )
+        return has_bounty_signal(self.searchable_text)
 
 
 @dataclass(frozen=True, slots=True)

@@ -206,3 +206,18 @@ code { background: #f3f5fb; border-radius: .25rem; }
 .card-actions a { font-size: .9rem; }
 .topbar { flex-wrap: wrap; }
 #load-opportunities { margin-top: 1rem; }
+
+.contribution-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; }
+.contribution-groups > section { margin: 0; }
+.contribution-record { border-top: 1px solid var(--border); padding: .85rem 0; overflow-wrap: anywhere; }
+.contribution-record p, .contribution-record h3 { margin: .3rem 0; }
+.contribution-record .card-actions { margin: .4rem 0; }
+.calendar-scroll { overflow: auto; }
+.contribution-calendar { display: grid; width: max-content; grid-auto-flow: column; grid-template-rows: repeat(7, .78rem); grid-auto-columns: .78rem; gap: 3px; }
+.contribution-calendar .day { background: #e5e9f2; border-radius: 2px; }
+.contribution-calendar .level-1 { background: #b2c3f5; }
+.contribution-calendar .level-2 { background: #748cd4; }
+.contribution-calendar .level-3 { background: #414fa5; }
+.contribution-months { width: 100%; border-collapse: collapse; }
+.contribution-months th, .contribution-months td { text-align: left; padding: .25rem; }
+.distribution { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem; overflow-wrap: anywhere; }

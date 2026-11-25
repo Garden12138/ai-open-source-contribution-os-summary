@@ -181,6 +181,7 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
         'sandbox_extra_domains': ['Mirror.Example.com', 'mirror.example.com'],
         'default_agent': 'cursor',
         'review_agent': 'codex',
+        'open_model': {'provider': 'xcli', 'xcli_port': 18831, 'model': 'coder'},
         'sandbox_backend': 'container',
         'first_turn_policy': 'implement',
         'resource_limits': {'cpus': 3},
@@ -193,6 +194,8 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
     assert saved['trusted_owners'] == ['owner', 'another-owner']
     assert saved['sandbox_extra_domains'] == ['mirror.example.com']
     assert saved['default_agent'] == 'cursor' and saved['review_agent'] == 'codex'
+    assert saved['open_model'] == client.app.state.settings.open_model == preferences['open_model']
+    assert not {'opencode', 'openhands'} & {p['id'] for p in saved['agent_profiles']}
     assert saved['first_turn_policy'] == 'implement' and saved['sandbox_backend'] == 'container'
     assert saved['resource_limits']['cpus'] == 3 and saved['resource_limits']['memory_mib'] == 4096
     assert saved['notifications']['turn_completed'] is False and saved['notifications']['request_waiting'] is True
@@ -202,7 +205,9 @@ def test_settings_validate_persist_and_apply_tool_paths(web, monkeypatch):
     for invalid in ({'tool_paths': {'git': './git'}}, {'tool_paths': {'bash': '/bin/bash'}},
                     {'sandbox_extra_domains': ['host.docker.internal']}, {'sandbox_extra_domains': ['*.com']},
                     {'resource_limits': {'cpus': 0}}, {'trusted_owners': ['owner/repo']},
-                    {'notifications': {'turn_completed': 'false'}}, {'default_agent': 'missing'}):
+                    {'notifications': {'turn_completed': 'false'}}, {'default_agent': 'missing'},
+                    {'review_agent': 'openhands'}, {'open_model': {'url': 'http://example.org'}},
+                    {'open_model': {'provider': 'xcli', 'xcli_port': client.app.state.settings.port}}):
         assert client.put('/api/settings', headers=auth, json=invalid).status_code == 422
     assert client.get('/api/settings', headers=auth).json() == saved
 

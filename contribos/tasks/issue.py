@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from contribos.config import Settings
+from contribos.discovery.domain import has_bounty_signal
 from contribos.github import GitHubClient, GitHubError, GitHubReader
 
 
@@ -77,6 +78,8 @@ async def _snapshot(ref: IssueRef, reader: GitHubReader) -> dict[str, Any]:
         timeline = await pages(f'{prefix}/issues/{ref.number}/timeline')
         linked = linked_pull_requests(timeline)
         return {'title': issue.get('title', ''), 'body': issue.get('body') or '', 'state': issue.get('state'),
+                'language': repo.get('language'), 'has_bounty': has_bounty_signal(' '.join([
+                    issue.get('title', ''), issue.get('body') or '', *(l['name'] for l in issue.get('labels', []))])),
                 'assignees': [a.get('login') for a in issue.get('assignees', [])],
                 'comments': [{'body': c.get('body') or ''} for c in comments],
                 'linked_prs': linked, 'default_branch': repo['default_branch']}

@@ -386,12 +386,25 @@ OpenCode、OpenHands profile 及通过它们使用 xcli / DeepSeek（本机直�
   M7 当前规模：非测试 Python 7,494 行，前端 2,193 行，外壳 Rust 591 行。
 
 ### M8 v1 功能
-- [ ] M8-1 PR Tracker
-- [ ] M8-2 贡献记录页
-- [ ] M8-3 处理 review 意见与追加提交
-- [ ] M8-4 更新 PR 文案、标记 Ready for review
+- [x] M8-1 PR Tracker
+  验证：`tests/test_tracker.py` 覆盖 30 分钟调度、手动刷新、事件去重、状态竞态和匿名分页。宿主只读查询 M5 的 [练习 PR #76](https://github.com/Call-for-Code/Practice-Pull-Requests/pull/76)，GitHub 返回已关闭、未合并、1 条评论及 CI 汇总。
+- [x] M8-2 贡献记录页
+  验证：临时库与无头 Chromium 验证从导航打开贡献记录、切换至闰年查看 366 个日期、查看赏金标记。后端用例核对跨月提交与合并、仓库及语言分布，以及删除本地任务后保留 PR 履历和跟踪。
+- [x] M8-3 处理 review 意见与追加提交
+  验证：Publisher 与 bare Git 测试覆盖带入审查和行内评论、增量 diff、直接以已发布 head 为父提交、冲突提示及远端被删除、回退或分叉时拒绝推送。
+- [x] M8-4 更新 PR 文案、标记 Ready for review
+  验证：宿主 Publisher 测试覆盖各自的浏览器确认、旧 hash 失效、远端文案变更和写入后丢失响应的幂等对账。使用模拟 GitHub 接口验证这两项写操作。
 - [ ] M8-5 OpenCode / OpenHands profile + xcli / DeepSeek 模型接入
-- [ ] M8-6 任务中途换 Agent 继续
-- [ ] M8-7 （按需）`CodexAppServerEngine`
-- [ ] M8-8 `import-legacy`
+  已接入设置页、独立 CLI 配置及任务级模型代理。无挂载 VM 内的 OpenCode 1.19.6、OpenHands 1.16.0 均建立 ACP 会话，向受控模型路径发送请求。完整八项验收仍需可用的模型服务，以及本机直跑任务的信任确认；验收完成前仅开放显式 CLI 测试。见 [Agent 接入矩阵](agent-matrix.md)。
+- [x] M8-6 任务中途换 Agent 继续
+  验证：`pytest -q tests/test_task_supervisor.py -k 'switch_agent or exit_recovers'` 3 passed。两个独立的测试 ACP 进程在同一工作区交接，新会话收到任务指令、对话回顾和刚修改的文件 diff，写入一次 `system.session_recreated`。运行中的轮次不能被换掉；现有专用 kit 只能运行其内置 Agent。
+- [x] M8-7 （按需）`CodexAppServerEngine` 启用条件评估
+  核对 M7-5 与接入矩阵：M7 产品验收待完成，尚无实测证明 ACP 缺口明显影响 Codex 体验。当前沿用 ACP，待真实验收出现该问题再实施原生适配器。
+- [x] M8-8 `import-legacy`
+  验证：`pytest -q tests/test_legacy.py` 2 passed。小型旧格式 SQLite 库覆盖重复导入、标记撤销、最新偏好、已合并的 GitHub PR、模拟 PR 排除、事务回滚及源文件内容保持一致。
 - [ ] M8-9 【需用户】Linux amd64 验证（含桌面包）
+  Debian 12 amd64 用户态已构建并启动 deb 与 AppImage。AppImage 使用解包模式；真实沙箱集成和探针需要支持 KVM、已安装并登录 sbx 的 Linux amd64 主机。见 [Linux 验收结果](acceptance-mvp.md)。
+
+  macOS arm64 本地试用包已重建并通过签名校验。在临时数据目录启动实际桌面应用，WebView 显示「发现机会」及「贡献记录」导航；贡献统计接口未登录返回 401，鉴权后返回 200；退出后包内后端随之停止。
+  本机回归：`pytest -q` 338 passed、10 skipped，其中因监听权限跳过的桌面 SIGTERM 用例另行实跑通过。前端 15 passed，桌面 Rust 4 passed，`compileall` 和 `git diff --check` 通过。
+  M8 当前规模：非测试 Python 8,482 行，前端 2,456 行，桌面 Rust 591 行（含构建脚本）。

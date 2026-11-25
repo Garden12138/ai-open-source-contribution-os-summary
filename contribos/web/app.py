@@ -25,6 +25,7 @@ from contribos.tasks.supervisor import TaskSupervisor
 from contribos.publish.service import Publisher
 from contribos.review.service import ReviewService
 from contribos.web.routes_discovery import router as discovery_router
+from contribos.web.routes_tracker import router as tracker_router
 from contribos.web.routes_publish import router as publish_router
 from contribos.web.routes_review import router as review_router
 from contribos.web.routes_tasks import router as task_router
@@ -73,6 +74,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
                 app.state.db = database
                 store = TaskStore(database, clean)
                 settings.tool_paths.update(store.setting('tool_paths', {}))
+                settings.open_model.update(store.setting('open_model', {}))
                 supervisor = demo_supervisor(settings, store) if demo else supervisor_factory(settings, store)
                 app.state.supervisor = supervisor
                 if not demo:
@@ -89,6 +91,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
                     supervisor.start()
                     if not demo:
                         supervisor.discovery.schedule()
+                        supervisor.tracker.schedule()
                     yield
                 finally:
                     await supervisor.shutdown()
@@ -188,6 +191,7 @@ def create_app(settings: Settings | None = None, *, auth: LocalAuth | None = Non
         return FileResponse(STATIC / "index.html")
 
     app.include_router(discovery_router)
+    app.include_router(tracker_router)
     app.include_router(task_router)
     app.include_router(publish_router)
     app.include_router(review_router)

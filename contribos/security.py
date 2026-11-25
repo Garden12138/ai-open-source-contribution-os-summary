@@ -42,7 +42,8 @@ def clean_environment(source: Mapping[str, str], runtime_dir: Path) -> dict[str,
                'CURSOR_CONFIG_DIR', 'CODEX_REMOTE_AUTH_TOKEN', 'NETRC', 'CURL_HOME', 'DOCKER_CONFIG',
                'AWS_SHARED_CREDENTIALS_FILE', 'NPM_CONFIG_USERCONFIG', 'KUBECONFIG', 'GNUPGHOME'}
     env = {k: v for k, v in source.items() if k not in blocked and not k.upper().startswith(
-        ('GIT_', 'GCM_', 'GH_', 'GITHUB_', 'CONTRIBOS_', 'LD_', 'DYLD_')) and not k.upper().endswith(
+        ('GIT_', 'GCM_', 'GH_', 'GITHUB_', 'CONTRIBOS_', 'LD_', 'DYLD_', 'OPENCODE_', 'OPENHANDS_',
+         'LLM_', 'OPENAI_', 'LITELLM_', 'XDG_')) and not k.upper().endswith(
         ('_TOKEN', '_API_KEY', '_PASSWORD', '_SECRET_ACCESS_KEY'))}
     env.update(HOME=str(runtime_dir / 'home'), USERPROFILE=str(runtime_dir / 'home'),
         XDG_CONFIG_HOME=str(runtime_dir / 'home' / '.config'),

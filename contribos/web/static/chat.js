@@ -2,6 +2,7 @@ import { element } from './api.js';
 import { timeline } from './chat-events.js';
 import { externalURL, renderMarkdown } from './markdown.js';
 import { requestCard } from './requests.js';
+import { prStatus } from './contributions.js';
 
 const eventTypes = [
   'message.user', 'message.agent', 'message.delta', 'reasoning.delta', 'reasoning.summary',
@@ -12,6 +13,7 @@ const eventTypes = [
   'system.warning', 'system.runtime_failed', 'system.recovery_failed', 'system.cancel_forced', 'system.agent_exited',
   'turn.started', 'turn.completed', 'turn.failed', 'turn.interrupted',
   'diff.updated', 'issue.updated', 'issue.refresh_failed',
+  'pr.updated',
   'publish.preparing', 'publish.previewed', 'publish.preview_failed', 'publish.confirmed', 'publish.running',
   'publish.failed', 'publish.succeeded',
   'review.started', 'review.completed', 'review.invalid', 'review.failed',
@@ -51,10 +53,15 @@ function systemMessage(type, payload) {
 function cardFor(event, path, resume) {
   const { type, payload } = event;
   const { text = '', title, status } = payload;
+  if (type === 'pr.updated') {
+    return element('p', 'activity', ['PR ' + prStatus(payload), payload.review_decision,
+      payload.checks_state && 'CI · ' + payload.checks_state, payload.comments_count + ' 条评论'].filter(Boolean).join(' · '));
+  }
   if (type === 'permission.requested' || type === 'question.asked') return requestCard(event, path);
   if (type === 'permission.resolved' && payload.auto) return element('p', 'activity', '权限已自动处理。');
   if (type === 'publish.succeeded') {
-    const card = element('div', 'activity', 'Draft PR 已发布。');
+    const messages = { push_followup: '追加提交已推送。', update_pr: 'PR 文案已更新。', mark_ready: 'PR 已标记 Ready for review。' };
+    const card = element('div', 'activity', messages[payload.publication_kind] || 'Draft PR 已发布。');
     const href = externalURL(payload.pr_url);
     if (href) {
       const link = element('a', '', '打开 PR');

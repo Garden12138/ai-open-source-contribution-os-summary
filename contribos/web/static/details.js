@@ -196,7 +196,7 @@ export function mountDetails(root, path, refreshTask) {
     },
     event(event) {
       if (event.type.startsWith('review.')) review.event();
-      if (event.type.startsWith('publish.')) {
+      if (event.type.startsWith('publish.') || event.type === 'pr.updated') {
         publish.event();
         if (event.type === 'publish.succeeded') refreshTask();
       }

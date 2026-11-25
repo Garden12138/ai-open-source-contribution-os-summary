@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from contribos.agent.engine import RequestResponse
 from contribos.agent.profiles import PROFILES, AgentStatus, agent_statuses, check_profile
 from contribos.review.service import APPLY_PHRASES
+from contribos.tasks.instructions import CONTINUE_PROMPT
 from contribos.tasks.issue import IssueError, parse_issue_url
 from contribos.tasks.store import TaskError
 from contribos.tasks.supervisor import TaskSupervisor
@@ -46,6 +47,13 @@ class RequestInput(BaseModel):
     answers: dict[str, Any] | None = None
 
 
+class SwitchAgentInput(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    agent: str = Field(min_length=1, max_length=100)
+    client_message_id: str = Field(min_length=1, max_length=200)
+
+
 def _supervisor(request: Request) -> TaskSupervisor:
     return request.app.state.supervisor
 
@@ -57,9 +65,9 @@ def _agent_info(request: Request, status: AgentStatus) -> dict[str, Any]:
         supports = ['host', 'sbx', 'container']
     configured = request.app.state.supervisor.sandboxes
     return request.app.state.supervisor.store.sanitize({
-        **asdict(status), 'name': profile.name, 'installed': status.executable is not None,
+        **asdict(status), 'name': profile.name, 'installed': status.executable is not None, 'accepted': profile.accepted,
         'sandbox_unavailable_reason': profile.sandbox_unavailable_reason if 'sbx' not in supports else '',
-        'isolation': supports, 'available_isolation': [kind for kind in supports if kind in configured],
+        'isolation': supports, 'available_isolation': [kind for kind in supports if kind in configured and profile.accepted],
     })
 
 
@@ -121,6 +129,9 @@ async def task(request: Request, task_id: str) -> dict[str, Any]:
         **{key: row[key] for key in keys}, 'issue_snapshot': loads(row['issue_snapshot_json']),
         'agent_name': PROFILES[row['agent_profile']].name if row['agent_profile'] in PROFILES else row['agent_profile'],
         'deleting': bool(row['delete_requested']),
+        'switch_agents': [{'id': p.id, 'name': p.name} for p in PROFILES.values()
+                          if p.accepted and p.id != row['agent_profile']
+                          and (request.app.state.demo or row['isolation'] == 'host')],
         'agent_capabilities': loads(row['agent_caps_json']), 'turns': turns,
         'pending_requests': [asdict(event) for event in supervisor.events.pending(task_id).values()],
     })
@@ -142,6 +153,13 @@ async def message(request: Request, task_id: str, body: MessageInput) -> dict[st
     else:
         turn = _supervisor(request).send(task_id, body.text, body.client_message_id, interrupt=interrupt)
     return {'turn_id': turn['id'], 'status': 'queued'}
+
+
+@router.post('/tasks/{task_id}/switch-agent', status_code=202)
+async def switch_agent(request: Request, task_id: str, body: SwitchAgentInput) -> dict[str, str]:
+    turn = _supervisor(request).send(task_id, CONTINUE_PROMPT, body.client_message_id,
+                                     kind='recap', switch_to=body.agent)
+    return {'turn_id': turn['id'], 'status': turn['status']}
 
 
 @router.post('/tasks/{task_id}/interrupt', status_code=202)

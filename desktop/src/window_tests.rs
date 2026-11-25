@@ -29,10 +29,12 @@ fn main_webview_has_no_ipc_capabilities() {
     assert_eq!(config["app"]["withGlobalTauri"], false);
     assert!(config["app"]["windows"].as_array().unwrap().is_empty());
     assert!(config["app"]["security"]["capabilities"].as_array().unwrap().is_empty());
+    let linux: serde_json::Value = serde_json::from_str(include_str!("../tauri.linux.conf.json")).unwrap();
+    assert_eq!(linux, serde_json::json!({ "bundle": { "targets": ["appimage", "deb"] } }));
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     assert!(root.join("capabilities").read_dir().unwrap().all(|entry| { entry.unwrap().file_name() == ".gitkeep" }));
     assert!(root.read_dir().unwrap().all(|entry| {
         let name = entry.unwrap().file_name();
-        !name.to_string_lossy().starts_with("tauri.") || name == "tauri.conf.json"
+        !name.to_string_lossy().starts_with("tauri.") || name == "tauri.conf.json" || name == "tauri.linux.conf.json"
     }));
 }

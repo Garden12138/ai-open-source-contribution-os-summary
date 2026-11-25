@@ -1,6 +1,6 @@
 """Browser confirmation and read-only status for Draft PR publications."""
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -17,6 +17,12 @@ class PreviewText(BaseModel):
 
     title: str = Field(min_length=1, max_length=256)
     body: str = Field(max_length=65536)
+
+
+class PreviewRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    kind: Literal['create_pr', 'push_followup', 'update_pr', 'mark_ready'] = 'create_pr'
 
 
 class Confirmation(BaseModel):
@@ -44,8 +50,8 @@ async def publication(request: Request, task_id: str) -> dict[str, Any]:
 
 
 @router.post('/preview', status_code=202)
-async def prepare(request: Request, task_id: str) -> dict[str, str]:
-    publisher(request).prepare(task_id)
+async def prepare(request: Request, task_id: str, body: PreviewRequest | None = None) -> dict[str, str]:
+    publisher(request).prepare(task_id, body.kind if body else 'create_pr')
     return {'status': 'preparing'}
 
 

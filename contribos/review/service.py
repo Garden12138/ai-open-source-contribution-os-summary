@@ -69,7 +69,7 @@ class ReviewService:
 
     def start(self, task_id: str, requested: str | None) -> str:
         task = self.store.get(task_id)
-        if requested and requested not in PROFILES:
+        if requested and (requested not in PROFILES or not PROFILES[requested].accepted):
             raise TaskError('unknown_agent', 'The selected review Agent does not exist.', 422)
         review_id = uuid.uuid4().hex
         self.supervisor.background(task_id, lambda: self._run(review_id, task_id, requested))
@@ -88,7 +88,7 @@ class ReviewService:
         choices = [configured] if configured and (requested or configured != implementation.id) else list(PROFILES)
         for name in choices:
             profile = PROFILES.get(name)
-            if profile is not None and profile != implementation:
+            if profile is not None and profile.accepted and profile != implementation:
                 status = await asyncio.to_thread(check_profile, profile, self.supervisor.settings)
                 if status.executable and status.login in {'logged_in', 'unknown'}:
                     return profile

@@ -106,6 +106,9 @@ class ChatSession:
         self.connection = connect(settings.database_path)
         try:
             migrate(self.connection)
+            preferences = TaskStore(self.connection)
+            settings.open_model.update(preferences.setting('open_model', {}))
+            settings.tool_paths.update(preferences.setting('tool_paths', {}))
         except sqlite3.Error:
             self.connection.close()
             raise
@@ -452,7 +455,9 @@ async def run_chat(settings: Settings, agent: str, issue_url: str | None, *, tru
             'sbx_credential_policy_unsafe': 'Check sbx credential and SSH forwarding settings for sources outside the task profile.',
             'sbx_oauth_required': 'Configure the Docker Sandboxes OAuth credential for this Agent.',
             'sandbox_agent_unavailable': 'The selected Agent is unavailable in this isolation level.',
-        }.get(code, exc.message if isinstance(exc, IssueError) else
+            'model_not_configured': 'Select the provider, model ID and inference gateway port in Settings.',
+            'model_key_missing': 'Set DEEPSEEK_API_KEY in the backend environment.',
+        }.get(code, exc.message if isinstance(exc, (IssueError, AgentError)) else
               'Chat could not proceed. Use contribos agents to inspect Agent setup.')
         console.write(f'\n[{code}] {message}\n')
         return 1

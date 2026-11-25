@@ -148,6 +148,19 @@ class GitHubReader:
                 self._cache.pop(key, None)
             return payload
 
+    async def pages(self, path: str, key: str | None = None) -> AsyncIterator[dict[str, Any]]:
+        page = 1
+        while True:
+            result = await self.get(path, params={'page': page, 'per_page': 100}, cached=True)
+            items = result.get(key) if key and isinstance(result, dict) else result
+            if not isinstance(items, list) or not all(isinstance(item, dict) for item in items):
+                raise GitHubError('github_invalid_response')
+            for item in items:
+                yield item
+            if len(items) < 100:
+                return
+            page += 1
+
     async def search_issues(self, query: str, limit: int) -> list[dict[str, Any]]:
         results = []
         size = min(100, limit)
@@ -162,6 +175,38 @@ class GitHubReader:
             if len(items) < size:
                 break
         return results
+
+    async def pull_summary(self, repo: str, number: int) -> dict[str, Any] | None:
+        """Read GitHub's effective review decision and CI rollup when authenticated."""
+        if not self._authenticated:
+            return None
+        owner, name = repo.split('/')
+        query = '''query($owner:String!, $name:String!, $number:Int!) {
+          repository(owner:$owner, name:$name) {
+            pullRequest(number:$number) {
+              title state isDraft mergedAt createdAt headRefOid reviewDecision totalCommentsCount
+              statusCheckRollup { state } repository { primaryLanguage { name } }
+            }
+          }
+        }'''
+        try:
+            response = await self._client.post(API + '/graphql', follow_redirects=False,
+                headers={**API_HEADERS, 'Authorization': 'Bearer ' + self._token},
+                json={'query': query, 'variables': {'owner': owner, 'name': name, 'number': number}})
+            if response.status_code == 401:
+                self._authenticated = False
+                return None
+            if response.status_code in {403, 429}:
+                raise GitHubError('github_rate_limited', 'GitHub refused the status query. Check access and rate limits.')
+            response.raise_for_status()
+            data = response.json()
+            if data.get('errors'):
+                if all(isinstance(error, dict) and error.get('type') == 'FORBIDDEN' for error in data['errors']):
+                    return None
+                raise GitHubError('github_read_failed')
+            return self._clean(data['data']['repository']['pullRequest'])
+        except (httpx.HTTPError, ValueError, AttributeError, KeyError, TypeError):
+            raise GitHubError('github_read_failed') from None
 
 
 class GitHubClient:

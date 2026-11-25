@@ -84,6 +84,7 @@ async function load() {
   formStatus();
   try {
     [config, { agents }] = await Promise.all([api('/settings'), api('/agents')]);
+    agents = agents.filter(agent => agent.accepted);
     const options = el('isolation-options');
     agentSelect.replaceChildren(...agents.map(agent =>
       new Option(`${agent.name} · ${agent.installed ? agentLogin(agent.login) : '本机未安装'}`, agent.id)));

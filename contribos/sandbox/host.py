@@ -14,7 +14,7 @@ from typing import BinaryIO, Mapping
 
 from contribos.agent.engine import TaskContext
 from contribos.agent.profiles import AgentProfile
-from contribos.config import Settings
+from contribos.config import OpenModel, Settings
 from contribos.sandbox.base import AgentProcess, ExecResult, SandboxError, Workspace, context_files, workspace_diff
 from contribos.sandbox.processes import ProcessInfo, process_family, process_info
 from contribos.sandbox.read_file import read_workspace_file
@@ -222,6 +222,17 @@ class HostSandbox:
         env = self.settings.tool_environment({
             **self.environment, **profile.env(self.settings), 'GIT_CONFIG_GLOBAL': os.devnull,
         })
+        if profile.open_model:
+            directory = self._inside(str(self.root / 'runtime' / profile.id))
+            model_env, files = profile.model_environment(OpenModel.model_validate(self.settings.open_model),
+                                                         str(directory), guest=False)
+            env.update(model_env)
+            if files:
+                directory.mkdir(mode=0o700, exist_ok=True)
+                for name, content in files.items():
+                    with tempfile.NamedTemporaryFile(mode='w', dir=directory, delete=False) as config_file:
+                        config_file.write(content)
+                    os.replace(config_file.name, directory / name)
         command = profile.argv(self.settings)
         executable = self.settings.tool(profile.command[0])
         if not executable:

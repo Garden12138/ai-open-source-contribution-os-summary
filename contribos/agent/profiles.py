@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from contribos.agent.engine import AgentError
-from contribos.config import Settings
-from contribos.security import clean_environment
+from contribos.config import OpenModel, Settings
+from contribos.security import GITHUB_CREDENTIAL_VARS, clean_environment
 
 RETRYABLE = (r'rate.?limit', r'\b429\b', r'overload', r'\b503\b', r'temporar', r'timed? ?out', r'connection (?:reset|refused)', r'network', r'ECONNRESET')
 AUTH_ERRORS = (r'authenticat', r'unauthori[sz]ed', r'not logged in', r'login required', r'\b401\b', r'invalid.*(?:key|token)')
@@ -98,12 +98,14 @@ for path in config_dir.rglob("*"):
 @dataclass(frozen=True)
 class SbxProfile:
     workload: str
-    kit: str
-    auth_mode: str
+    kit: str | None
+    auth_mode: str | None
     service: str
     domains: tuple[str, ...]
     credential_probe: str = ''
     environment: dict[str, str] = field(default_factory=dict)
+    install: tuple[str, ...] = ()
+    command: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -128,6 +130,28 @@ class AgentProfile:
     modes: tuple[str, str] = ('plan', 'build')
     sbx_agent: str | None = None
     sbx: SbxProfile | None = None
+    accepted: bool = True
+    open_model: bool = False
+
+    def model_environment(self, model: OpenModel, directory: str, *, guest: bool) -> tuple[dict[str, str], dict[str, str]]:
+        """Return launch environment and non-secret, profile-specific configuration files."""
+        if not self.open_model:
+            return {}, {}
+        if not model.model:
+            raise AgentError('model_not_configured', 'Select the provider and model in Settings.')
+        base = 'https://api.deepseek.com/v1' if model.provider == 'deepseek' else (
+            f'http://{"host.docker.internal" if guest else "127.0.0.1"}:{model.xcli_port}/v1')
+        key = 'contribos-model-proxy' if guest else provider_key(model)
+        if self.id == 'opencode':
+            config = {'model': 'contribos/' + model.model, 'small_model': 'contribos/' + model.model,
+                      'enabled_providers': ['contribos'], 'permission': 'ask',
+                      'provider': {'contribos': {'npm': '@ai-sdk/openai-compatible', 'name': model.provider,
+                          'options': {'baseURL': base, 'apiKey': '{env:CONTRIBOS_PROVIDER_KEY}'},
+                          'models': {model.model: {'name': model.model}}}}}
+            return {'OPENCODE_CONFIG_CONTENT': json.dumps(config), 'CONTRIBOS_PROVIDER_KEY': key}, {}
+        # The 1.16 ACP subcommand reads AgentStore even when --override-with-envs is passed.
+        spec = {'llm': {'model': 'openai/' + model.model, 'base_url': base, 'usage_id': 'agent'}, 'tools': []}
+        return {'OPENAI_API_KEY': key, 'OPENHANDS_PERSISTENCE_DIR': directory}, {'agent_settings.json': json.dumps(spec)}
 
     def config_dir(self, settings: Settings) -> Path:
         return settings.home / 'agent-homes' / self.id
@@ -142,9 +166,15 @@ class AgentProfile:
         return self.render(self.command + self.host_args, settings)
 
     def env(self, settings: Settings) -> dict[str, str]:
-        return {k: v.replace('{config_dir}', str(self.config_dir(settings))) for k, v in self.environment.items()}
+        return self.isolated_env(str(self.config_dir(settings)))
+
+    def isolated_env(self, directory: str) -> dict[str, str]:
+        return {k: v.replace('{config_dir}', directory) for k, v in self.environment.items()}
 
     def login_hint(self, settings: Settings) -> str:
+        if self.open_model:
+            return (f'Select a model in Settings. Dedicated home: {self.config_dir(settings)}. '
+                    'DeepSeek uses DEEPSEEK_API_KEY in the backend environment.')
         env = ' '.join(f'{k}={shlex.quote(v)}' for k, v in self.env(settings).items()
                        if k == 'HOME' or k.endswith(('_HOME', '_DIR', '_CREDENTIAL_STORE')))
         return (env + ' ' + shlex.join(self.render(self.login_command, settings))).strip()
@@ -162,6 +192,33 @@ class AgentProfile:
         if any(re.search(p, text, re.I) for p in self.retryable_patterns):
             return AgentError('agent_unavailable', 'Agent is temporarily unavailable; continue to retry.', retryable=True)
         return AgentError('agent_request_failed')
+
+
+def provider_key(model: OpenModel) -> str:
+    key = os.environ.get('DEEPSEEK_API_KEY' if model.provider == 'deepseek' else 'CONTRIBOS_XCLI_API_KEY', '')
+    if model.provider == 'deepseek' and not key:
+        raise AgentError('model_key_missing', 'Set DEEPSEEK_API_KEY for the backend process.')
+    if key and (any(value in key for name in GITHUB_CREDENTIAL_VARS if (value := os.environ.get(name)))
+                or re.search(r'gh[pousr]_|github_pat_', key) or not re.fullmatch(r'[!-~]{1,4096}', key)):
+        raise AgentError('model_key_invalid', 'Check the model credential in the backend environment.')
+    return key or 'contribos-model-proxy'
+
+
+OPEN_HOME = {'HOME': '{config_dir}', 'USERPROFILE': '{config_dir}', 'XDG_CONFIG_HOME': '{config_dir}/.config',
+             'XDG_DATA_HOME': '{config_dir}/.local/share', 'XDG_CACHE_HOME': '{config_dir}/.cache',
+             'XDG_STATE_HOME': '{config_dir}/.local/state'}
+OPEN_WARNING = '尚待真实模型完成 ACP 接入验收。可通过 contribos chat 显式测试。'
+SHELL_KIT = 'docker.io/sbx/shell@sha256:a43a179b1c6b5100b59db6edc15b4a348f71e7d957f8d6f35368c3750525c9c6'
+INSTALL_OPENCODE = '''set -eu
+case "$(uname -m)" in aarch64) arch=arm64;; x86_64) arch=x64-baseline;; *) exit 1;; esac
+name=opencode-linux-$arch
+mkdir -p /home/agent/.local/bin
+curl -fsSL "https://registry.npmjs.org/$name/-/$name-1.19.6.tgz" -o /tmp/contribos-opencode.tgz
+tar -xOz -f /tmp/contribos-opencode.tgz package/bin/opencode > /home/agent/.local/bin/opencode
+chmod 755 /home/agent/.local/bin/opencode
+'''
+OPENCODE_FLAGS = {'OPENCODE_DISABLE_PROJECT_CONFIG': '1', 'OPENCODE_DISABLE_CLAUDE_CODE': '1',
+                  'OPENCODE_DISABLE_AUTOUPDATE': '1', 'OPENCODE_DISABLE_SHARE': '1'}
 
 
 PROFILES = {
@@ -211,6 +268,24 @@ PROFILES = {
         host_args=('--app-data-dir', 'contribos-antigravity', '--gemini-dir', '{config_dir}/gemini',
                    '--include-default-customizations=false', '--sandbox', '--log-file', '/dev/null'),
         isolation_warning='No reliable noninteractive login status command; verify login and personal MCP/plugin isolation in ACP acceptance.'),
+    'opencode': AgentProfile(
+        id='opencode', name='OpenCode', command=('opencode', 'acp'), detect=('opencode', 'acp', '--help'),
+        version=('opencode', '--version'), auth_check=('opencode', 'auth', 'list'), login_command=('opencode',),
+        auth_check_reliable=False, open_model=True, accepted=False, isolation_warning=OPEN_WARNING,
+        install_hint='npm install -g opencode-ai@1', config_isolation='Dedicated HOME and XDG directories.',
+        environment={**OPEN_HOME, **OPENCODE_FLAGS}, sbx_agent='shell',
+        sbx=SbxProfile(workload=SHELL_KIT, kit=None, auth_mode=None, service='openai', domains=(),
+                       install=('sh', '-c', INSTALL_OPENCODE), command=('/home/agent/.local/bin/opencode', 'acp'))),
+    'openhands': AgentProfile(
+        id='openhands', name='OpenHands', command=('openhands', 'acp'), detect=('openhands', 'acp', '--help'),
+        version=('openhands', '--version'), auth_check=('openhands', 'acp', '--help'), login_command=('openhands',),
+        auth_check_reliable=False, open_model=True, accepted=False, isolation_warning=OPEN_WARNING,
+        install_hint='uv tool install openhands==1.16.0 --python 3.12',
+        config_isolation='Dedicated HOME, XDG directories and per-workspace OpenHands persistence.',
+        environment=OPEN_HOME, sbx_agent='shell',
+        sbx=SbxProfile(workload=SHELL_KIT, kit=None, auth_mode=None, service='openai', domains=(),
+                       install=('uv', 'tool', 'install', '--python', '3.12', 'openhands==1.16.0'),
+                       command=('/home/agent/.local/bin/openhands', 'acp'))),
 }
 
 

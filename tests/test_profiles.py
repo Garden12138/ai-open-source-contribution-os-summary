@@ -142,3 +142,28 @@ def test_antigravity_login_and_acp_share_isolated_directories(tmp_path):
     assert '/' not in launch[launch.index('--app-data-dir') + 1]
     assert profile.env(settings)['HOME'] == str(profile.config_dir(settings))
     assert '--sandbox' in launch
+
+
+@pytest.mark.parametrize('name', ['opencode', 'openhands'])
+def test_model_configuration_and_diagnostic_isolation(name, tmp_path, monkeypatch):
+    import secrets
+    from contribos.config import OpenModel
+    from contribos.security import clean_environment
+
+    key = secrets.token_hex(24)
+    monkeypatch.setenv('DEEPSEEK_API_KEY', key)
+    profile = PROFILES[name]
+    assert not profile.accepted
+    model = OpenModel(model='selected-model')
+    env, files = profile.model_environment(model, str(tmp_path), guest=False)
+    assert key in env.values() and key not in str(files)
+    assert 'https://api.deepseek.com/v1' in str((env, files))
+    assert 'selected-model' in str((env, files))
+    guest, files = profile.model_environment(model, '/tmp/isolated', guest=True)
+    assert key not in str((guest, files))
+    contaminated = {name: '/personal' for name in ['OPENCODE_CONFIG', 'OPENHANDS_CONVERSATIONS_DIR', 'XDG_DATA_HOME', 'LLM_BASE_URL']}
+    assert '/personal' not in clean_environment(contaminated, tmp_path).values()
+    monkeypatch.setenv('GITHUB_TOKEN', key)
+    monkeypatch.setenv('DEEPSEEK_API_KEY', 'Bearer ' + key)
+    with pytest.raises(AgentError, match='model credential'):
+        profile.model_environment(model, str(tmp_path), guest=False)

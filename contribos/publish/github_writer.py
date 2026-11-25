@@ -11,7 +11,8 @@ from urllib.parse import quote
 import httpx
 
 from contribos.github import API, API_HEADERS, GitHubCredentials
-from contribos.publish.git_transfer import GitTransfer, github_url
+from contribos.publish.git_transfer import OID, GitTransfer, github_url
+from contribos.sandbox.host import safe_text
 
 
 class WriterError(RuntimeError):
@@ -30,6 +31,21 @@ class PullRequest:
     url: str
     state: str
     draft: bool
+    node_id: str | None = None
+    upstream_id: int | None = None
+    source_id: int | None = None
+
+
+@dataclass(frozen=True)
+class PublishedPull:
+    node_id: str
+    upstream_id: int
+    source_id: int
+    head: str
+    upstream_sha: str
+    draft: bool
+    title: str
+    body: str
 
 
 class WriterSession:
@@ -63,7 +79,7 @@ class WriterSession:
         return f'{account.login}/{name}'
 
     async def owned_repository(self, repo: str, account: Account, branch: str, default: str,
-                               *, commit: str | None = None) -> int:
+                               *, commit: str | None = None, upstream: str | None = None, existing_branch: bool = False) -> int:
         value = await self._request('GET', f'/repos/{repo}')
         if not isinstance(value, dict):
             raise WriterError('owned_destination_conflict')
@@ -79,12 +95,17 @@ class WriterSession:
             raise WriterError('owned_destination_conflict')
         if value.get('default_branch') != default:
             raise WriterError('default_branch_changed')
+        if upstream and (value.get('fork') is not True or not isinstance(value.get('parent'), dict)
+                         or str(value['parent'].get('full_name')).casefold() != upstream.casefold()):
+            raise WriterError('fork_destination_conflict')
         if branch == default or not re.fullmatch(r'contribos/issue-[1-9][0-9]*-[0-9a-f]{12}', branch):
             raise WriterError('unsafe_publish_branch')
         encoded = quote(branch, safe='')
         if await self._request('GET', f'/repos/{repo}/rules/branches/{encoded}') != []:
             raise WriterError('unsafe_publish_branch')
         existing = await self._request('GET', f'/repos/{repo}/branches/{encoded}', missing=True)
+        if existing is None and existing_branch:
+            raise WriterError('remote_branch_conflict')
         if existing is not None:
             if not isinstance(existing, dict) or existing.get('protected') is not False:
                 raise WriterError('unsafe_publish_branch')
@@ -127,12 +148,60 @@ class WriterSession:
     async def push(self, upstream: str, fork: str, branch: str, commit: str) -> str:
         return await self.transfer.push_new(upstream, fork, branch, commit, self._token)
 
+    async def inspect_pull(self, data: dict[str, Any], account: Account, heads: set[str] | None) -> PublishedPull:
+        repo, fork, branch = (data[key] for key in ('repo', 'fork', 'branch'))
+        if self.destination(repo, account).casefold() != fork.casefold() or account.id != data['publisher_id']:
+            raise WriterError('github_account_changed')
+        value = await self._request('GET', f'/repos/{repo}/pulls/{data["number"]}')
+        pull = self._pull(repo, value)
+        head, base = value.get('head'), value.get('base')
+        if (pull.number != data['number'] or pull.state != 'open' or not isinstance(head, dict)
+                or not isinstance(base, dict) or not isinstance(head.get('repo'), dict)
+                or not isinstance(base.get('repo'), dict) or head.get('ref') != branch
+                or base.get('ref') != data['default_branch'] or head['repo'].get('full_name', '').casefold() != fork.casefold()
+                or base['repo'].get('full_name', '').casefold() != repo.casefold()
+                or base['repo'].get('default_branch') != data['default_branch']):
+            raise WriterError('pull_request_conflict')
+        if not OID.fullmatch(head.get('sha') or '') or heads is not None and head['sha'] not in heads:
+            raise WriterError('remote_branch_conflict')
+        if (not isinstance(value.get('node_id'), str) or not value['node_id']
+                or not OID.fullmatch(base.get('sha') or '') or type(base['repo'].get('id')) is not int
+                or not isinstance(value.get('title'), str) or not isinstance(value.get('body') or '', str)):
+            raise WriterError('github_invalid_pull_request')
+        owned = repo.casefold() == fork.casefold()
+        source_id = await self.owned_repository(fork, account, branch, head['repo']['default_branch'],
+            commit=head['sha'], upstream=None if owned else repo, existing_branch=True)
+        if source_id != head['repo'].get('id') or owned and source_id != data['owned_repository_id']:
+            raise WriterError('owned_destination_conflict')
+        def clean(text: str) -> str:
+            return safe_text(text.replace(self._token, '[REDACTED]'))
+
+        return PublishedPull(value['node_id'], base['repo']['id'], source_id, head['sha'], base['sha'],
+                             pull.draft, clean(value['title']), clean(value.get('body') or ''))
+
+    async def push_followup(self, data: dict[str, Any]) -> str:
+        return await self.transfer.push_followup(data['repo'], data['fork'], data['branch'], data['commit_sha'],
+                                                 data['parent_sha'], self._token)
+
+    async def update_text(self, repo: str, number: int, title: str | None, body: str | None) -> None:
+        changes = {k: v for k, v in (('title', title), ('body', body)) if v is not None}
+        await self._request('PATCH', f'/repos/{repo}/pulls/{number}', body=changes)
+
+    async def mark_ready(self, node_id: str) -> None:
+        query = ('mutation Ready($id: ID!) { markPullRequestReadyForReview(input: {pullRequestId: $id}) '
+                 '{ pullRequest { id isDraft } } }')
+        value = await self._request('POST', '/graphql', body={'query': query, 'variables': {'id': node_id}})
+        if not isinstance(value, dict) or value.get('errors') or not value.get('data'):
+            raise WriterError('github_publish_request_failed')
+
     @staticmethod
     def _pull(repo: str, value: Any) -> PullRequest:
         number = value.get('number') if isinstance(value, dict) else None
         if type(number) is not int or not 0 < number < 2**63 or value.get('state') not in {'open', 'closed'}:
             raise WriterError('github_invalid_pull_request')
-        return PullRequest(number, f'https://github.com/{repo}/pull/{number}', value['state'], value.get('draft') is True)
+        return PullRequest(number, f'https://github.com/{repo}/pull/{number}', value['state'], value.get('draft') is True,
+                           value.get('node_id'), ((value.get('base') or {}).get('repo') or {}).get('id'),
+                           ((value.get('head') or {}).get('repo') or {}).get('id'))
 
     async def ensure_pull(self, repo: str, fork: str, branch: str, base: str, title: str, body: str,
                           commit: str) -> PullRequest:

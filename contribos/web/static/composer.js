@@ -28,7 +28,10 @@ export function mountComposer(root, path, refresh) {
   const stop = action('停止');
   const resume = action('继续');
   const controls = element('div', 'composer-actions');
-  controls.append(stop, resume, interrupt, send);
+  const agents = element('select');
+  agents.setAttribute('aria-label', '接手任务的 Agent');
+  const handoff = action('换 Agent 继续');
+  controls.append(agents, handoff, stop, resume, interrupt, send);
   const status = element('p', 'muted');
   status.setAttribute('role', 'status');
   form.append(phrases, input, controls, status);
@@ -39,6 +42,7 @@ export function mountComposer(root, path, refresh) {
   let feedback = '';
   let failed = false;
   let pendingMessage;
+  let pendingSwitch;
 
   function update() {
     const ready = ['ready', 'published'].includes(task?.status) && !task.deleting;
@@ -48,6 +52,7 @@ export function mountComposer(root, path, refresh) {
     const canSend = ready && !busy && Boolean(input.value.trim());
     input.disabled = !ready;
     phrases.querySelectorAll('button').forEach(button => { button.disabled = !ready; });
+    feedbackShortcut.hidden = task?.status !== 'published';
     send.disabled = !canSend;
     interrupt.hidden = !running;
     interrupt.disabled = !canSend;
@@ -57,6 +62,9 @@ export function mountComposer(root, path, refresh) {
       && ['sandbox_disk_limit', 'sandbox_disk_unavailable'].includes(task.last_error_code);
     resume.hidden = (!ready && !pausedSetup) || stopping || task?.agent_state === 'queued';
     resume.disabled = busy;
+    agents.hidden = handoff.hidden = !ready || !task?.switch_agents?.length;
+    agents.disabled = handoff.disabled = !ready || busy || stopping || queued > 0;
+    handoff.disabled ||= !agents.value;
     const activity = ready
       ? [running ? '运行中，发送的新消息将排队。' : '', queued ? `${queued} 轮等待执行。` : ''].filter(Boolean).join(' ')
       : (task?.status === 'setup_failed' ? '工作区准备失败。' : '工作区就绪后即可发送消息。');
@@ -76,6 +84,7 @@ export function mountComposer(root, path, refresh) {
         if (input.value === body.text) input.value = '';
         pendingMessage = undefined;
       }
+      if (endpoint === 'switch-agent') pendingSwitch = undefined;
       feedback = endpoint === 'interrupt' && !result.interrupted ? '当前没有可停止的轮次。' : '';
       await refresh();
     } catch (error) {
@@ -94,8 +103,10 @@ export function mountComposer(root, path, refresh) {
     mutate('messages', { ...pendingMessage, delivery });
   }
 
-  for (const phrase of shortcuts) {
+  let feedbackShortcut;
+  for (const phrase of [...shortcuts, '处理 review 意见']) {
     const button = action(phrase);
+    if (phrase === '处理 review 意见') feedbackShortcut = button;
     button.addEventListener('click', () => {
       input.value = phrase;
       input.focus();
@@ -120,10 +131,21 @@ export function mountComposer(root, path, refresh) {
   interrupt.addEventListener('click', () => sendMessage('interrupt'));
   stop.addEventListener('click', () => mutate('interrupt'));
   resume.addEventListener('click', () => mutate('continue'));
+  agents.addEventListener('change', update);
+  handoff.addEventListener('click', () => {
+    if (pendingSwitch?.agent !== agents.value) {
+      pendingSwitch = { agent: agents.value, client_message_id: crypto.randomUUID() };
+    }
+    mutate('switch-agent', pendingSwitch);
+  });
   update();
 
   return {
     update(next) {
+      if (JSON.stringify(next.switch_agents) !== JSON.stringify(task?.switch_agents)) {
+        agents.replaceChildren(new Option('选择 Agent', ''),
+          ...(next.switch_agents || []).map(agent => new Option(agent.name, agent.id)));
+      }
       task = next;
       update();
     },

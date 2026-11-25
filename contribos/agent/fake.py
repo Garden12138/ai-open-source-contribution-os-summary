@@ -4,7 +4,10 @@ import asyncio
 import uuid
 from collections.abc import AsyncIterator
 
+from acp.schema import TextContentBlock
+
 from contribos.agent.engine import AgentCapabilities, AgentError, ContentBlock, EngineEvent, RequestResponse, TaskContext, TurnResult
+from contribos.tasks.instructions import recovery_prompt
 
 
 class FakeEngine:
@@ -19,12 +22,14 @@ class FakeEngine:
         self.prompts: list[list[ContentBlock]] = []
         self.cancelled = asyncio.Event()
         self.session_id: str | None = None
+        self.task: TaskContext | None = None
         self.running = False
         self.closed = False
 
     async def ensure_session(self, task: TaskContext) -> str:
         if self.closed:
             raise AgentError('engine_closed')
+        self.task = task
         self.session_id = task.session_id or self.session_id or uuid.uuid4().hex
         task.session_id = self.session_id
         return self.session_id
@@ -36,6 +41,8 @@ class FakeEngine:
             raise AgentError('turn_running')
         self.running = True
         self.cancelled.clear()
+        if self.task and self.task.recap_pending:
+            blocks = [TextContentBlock(text=recovery_prompt(self.task)), *blocks]
         self.prompts.append(blocks)
         try:
             script = self.scripts.pop(0) if self.scripts else []
@@ -59,6 +66,8 @@ class FakeEngine:
             if self.hold_turn and not self.cancelled.is_set():
                 await self.cancelled.wait()
             reason = 'cancelled' if self.cancelled.is_set() else 'end_turn'
+            if self.task and reason == 'end_turn':
+                self.task.recap_pending = False
             self.queue.put_nowait(EngineEvent('turn.completed', {'stop_reason': reason}))
             return TurnResult(reason)
         finally:

@@ -253,7 +253,7 @@ def test_forced_cancel_kills_real_child_and_restores_session(tmp_path, monkeypat
                 original_sid = store.get(tid)['session_id']
                 supervisor.send(tid, 'Run a long test', 'long')
                 pidfile = Path(runtime.context.repo_dir) / 'child-pid'
-                await until(pidfile.exists)
+                await until(lambda: pidfile.exists() and pidfile.read_text().isdigit())
                 pid = int(pidfile.read_text())
                 assert process_info(pid)
                 assert supervisor.interrupt(tid)
@@ -453,6 +453,47 @@ def test_supervisor_limits_concurrent_running_turns(tmp_path):
                 assert supervisor.interrupt(ids[0])
                 await until(lambda: store.get(ids[2])['agent_state'] == 'running')
                 assert store.get(ids[0])['agent_state'] == 'idle'
+            finally:
+                await supervisor.shutdown()
+    asyncio.run(check())
+
+
+def test_switch_agent_starts_new_acp_session_with_live_workspace_and_history(tmp_path, monkeypatch):
+    script = Path(__file__).with_name('fake_acp_agent.py')
+    for name in ('codex', 'cursor'):
+        monkeypatch.setitem(PROFILES, name, replace(PROFILES[name], command=(sys.executable, str(script)),
+                            environment={'FAKE_ACP_SCENARIO': 'echo'}))
+
+    async def check():
+        settings = Settings(home=tmp_path / 'local')
+        repo = tmp_path / 'source'
+        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+        subprocess.run(['git', '-C', str(repo), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
+                        'commit', '--allow-empty', '-qm', 'Initial'], check=True)
+        with closing(connect(settings.database_path)) as db:
+            migrate(db)
+            store = TaskStore(db)
+            supervisor = TaskSupervisor(settings, store, issue_loader=issue_loader,
+                sandbox_factories={'host': lambda: HostSandbox(settings, clone_source=str(repo))})
+            try:
+                tid = await start(supervisor, store)
+                supervisor.send(tid, 'Conversation before handoff')
+                with pytest.raises(TaskError, match='current turn'):
+                    supervisor.send(tid, CONTINUE_PROMPT, 'switch', kind='recap', switch_to='cursor')
+                await until(lambda: store.get(tid)['agent_state'] == 'idle')
+                runtime = supervisor.runtimes[tid]
+                previous = runtime.engine
+                Path(runtime.context.repo_dir, 'handoff.txt').write_text('freshly edited')
+                turn = supervisor.send(tid, CONTINUE_PROMPT, 'switch', kind='recap', switch_to='cursor')
+                await until(lambda: store.get(tid)['agent_state'] == 'idle')
+                assert supervisor.send(tid, CONTINUE_PROMPT, 'switch', kind='recap', switch_to='cursor')['id'] == turn['id']
+                assert previous.closed and runtime.profile.id == store.get(tid)['agent_profile'] == 'cursor'
+                history = supervisor.events.history(tid)
+                assert len([e for e in history if e.type == 'system.session_recreated']) == 1
+                messages = [e.payload['text'] for e in history if e.type == 'message.agent' and e.turn_id == turn['id']]
+                assert any(all(txt in message for txt in ('You are a contribution agent', 'Conversation before handoff',
+                           'handoff.txt', 'freshly edited')) for message in messages)
+                assert store.get(tid)['recap_pending'] == 0
             finally:
                 await supervisor.shutdown()
     asyncio.run(check())

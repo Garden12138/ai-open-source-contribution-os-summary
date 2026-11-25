@@ -30,3 +30,22 @@ CLI 新任务默认使用沙箱。本机验收时加 `--isolation host`，按提
 | Codex | 官方 kit 与 ACP mixin 通过 M2 编辑、测试、取消和恢复实测。 | 订阅 OAuth 存宿主钥匙串，sbx 代理注入，VM 中为占位值。 |
 | Cursor | v2026.11.22-e9042b2 的官方无挂载 kit 提供 ACP 命令。M7 仍待用户在 VM 内完成 OAuth 登录后验证推理、取消与恢复，当前仅开放本机直跑。 | OAuth 登录由沙箱触发，Docker 文档说明令牌交换由宿主代理接管。本次 VM 未登录。 [Docker Cursor 文档](https://docs.docker.com/ai/sandboxes/agents/cursor/) |
 | Antigravity | 已用官方 Linux 安装器构建 v3 mixin，在无挂载的 shell VM 内运行了 `agy acp --help`。真实 ACP 返回 `authentication_required`，推理、取消与恢复待验。当前仅开放本机直跑。 | 临时 VM 使用独立配置，未导入宿主账号；登录后的凭据位置待实测。 [Google ACP 文档](https://antigravity.google/docs/cli/acp/) |
+
+### M8 开源 Agent
+
+2026-11-25，在同一个用户测试 Issue 的独立无挂载 shell VM 中使用真实 CLI。金丝雀是只返回 401 的回环 HTTP 服务，本次没有可用的推理模型。设置页列出两个 profile 及原因，任务与审查选择器在完成以下待验项后开放。
+
+| Agent | 隔离 | 版本 | 3.4.8 验收结果 |
+| --- | --- | --- | --- |
+| OpenCode | sbx | 1.19.6 | 1、5 通过，指定工作区建立 ACP 会话，停止进程和 VM 后恢复原会话。8 中的 401 实测映射为不可重试。2 的上下文读取、3、4、6、7、其他真实服务错误待验。 |
+| OpenHands | sbx | 1.16.0 | 1、5 通过，指定工作区建立 ACP 会话，停止进程和 VM 后恢复原会话。8 中的 401 实测映射为不可重试。2 的上下文读取、3、4、6、7、其他真实服务错误待验。 |
+| OpenCode | host | 本机未安装 | 1–8 待验；专用 HOME 和 XDG 配置已由离线测试覆盖。 |
+| OpenHands | host | 本机未安装 | 1–8 待验；专用 HOME、XDG 与任务内独立配置目录已由离线测试覆盖。 |
+
+在设置页选择模型服务并填写服务提供的模型 ID。DeepSeek 读取后端进程环境中的 `DEEPSEEK_API_KEY`。xcli 需要提供 OpenAI 兼容接口的宿主回环网关，填入监听端口，可选密钥使用 `CONTRIBOS_XCLI_API_KEY`。本机安装的 xcli 2.1.0 的 `serve` 提供任务 API，无法用于模型验收。
+
+沙箱中通过 `host.docker.internal` 访问回环网关。网络策略只向当前 VM 放行 `POST /v1/chat/completions`。两款 CLI 的实际模型请求均命中指定路径并携带指定模型 ID，其他路径的探针遭到阻断。受控凭据实测使用 sbx 的按沙箱 `set-custom`，目标主机为规范化后的 `localhost`。VM 仅接收占位值，金丝雀核实了代理替换。DeepSeek 使用相同的凭据机制，目标限定为 `api.deepseek.com`，真实推理待验。[Docker 网络规则](https://docs.docker.com/ai/governance/local/network-rules/)
+
+两款 profile 在 shell VM 内安装 CLI。本次检查的官方 OpenCode kit 使用 2.4.1 并附带多个服务和通配出网许可；当前接入针对 1.x。OpenHands 1.16.0 的 ACP 入口读取专用 AgentStore，平台为它提供不含密钥的模型设置文件。其实际模型请求包含 terminal、file_editor 和 task_tracker 工具。[OpenCode 1.19.6](https://github.com/anomalyco/opencode/releases/tag/v1.19.6) · [OpenHands CLI](https://github.com/OpenHands/OpenHands-CLI)
+
+有真实模型后，设置 `CONTRIBOS_IT_AGENTS=opencode,openhands`、`CONTRIBOS_IT_ISSUE_URL` 和 `CONTRIBOS_IT_MODEL`。DeepSeek 需要上述密钥，兼容网关另设 `CONTRIBOS_IT_MODEL_PROVIDER=xcli` 和 `CONTRIBOS_IT_XCLI_PORT`。沙箱选用 `CONTRIBOS_IT_SBX=1 pytest -q -m sandbox tests/test_agents_integration.py`。本机安装 CLI 后，可用 `CONTRIBOS_IT_TRUST_REPO=1 pytest -q -m agents` 在明确选择信任的自有仓库上运行；人工权限卡片与个人 MCP/插件对照通过 `contribos chat --agent opencode|openhands` 检查。

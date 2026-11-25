@@ -4,6 +4,16 @@ import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class OpenModel(BaseModel):
+    model_config = ConfigDict(extra='forbid', frozen=True)
+    provider: Literal['xcli', 'deepseek'] = 'deepseek'
+    model: str = Field(default='', max_length=150, pattern=r'^([a-zA-Z0-9][a-zA-Z0-9._:/-]*)?$')
+    xcli_port: int = Field(default=8317, strict=True, ge=1024, le=65535)
 
 
 def default_home() -> Path:
@@ -17,6 +27,7 @@ class Settings:
     port: int = 8765
     tool_paths: dict[str, str] = field(default_factory=dict, compare=False)
     login_path_resolved: bool | None = None
+    open_model: dict = field(default_factory=dict, compare=False)
 
     def tool(self, name: str) -> str | None:
         return shutil.which(self.tool_paths.get(name) or name)

@@ -96,7 +96,8 @@ class DiscoveryService:
 
     def scheduled_scan(self, local_time: datetime) -> None:
         day = local_time.date().isoformat()
-        if (local_time.strftime('%H:%M') == self.store.setting('scan_time', '09:00')
+        if (self.store.setting('auto_scan_enabled', True)
+                and local_time.strftime('%H:%M') == self.store.setting('scan_time', '09:00')
                 and self.store.setting('last_scheduled_scan_day') != day):
             self.start()
             self.store.set_setting('last_scheduled_scan_day', day)

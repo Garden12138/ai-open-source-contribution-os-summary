@@ -60,3 +60,14 @@ test('a host-only Agent disables sandbox choices and still requires local availa
   assert.equal(isolationAvailable(agent, 'sbx'), false);
   assert.equal(isolationAvailable({ ...agent, installed: false }, 'host'), false);
 });
+
+test('contribution calendar aligns weeks from Monday and includes leap days', async () => {
+  const { calendar, prStatus } = await import('../contributions.js');
+  const dates = calendar(2024);
+  assert.equal(dates[0], '2024-01-01');
+  assert.equal(dates.length, 366);
+  assert.equal(dates.at(-1), '2024-12-31');
+  assert.equal(calendar(2025).indexOf('2025-01-01'), 2);
+  assert.equal(prStatus({ state: 'closed', draft: true, merged: true }), '已合并');
+  assert.equal(prStatus({ state: 'closed', draft: true, merged: false }), '已关闭');
+});

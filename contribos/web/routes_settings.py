@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 from contribos.agent.profiles import PROFILES
+from contribos.config import OpenModel
 from contribos.discovery.domain import DiscoveryRules
 from contribos.sandbox.resources import ResourceLimits
 from contribos.sandbox.sbx import normalize_egress_domains
@@ -25,6 +26,7 @@ class Preferences(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
     scan_time: str = Field(default='09:00', pattern=r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+    auto_scan_enabled: StrictBool = True
     preferred_languages: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
         default_factory=lambda: list(DiscoveryRules().preferred_languages), max_length=30)
     strategic_keywords: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
@@ -33,6 +35,7 @@ class Preferences(BaseModel):
     trusted_owners: list[Owner] = Field(default_factory=list, max_length=1000)
     default_agent: str = 'codex'
     review_agent: str | None = None
+    open_model: OpenModel = Field(default_factory=OpenModel)
     sandbox_backend: Literal['sbx', 'container'] = 'sbx'
     first_turn_policy: Literal['plan', 'implement'] = 'plan'
     resource_limits: ResourceLimits = Field(default_factory=ResourceLimits)
@@ -56,7 +59,7 @@ class Preferences(BaseModel):
     @field_validator('default_agent', 'review_agent')
     @classmethod
     def validate_agent(cls, agent: str | None) -> str | None:
-        if agent is not None and agent not in PROFILES:
+        if agent is not None and (agent not in PROFILES or not PROFILES[agent].accepted):
             raise ValueError('Unknown Agent.')
         return agent
 
@@ -85,7 +88,7 @@ async def get_settings(request: Request) -> dict[str, Any]:
         **settings,
         'available_isolation': list(supervisor.sandboxes),
         'tools': TOOLS,
-        'agent_profiles': [{'id': profile.id, 'name': profile.name} for profile in PROFILES.values()],
+        'agent_profiles': [{'id': profile.id, 'name': profile.name} for profile in PROFILES.values() if profile.accepted],
     })
 
 
@@ -93,6 +96,10 @@ async def get_settings(request: Request) -> dict[str, Any]:
 async def save_settings(request: Request, body: Preferences) -> dict[str, Any]:
     store = request.app.state.supervisor.store
     values = {name: getattr(body, name) for name in body.model_fields_set}
+    if 'open_model' in values:
+        if body.open_model.provider == 'xcli' and body.open_model.xcli_port == request.app.state.settings.port:
+            raise TaskError('invalid_model_endpoint', 'Choose the inference gateway port.', 422)
+        values['open_model'] = body.open_model.model_dump()
     if 'resource_limits' in values:
         previous = store.setting('resource_limits', DEFAULTS['resource_limits'])
         values['resource_limits'] = {**previous, **body.resource_limits.model_dump(exclude_unset=True)}
@@ -107,4 +114,6 @@ async def save_settings(request: Request, body: Preferences) -> dict[str, Any]:
         paths = request.app.state.settings.tool_paths
         paths.clear()
         paths.update(body.tool_paths)
+    if 'open_model' in values:
+        request.app.state.settings.open_model.update(values['open_model'])
     return await get_settings(request)

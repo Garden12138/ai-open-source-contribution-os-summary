@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 from contribos import __version__
-from contribos.agent.profiles import agent_statuses
+from contribos.agent.profiles import PROFILES, agent_statuses
 from contribos.config import Settings, server_origin, validate_bind_host
 from contribos.security import redact, without_github_credentials
 
@@ -189,13 +189,24 @@ def main(argv: list[str] | None = None) -> int:
     diagnostics = commands.add_parser("doctor", help="Check prerequisites and show the last sandbox probe")
     diagnostics.add_argument("--probe-sandbox", action="store_true", help="Test isolation in a disposable task VM")
     commands.add_parser("agents", help="Check Agent installation, isolated login and configuration")
+    legacy = commands.add_parser("import-legacy", help="Import discovery data and published GitHub PRs from a legacy database")
+    legacy.add_argument("--db", type=Path, required=True, help="Read-only legacy SQLite database")
     chat = commands.add_parser("chat", help="Chat with an ACP Agent in an independent workspace")
     chat.add_argument("issue_url", nargs="?")
-    chat.add_argument("--agent", choices=("codex", "cursor", "antigravity"), default="codex")
+    chat.add_argument("--agent", choices=tuple(PROFILES), default="codex")
     chat.add_argument("--isolation", choices=("host", "sbx"), help="Choose trusted host execution or a Docker Sandbox")
     chat.add_argument("--trust-repo", action="store_true", help="Explicitly trust this repository and choose host execution")
     chat.add_argument("--resume", metavar="TASK_ID", help="Continue a task using its saved isolation")
     args = parser.parse_args(argv)
+    if args.command == "import-legacy":
+        from contribos.legacy import import_legacy
+        try:
+            counts = import_legacy(args.db, Settings().database_path)
+        except (ValueError, IndexError, TypeError, OSError, sqlite3.Error, OverflowError):
+            print("legacy_import_failed: Could not read or import the legacy database.", file=sys.stderr)
+            return 1
+        print("Imported " + ", ".join(f"{value} {key}" for key, value in counts.items()))
+        return 0
     if args.command == "chat":
         from contribos.tasks.chat import run_chat
         if bool(args.issue_url) == bool(args.resume):
